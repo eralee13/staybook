@@ -1,0 +1,14 @@
+header form, header .status, header .homelink, .head, footer, .modal .closeBtn{
+    display: none;
+}
+/*.admin .modal{*/
+/*    position: relative;*/
+/*}*/
+.admin .modal-content{
+    left: 0;
+    margin-left: 60px;
+    max-width: 100%;
+}
+.admin .modal-content .download, .admin .modal-content .print{
+    display: none;
+}

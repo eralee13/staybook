@@ -1,0 +1,54 @@
+# Laravel
+/vendor
+/node_modules
+
+#local config openserver
+/osp
+
+# Environment
+.env
+.env.backup
+.env.*.local
+
+# Logs & Debugging
+/storage/logs
+/storage/framework/cache
+/storage/framework/views
+/storage/framework/sessions
+/storage/framework/testing
+/storage/app/public
+
+# Laravel Cache
+bootstrap/cache/*
+
+# Database files
+/database/database.sqlite
+/database/database.sqlite-journal
+
+# Public storage (if using symbolic links)
+public/storage
+
+# IDE & Editor files
+.idea
+.vscode
+*.sublime-project
+*.sublime-workspace
+
+# Composer & NPM
+composer.lock
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# PHPUnit
+phpunit.xml
+phpunit.xml.cache
+
+# Docker
+.docker
+docker-compose.yml
+docker-compose.override.yml
+
+# Mac & System files
+.DS_Store
+Thumbs.db
