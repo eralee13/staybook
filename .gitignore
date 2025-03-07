@@ -4,6 +4,7 @@
 
 #local config openserver
 .osp
+public_html
 
 # Environment
 .env
