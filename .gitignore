@@ -3,7 +3,7 @@
 /node_modules
 
 #local config openserver
-.osp
+/.osp
 public_html
 
 # Environment
