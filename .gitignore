@@ -11,11 +11,11 @@ public_html
 
 # Logs & Debugging
 /storage/logs
-/storage/framework/cache
-/storage/framework/views
-/storage/framework/sessions
-/storage/framework/testing
-/storage/app/public
+/storage/framework/cache/*
+/storage/framework/views/*
+/storage/framework/sessions/*
+/storage/framework/testing/*
+/storage/app/public/*
 
 # Laravel Cache
 bootstrap/cache/*
@@ -25,7 +25,7 @@ bootstrap/cache/*
 /database/database.sqlite-journal
 
 # Public storage (if using symbolic links)
-public/storage
+public/storage/
 
 # IDE & Editor files
 .idea
@@ -45,8 +45,6 @@ phpunit.xml.cache
 
 # Docker
 .docker
-docker-compose.yml
-docker-compose.override.yml
 
 # Mac & System files
 .DS_Store
