@@ -1,6 +1,7 @@
 # Laravel
 /vendor
 /node_modules
+/storage/*
 
 #local config openserver
 /.osp
