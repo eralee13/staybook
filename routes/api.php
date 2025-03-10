@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\API\V1\Tourmind\TourmindHotelStaticListController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,3 +28,6 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\API\V1'], f
     Route::apiResource('childs', ChildController::class);
     Route::apiResource('books', BookingController::class);
 });
+
+Route::post('/v1/tmhotels', [TourmindHotelStaticListController::class, 'fetchHotels']);
+
