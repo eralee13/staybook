@@ -111,13 +111,13 @@
                                 <div class="col-md-12">
                                     <div class="dashboard-item">
                                         <div class="name">@lang('admin.amenities')</div>
-                                        <h6>{{ $hotel->amenity->services }}</h6>
+                                        <h6>{{ $hotel->amenity->services ?? ''}}</h6>
                                     </div>
                                 </div>
                                 <div class="col-md-12">
                                     <div class="dashboard-item">
                                         <div class="name">@lang('admin.payment')</div>
-                                        <h6>{{ $hotel->payment->payments }}</h6>
+                                        <h6>{{ $hotel->payment->payments ?? ''}}</h6>
                                     </div>
                                 </div>
                             </div>
@@ -316,13 +316,13 @@
                             <div class="col-md-12">
                                 <div class="dashboard-item">
                                     <div class="name">@lang('admin.amenities')</div>
-                                    <h6>{{ $hotel->service->services }}</h6>
+                                    <h6>{{ $hotel->service->services ?? '' }}</h6>
                                 </div>
                             </div>
                             <div class="col-md-12">
                                 <div class="dashboard-item">
                                     <div class="name">@lang('admin.payment')</div>
-                                    <h6>{{ $hotel->payment->payments }}</h6>
+                                    <h6>{{ $hotel->payment->payments ?? '' }}</h6>
                                 </div>
                             </div>
                         </div>

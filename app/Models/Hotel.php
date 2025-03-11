@@ -36,8 +36,21 @@ class Hotel extends Model
         'top',
         'user_id',
         'exely_id',
+        'tourmind_id',
         'status'
     ];
+
+    // protected $guarded = [
+    //     'description',
+    //     'address',
+    //     'checkin',
+    //     'checkout',
+    //     'early_in',
+    //     'late_out',
+    //     'top',
+    //     'user_id',
+    //     'exely_id'
+    // ];
 
     public function rooms()
     {

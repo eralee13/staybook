@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\Tourmind\HotelStaticList;
 
-class TourmindHotelStaticListController extends Controller
+class HotelStaticListController extends Controller
 {
     protected $HotelStaticList;
 
@@ -18,9 +18,10 @@ class TourmindHotelStaticListController extends Controller
     public function fetchHotels(Request $request)
     {
         $requestData = $request->all();
-        $data = $this->HotelStaticList->getHotelList($requestData);
+        $data = $this->HotelStaticList->getHotelListForAllCountries($requestData);
         
         return response()->json($data);
     }
+    
 }
 
