@@ -34,7 +34,7 @@
                                 });
                             </script>
                             <div class="phone"><span>@lang('main.hphone')</span> <a
-                                        href="tel:{{ $room->hotel->phone }}">{{
+                                    href="tel:{{ $room->hotel->phone }}">{{
                 $room->hotel->phone
                 }}</a></div>
                             <div class="address"><span>@lang('main.address')</span> {{ $room->hotel->__('address') }}
@@ -47,11 +47,11 @@
                         <div class="price">@lang('main.price')
                             @php
                                 //$comission = \Illuminate\Support\Facades\Auth::user()->comission;
-                                $plan = \App\Models\Category::where('room_id', $room->id)->first();
+                                $plan = \App\Models\Rate::where('room_id', $room->id)->first();
                                 $now = \Carbon\Carbon::now();
                                 $date = \Carbon\Carbon::createFromFormat('Y-m-d H:s:i', $now);
-                                $child = \App\Models\Child::where('room_id', $room->id)->first();
-                                $cat = \App\Models\Category::where('room_id', $room->id)->first();
+                                $child = \App\Models\Accommodation::where('room_id', $room->id)->first();
+                                $cat = \App\Models\Rate::where('room_id', $room->id)->first();
                                 $rule = \App\Models\Rule::where('id', $cat->rule_id ?? '')->first();
                             @endphp
                             $ {{ $room->price }}
@@ -66,18 +66,19 @@
                                 }}</h3>
                                     <input type="hidden" name="room_id" value="{{ $room->id}}">
                                     <input type="hidden" name="hotel_id" value="{{$room->hotel->id}}">
+                                    <input type="hidden" name="user_id" value="{{ $user }}">
+                                    <input type="hidden" name="book_token" value="{{ $random }}">
                                     <div class="form-group">
                                         <label class="col-xs-4" for="end_d">@lang('main.date')</label>
                                         <input type="text" id="date" class="date">
-                                        <input type="hidden" id="start_d" name="start_d"
+                                        <input type="hidden" id="start_d" name="arrivalDate"
                                                value="{{ date('Y-m-d H:s:i') }}">
-                                        <input type="hidden" id="end_d" name="end_d" value="{{ $date->addDays(1) }}">
-
+                                        <input type="hidden" id="end_d" name="departureDate" value="{{ $date->addDays(1) }}">
                                     </div>
                                     <div class="form-group">
                                         @include('auth.layouts.error', ['fieldname' => 'count'])
                                         <label class="col-xs-4" for="count">@lang('main.search-count')</label>
-                                        <select name="count" id="count" onchange="countCheck(this);" required>
+                                        <select name="adult" id="count" onchange="countCheck(this);" required>
                                             <option value="">@lang('main.choose')</option>
                                             <option value="1">1</option>
                                             <option value="2">2</option>
@@ -96,7 +97,7 @@
                                     @isset($child)
                                         <div class="form-group">
                                             <label for="">@lang('main.count_child')</label>
-                                            <select name="countc" id="countc" onchange="ageCheck(this);">
+                                            <select name="child" id="countc" onchange="ageCheck(this);">
                                                 <option value="">@lang('main.choose')</option>
                                                 @if($child->extra_place == 1)
                                                     <option value="1">1</option>
@@ -357,7 +358,7 @@
                                     </div>
 
                                     <input type="hidden" name="book_id" value="{{ $random }}">
-                                    <input type="hidden" name="status" value="@lang('main.paid')">
+                                    <input type="hidden" name="status" value="Reserved">
 
                                     <script>
                                         $("#count, #countc, #date, #age1, #age2, #age3").change(function () {
@@ -443,11 +444,11 @@
                             @if($room->bed != '')
                                 <p><i class="fa-light fa-bed"></i> @lang('main.bed'): {{$room->bed}}</p>
                             @endif
-                                @empty($plan->food->title)
+                            @empty($plan->food->title)
 
-                                @else
-                                    <p><i class="fa-light fa-mug-saucer"></i> {{$plan->food->title}}</p>
-                                @endempty
+                            @else
+                                <p><i class="fa-light fa-mug-saucer"></i> {{$plan->food->title}}</p>
+                            @endempty
 
                             @if($room->hotel->early_in != '')
                                 <p><i class="fa-light fa-calendar-days"></i> @lang('main.early')
@@ -464,10 +465,10 @@
 
                         </div>
                         <div class="servlisting">
-                            <h5>@lang('main.services'):</h5>
+                            <h5>@lang('main.amenities'):</h5>
                             <div class="row">
                                 @php
-                                    $services = explode(', ', $room->hotel->service->services);
+                                    $services = explode(', ', $room->hotel->amenity->services);
                                 @endphp
                                 @foreach($services as $service)
                                     <div class="col-md-4">

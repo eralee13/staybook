@@ -25,7 +25,7 @@ return [
     |
     | This value determines the "environment" your application is currently
     | running in. This may determine how you prefer to configure various
-    | services the application utilizes. Set this in your ".env" file.
+    | amenities the application utilizes. Set this in your ".env" file.
     |
     */
 
@@ -146,22 +146,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Autoloaded Service Providers
+    | Autoloaded Amenity Providers
     |--------------------------------------------------------------------------
     |
     | The service providers listed here will be automatically loaded on the
-    | request to your application. Feel free to add your own services to
+    | request to your application. Feel free to add your own amenities to
     | this array to grant expanded functionality to your applications.
     |
     */
 
     'providers' => ServiceProvider::defaultProviders()->merge([
         /*
-         * Package Service Providers...
+         * Package Amenity Providers...
          */
 
         /*
-         * Application Service Providers...
+         * Application Amenity Providers...
          */
         App\Providers\AppServiceProvider::class,
         App\Providers\AuthServiceProvider::class,

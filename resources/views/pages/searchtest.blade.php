@@ -24,74 +24,10 @@
             <div class="page rooms search sf">
                 <div class="container">
                     <ul class="tabs">
-                        <li class="tab-link current" id="maptab" data-tab="tab-1">@lang('main.on_map')</li>
-                        <li class="tab-link" data-tab="tab-2">@lang('main.list')</li>
-                        
+                        <li class="tab-link current" data-tab="tab-1">@lang('main.list')</li>
+                        <li class="tab-link" data-tab="tab-2">@lang('main.on_map')</li>
                     </ul>
                     <div id="tab-1" class="tab-content current">
-                        <style>
-                            .leaflet-popup-content {
-                                width: auto;
-                                max-width: 100%; /* максимальная ширина */
-                                white-space: normal; /* разрешаем перенос текста */
-                            }
-                        </style>
-                        <!-- Подключение стилей Leaflet -->
-                        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-
-                        <div id="map" style="width: 100%; height: 500px;"></div>
-
-                        <!-- Подключение скрипта Leaflet -->
-                        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-                        <script>
-                                var map = L.map('map').setView([0, 0], 10);
-                        
-                                // Добавление слоя OpenStreetMap
-                                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                                    attribution: ''
-                                }).addTo(map);
-                        
-                                // Массив отелей из Blade
-                                var hotels = [
-                                    @foreach($hotels as $hotel)
-                                        {
-                                            "name": "{{ Illuminate\Support\Str::limit(strip_tags($hotel->title ?? ''), 100) }}",
-                                            "lat": {{ $hotel->lat }},
-                                            "lng": {{ $hotel->lng }},
-                                            "url": "{{ route('hotel', $hotel->code ?? '') }}"
-                                        },
-                                    @endforeach
-                                ];
-                        
-                                // Добавление маркеров на карту
-                                hotels.forEach(function(hotel) {
-                                    L.marker([hotel.lat, hotel.lng]).addTo(map)
-                                        .bindPopup('<b><a target="_blank" href="' + hotel.url + '">' + hotel.name + '</a></b>')
-                                        .openPopup();
-                                });
-                        
-                                // Масштабируем карту под все маркеры
-                                if (hotels.length > 0) {
-                                    var bounds = L.latLngBounds(hotels.map(h => [h.lat, h.lng]));
-                                    map.fitBounds(bounds);
-                                }
-                        
-                                // Добавление масштаба
-                                L.control.scale().addTo(map);
-                                
-
-                                document.addEventListener("DOMContentLoaded", function () {
-                                    document.querySelector('#maptab').addEventListener('shown.bs.tab', function () {
-                                        map.invalidateSize();
-                                    });
-                                });
-                        </script>
-
-                            
-                        
-                    </div>
-                    <div id="tab-2" class="tab-content">
                         @if($hotels->isNotEmpty())
                         @foreach($hotels as $hotel)
                             @include('layouts.cardsearchtest')
@@ -166,7 +102,7 @@
 {{--                                                            if($count_day != null){--}}
 {{--                                                                $price = ($cat->room->price + $cat->food->price) * $count * $count_day;--}}
 {{--                                                            } else {--}}
-{{--                                                                $fprice = \App\Models\Food::where('title_en', $cat->food_id)->first();--}}
+{{--                                                                $fprice = \App\Models\Meal::where('title_en', $cat->food_id)->first();--}}
 {{--                                                                $fprice = $fprice->price;--}}
 {{--                                                                $price = ($cat->room->price + $fprice) * $count;--}}
 {{--                                                            }--}}
@@ -185,7 +121,39 @@
 {{--                            </div>--}}
 {{--                        @endforeach--}}
                     </div>
-                    
+                    <div id="tab-2" class="tab-content">
+                        <script src="https://maps.api.2gis.ru/2.0/loader.js"></script>
+                        <div id="map" style="width: 100%; height: 500px;"></div>
+                        <script>
+                            DG.then(function () {
+                                var map = DG.map('map', {
+                                    center: [42.855608, 74.618626],
+                                    zoom: 12
+                                });
+
+                                @foreach($hotels as $hotel)
+                                DG.marker([{{ $hotel->lat ?? '' }}, {{ $hotel->lng ?? '' }}], {
+                                    scrollWheelZoom:
+                                        false
+                                }).addTo(map).bindLabel('<a target="_blank" href="{{ route('hotel', $hotel->code ?? '')
+                                        }}">{{Illuminate\Support\Str::limit(strip_tags($hotel->title ?? ''),12)
+                                        }}</a>', {
+                                    static: true
+                                });
+                                @endforeach
+                            });
+
+                            function countCheck(that) {
+                                if (that.value == 2) {
+                                    document.getElementById("title").style.display = "block";
+                                    document.getElementById("title2").style.display = "block";
+                                } else {
+                                    document.getElementById("title").style.display = "block";
+                                    document.getElementById("title2").style.display = "none";
+                                }
+                            }
+                        </script>
+                    </div>
                 </div>
             </div>
 
@@ -257,7 +225,7 @@
                                                         {{--                                                            if($count_day != null){--}}
                                                         {{--                                                                $price = ($cat->room->price + $cat->food->price) * $count * $count_day;--}}
                                                         {{--                                                            } else {--}}
-                                                        {{--                                                                $fprice = \App\Models\Food::where('title_en', $cat->food_id)->first();--}}
+                                                        {{--                                                                $fprice = \App\Models\Meal::where('title_en', $cat->food_id)->first();--}}
                                                         {{--                                                                $fprice = $fprice->price;--}}
                                                         {{--                                                                $price = ($cat->room->price + $fprice) * $count;--}}
                                                         {{--                                                            }--}}

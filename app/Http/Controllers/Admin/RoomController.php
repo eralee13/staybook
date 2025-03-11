@@ -7,9 +7,9 @@ use App\Http\Requests\RoomRequest;
 use App\Mail\RoomCreateMail;
 use App\Mail\RoomDeleteMail;
 use App\Mail\RoomUpdateMail;
-use App\Models\Cat;
-use App\Models\Category;
-use App\Models\Child;
+use App\Models\CategoryRoom;
+use App\Models\Rate;
+use App\Models\Accommodation;
 use App\Models\Hotel;
 use App\Models\Image;
 use App\Models\Room;
@@ -99,9 +99,9 @@ class RoomController extends Controller
             $params['bed'] = implode(', ', $request->bed);
         }
 
-        unset($params['services']);
-        if($request->has('services')){
-            $params['services'] = implode(', ', $request->services);
+        unset($params['amenities']);
+        if($request->has('amenities')){
+            $params['amenities'] = implode(', ', $request->services);
         }
 
         unset($params['image']);
@@ -124,7 +124,7 @@ class RoomController extends Controller
             endforeach;
         endif;
 
-        Mail::to('info@timmedia.store')->send(new RoomCreateMail($request));
+        //Mail::to('info@timmedia.store')->send(new RoomCreateMail($request));
         session()->flash('success', 'Room ' . $request->title . ' created');
         return redirect()->route('rooms.index');
     }
@@ -145,7 +145,7 @@ class RoomController extends Controller
     {
         $hotel = $request->session()->get('hotel_id');
         $hotels = Hotel::all();
-        $cats = Cat::all();
+        $cats = CategoryRoom::all();
         $services = explode(', ', $room->services);
         $images = Image::where('room_id', $room->id)->get();
         return view('auth.rooms.form', compact('room', 'hotels', 'images', 'hotel', 'services', 'cats'));
@@ -165,10 +165,10 @@ class RoomController extends Controller
 //            $params['bed'] = implode(', ', $request->bed);
 //        }
 
-        // services
-        unset($params['services']);
-        if($request->has('services')){
-            $params['services'] = implode(', ', $request->services);
+        // amenities
+        unset($params['amenities']);
+        if($request->has('amenities')){
+            $params['amenities'] = implode(', ', $request->services);
         }
 
         // image
@@ -210,8 +210,8 @@ class RoomController extends Controller
     {
         $room->delete();
         Storage::delete($room->image);
-        Category::where('room_id', $room->id)->get();
-        Child::where('room_id', $room->id)->get();
+        Rate::where('room_id', $room->id)->get();
+        Accommodation::where('room_id', $room->id)->get();
         $images = Image::where('room_id', $room->id)->get();
         foreach ($images as $image){
             Storage::delete($image->image);

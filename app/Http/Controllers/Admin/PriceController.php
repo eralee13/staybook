@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Book;
-use App\Models\Category;
+use App\Models\Rate;
 use App\Models\Hotel;
 use App\Models\Room;
 use Carbon\Carbon;
@@ -24,7 +24,7 @@ class PriceController extends Controller
     {
         $hotels = Hotel::all();
         $hotel_id = $request->session()->get('hotel_id');
-        $categories = Category::where('hotel_id', $hotel_id)->get();
+        $categories = Rate::where('hotel_id', $hotel_id)->get();
         $bookings = Book::where('hotel_id', $hotel_id)->where('price', '!=', null)->get();
         $rooms = Room::where('hotel_id', $hotel_id)->get();
         $events = array();
@@ -57,7 +57,7 @@ class PriceController extends Controller
 
     public function store(Request $request)
     {
-        $plan = Category::where('id', $request->room_id)->first();
+        $plan = Rate::where('id', $request->room_id)->first();
         $params = $request->all();
 
         Book::create($params);

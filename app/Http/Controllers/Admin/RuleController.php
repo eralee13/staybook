@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RuleRequest;
-use App\Models\Category;
+use App\Models\Rate;
 use App\Models\Product;
 use App\Models\Room;
 use App\Models\Rule;
@@ -52,7 +52,7 @@ class RuleController extends Controller
         //Mail::to('info@timmedia.store')->send(new RoomCreateMail($request));
 
         session()->flash('success', 'Rule ' . $request->title . ' created');
-        return redirect()->route('categories.index');
+        return redirect()->route('rates.index');
     }
 
     /**
@@ -74,7 +74,7 @@ class RuleController extends Controller
         $rule->update($params);
         //Mail::to('info@timmedia.store')->send(new RoomUpdateMail($request));
         session()->flash('success', 'Rule ' . $request->title . ' updated');
-        return redirect()->route('categories.index');
+        return redirect()->route('rates.index');
     }
 
     /**
@@ -84,9 +84,9 @@ class RuleController extends Controller
     {
 
         $rule->delete();
-        Category::where('rule_id', $rule->id)->update(['rule_id' => null]);
+        Rate::where('rule_id', $rule->id)->update(['rule_id' => null]);
         //Mail::to('info@timmedia.store')->send(new RoomDeleteMail($room));
         session()->flash('success', 'Rule ' . $rule->title . ' deleted');
-        return redirect()->route('categories.index');
+        return redirect()->route('rates.index');
     }
 }

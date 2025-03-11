@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Book;
-use App\Models\Category;
-use App\Models\Food;
+use App\Models\Rate;
+use App\Models\Meal;
 use App\Models\Hotel;
 use App\Models\Room;
 use Carbon\Carbon;
@@ -24,10 +24,10 @@ class BookingController extends Controller
     public function index(Request $request)
     {
         $hotel_id = $request->session()->get('hotel_id');
-        $categories = Category::where('hotel_id', $hotel_id)->get();
-        $foods = Food::all();
+        $categories = Rate::where('hotel_id', $hotel_id)->get();
+        $foods = Meal::all();
         $hotels = Hotel::all();
-        $bookings = Book::where('hotel_id', $hotel_id)->where('quote', '!=', null)->get();
+        $bookings = Book::where('hotel_id', $hotel_id)->where('adult', '!=', null)->get();
         $rooms = Room::where('hotel_id', $hotel_id)->get();
         $events = array();
         $removed = Book::onlyTrashed()->get();
@@ -44,8 +44,8 @@ class BookingController extends Controller
                 //'countc' => $booking->countc,
                 'sum' => $booking->sum,
                 'status' => $booking->status,
-                'start' => $booking->start_d,
-                'end' => $booking->end_d,
+                'arrivalDate' => $booking->arrivalDate,
+                'departureDate' => $booking->departureDate,
             ];
         }
         return view('auth.books.index', compact('events', 'bookings', 'removed', 'rooms', 'categories', 'foods', 'hotels', 'hotel_id'));
@@ -62,16 +62,14 @@ class BookingController extends Controller
     {
         $params = $request->all();
         //dd($params);
-        if($request->start_d == null){
-            unset($params['start_d']);
-            $params['start_d'] = Carbon::now()->format('Y-m-d');
+        if($request->arrivalDate == null){
+            unset($params['arrivalDate']);
+            $params['arrivalDate'] = Carbon::now()->format('Y-m-d');
         }
         if($request->end_d == null){
-            unset($params['end_d']);
-            $params['end_d'] = Carbon::now()->addDay()->format('Y-m-d');
+            unset($params['departureDate']);
+            $params['departureDate'] = Carbon::now()->addDay()->format('Y-m-d');
         }
-
-
         Book::create($params);
         session()->flash('success', 'Booking created');
         return redirect()->route('bookings.index');
@@ -92,10 +90,10 @@ class BookingController extends Controller
             ], 404);
         }
         $booking->update([
-            'start_d' => $request->start_d,
-            'end_d' => $request->end_d
+            'arrivalDate' => $request->arrivalDate,
+            'departureDate' => $request->departureDate
         ]);
-        return response()->json('Event updated');
+        return response()->json('Booking updated');
     }
 
     public function destroy(Book $book)

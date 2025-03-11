@@ -58,15 +58,9 @@
 
             </div>
             <div class="col-md-4">
-                @empty($hotel)
-                    @else
-                @if($hotel->status == 1)
                 <div class="status active"><i class="fa-solid fa-circle"></i> @lang('admin.active')</div>
-                    @else
-                    <div class="status"><i class="fa-solid fa-circle"></i> @lang('admin.disable')</div>
-                @endif
-                @endempty
-                    <ul class="lang d-xl-inline-block d-lg-inline-block d-none">
+
+                <ul class="lang d-xl-inline-block d-lg-inline-block d-none">
                         <li class="
                             @if(session('locale')=='ru')
                                 current
@@ -148,7 +142,7 @@
 @yield('content')
 
 <footer>
-    @can('edit-page')
+    @can('edit-contact')
     <div class="bottom">
         <div class="container">
             <div class="row">
@@ -191,11 +185,11 @@
         });
     });
 
-    $(document).ready(function () {
-        $('#country').selectize({
-            sortField: 'text'
-        });
-    });
+    // $(document).ready(function () {
+    //     $('#country').selectize({
+    //         sortField: 'text'
+    //     });
+    // });
 </script>
 
 </body>

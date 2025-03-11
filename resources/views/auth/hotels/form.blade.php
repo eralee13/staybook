@@ -70,8 +70,6 @@
                             ($hotel) ?
                             $hotel->description_en : null) }}</textarea>
                         </div>
-                        
-                        
                         <script src="https://cdn.tiny.cloud/1/yxonqgmruy7kchzsv4uizqanbapq2uta96cs0p4y91ov9iod/tinymce/6/tinymce.min.js"
                                 referrerpolicy="origin"></script>
                         <script src="https://cdn.ckeditor.com/ckeditor5/35.1.0/classic/ckeditor.js"></script>
@@ -87,7 +85,6 @@
                                     console.error(error);
                                 });
                         </script>
-                        
 
                         <div class="row">
                             <div class="col-md-6">
@@ -295,27 +292,26 @@
                                         height: 500px;
                                     }
                                 </style>
-                                
+
                                 <!-- Подключение стилей Leaflet -->
                                 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 
-                                <div id="map" style="width: 100%; height: 500px;"></div>
-    
+                                <div id="map"></div>
+
                                 <!-- Подключение скрипта Leaflet -->
                                 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
                                 <script>
                                     var lat = {{ old('lat', isset($hotel) ? $hotel->lat : 42.8746) }};  // Если нет данных, по умолчанию Москва
                                     var lng = {{ old('lng', isset($hotel) ? $hotel->lng : 74.6120) }};
-                                    
-                                    // Инициализация карты с центром на Москве
-                                    var map = L.map('map').setView([lat, lng], 20);
-                            
+
+                                    var map = L.map('map').setView([lat, lng], 15);
+
                                     // Добавление слоя OpenStreetMap
                                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                                     }).addTo(map);
-                                    
+
                                     var marker = null; // Переменная для хранения последнего маркера
 
                                     // Если есть начальные координаты, устанавливаем маркер
@@ -324,7 +320,7 @@
                                             .bindPopup('Широта: ' + lat.toFixed(6) + '<br>Долгота: ' + lng.toFixed(6))
                                             .openPopup();
                                     }
-                                    
+
                                     // // Добавление масштаба
                                     L.control.scale().addTo(map);
 
@@ -332,8 +328,8 @@
                                     map.on('click', function(e) {
                                         var lat = e.latlng.lat;  // Широта
                                         var lng = e.latlng.lng;  // Долгота
-                                        
-                                         // Удаление старого маркера, если он есть
+
+                                        // Удаление старого маркера, если он есть
                                         if (marker) {
                                             map.removeLayer(marker);
                                         }
@@ -345,18 +341,11 @@
                                         // Добавление маркера на выбранную точку
                                         if (lat && lng) {
                                             marker = L.marker([lat, lng]).addTo(map)
-                                            .bindPopup('Широта: ' + lat.toFixed(6) + '<br>Долгота: ' + lng.toFixed(6))
-                                            .openPopup();
+                                                .bindPopup('Широта: ' + lat.toFixed(6) + '<br>Долгота: ' + lng.toFixed(6))
+                                                .openPopup();
                                         }
                                     });
                                 </script>
-
-                        
-                                <style>
-                                    #map {
-                                        height: 500px;
-                                    }
-                                </style>
                             </div>
                             <div class="col-md-6">
                                 @include('auth.layouts.error', ['fieldname' => 'lat'])

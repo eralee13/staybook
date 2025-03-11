@@ -46,20 +46,20 @@
                                                     <div class="form-group">
                                                         <input type="hidden" name="hotel_id"
                                                                value="{{$rooms->firstOrFail()->hotel_id}}">
-                                                    </div>
-                                                    <div class="form-group">
                                                         <input type="hidden" name="room_id" id="room_id">
+{{--                                                        <input type="hidden" name="category_id" id="category_id">--}}
                                                         <input type="hidden" class="form-control" name="title"
                                                                id="title" value="{{ Auth::user()->name }}"/>
                                                         <input type="hidden" class="form-control" name="email"
                                                                id="email" value="{{ Auth::user()->email }}"/>
-                                                        <input type="hidden" class="form-control" name="sum"
-                                                               id="email" value="1"/>
+                                                        <input type="hidden" class="form-control" name="phone"
+                                                               id="phone" value="{{ Auth::user()->phone }}"/>
+                                                        <input type="hidden" class="form-control" name="sum" value="1"/>
                                                     </div>
                                                     <div class="form-group">
-                                                        <label class="col-xs-4" for="count">@lang('admin.quotes')
+                                                        <label class="col-xs-4" for="adult">@lang('admin.quotes')
                                                         </label>
-                                                        <select name="quote" id="quote" required>
+                                                        <select name="adult" id="adult" required>
                                                             <option value="0">0</option>
                                                             <option value="1">1</option>
                                                             <option value="2">2</option>
@@ -76,11 +76,10 @@
                                                     <div class="form-group">
                                                         @lang('admin.date')
                                                         <input type="text" id="date">
-                                                        <input type="hidden" id="start_d" name="start_d">
-                                                        <input type="hidden" id="end_d" name="end_d">
+                                                        <input type="hidden" name="arrivalDate" id="arrival">
+                                                        <input type="hidden" name="departureDate" id="departure">
                                                     </div>
                                                     <button class="more" id="saveBtn">@lang('admin.book')</button>
-
                                                 </form>
                                             </div>
                                         </div>

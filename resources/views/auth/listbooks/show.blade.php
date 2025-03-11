@@ -47,9 +47,9 @@
                         <div class="col-md-4">
                             <div class="dashboard-item">
                                 <div class="name">@lang('admin.count')</div>
-                                <div>{{ $book->count }} @lang('admin.adult')</div>
-                                @if($book->countc > 0)
-                                    <div>{{ $book->countc }} @lang('admin.child')</div>
+                                <div>{{ $book->adult }} @lang('admin.adult')</div>
+                                @if($book->child > 0)
+                                    <div>{{ $book->child }} @lang('admin.child')</div>
                                 @endif
                             </div>
                         </div>
@@ -66,7 +66,7 @@
                         <div class="col-md-4">
                             <div class="dashboard-item">
                                 @php
-                                    //$category = \App\Models\Category::where('room_id', $book->room_id)->firstOrFail();
+                                    //$category = \App\Models\Rate::where('room_id', $book->room_id)->firstOrFail();
                                     $room = \App\Models\Room::where('id', $book->room_id)->first();
                                 @endphp
                                 <div class="img"><img src="{{ Storage::url($room->image) }}"></div>
@@ -84,9 +84,6 @@
                             </div>
                         </div>
                         <div class="col-md-4">
-
-                            {{-- <img src="https://maps.googleapis.com/maps/api/staticmap?center=Berkeley,CA&amp;zoom=13&amp;size=400x400&amp;key=AIzaSyA3kg7YWugGl1lTXmAmaBGPNhDW9pEh5bo&amp;signature=45D4gqkHrzXqD1o0ucV_geljI6A=" alt=""> --}}
-
                             <div class="dashboard-item">
                                 <div class="name">@lang('admin.dates_of_stay')</div>
                                 {{ $book->showStartDate() }} - {{ $book->showEndDate() }}
@@ -109,27 +106,23 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6">
-
                             @php
-                                
                                 $lat = old('lat', isset($room->hotel->lat) ? $room->hotel->lat : 42.8746);
                                 $lng = old('lng', isset($room->hotel->lng) ? $room->hotel->lng : 74.6120);
                                 $zoom = 15;
                                 $width = 500;
-                                $height = 200;
+                                $height = 180;
 
                                 // Генерируем URL статического изображения карты
                                 $mapUrl = "https://static-maps.yandex.ru/1.x/?ll=$lng,$lat&size={$width},{$height}&z=$zoom&l=map&pt=$lng,$lat,pm2rdl";
-                                
+
                             @endphp
 
                             @if($lat && $lng)
-                                <img src="{{ $mapUrl }}" alt="Карта" style="width:100%; height: 200px; max-width:500px;">
+                                <img src="{{ $mapUrl }}" alt="Карта" style="width:100%; height: 180px; max-width:480px;">
                             @else
                                 <p>Координаты карты не указаны</p>
                             @endif
-
-                            
                         </div>
                     </div>
                 </div>

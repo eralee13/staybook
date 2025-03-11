@@ -3,16 +3,6 @@
 <html lang="ru">
 
 <head>
-    <meta charset="utf-8">
-
-    <title>@yield('title') - StayBook</title>
-    <meta name="description" content="">
-
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-
-    <!-- Template Basic Images Start -->
-    <meta property="og:image" content="path/to/image.jpg">
     <link rel="icon" href="{{route('index')}}/img/favicon.jpg">
     <link rel="apple-touch-icon" sizes="180x180" href="{{route('index')}}/img/favicon.jpg">
     <!-- Template Basic Images End -->

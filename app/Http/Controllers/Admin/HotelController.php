@@ -79,10 +79,10 @@ class HotelController extends Controller
             endforeach;
         endif;
 
-        DB::table('services')->insert(
+        DB::table('amenities')->insert(
             array(
                 'hotel_id' => $hotel->id,
-                'services' => '1',
+                'amenities' => '1',
             )
         );
         DB::table('payments')->insert(
@@ -201,7 +201,7 @@ class HotelController extends Controller
                 'rules' => $pathname2,
             ]);
 
-        Mail::to('info@timmedia.store')->send(new HotelUpdateMail($request));
+        //Mail::to('info@timmedia.store')->send(new HotelUpdateMail($request));
 
         session()->flash('success', $request->title . ' updated');
         return redirect()->route('hotels.show', $hotel);
@@ -224,10 +224,10 @@ class HotelController extends Controller
         DB::table('images')->where('hotel_id', $hotel->id)->delete();
         DB::table('bills')->where('hotel_id', $hotel->id)->delete();
         DB::table('rooms')->where('hotel_id', $hotel->id)->delete();
-        DB::table('categories')->where('hotel_id', $hotel->id)->delete();
-        DB::table('childs')->where('hotel_id', $hotel->id)->delete();
+        DB::table('rates')->where('hotel_id', $hotel->id)->delete();
+        DB::table('accommodations')->where('hotel_id', $hotel->id)->delete();
         DB::table('rules')->where('hotel_id', $hotel->id)->delete();
-        DB::table('services')->where('hotel_id', $hotel->id)->delete();
+        DB::table('amenities')->where('hotel_id', $hotel->id)->delete();
         DB::table('payments')->where('hotel_id', $hotel->id)->delete();
         Mail::to('info@timmedia.store')->send(new HotelDeleteMail($hotel));
         session()->flash('success', 'Property ' . $hotel->title . ' deleted');

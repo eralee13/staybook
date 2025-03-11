@@ -10,7 +10,7 @@ use Illuminate\Support\ServiceProvider;
 class ViewServiceProvider extends ServiceProvider
 {
     /**
-     * Register services.
+     * Register amenities.
      */
     public function register(): void
     {
@@ -18,7 +18,7 @@ class ViewServiceProvider extends ServiceProvider
     }
 
     /**
-     * Bootstrap services.
+     * Bootstrap amenities.
      */
     public function boot(): void
     {

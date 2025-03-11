@@ -1,7 +1,7 @@
 @php
     //$rooms = \App\Models\Room::where('hotel_id', $hotel->id)->orderBy('price', 'asc')->get();
-    //$cats = \App\Models\Category::where('hotel_id', $hotel->id)->where('title', $request->title)->where('food_id', $request->food_id)->orderBy('price', 'asc')->take(1)->get();
-    $query = \App\Models\Category::with('room', 'food', 'rule', 'child');
+    //$categoryRooms = \App\Models\Rate::where('hotel_id', $hotel->id)->where('title', $request->title)->where('food_id', $request->food_id)->orderBy('price', 'asc')->take(1)->get();
+    $query = \App\Models\Rate::with('room', 'food', 'rule', 'child');
 
     //food
     if ($request->filled('food_id')) {
@@ -40,7 +40,7 @@
         <div class="end">@lang('main.end_d') {{ $hotel->checkout ?? '' }}</div>
         <div class="title">{{ $hotel->__('title') ?? '' }}</div>
         <div class="address">{{ $hotel->__('address') ?? '' }}</div>
-        {{--        <div class="services">{{ $hotel->service->services }}</div>--}}
+        {{--        <div class="amenities">{{ $hotel->service->amenities }}</div>--}}
         @isset($rooms)
             <div class="room" style="margin-top: 20px">
 
@@ -65,7 +65,7 @@
                                             </li>
                                         @endisset
                                         {{--                                    @php--}}
-                                        {{--                                        $ch = \App\Models\Child::where('room_id', $room->id)->first();--}}
+                                        {{--                                        $ch = \App\Models\Accommodation::where('room_id', $room->id)->first();--}}
                                         {{--                                    @endphp--}}
                                         {{--                                    @isset($ch)--}}
                                         {{--                                        @if($ch->price_extra != 0)--}}
@@ -80,7 +80,7 @@
                                     if($count_day != null){
                                         $price = $room->price * $count * $count_day ?? 80;
                                     } else {
-                                        //$fprice = \App\Models\Food::where('title_en', $cat->food_id)->first();
+                                        //$fprice = \App\Models\Meal::where('title_en', $cat->food_id)->first();
                                         //$fprice = $fprice->price;
                                         $price = $room->price * $count ?? 80;
                                     }

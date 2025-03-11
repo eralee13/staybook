@@ -5,8 +5,8 @@
         @can('edit-book')
             <li @routeactive('listbooks.index')><a href="{{route('listbooks.index')}}"><i class="fa-regular
             fa-bell-concierge"></i> @lang('admin.bookings')</a></li>
-            <li @routeactive('servic*')><a href="{{ route('services.index')}}"><i class="fa-regular
-            fa-bell-concierge"></i> @lang('admin.services')</a></li>
+            <li @routeactive('servic*')><a href="{{ route('amenities.index')}}"><i class="fa-regular
+            fa-bell-concierge"></i> @lang('admin.amenities')</a></li>
             <li @routeactive('payment*')>
             <a href="{{ route('payments.index')}}"><i class="fa-regular fa-money-bill"></i> @lang('admin.payment')</a>
             </li>

@@ -17,17 +17,24 @@ class Room extends Model
         'title_en',
         'description',
         'description_en',
-        'image',
         'hotel_id',
+        'category_id',
         'count',
-        'status',
         'bed',
         'area',
         'services',
         'price',
         'price2',
+        'image',
         'user_id',
-        'cat_id'
+        'exely_id',
+        'status',
+    ];
+
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+        'deleted_at'
     ];
 
     public function hotel()
@@ -35,14 +42,19 @@ class Room extends Model
         return $this->belongsTo(Hotel::class);
     }
 
+    public function category()
+    {
+        return $this->belongsTo(CategoryRoom::class);
+    }
+
     public function book()
     {
         return $this->belongsTo(Book::class);
     }
 
-    public function category()
+    public function rate()
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(Rate::class);
     }
 
 //    public function rooms()
@@ -60,19 +72,14 @@ class Room extends Model
         return $query->where('code', $code);
     }
 
-    public function food()
+    public function meal()
     {
-        return $this->belongsTo(Food::class);
+        return $this->belongsTo(Meal::class);
     }
 
     public function rule()
     {
         return $this->belongsTo(Rule::class);
-    }
-
-    public function cat()
-    {
-        return $this->belongsTo(Cat::class);
     }
 
 }

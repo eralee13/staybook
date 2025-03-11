@@ -9,16 +9,19 @@
     <link rel="apple-touch-icon" sizes="180x180" href="{{route('index')}}/img/favicon.jpg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
-          rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/gh/eliyantosarage/font-awesome-pro@main/fontawesome-pro-6.5.1-web/css/all.min.css"
-          rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
+        rel="stylesheet">
+    <link
+        href="https://cdn.jsdelivr.net/gh/eliyantosarage/font-awesome-pro@main/fontawesome-pro-6.5.1-web/css/all.min.css"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"/>
     <link href="
 https://cdn.jsdelivr.net/npm/sweetalert2@11.12.1/dist/sweetalert2.min.css
 " rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/gh/eliyantosarage/font-awesome-pro@main/fontawesome-pro-6.5.1-web/css/all.min.css"
-          rel="stylesheet">
+    <link
+        href="https://cdn.jsdelivr.net/gh/eliyantosarage/font-awesome-pro@main/fontawesome-pro-6.5.1-web/css/all.min.css"
+        rel="stylesheet">
     <link rel="stylesheet" href="/css/main.min.css">
     <link rel="stylesheet" href="{{route('index')}}/css/admin.css">
     <link rel="stylesheet" href="{{route('index')}}/css/main.min.css">
@@ -84,11 +87,11 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.12.1/dist/sweetalert2.min.css
                             fa-hotel"></i> @lang('admin.hotels')</a></li>
                             <li @routeactive(
                             'bookings.index')><a href="{{route('bookings.index')}}"><i
-                                        class="fa-regular
+                                    class="fa-regular
                             fa-tag"></i> @lang('admin.rates_and_availability')</a></li>
                             <li @routeactive(
                             'listbooks.index')><a href="{{route('listbooks.index')}}"><i
-                                        class="fa-regular fa-tag"></i> @lang('admin.bookings')</a></li>
+                                    class="fa-regular fa-tag"></i> @lang('admin.bookings')</a></li>
                             <li @routeactive(
                             'rooms.index')><a href="{{route('rooms.index')}}"><i class="fas
                             fa-booth-curtain"></i> @lang('admin.rooms')</a></li>
@@ -100,7 +103,7 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.12.1/dist/sweetalert2.min.css
                 </div>
                 <div class="col-md-4 person">
                     <a href="{{route('profile.edit')}}"><i
-                                class="fa-regular fa-address-card"></i>
+                            class="fa-regular fa-address-card"></i>
                         @auth
                             @php
                                 echo \Illuminate\Support\Facades\Auth::user()->name
@@ -110,7 +113,7 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.12.1/dist/sweetalert2.min.css
                         @endauth
                     </a>
                     <a href="{{route('logout')}}" class="delete"><i
-                                class="fa-regular fa-door-open"></i> @lang('admin.logout')</a>
+                            class="fa-regular fa-door-open"></i> @lang('admin.logout')</a>
                 </div>
             </div>
         </div>
@@ -180,9 +183,10 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.12.1/dist/sweetalert2.min.css
                     @foreach($bookings as $booking)
                 {
                     resourceId: '{{ $booking->room_id }}',
-                    title: '{{ $booking->quote }}',
-                    start: '{{ $booking->start_d }}',
-                    end: '{{ $booking->end_d }}'
+                    title: '{{ $booking->adult }}',
+                    start: '{{ $booking->arrivalDate }}',
+                    end: '{{ $booking->departureDate }}',
+                    //category_id: '{{ $booking->category_id }}'
                 },
                 @endforeach
             ],
@@ -193,45 +197,50 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.12.1/dist/sweetalert2.min.css
                 },
                 {
                     labelText: 'Тариф',
-                    field: 'title'
+                    field: 'title',
                 },
                 {
                     labelText: '@lang('admin.price')',
                     field: 'price'
                 },
+                {
+                    labelText: 'ID',
+                    field: 'cat'
+                },
 
             ],
             resources: [
-                    @foreach($categories as $room)
+                    @foreach($categories as $category)
                     @php
-                        $r = \App\Models\Room::where('id', $room->room_id)->first();
-                        $f = \App\Models\Category::where('room_id', $room->room_id)->first();
+                        $room = \App\Models\Room::where('id', $category->room_id)->first();
                     @endphp
                 {
-                    id: '{{$r->id}}', building: '{{ $r->title }}', title: '{{$room->title}}', price:
-                        '$ ' + {{ $r->price }}
+                    id: '{{$room->id}}', building: '{{ $room->title }}', title: '{{$category->title}}', price:
+                        '$ ' + {{ $room->price }}, ca: '{{ $category->id }}'
                 },
                 @endforeach
             ],
             dateClick: function (info) {
                 $("#room_id").val(info.resource.id);
-                let start_d = info.startStr;
-                let end_d = info.endStr;
-                $("#start_d").val(start_d);
-                $("#end_d").val(end_d);
+                //$("#category_id").val(info.resource.cat);
+                let arrival = info.startStr;
+                let departure = info.endStr;
+                $("#arrival").val(arrival);
+                $("#departure").val(departure);
             },
             select: function (info) {
                 $("#room_id").val(info.resource.id);
-                let start_d = info.startStr;
-                let end_d = info.endStr;
-                $("#start_d").val(start_d);
-                $("#end_d").val(end_d);
+                //$("#category_id").val(info.resource.cat);
+                let arrival = info.startStr;
+                let departure = info.endStr;
+                $("#arrival").val(arrival);
+                $("#departure").val(departure);
                 $("#show_modal").modal("show");
             },
             selectHelper: true,
             selectable: true,
             validRange: {
-                start: '2023-12-31',
+                start: '2024-12-31',
                 end: '2030-12-31'
             },
 
@@ -308,8 +317,8 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.12.1/dist/sweetalert2.min.css
         "endDate": moment(new Date(),).add(1, 'days'),
         "minDate": new Date(),
     }, function (start, end, label) {
-        $('#start_d').val(start.format('YYYY-MM-DD'));
-        $('#end_d').val(end.format('YYYY-MM-DD'));
+        $('#arrival').val(start.format('YYYY-MM-DD'));
+        $('#departure').val(end.format('YYYY-MM-DD'));
 
     });
 
@@ -325,7 +334,5 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.12.1/dist/sweetalert2.min.css
 
 </script>
 
-
 </body>
-
 </html>

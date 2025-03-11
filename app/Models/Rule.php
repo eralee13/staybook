@@ -22,6 +22,11 @@ class Rule extends Model
         'date_book'
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
+
     public function hotel()
     {
         return $this->belongsTo(Hotel::class);
@@ -34,7 +39,7 @@ class Rule extends Model
 
     public function category()
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(Rate::class);
     }
 
 }
