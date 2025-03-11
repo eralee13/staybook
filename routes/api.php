@@ -3,6 +3,7 @@
 use App\Http\Controllers\API\V1\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\API\V1\Tourmind\TourmindHotelStaticListController;
 
 /*
 |--------------------------------------------------------------------------
@@ -59,4 +60,6 @@ Route::prefix('v1')->middleware(['throttle:api', 'auth:sanctum'])->group(functio
     Route::fallback(function () {
         return response()->json(['Not found'], 404);
     });
+
+    Route::post('/v1/tmhotels', [TourmindHotelStaticListController::class, 'fetchHotels']);
 });
