@@ -79,7 +79,7 @@ return [
     'search-extra' => 'Доп место',
     'search-include' => 'Питание',
     'all-rooms' => 'Показать все номера',
-    'services' => 'Услуги',
+    'amenities' => 'Услуги',
     'amenities' => 'Удобства',
     'payments' => 'Способы оплаты',
     'list' => 'Списком',

@@ -6,9 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class Image extends Model
 {
-    protected $fillable = ['room_id', 'image'];
+    protected $fillable = ['room_id', 'image', 'exely_id'];
 
-    public function rooms(){
+    public function rooms()
+    {
         return $this->belongsToMany(Room::class);
     }
 }

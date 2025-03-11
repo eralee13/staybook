@@ -44,15 +44,18 @@
                                                            id="title" value="{{ Auth::user()->name }}"/>
                                                     <input type="hidden" class="form-control" name="email"
                                                            id="email" value="{{ Auth::user()->email }}"/>
+                                                    <input type="hidden" class="form-control" name="phone"
+                                                           id="phone" value="{{ Auth::user()->phone }}"/>
                                                     <input type="hidden" class="form-control" name="sum" value="1"/>
+                                                    <input type="hidden" class="form-control" name="adult" value="1"/>
                                                     <div class="form-group">
                                                         <label class="col-xs-4" for="count">@lang('admin.price')</label>
                                                         <input type="text" name="price">
                                                     </div>
                                                     <div class="form-group">
                                                         <input type="text" id="date">
-                                                        <input type="hidden" id="start_d" name="start_d">
-                                                        <input type="hidden" id="end_d" name="end_d">
+                                                        <input type="hidden" id="arrival" name="arrivalDate">
+                                                        <input type="hidden" id="departure" name="departureDate">
                                                     </div>
                                                     <button class="more" id="saveBtn">@lang('admin.book')</button>
                                                 </form>

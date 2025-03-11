@@ -3,7 +3,6 @@
 @section('title', $hotel->__('title'))
 
 @section('content')
-
     @php
         $role = \Spatie\Permission\Models\Role::where('id', 3)->first();
     @endphp
@@ -111,8 +110,8 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="dashboard-item">
-                                        <div class="name">@lang('admin.services')</div>
-                                        <h6>{{ $hotel->service->services }}</h6>
+                                        <div class="name">@lang('admin.amenities')</div>
+                                        <h6>{{ $hotel->amenity->services }}</h6>
                                     </div>
                                 </div>
                                 <div class="col-md-12">
@@ -316,7 +315,7 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="dashboard-item">
-                                    <div class="name">@lang('admin.services')</div>
+                                    <div class="name">@lang('admin.amenities')</div>
                                     <h6>{{ $hotel->service->services }}</h6>
                                 </div>
                             </div>
@@ -398,8 +397,4 @@
             </div>
         </div>
     @endif
-
-
-
-
 @endsection

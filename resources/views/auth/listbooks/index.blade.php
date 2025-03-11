@@ -48,9 +48,10 @@
                                     <td>
                                         @php
                                             $room = \App\Models\Room::where('id', $book->room_id)->first();
-                                            $plan = \App\Models\Category::where('room_id', $book->room_id)->first();
+                                            $plan = \App\Models\Rate::where('room_id', $book->room_id)->first();
                                         @endphp
-                                        <div class="title">{{ $room->__('title') }}</div><br>
+                                        <div class="title">{{ $room->__('title') }}</div>
+                                        <br>
                                         @isset($plan)
                                             <div class="title">{{ $plan->__('title') }}</div>
                                         @endisset
@@ -73,7 +74,72 @@
                                                 @csrf
                                                 @method('DELETE')
                                                 @can('delete-book')
-                                                    <button class="btn delete" onclick="return confirm('Do you want to delete this?');"><i class="fa-regular
+                                                    <button class="btn delete"
+                                                            onclick="return confirm('Do you want to delete this?');"><i
+                                                                class="fa-regular
+                                                    fa-trash"></i></button>
+                                                @endcan
+                                            </ul>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
+                    @else
+                        <h2 style="text-align: center">@lang('admin.bookings_not_found')</h2>
+                    @endif
+                    @if($listbooks->isNotEmpty())
+                        <table>
+                            <tbody>
+                            @foreach($listbooks as $book)
+                                <tr>
+                                    <td>{{ $book->tag }}</td>
+                                    <td>
+                                        <div class="title"># {{ $book->id }}</div>
+                                        <div class="stick">B2B</div>
+                                        <div class="date">@lang('admin.created') {{ $book->created_at }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="title">{{ $book->title }}</div>
+                                        <div class="count">{{ $book->count }} @lang('admin.adult')</div>
+                                        @if($book->countc > 0)
+                                            <div class="count">{{ $book->countc }} @lang('admin.child')</div>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @php
+                                            $room = \App\Models\Room::where('id', $book->room_id)->first();
+                                            $plan = \App\Models\Rate::where('room_id', $book->room_id)->first();
+                                        @endphp
+                                        @isset($room)
+                                            <div class="title">{{ $room->__('title') }}</div><br>
+                                        @endisset
+                                        @isset($plan)
+                                            <div class="title">{{ $plan->__('title') }}</div>
+                                        @endisset
+                                    </td>
+                                    <td>{{ $book->showStartDate() }} - {{ $book->showEndDate() }}</td>
+                                    <td>
+                                        @if($book->sum != 1)
+                                            <div class="title">{{ $book->sum }}</div>
+                                        @else
+                                            <div class="title">$ {{ $book->price }}</div>
+                                        @endif
+                                        <div class="status"><i class="fa-regular fa-money-bill"></i> @lang('main.paid')
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <form action="{{ route('listbooks.destroy', $book) }}" method="post">
+                                            <ul>
+                                                <a href="{{ route('book.exelyshow', $book)}}" class="more"><i
+                                                            class="fa-regular fa-eye"></i></a>
+                                                @csrf
+                                                @method('DELETE')
+                                                @can('delete-book')
+                                                    <button class="btn delete"
+                                                            onclick="return confirm('Do you want to delete this?');"><i
+                                                                class="fa-regular
                                                     fa-trash"></i></button>
                                                 @endcan
                                             </ul>

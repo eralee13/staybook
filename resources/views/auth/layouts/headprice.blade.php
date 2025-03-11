@@ -172,8 +172,8 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.12.1/dist/sweetalert2.min.css
                 {
                     resourceId: '{{ $booking->room_id }}',
                     title: '$ {{ $booking->price }}',
-                    start: '{{ $booking->start_d }}',
-                    end: '{{ $booking->end_d }}'
+                    start: '{{ $booking->arrivalDate }}',
+                    end: '{{ $booking->departureDate }}'
                 },
                 @endforeach
             ],
@@ -196,7 +196,7 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.12.1/dist/sweetalert2.min.css
                     @foreach($categories as $room)
                     @php
                         $r = \App\Models\Room::where('id', $room->room_id)->first();
-                        //$plan = \App\Models\Category::where('room_id', $room->room_id)->first();
+                        //$plan = \App\Models\Rate::where('room_id', $room->room_id)->first();
                     @endphp
                 { id: '{{$r->id}}', building: '{{ $r->title }}', title: '{{$room->title}}', price:
                         '$ ' + {{ $r->price }} },
@@ -204,22 +204,22 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.12.1/dist/sweetalert2.min.css
             ],
             eventDrop: function(info) {
                 $("#room_id").val(info.resource.id);
-                let start_d = info.startStr;
-                let end_d = info.endStr;
-                $("#start_d").val(start_d);
-                $("#end_d").val(end_d);
+                let arrival = info.startStr;
+                let departure = info.endStr;
+                $("#arrival").val(arrival);
+                $("#departure").val(departure);
             },
             select: function(info) {
                 $("#room_id").val(info.resource.id);
-                let start_d = info.startStr;
-                let end_d = info.endStr;
-                $("#start_d").val(start_d);
-                $("#end_d").val(end_d);
+                let arrival = info.startStr;
+                let departure = info.endStr;
+                $("#arrival").val(arrival);
+                $("#departure").val(departure);
                 $("#show_modal").modal("show");
             },
             selectHelper: true,
             validRange: {
-                start: '2023-12-31',
+                start: '2024-12-31',
                 end: '2030-12-31'
             },
 
@@ -298,8 +298,8 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.12.1/dist/sweetalert2.min.css
         "endDate": moment(new Date(),).add(1,'days'),
         "minDate": new Date(),
     }, function (start, end, label) {
-        $('#start_d').val(start.format('YYYY-MM-DD'));
-        $('#end_d').val(end.format('YYYY-MM-DD'));
+        $('#arrival').val(start.format('YYYY-MM-DD'));
+        $('#departure').val(end.format('YYYY-MM-DD'));
 
     });
 

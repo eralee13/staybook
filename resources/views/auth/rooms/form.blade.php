@@ -93,7 +93,7 @@
                                 <div class="form-group">
                                     <label for="">Стоимость ($) за двоих</label>
                                     <input type="number" name="price2" value="{{ old('price2', isset($room) ?
-                                $room->price : null) }}">
+                                $room->price2 : null) }}">
                                 </div>
                             </div>
                         </div>
@@ -101,8 +101,8 @@
                             <div class="col-md-6">
                                 @include('auth.layouts.error', ['fieldname' => 'area'])
                                 <div class="form-group">
-                                    <label for="">@lang('admin.cats')</label>
-                                    <select name="cat_id" id="">
+                                    <label for="">@lang('admin.categoryRooms')</label>
+                                    <select name="category_id" id="">
                                         @foreach($cats as $cat)
                                             <option value="{{ $cat->id }}">{{ $cat->title }}</option>
                                         @endforeach
@@ -130,7 +130,7 @@
                                 <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'bed'])
                                     <label for="bed">@lang('admin.bed')</label>
-                                    <select name="bed" id="bed" style="height: auto">
+                                    <select name="bed" id="bed">
                                         @isset($room)
                                             <option @if($room->bed)
                                                         selected>

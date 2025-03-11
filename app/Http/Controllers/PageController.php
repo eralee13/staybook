@@ -4,15 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\MultiForm\HotelOneRequest;
 use App\Http\Requests\MultiForm\HotelTwoRequest;
-use App\Models\Category;
+use App\Models\Book;
+use App\Models\Rate;
 use App\Models\Contact;
-use App\Models\Food;
+use App\Models\Meal;
 use App\Models\Image;
 use App\Models\Page;
 use App\Models\Room;
 use App\Models\Hotel;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
@@ -23,7 +25,7 @@ class PageController extends Controller
     {
         $hotels = Hotel::all();
         $rooms = Room::where('status', 1)->inRandomOrder()->paginate(40);
-        $foods = Food::all();
+        $foods = Meal::all();
         $response = Http::withHeaders(['x-api-key' => 'fd54fc5c-2927-4998-8132-fb1107fc81c4', 'accept' => 'application/json'])->get('https://connect.test.hopenapi.com/api/content/v1/properties?count=20&include=All');
         $properties = $response->object()->properties;
         return view('index', compact('hotels', 'rooms', 'foods', 'properties'));
@@ -44,7 +46,7 @@ class PageController extends Controller
         $end = Carbon::createFromDate($request->end_d);
         $count_day = $start->diffInDays($end);
         $count = $request->count;
-        if($hotel != null){
+        if ($hotel != null) {
             $min = Room::where('hotel_id', $hotel->id)->where('status', 1)->min('price');
             $rooms = Room::where('hotel_id', $hotel->id)->where('status', 1)->orderBy('price', 'asc')->paginate(10);
             return view('pages.hotel', compact('hotel', 'rooms', 'min', 'start', 'end', 'count', 'count_day', 'request'));
@@ -63,16 +65,17 @@ class PageController extends Controller
     public function room($hotel, $roomCode)
     {
         $room = Room::withTrashed()->byCode($roomCode)->firstOrFail();
-        $random = random_int(100000, 999999);
+        $user = Auth::id();
+        $random = str()->random(15);
         $images = Image::where('room_id', $room->id)->get();
         //$related = Room::where('id', '!=', $room->id)->where('hotel_id', $room->hotel_id)->where('status', 1)->orderBy('price', 'asc')->get();
         $related = Room::where('id', '!=', $room->id)->where('status', 1)->orderBy('created_at', 'DESC')->get();
-        return view('pages.room', compact('room', 'images', 'related', 'random'));
+        return view('pages.room', compact('room', 'images', 'related', 'random', 'user'));
     }
 
     public function search(Request $request)
     {
-        $query = Category::with('hotel', 'room', 'food', 'rule');
+        $query = Rate::with('hotel', 'room', 'food', 'rule');
 
         //hotel
         if ($request->filled('title')) {
@@ -249,25 +252,12 @@ class PageController extends Controller
         return redirect()->route('index');
     }
 
-
-
-    public function testpage()
-    {
-        $hotels = Hotel::all();
-        //$rooms = Room::where('status', 1)->orderBy('created_at', 'DESC')->paginate(40);
-        $hotels = Hotel::where('status', 1)->orderBy('created_at', 'DESC')->paginate(40);
-        $foods = Food::all();
-        return view('pages.testpage', compact('hotels', 'hotels', 'foods'));
-    }
-
-
-
     public function searchtest(Request $request)
     {
         $response = Http::withHeaders(['x-api-key' => 'fd54fc5c-2927-4998-8132-fb1107fc81c4', 'accept' => 'application/json'])->get('https://connect.test.hopenapi.com/api/content/v1/properties?count=20&include=All');
         $properties = $response->object()->properties;
 
-        $query = Hotel::with('categories', 'food', 'rooms');
+        $query = Hotel::with('rates', 'meals', 'rooms');
         $start = Carbon::createFromDate($request->start_d);
         $end = Carbon::createFromDate($request->end_d);
         $count_day = $start->diffInDays($end);
@@ -278,7 +268,7 @@ class PageController extends Controller
             $title = $request->input('title');
             $query->where('id', $title);
             //$query->orWhere('address', '%like%', $title);
-            $properties =  collect($properties)->where('id', $title)->all();
+            $properties = collect($properties)->where('id', $title)->all();
         }
 
         //count
@@ -349,8 +339,47 @@ class PageController extends Controller
         $start = $request->start_d;
         $end = $request->end_d;
         $price = $request->price;
+        $book_token = str()->random(15);
+        $user = Auth::id();
 
-        return view('pages.order', compact('request', 'start', 'end', 'price'));
+        return view('pages.order', compact('request', 'start', 'end', 'price', 'book_token', 'user'));
+    }
+
+    public function book_mail(Request $request)
+    {
+        $params = $request->all();
+        Book::create($params);
+        //Mail::to('info@silkwaytravel.kg')->cc($request->email)->bcc($hotel->email)->send(new BookMail($request));
+        //Mail::to('info@timdjol.com')->cc($request->email)->send(new BookMail($request));
+        session()->flash('success', 'Booking ' . $request->title . ' is created');
+        return redirect()->route('index');
+    }
+
+//    public function getBooks()
+//    {
+//        $user_id = Auth::id();
+//        $books = Book::where('user_id', $user_id)->where('book_token', '!=', '')->where('status', 'Оплачено')->get();
+//        return view('pages.cancel-order', compact('books'));
+//    }
+//
+//    public function cancelBook(Request $request)
+//    {
+//        $id = $request->book_id;
+//        $token_book = $request->book_token;
+//        if($token_book != null){
+//            Book::where('id', $id)->update(['status' => 'Отменен пользователем']);
+//            session()->flash('success', 'Booking ' . $request->title . ' is cancelled');
+//            return redirect()->route('index');
+//        }
+//        else {
+//            session()->flash('danger', 'Error');
+//            return redirect()->back();
+//        }
+//    }
+
+    public function testsearch()
+    {
+        return view('pages.testsearch');
     }
 
 

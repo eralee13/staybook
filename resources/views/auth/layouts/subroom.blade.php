@@ -1,8 +1,8 @@
 <ul class="btns">
-    <li @routeactive('cats*')><a href="{{ route('cats.index') }}">@lang('admin.cats')</a></li>
-    <li @routeactive('categ*')><a href="{{ route('categories.index') }}">@lang('admin.plans_and_rules')</a></li>
+    <li @routeactive('categ*')><a href="{{ route('categoryRooms.index') }}">@lang('admin.categoryRooms')</a></li>
+    <li @routeactive('rate*')><a href="{{ route('rates.index') }}">@lang('admin.plans_and_rules')</a></li>
     @can('edit-food')
-        <li @routeactive('food*')><a href="{{ route('foods.index') }}">@lang('admin.foods')</a></li>
+        <li @routeactive('meal*')><a href="{{ route('meals.index') }}">@lang('admin.meals')</a></li>
     @endcan
-    <li @routeactive('child*')><a href="{{ route('childs.index') }}">@lang('admin.childs')</a></li>
+    <li @routeactive('accommodation*')><a href="{{ route('accommodations.index') }}">@lang('admin.accommodations')</a></li>
 </ul>

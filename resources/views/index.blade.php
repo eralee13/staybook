@@ -8,7 +8,6 @@
             <div class="container">
                 <div class="row">
                     <div class="col-md-12">
-
                         <h1>Welcome to StayBook
                         </h1>
                     </div>
@@ -520,6 +519,12 @@
 {{--                </form>--}}
 {{--            </div>--}}
 {{--        </div>--}}
+
+        @php
+            $date = '2025-03-07T10:44:33Z';
+            $d = \Carbon\Carbon::createFromDate($date)->utc(0);
+            echo $d;
+        @endphp
 
 
 

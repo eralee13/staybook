@@ -24,16 +24,18 @@ class Hotel extends Model
         'email',
         'count',
         'type',
+        'city',
         'address',
         'address_en',
         'city',
         'lng',
         'lat',
         'early_in',
-        'early_out',
+        'late_out',
         'rating',
         'top',
         'user_id',
+        'exely_id',
         'status'
     ];
 
@@ -42,18 +44,18 @@ class Hotel extends Model
         return $this->hasMany(Room::class);
     }
 
-    public function categories()
+    public function rates()
     {
-        return $this->hasMany(Category::class, 'id', 'category_id');
+        return $this->hasMany(Rate::class, 'id', 'rate_id');
     }
 
 //    public function policy(){
 //        return $this->hasOne(Policy::class);
 //    }
 
-    public function service()
+    public function amenity()
     {
-        return $this->hasOne(Service::class);
+        return $this->hasOne(Amenity::class);
     }
 
     public function payment()
@@ -66,20 +68,18 @@ class Hotel extends Model
         return $query->where('code', $code);
     }
 
-    public function food()
+    public function meals()
     {
-        return $this->hasMany(Food::class);
+        return $this->hasMany(Meal::class);
     }
 
-    public function rule()
+    public function rules()
     {
         return $this->hasMany(Rule::class);
     }
 
-    public function child()
+    public function accommodations()
     {
-        return $this->hasMany(Child::class);
+        return $this->hasMany(Accommodation::class);
     }
-
-
 }
