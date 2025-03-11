@@ -72,7 +72,6 @@
                                         <input type="hidden" id="start_d" name="start_d"
                                                value="{{ date('Y-m-d H:s:i') }}">
                                         <input type="hidden" id="end_d" name="end_d" value="{{ $date->addDays(1) }}">
-
                                     </div>
                                     <div class="form-group">
                                         @include('auth.layouts.error', ['fieldname' => 'count'])
