@@ -4,6 +4,9 @@ namespace App\Services\Tourmind;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
+use App\Services\Tourmind\TmApiService;
 use App\Models\Hotel;
 use App\Models\Amenity;
 use App\Models\Room;
@@ -12,12 +15,20 @@ use App\Models\Image;
 
 class HotelStaticList
 {
-    protected $baseUrl = 'http://39.108.114.224:7080/v2';
+    
+    protected TmApiService $tmApiService;
+    protected string $baseUrl;
 
+    public function __construct(TmApiService $tmApiService)
+    {
+        $this->tmApiService = $tmApiService;
+        $this->baseUrl = $this->tmApiService->getBaseUrl();
+    }
+    
     public function getHotelListForAllCountries()
     {
         // Получаем список стран (можно задать вручную или запросить API)
-        $countryCodes = $this->getCountryCodes();
+        $countryCodes = $this->tmApiService->getCountryCodes();
 
         foreach ($countryCodes as $countryCode) {
             $this->getHotelList($countryCode);
@@ -27,7 +38,7 @@ class HotelStaticList
     public function getHotelList($countryCode)
     {
         $pageIndex = 1; // Начинаем с первой страницы
-        $pageSize = 100; // Количество отелей на страницу
+        $pageSize = 1; // Количество отелей на страницу
     
         do {
             $payload = [
@@ -69,12 +80,18 @@ class HotelStaticList
                 // Получаем первую картинку
                 $imageUrl = collect($hotelData['Images'] ?? [])->pluck('links.1000px.href')->filter()->first();
     
-                $localImagePath = null;
-                if ($imageUrl) {
-                    $localImagePath = $this->saveHotelImage($imageUrl, $hotelData['HotelId']);
-                }
+                // $localImagePath = null;
+                // if ($imageUrl) {
+                //     $localImagePath = $this->saveHotelImage($imageUrl, $hotelData['HotelId']);
+                // }
     
                 $nameLower = str_replace(' ', '-', $hotelData['Name']);
+
+                $phone = preg_replace('/[^+\d]/', '', $hotelData['Phone']);
+
+                if (!Str::startsWith($phone, '+')) {
+                    $phone = '+' . $phone;
+                }
                 
                 $data = [
                     'code' => strtolower($nameLower) ?? '',
@@ -86,9 +103,9 @@ class HotelStaticList
                     'city' => $hotelData['CityName'] ?? null,
                     'lat' => $hotelData['Latitude'] ?? null,
                     'lng' => $hotelData['Longitude'] ?? null,
-                    'phone' => $hotelData['Phone'] ?? null,
+                    'phone' => $phone ?? null,
                     'description_en' => $hotelData['Description']['Location'] ?? null,
-                    'image' => $localImagePath ?? null,
+                    'image' => $imageUrl ?? null,
                     'tourmind_id' => $hotelData['HotelId'],
                     'status' => 1,
                 ];
@@ -122,7 +139,7 @@ class HotelStaticList
                     ['hotel_id' => $hotel->id],
                     [
                         'services' => $AmenitiesRoom,
-                        'image' => $localImagePath,
+                        'image' => $imageUrl,
                         'description_en' => $hotelData['Description']['Rooms'] ?? null
                     ]
                 );
@@ -140,75 +157,5 @@ class HotelStaticList
         return ['message' => 'Данные обновлены', 'count' => count($hotels)];
     }
     
-    private function getCountryCodes()
-    {
-        return [
-            "AF", "AL", "DZ", "AD", "AO", "AG", "AR", "AM", "AU", "AT", "AZ",
-            "BS", "BH", "BD", "BB", "BY", "BE", "BZ", "BJ", "BT", "BO", "BA",
-            "BW", "BR", "BN", "BG", "BF", "BI", "KH", "CM", "CA", "CV", "CF",
-            "TD", "CL", "CN", "CO", "KM", "CG", "CD", "CR", "CI", "HR", "CU",
-            "CY", "CZ", "DK", "DJ", "DM", "DO", "EC", "EG", "SV", "GQ", "ER",
-            "EE", "SZ", "ET", "FJ", "FI", "FR", "GA", "GM", "GE", "DE", "GH",
-            "GR", "GD", "GT", "GN", "GW", "GY", "HT", "HN", "HU", "IS", "IN",
-            "ID", "IR", "IQ", "IE", "IL", "IT", "JM", "JP", "JO", "KZ", "KE",
-            "KI", "KW", "KG", "LA", "LV", "LB", "LS", "LR", "LY", "LI", "LT",
-            "LU", "MG", "MW", "MY", "MV", "ML", "MT", "MH", "MR", "MU", "MX",
-            "FM", "MD", "MC", "MN", "ME", "MA", "MZ", "MM", "NA", "NR", "NP",
-            "NL", "NZ", "NI", "NE", "NG", "KP", "NO", "OM", "PK", "PW", "PA",
-            "PG", "PY", "PE", "PH", "PL", "PT", "QA", "RO", "RU", "RW", "KN",
-            "LC", "VC", "WS", "SM", "ST", "SA", "SN", "RS", "SC", "SL", "SG",
-            "SK", "SI", "SB", "SO", "ZA", "KR", "ES", "LK", "SD", "SR", "SE",
-            "CH", "SY", "TJ", "TZ", "TH", "TL", "TG", "TO", "TT", "TN", "TR",
-            "TM", "UG", "UA", "AE", "GB", "US", "UY", "UZ", "VU", "VA", "VE",
-            "VN", "YE", "ZM", "ZW"
-        ];
-    }
-
-    private function saveHotelImages($hotelId, $images)
-    {
-        collect($images)->take(10)->each(function ($img) use ($hotelId) {
-            $imageUrl = $img['links']['1000px']['href'] ?? null;
-
-            if ($imageUrl) {
-                $localImagePath = $this->saveHotelImage($imageUrl);
-
-                if ($localImagePath) {
-                    Image::create([
-                        'hotel_id' => $hotelId,
-                        'image' => $localImagePath
-                    ]);
-                }
-            }
-        });
-    }
-
-    private function saveHotelImage($imageUrl)
-    {
-        try {
-            // Получаем имя файла из ссылки
-            $fileName = basename(parse_url($imageUrl, PHP_URL_PATH));
-
-            if (!$fileName) {
-                throw new \Exception("Не удалось определить имя файла из URL: $imageUrl");
-            }
-
-            // Определяем дату (год/месяц)
-            $datePath = now()->format('Y/m');
-
-            // Полный путь для сохранения
-            $filePath = "/hotels/{$datePath}/{$fileName}";
-
-            // Загружаем изображение
-            $imageContent = Http::get($imageUrl)->body();
-
-            // Сохраняем файл
-            Storage::put($filePath, $imageContent);
-
-            return "/hotels/{$datePath}/{$fileName}"; // Путь для хранения в БД
-        } catch (\Exception $e) {
-            \Log::error("Ошибка загрузки изображения: " . $e->getMessage());
-            return null;
-        }
-    }
 
 }

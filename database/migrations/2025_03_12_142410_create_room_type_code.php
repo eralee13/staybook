@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('hotels', function (Blueprint $table) {
-            $table->string('city')->after('type');
+        Schema::table('categoryRooms', function (Blueprint $table) {
+            $table->integer('type_code')->nullable()->after('description_en');
+            $table->integer('room_id')->nullable()->after('type_code');
         });
     }
 
@@ -21,8 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('hotels', function (Blueprint $table) {
-            $table->dropColumn('city');
+        Schema::table('categoryRooms', function (Blueprint $table) {
+            $table->dropColumn('type_code');
         });
     }
 };

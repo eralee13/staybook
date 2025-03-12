@@ -16,7 +16,10 @@ class CategoryRoom extends Model
     protected $fillable = [
         'title',
         'title_en',
-        'code'
+        'code',
+        'type_code',
+        'description_en',
+        'tourmind_id',
     ];
 
     protected $hidden = [
@@ -27,5 +30,10 @@ class CategoryRoom extends Model
     public function rooms()
     {
         return $this->hasMany(Room::class);
+    }
+
+    public function hotel()
+    {
+        return $this->belongsTo(Hotel::class, 'tourmind_id', 'tourmind_id');
     }
 }

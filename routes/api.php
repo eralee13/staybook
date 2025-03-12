@@ -4,6 +4,8 @@ use App\Http\Controllers\API\V1\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\V1\Tourmind\HotelStaticListController;
+use App\Http\Controllers\API\V1\Tourmind\RegionListController;
+use App\Http\Controllers\API\V1\Tourmind\RoomStaticListController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,7 +27,9 @@ Route::prefix('v1')->group(function(){
     Route::post('/login', [\App\Http\Controllers\API\V1\AuthController::class, 'login'])->name('login');
 });
 
-Route::post('/v1/tmhotels', [HotelStaticListController::class, 'fetchHotels']);
+Route::post('/v1/TmHotels', [HotelStaticListController::class, 'fetchHotels']);
+Route::post('/v1/TmRegionList', [RegionListController::class, 'fetchRegions']);
+Route::post('/v1/TmRoomType', [RoomStaticListController::class, 'fetchRoomsTypes']);
 
 Route::prefix('v1')->middleware(['throttle:api', 'auth:sanctum'])->group(function () {
     Route::get('/getHotels', [\App\Http\Controllers\API\V1\HotelController::class, 'index'])->name('getHotelList');

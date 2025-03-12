@@ -57,6 +57,11 @@ class Hotel extends Model
         return $this->hasMany(Room::class);
     }
 
+    public function categoryRooms()
+    {
+        return $this->hasMany(CategoryRoom::class, 'tourmind_id', 'tourmind_id');
+    }
+
     public function rates()
     {
         return $this->hasMany(Rate::class, 'id', 'rate_id');

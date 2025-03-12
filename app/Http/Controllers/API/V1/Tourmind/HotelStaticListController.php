@@ -12,15 +12,19 @@ class HotelStaticListController extends Controller
 
     public function __construct(HotelStaticList $HotelStaticList)
     {
+
         $this->HotelStaticList = $HotelStaticList;
+        
     }
 
     public function fetchHotels(Request $request)
     {
+
         $requestData = $request->all();
         $data = $this->HotelStaticList->getHotelListForAllCountries($requestData);
         
         return response()->json($data);
+        
     }
     
 }

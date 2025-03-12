@@ -188,4 +188,6 @@ return [
         // 'Example' => App\Facades\Example::class,
     ])->toArray(),
 
+    'tm_base_url' => env('TOURMIND_API_URL'),
+
 ];
