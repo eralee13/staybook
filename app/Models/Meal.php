@@ -20,6 +20,8 @@ class Meal extends Model
         'title_en',
         'price',
         'hotel_id',
+        'code',
+        'sym'
     ];
 
     protected $hidden = [

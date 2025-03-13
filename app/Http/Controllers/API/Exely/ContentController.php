@@ -47,19 +47,26 @@ class ContentController extends Controller
                     ]
                 );
 
-                foreach ($property->roomTypes as $room) {
+                if ($property->roomTypes != null) {
+                    foreach ($property->roomTypes as $room) {
 
-                    //dd($room);
-                    Room::updateOrCreate(
-                        [
-                            'title' => $room->name,
-                            'description' => $room->description,
-                            'area' => $room->size,
-                            //'category_id' => $room->category->name,
-                        ], [
-                            'exely_id' => $property->id,
-                        ]
-                    );
+                        //dd($room);
+                        Room::updateOrCreate(
+                            [
+                                'title' => $room->name,
+                                'title_en' => $room->name,
+                                'code' => Str::slug($room->name),
+                                'description' => $room->description,
+                                'description_en' => $room->description,
+                                'area' => $room->size->value,
+                                'image' => $room->images[0]->url ?? 'no_image.png',
+                                'hotel_id' => $property->id,
+                                //'category_id' => $room->category->name,
+                                'status' => 1,
+                            ], [
+                                'exely_id' => $room->id,
+                            ]
+                        );
 //                    foreach ($room->amenities as $amenity) {
 //                        Room::updateOrCreate([
 //                            'services' => implode(',', $amenity->name),
@@ -68,13 +75,14 @@ class ContentController extends Controller
 //                        ]);
 //                    }
 
-                    foreach ($room->images as $image) {
-                        Image::updateOrCreate(
-                            [
-                                'image' => $image->url,
-                                'room_id' => $room->id,
-                            ]
-                        );
+                        foreach ($room->images as $image) {
+                            Image::updateOrCreate(
+                                [
+                                    'image' => $image->url,
+                                    'room_id' => $room->id,
+                                ]
+                            );
+                        }
                     }
                 }
             }

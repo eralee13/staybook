@@ -48,6 +48,14 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
+                                @include('auth.layouts.error', ['fieldname' => 'sym'])
+                                <div class="form-group">
+                                    <label for="">@lang('admin.sym') EN</label>
+                                    <input type="text" name="sym" value="{{ old('sym', isset($meal) ?
+                                $meal->sym : null) }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
                                 @include('auth.layouts.error', ['fieldname' => 'price'])
                                 <div class="form-group">
                                     <label for="">@lang('admin.price') $</label>

@@ -15,7 +15,6 @@ class SearchController extends Controller
     //Search API
     public function search_property(Request $request)
     {
-        //dd($request->all());
         $response = Http::accept('application/json')->withHeaders(['x-api-key' => 'fd54fc5c-2927-4998-8132-fb1107fc81c4'])->post('https://connect.test.hopenapi.com/api/search/v1/properties/room-stays/search', [
             "propertyIds" => [$request->title],
             "adults" => $request->adult,
@@ -36,16 +35,16 @@ class SearchController extends Controller
             //"corporateCodes" => ["string"],
         ]);
         $results = $response->object();
-
-
+        dd($results);
         return view('pages.exely.search.search', compact('results'));
     }
 
     public function search_roomstays(Request $request)
     {
         $response = Http::withHeaders(['x-api-key' => 'fd54fc5c-2927-4998-8132-fb1107fc81c4', 'accept' => 'application/json'])
-            ->get('https://connect.test.hopenapi.com/api/search/v1/properties/' . $request->title . '/room-stays?arrivalDate=' . $request->arrivalDate . '&departureDate=' . $request->departureDate . '&adults=' . $request->adults . '&includeExtraStays=false&includeExtraServices=false
+            ->get('https://connect.test.hopenapi.com/api/search/v1/properties/' . $request->city . '/room-stays?arrivalDate=' . $request->arrivalDate . '&departureDate=' . $request->departureDate . '&adults=' . $request->adults . '&includeExtraStays=false&includeExtraServices=false
 ');
+        dd($response->object());
         $rooms = $response->object()->roomStays;
         $rooms = collect($rooms)->sortBy('total')->values()->all();
 

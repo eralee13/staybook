@@ -149,4 +149,5 @@ return [
     'childs_not_found' => 'Accommodations with children not found',
     'cats_not_found' => 'Categories room not found',
     'categoryRooms' => 'Categories room',
+    'sym' => 'Symbol',
 ];

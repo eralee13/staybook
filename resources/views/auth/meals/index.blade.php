@@ -28,6 +28,7 @@
                                 <th>#</th>
                                 <th>@lang('admin.title')</th>
                                 <th>EN</th>
+                                <th>@lang('admin.sym')</th>
                                 <th>@lang('admin.price')</th>
                                 <th>@lang('admin.action')</th>
                             </tr>
@@ -38,6 +39,7 @@
                                     <td>{{ $loop->iteration }}</td>
                                     <td>{{ $meal->title }}</td>
                                     <td>{{ $meal->title_en }}</td>
+                                    <td>{{ $meal->sym }}</td>
                                     <td>{{ $meal->price }} $</td>
                                     <td>
                                         <form action="{{ route('meals.destroy', $meal) }}" method="post">

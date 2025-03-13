@@ -42,18 +42,24 @@ class PageController extends Controller
     public function hotel($code, Request $request)
     {
         $hotel = Hotel::where('code', $code)->first();
+        //dd($hotel->exely_id);
         $start = Carbon::createFromDate($request->start_d);
         $end = Carbon::createFromDate($request->end_d);
         $count_day = $start->diffInDays($end);
         $count = $request->count;
-        if ($hotel != null) {
-            $min = Room::where('hotel_id', $hotel->id)->where('status', 1)->min('price');
-            $rooms = Room::where('hotel_id', $hotel->id)->where('status', 1)->orderBy('price', 'asc')->paginate(10);
+        if($hotel->exely_id != null){
+            $min = Room::where('hotel_id', $hotel->exely_id)->where('status', 1)->min('price');
+            $rooms = Room::where('hotel_id', $hotel->exely_id)->where('status', 1)->paginate(10);
             return view('pages.hotel', compact('hotel', 'rooms', 'min', 'start', 'end', 'count', 'count_day', 'request'));
-        } else {
-            return view('pages.hotel', compact('hotel', 'start', 'end', 'count', 'count_day', 'request'));
+        } else{
+            if ($hotel != null) {
+                $min = Room::where('hotel_id', $hotel->id)->where('status', 1)->min('price');
+                $rooms = Room::where('hotel_id', $hotel->id)->where('status', 1)->orderBy('price', 'asc')->paginate(10);
+                return view('pages.hotel', compact('hotel', 'rooms', 'min', 'start', 'end', 'count', 'count_day', 'request'));
+            } else {
+                return view('pages.hotel', compact('hotel', 'start', 'end', 'count', 'count_day', 'request'));
+            }
         }
-
     }
 
     public function allrooms()
@@ -69,7 +75,7 @@ class PageController extends Controller
         $random = str()->random(15);
         $images = Image::where('room_id', $room->id)->get();
         //$related = Room::where('id', '!=', $room->id)->where('hotel_id', $room->hotel_id)->where('status', 1)->orderBy('price', 'asc')->get();
-        $related = Room::where('id', '!=', $room->id)->where('status', 1)->orderBy('created_at', 'DESC')->get();
+        $related = Room::where('id', '!=', $room->id)->where('hotel_id', )->where('status', 1)->orderBy('created_at', 'DESC')->get();
         return view('pages.room', compact('room', 'images', 'related', 'random', 'user'));
     }
 

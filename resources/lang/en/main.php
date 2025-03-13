@@ -114,4 +114,5 @@ return [
     'auth' => 'authorization',
     'b2b' => 'B2B platform for booking hotels in Central Asia and the Caucasus',
     'form_agree' => 'I agree with the terms of the agreement',
+    'rooms_not_found' => 'Rooms not found',
 ];

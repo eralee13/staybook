@@ -24,7 +24,7 @@ Route::prefix('v1')->group(function(){
     Route::post('/login', [\App\Http\Controllers\API\V1\AuthController::class, 'login'])->name('login');
 });
 
-Route::prefix('v1')->middleware(['throttle:api', 'auth:sanctum'])->group(function () {
+Route::prefix('v1.0')->middleware(['throttle:api', 'auth:sanctum'])->group(function () {
     Route::get('/getHotels', [\App\Http\Controllers\API\V1\HotelController::class, 'index'])->name('getHotelList');
     Route::get('/getHotels/{hotel}', [\App\Http\Controllers\API\V1\HotelController::class, 'show'])->name('showHotel');
 
@@ -55,6 +55,22 @@ Route::prefix('v1')->middleware(['throttle:api', 'auth:sanctum'])->group(functio
 
     Route::get('/getCategoryRooms', [\App\Http\Controllers\API\V1\CategoryRoomController::class, 'index'])->name('getCategoryRoomList');
     Route::get('/getCategoryRooms/{categoryRoom}', [\App\Http\Controllers\API\V1\CategoryRoomController::class, 'show'])->name('showCategoryRoom');
+
+    Route::fallback(function () {
+        return response()->json(['Not found'], 404);
+    });
+});
+
+Route::prefix('v1.1')->group(function () {
+    Route::get('/getHotels', [\App\Http\Controllers\API\V1_1\HotelController::class, 'index'])->name('getHotelList');
+    Route::get('/getHotels/{hotel}', [\App\Http\Controllers\API\V1_1\HotelController::class, 'show'])->name('showHotel');
+    Route::get('/getMeals', [\App\Http\Controllers\API\V1_1\MealController::class, 'index'])->name('getMealList');
+    Route::post('/searchHotel', [\App\Http\Controllers\API\V1_1\SearchController::class, 'index'])->name('searchHotels');
+    Route::post('/searchHotel/{hotel}', [\App\Http\Controllers\API\V1_1\SearchController::class, 'show'])->name('searchHotel');
+
+    Route::post('/storeBook', [\App\Http\Controllers\API\V1_1\BookingController::class, 'store'])->name('storeBook');
+    Route::post('/getStatus', [\App\Http\Controllers\API\V1_1\BookingController::class, 'getStatus'])->name('getStatus');
+    Route::post('/cancelBook', [\App\Http\Controllers\API\V1_1\BookingController::class, 'cancelBook'])->name('cancelBook');
 
     Route::fallback(function () {
         return response()->json(['Not found'], 404);

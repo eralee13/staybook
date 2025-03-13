@@ -40,7 +40,6 @@ class AppServiceProvider extends ServiceProvider
             return Auth::user()->hasRole('Accoundate');
         });
 
-
         Scramble::configure()
             ->withDocumentTransformers(function (OpenApi $openApi) {
                 $openApi->secure(
@@ -48,6 +47,20 @@ class AppServiceProvider extends ServiceProvider
                 );
 
             });
+
+        Scramble::registerApi('v1.0', [
+            'api_path' => 'api/v1.0',
+        ]);
+
+        Scramble::registerApi('v1.0', ['info' => ['version' => '1.0']])
+            ->expose(
+                ui: '/docs/v1.0/api',
+                document: '/docs/v1.0/openapi.json',
+            );
+
+        Scramble::registerApi('v1.1', [
+            'api_path' => 'api/v1.1',
+        ]);
 
         Scramble::registerApi('v1.1', ['info' => ['version' => '1.1']])
             ->expose(

@@ -4,6 +4,8 @@
 
 @section('content')
 
+    @dd($property)
+
     <div class="pagetitle">
         <div class="container">
             <div class="row">
@@ -14,7 +16,7 @@
                         <li>></li>
                         <li>Properties</li>
                         <li>></li>
-                        <li>{{ $property->name }}</li>
+                        <li>{{ $property->title }}</li>
                     </ul>
                 </div>
             </div>

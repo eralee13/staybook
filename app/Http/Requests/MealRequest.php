@@ -24,6 +24,8 @@ class MealRequest extends FormRequest
         $rules = [
             'title' => 'required|min:1|max:255',
             'title_en' => 'required|min:1|max:255',
+            'code' => 'min:1|max:255',
+            'sym' => 'min:2|max:255',
         ];
         return $rules;
     }

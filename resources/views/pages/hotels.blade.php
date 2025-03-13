@@ -26,7 +26,11 @@
             <div class="row">
                 @foreach($hotels as $hotel)
                     <div class="col-lg-4 col-md-6 col-6" data-aos="zoom-in" data-aos-duration="2000">
-                        <div class="hotels-item" style="background-image: url({{ Storage::url($hotel->image) }})">
+                        @if(\Illuminate\Support\Facades\Storage::exists($hotel->image))
+                            <div class="hotels-item" style="background-image: url({{ Storage::url($hotel->image) }})">
+                        @else
+                            <div class="hotels-item" style="background-image: url({{ $hotel->image }})">
+                        @endif
                             <a href="{{ route('hotel', $hotel->code) }}">
                                 <div class="overlay"></div>
                                 <div class="text-wrap">
@@ -37,19 +41,19 @@
                         </div>
                     </div>
                 @endforeach
-                    @foreach($properties as $property)
-                        <div class="col-lg-4 col-md-6 col-6" data-aos="zoom-in" data-aos-duration="2000">
-                            <div class="hotels-item" style="background-image: url({{ $property->images[0]->url }})">
-                                <a href="{{ route('property', $property->id) }}">
-                                    <div class="overlay"></div>
-                                    <div class="text-wrap">
-                                        <h4>{{ $property->name}}</h4>
-                                        <div class="address">{{ $property->contactInfo->address->addressLine }}</div>
-                                    </div>
-                                </a>
-                            </div>
-                        </div>
-                    @endforeach
+{{--                    @foreach($properties as $property)--}}
+{{--                        <div class="col-lg-4 col-md-6 col-6" data-aos="zoom-in" data-aos-duration="2000">--}}
+{{--                            <div class="hotels-item" style="background-image: url({{ $property->images[0]->url }})">--}}
+{{--                                <a href="{{ route('property', $property->id) }}">--}}
+{{--                                    <div class="overlay"></div>--}}
+{{--                                    <div class="text-wrap">--}}
+{{--                                        <h4>{{ $property->name}}</h4>--}}
+{{--                                        <div class="address">{{ $property->contactInfo->address->addressLine }}</div>--}}
+{{--                                    </div>--}}
+{{--                                </a>--}}
+{{--                            </div>--}}
+{{--                        </div>--}}
+{{--                    @endforeach--}}
             </div>
             <div class="row">
                 <div class="col-md-12">

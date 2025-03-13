@@ -7,7 +7,7 @@ use App\Http\Requests\MealRequest;
 use App\Models\Rate;
 use App\Models\Meal;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class MealController extends Controller
 {
@@ -43,6 +43,7 @@ class MealController extends Controller
      */
     public function store(MealRequest $request)
     {
+        $request['code'] = Str::slug($request->title_en);
         $params = $request->all();
         Meal::create($params);
         //Mail::to('info@timmedia.store')->send(new RoomCreateMail($request));
@@ -62,10 +63,11 @@ class MealController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(MealRequest $request, Meal $food)
+    public function update(MealRequest $request, Meal $meal)
     {
+        $request['code'] = Str::slug($request->title_en);
         $params = $request->all();
-        $food->update($params);
+        $meal->update($params);
         //Mail::to('info@timmedia.store')->send(new RoomUpdateMail($request));
         session()->flash('success', 'Meal ' . $request->title . ' updated');
         return redirect()->route('meals.index');

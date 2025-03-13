@@ -1,7 +1,7 @@
 
     <div class="row rooms-item">
         <div class="col-lg-4 col-md-6" data-aos="fade-right" data-aos-duration="2000">
-            <a href="{{ route('room', [isset($hotel) ? $hotel->code : $room->hotel->code, $room->code])}}">
+            <a href="">
                 <div class="img" style="background-image: url({{ Storage::url($room->image) }})"></div>
             </a>
         </div>

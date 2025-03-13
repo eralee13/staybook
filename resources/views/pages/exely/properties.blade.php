@@ -32,22 +32,22 @@
                 <div class="col-md-12">
                     <form action="{{ route('search_property') }}">
                         <div class="row">
-                            <div class="col">
-                                <div class="form-group">
-                                    <label for="title">Название отеля</label>
-                                    <select name="title" id="hotel">
-                                        <option value="">@lang('main.choose')</option>
+{{--                            <div class="col">--}}
+{{--                                <div class="form-group">--}}
+{{--                                    <label for="title">Название отеля</label>--}}
+{{--                                    <select name="title" id="hotel">--}}
+{{--                                        <option value="">@lang('main.choose')</option>--}}
 
-                                        @foreach($properties->properties as $property)
-                                            <option value="{{ $property->id }}">{{ $property->name}}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
+{{--                                        @foreach($properties->properties as $property)--}}
+{{--                                            <option value="{{ $property->id }}">{{ $property->name}}</option>--}}
+{{--                                        @endforeach--}}
+{{--                                    </select>--}}
+{{--                                </div>--}}
+{{--                            </div>--}}
                             <div class="col">
                                 <div class="form-group">
                                     <label for="title">Название города</label>
-                                    <select name="city" id="city">
+                                    <select name="title" id="city">
                                         <option value="">@lang('main.choose')</option>
 
                                         @foreach($properties->properties as $hotel)
@@ -247,7 +247,7 @@
                                     <p>Stars: {{ $property->rating }}</p>
                                     <div class="address">{{ $property->address }}</div>
                                     <div class="btn-wrap" style="margin-top: 20px">
-                                        <a href="{{ route('property', $property->id) }}" class="more">Read more</a>
+                                        <a href="{{ route('hotel', $property->code) }}" class="more">Read more</a>
                                     </div>
                                 </div>
                             </div>

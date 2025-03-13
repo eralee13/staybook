@@ -132,7 +132,8 @@ return [
     'foods_not_found' => 'Виды питаний не найдены',
     'childs_not_found' => 'Проживания с детьми не найдены',
     'cats_not_found' => 'Категории не найдены',
-    'categoryRooms' => 'Категории номеров'
+    'categoryRooms' => 'Категории номеров',
+    'sym' => 'Символ'
 
 
 ];

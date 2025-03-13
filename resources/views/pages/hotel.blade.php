@@ -52,16 +52,22 @@
                                         <h5>@lang('main.amenities'):</h5>
                                         <div class="row">
                                             @php
-                                                $amenities = \App\Models\Amenity::where('hotel_id', $hotel->id)->firstOrFail();
-                                                $servs = explode(', ', $amenities->services);
+                                                $amenities = \App\Models\Amenity::where('hotel_id', $hotel->id)->first();
+                                                //dd($amenities);
                                             @endphp
-                                            @foreach($servs as $service)
-                                                <div class="col-md-4">
-                                                    <div class="item">
-                                                        <i class="fa-regular fa-check"></i> {{ $service }}
+                                            @if($amenities != null)
+                                                @php
+                                                    $servs = explode(', ', $amenities->services);
+                                                @endphp
+
+                                                @foreach($servs as $service)
+                                                    <div class="col-md-4">
+                                                        <div class="item">
+                                                            <i class="fa-regular fa-check"></i> {{ $service }}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            @endforeach
+                                                @endforeach
+                                            @endif
                                         </div>
                                         {!! $hotel->__('description') !!}
                                         <div class="phone"><span>@lang('main.hphone')</span> <a
@@ -108,8 +114,14 @@
                                     @foreach($rooms as $room)
                                         <div class="col-lg-4">
                                             <a href="{{ route('room', [isset($hotel) ? $hotel->code : $room->hotel->code, $room->code])
-                }}"><img src="{{ Storage::url($room->image) }}" alt=""></a>
-                                            <h5>{{ $room->__('title') }}</h5>
+                }}">
+                                                @if(\Illuminate\Support\Facades\Storage::exists($room->image))
+                                                    <img src="{{ Storage::url($room->image) }}" alt="">
+                                                @else
+                                                    <img src="{{ $room->image }}" alt="">
+                                                @endif
+                                            </a>
+                                            <h5>{{ $room->title }}</h5>
                                             <div class="bed"><i class="fa-light fa-bed"></i> {{ $room->bed }}</div>
                                             {{--                                <div class="amenities">--}}
                                             {{--                                    {{ $room->amenities }}--}}
@@ -119,19 +131,30 @@
                                             <div class="btn-wrap">
                                                 <form action="{{ route('order', $room->id) }}">
                                                     @csrf
-                                                    <input type="hidden" name="hotel"
-                                                           value="{{ $room->hotel->__('title') }}">
-                                                    <input type="hidden" name="hotel_id" value="{{ $room->hotel->id }}">
-                                                    <input type="hidden" name="lng" value="{{ $room->hotel->lng }}">
-                                                    <input type="hidden" name="lat" value="{{ $room->hotel->lat }}">
+                                                    <input type="hidden" name="hotel_id" value="{{ $room->hotel_id }}">
+                                                    @php
+                                                        $hotel_exely = \App\Models\Hotel::where('exely_id', $room->hotel_id)->first();
+                                                    @endphp
+                                                    @if($hotel_exely != null)
+                                                        <input type="hidden" name="hotel" value="{{ $hotel_exely->title }}">
+                                                        <input type="hidden" name="lng" value="{{ $hotel_exely->lng }}">
+                                                        <input type="hidden" name="lat" value="{{ $hotel_exely->lat }}">
+                                                    @else
+                                                        <input type="hidden" name="hotel" value="{{ $room->hotel->title }}">
+                                                        <input type="hidden" name="lng" value="{{ $room->hotel->lng }}">
+                                                        <input type="hidden" name="lat" value="{{ $room->hotel->lat }}">
+                                                    @endif
                                                     <input type="hidden" name="room_id" value="{{ $room->id }}">
-                                                    <input type="hidden" name="title" value="{{ $room->__('title') }}">
+                                                    <input type="hidden" name="title" value="{{ $room->title }}">
                                                     {{--                                        <input type="hidden" name="food" value="{{ $room->food_id }}">--}}
                                                     {{--                                        <input type="hidden" name="cancel" value="{{ $room->rule->__('title') }}">--}}
                                                     <input type="hidden" name="price"
                                                            value="{{ $room->price * $count * $count_day }}">
-                                                    <input type="hidden" name="image"
-                                                           value="{{ Storage::url($room->image) }}">
+                                                    @if(\Illuminate\Support\Facades\Storage::exists($room->image))
+                                                        <input type="hidden" name="image" value="{{ Storage::url($room->image) }}">
+                                                    @else
+                                                        <input type="hidden" name="image" value="{{ $room->image }}">
+                                                    @endif
                                                     <input type="hidden" name="bed" value="{{ $room->bed }}">
                                                     <input type="hidden" name="start_d" value="{{ $request->start_d }}">
                                                     <input type="hidden" name="end_d" value="{{ $request->end_d }}">
@@ -143,7 +166,7 @@
                                     @endforeach
                                 </div>
                             @else
-                                <div class="alert alert-danger">@lang('main.not_found')</div>
+                                <div class="alert alert-danger">@lang('main.rooms_not_found')</div>
                             @endif
                             <div class="row">
                                 <div class="col-md-12">
