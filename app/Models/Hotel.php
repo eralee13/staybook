@@ -27,7 +27,6 @@ class Hotel extends Model
         'city',
         'address',
         'address_en',
-        'city',
         'lng',
         'lat',
         'early_in',

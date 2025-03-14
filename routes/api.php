@@ -10,6 +10,7 @@ use App\Http\Controllers\API\V1\Tourmind\SearchOrderController;
 use App\Http\Controllers\API\V1\Tourmind\CreateOrderController;
 use App\Http\Controllers\API\V1\Tourmind\CancelOrderController;
 use App\Http\Controllers\API\V1\Tourmind\CheckRoomRateController;
+use App\Http\Controllers\API\V1\Tourmind\HotelDetailController;
 
 /*
 |--------------------------------------------------------------------------

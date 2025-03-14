@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Services\Tourmind\TmApiService;
 
-class RegionList
+class HotelDetail
 {
     protected TmApiService $tmApiService;
     protected string $baseUrl;
@@ -20,7 +20,7 @@ class RegionList
 
     public function getHotelDetail(){
 
-        $countryCodes = $this->tmApiService->getCountryCodes();
+        //$countryCodes = $this->tmApiService->getCountryCodes();
 
         // foreach ($countryCodes as $countryCode) {
             
@@ -28,17 +28,19 @@ class RegionList
                 "CheckIn" => "2018-08-25",
                 "CheckOut" => "2018-08-26",
                 "HotelCodes" => [
-                    0
+                    20783750
                     ],
                 "IsDailyPrice" => true,
                 "Nationality" => "CN",
                 "PaxRooms" => [
-                    "Adults" => 4,
-                    "Children" => 5,
-                    "ChildrenAges" => [
-                        0
-                        ],
-                    "RoomCount" => 2
+                    [
+                        "Adults" => 1,
+                        "Children" => 1,
+                        "ChildrenAges" => [
+                            0
+                            ],
+                        "RoomCount" => 1
+                    ]
                 ],
                 "RequestHeader" => [
                     "AgentCode" => "tms_test",
@@ -54,39 +56,40 @@ class RegionList
             ])->post("{$this->baseUrl}/HotelDetail", $payload);
     
             if ($response->failed()) {
-                return ['error' => 'RegionList Ошибка при запросе к API', 'status' => $response->status()];
+                return ['error' => 'HotelDetail Ошибка при запросе к API', 'status' => $response->status()];
             }
 
             $data = $response->json();
             //$regions = $data['RegionListResult']['Regions'] ?? [];
             
-            foreach($regions as $region){
+            // foreach($regions as $region){
 
-                try {
-                    DB::table('cities')->updateOrInsert(
-                        ['country_id' => $region['RegionID']], // Условие проверки
-                        [
-                            'name' => $region['Name'],
-                            'country_id' => (int)$region['RegionID'],
-                            'country_code' => (string)$region['CountryCode'],
-                        ]
-                    );
+            //     try {
+            //         DB::table('cities')->updateOrInsert(
+            //             ['country_id' => $region['RegionID']], // Условие проверки
+            //             [
+            //                 'name' => $region['Name'],
+            //                 'country_id' => (int)$region['RegionID'],
+            //                 'country_code' => (string)$region['CountryCode'],
+            //             ]
+            //         );
                     
-                } catch (Exception $e) {
-                    // Обработка исключения
-                    Log::error('Ошибка: ' . $e->getMessage(), ['exception' => $e]);
+            //     } catch (Exception $e) {
+            //         // Обработка исключения
+            //         Log::error('Ошибка: ' . $e->getMessage(), ['exception' => $e]);
 
-                    // Возвращаем JSON с ошибкой
-                    // return response()->json([
-                    //     'error' => true,
-                    //     'message' => 'Произошла ошибка на сервере',
-                    //     'details' => $e->getMessage() // Можно скрыть в продакшене
-                    // ], 500);
-                }
-            }
+            //         // Возвращаем JSON с ошибкой
+            //         // return response()->json([
+            //         //     'error' => true,
+            //         //     'message' => 'Произошла ошибка на сервере',
+            //         //     'details' => $e->getMessage() // Можно скрыть в продакшене
+            //         // ], 500);
+            //     }
+            // }
 
         // }
            
-        return ['message' => 'Данные обновлены', 'count' => count($regions)];
+        //return ['message' => 'Данные обновлены', 'count' => count($regions)];
+        return $data;
     }
 }

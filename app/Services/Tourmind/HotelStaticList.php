@@ -37,11 +37,11 @@ class HotelStaticList
     public function getHotelList($countryCode)
     {
         $pageIndex = 1; // Начинаем с первой страницы
-        $pageSize = 1; // Количество отелей на страницу
+        $pageSize = 100; // Количество отелей на страницу
     
         //do {
             $payload = [
-                "CountryCode" => 'UA',
+                "CountryCode" => 'CN',
                 "Pagination" => [
                     "PageIndex" => $pageIndex,
                     "PageSize" => $pageSize
@@ -108,20 +108,7 @@ class HotelStaticList
                     'tourmind_id' => $hotelData['HotelId'],
                     'status' => 1,
                 ];
-    
-                // $data = array_diff_key($data, [
-                //     'description',
-                //     'checkin',
-                //     'checkout',
-                //     'email',
-                //     'count',
-                //     'type',
-                //     'address_en',
-                //     'early_in',
-                //     'early_out',
-                //     'top',
-                //     'user_id',
-                // ]);
+                
     
                 $hotel = Hotel::updateOrCreate(
                     ['tourmind_id' => $hotelData['HotelId']],
