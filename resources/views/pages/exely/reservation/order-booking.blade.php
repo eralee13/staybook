@@ -8,11 +8,11 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-12">
-                    <h1 data-aos="fade-up" data-aos-duration="2000">Забронировать</h1>
+                    <h1 data-aos="fade-up" data-aos-duration="2000">Бронь успешно прошла</h1>
                     <ul class="breadcrumbs">
                         <li><a href="{{route('index')}}">@lang('main.home')</a></li>
                         <li>></li>
-                        <li>Забронировать</li>
+                        <li>Забронировано</li>
                     </ul>
                 </div>
             </div>
@@ -24,18 +24,18 @@
             <div class="row">
                 <div class="col-lg-12 col-md-12">
                     @isset($res->booking)
-                        <h1>Congratulations!</h1>
+                        <h1>Поздравляем!</h1>
                         <ul>
-                            <li>Status: {{ $res->booking->status }}</li>
-                            <li>Number: {{ $res->booking->number }}</li>
-                            <li>PropertyId: {{ $res->booking->propertyId }}</li>
-                            <li>Stay Dates: {{ $res->booking->roomStays[0]->stayDates->arrivalDateTime }} - {{ $res->booking->roomStays[0]->stayDates->departureDateTime }}</li>
-                            <li>Cancellation: {{ $res->booking->cancellationPolicy->freeCancellationDeadlineLocal }} - {{ $res->booking->cancellationPolicy->penaltyAmount }} {{ $res->booking->currencyCode }}</li>
-                            <li>Customer {{ $res->booking->customer->firstName }} {{ $res->booking->customer->lastName }}
+                            <li>Статус: {{ $res->booking->status }}</li>
+                            <li>Номер брони: {{ $res->booking->number }}</li>
+                            <li>ID отеля: {{ $res->booking->propertyId }}</li>
+                            <li>Даты: {{ $res->booking->roomStays[0]->stayDates->arrivalDateTime }} - {{ $res->booking->roomStays[0]->stayDates->departureDateTime }}</li>
+                            <li>Аннуляция брони до: {{ $res->booking->cancellationPolicy->freeCancellationDeadlineLocal }} - {{ $res->booking->cancellationPolicy->penaltyAmount }} {{ $res->booking->currencyCode }}</li>
+                            <li>Заказчик: {{ $res->booking->customer->firstName }} {{ $res->booking->customer->lastName }}
                                 <ul>
-                                    <li>Phone: {{ $res->booking->customer->contacts->phones[0]->phoneNumber }}</li>
+                                    <li>Номер телефона: {{ $res->booking->customer->contacts->phones[0]->phoneNumber }}</li>
                                     <li>Email: {{ $res->booking->customer->contacts->emails[0]->emailAddress }}</li>
-                                    <li>Comment: {{ $res->booking->customer->comment }}</li>
+                                    <li>Комментарий: {{ $res->booking->customer->comment }}</li>
                                 </ul>
                             </li>
                         </ul>
@@ -45,7 +45,7 @@
                                 @if($res->booking->cancellation == null)
                                     <input type="hidden" name="cancelTime" value="{{ $res->booking->cancellationPolicy->freeCancellationDeadlineUtc }}">
                                 @endif
-                                <button class="more">Cancel book</button>
+                                <button class="more">Отменить бронь</button>
                             </form>
                         </div>
                     @endif

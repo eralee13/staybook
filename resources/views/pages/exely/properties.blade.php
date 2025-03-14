@@ -8,11 +8,11 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-12">
-                    <h1 data-aos="fade-up" data-aos-duration="2000">Properties</h1>
+                    <h1 data-aos="fade-up" data-aos-duration="2000">Поиск</h1>
                     <ul class="breadcrumbs">
                         <li><a href="{{route('index')}}">@lang('main.home')</a></li>
                         <li>></li>
-                        <li>Properties</li>
+                        <li>Поиск...</li>
                     </ul>
                 </div>
             </div>
@@ -47,12 +47,11 @@
                             <div class="col">
                                 <div class="form-group">
                                     <label for="title">Название города</label>
-                                    <select name="title" id="city">
+                                    <select name="title" id="city" required>
                                         <option value="">@lang('main.choose')</option>
-
                                         @foreach($properties->properties as $hotel)
                                             <option
-                                                value="{{ $hotel->contactInfo->address->cityId }}">{{ $hotel->contactInfo->address->cityName}}</option>
+                                                value="{{ $hotel->contactInfo->address->cityName }}">{{ $hotel->contactInfo->address->cityName}}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -89,7 +88,7 @@
                             <div class="col">
                                 <div class="form-group" style="position: relative">
                                     <label for="">@lang('main.search-child')</label>
-                                    <select name="countc" onchange="ageCheck(this);">
+                                    <select name="" onchange="ageCheck(this);">
                                         <option value="">@lang('main.choose')</option>
                                         <option value="1">1</option>
                                         <option value="2">2</option>
@@ -184,7 +183,7 @@
                                 </div>
                             </div>
                             <div class="col">
-                                <a href="{{ route('properties') }}">Reset</a>
+                                <a href="{{ route('properties') }}" class="more" style="margin-top: 26px; background-color: #fff; color: black; display: inline-block">Сброс</a>
                             </div>
                         </div>
 
@@ -226,36 +225,39 @@
         </div>
     </div>
 
-    <div class="page">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-2">
-                    @include('pages.exely.sidebar')
-                </div>
-                <div class="col-md-10">
-                    <div class="row">
-                        @foreach($hotels as $property)
-                            <div class="col-lg-4" style="margin-bottom: 40px">
-                                <div class="property-item">
-                                    @if(\Illuminate\Support\Facades\Storage::exists($property->image))
-                                        <img src="{{ Storage::url($property->image) }}" alt="">
-                                    @else
-                                        <img src="{{ $property->image }}" alt="">
-                                    @endif
-                                    <h4>{{ $property->title}}</h4>
-                                    <p>{{ Str::limit($property->description, 100) }}</p>
-                                    <p>Stars: {{ $property->rating }}</p>
-                                    <div class="address">{{ $property->address }}</div>
-                                    <div class="btn-wrap" style="margin-top: 20px">
-                                        <a href="{{ route('hotel', $property->code) }}" class="more">Read more</a>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+
+    <div class="page" style="padding: 300px 0"></div>
+
+{{--    <div class="page">--}}
+{{--        <div class="container">--}}
+{{--            <div class="row">--}}
+{{--                <div class="col-md-2">--}}
+{{--                    @include('pages.exely.sidebar')--}}
+{{--                </div>--}}
+{{--                <div class="col-md-10">--}}
+{{--                    <div class="row">--}}
+{{--                        @foreach($hotels as $property)--}}
+{{--                            <div class="col-lg-4" style="margin-bottom: 40px">--}}
+{{--                                <div class="property-item">--}}
+{{--                                    @if(\Illuminate\Support\Facades\Storage::exists($property->image))--}}
+{{--                                        <img src="{{ Storage::url($property->image) }}" alt="">--}}
+{{--                                    @else--}}
+{{--                                        <img src="{{ $property->image }}" alt="">--}}
+{{--                                    @endif--}}
+{{--                                    <h4>{{ $property->title}}</h4>--}}
+{{--                                    <p>{{ Str::limit($property->description, 100) }}</p>--}}
+{{--                                    <p>Stars: {{ $property->rating }}</p>--}}
+{{--                                    <div class="address">{{ $property->address }}</div>--}}
+{{--                                    <div class="btn-wrap" style="margin-top: 20px">--}}
+{{--                                        <a href="{{ route('hotel', $property->code) }}" class="more">Read more</a>--}}
+{{--                                    </div>--}}
+{{--                                </div>--}}
+{{--                            </div>--}}
+{{--                        @endforeach--}}
+{{--                    </div>--}}
+{{--                </div>--}}
+{{--            </div>--}}
+{{--        </div>--}}
+{{--    </div>--}}
 
 @endsection

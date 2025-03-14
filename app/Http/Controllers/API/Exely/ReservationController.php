@@ -13,6 +13,14 @@ class ReservationController extends Controller
 {
     //Reservation API
 
+    public function orderexely(Request $request)
+    {
+        $hotel = Http::withHeaders(['x-api-key' => 'fd54fc5c-2927-4998-8132-fb1107fc81c4', 'accept' => 'application/json'])->get('https://connect.test.hopenapi.com/api/content/v1/properties/' . $request->propertyId);
+        $arrival = Carbon::createFromDate($request->arrivalDate)->format('d.m.Y H:i');
+        $departure = Carbon::createFromDate($request->departureDate)->format('d.m.Y H:i');
+        return view('pages.exely.reservation.orderexely', compact('request', 'arrival', 'departure','hotel'));
+    }
+
     public function res_verify_bookings(Request $request)
     {
         $response = Http::withHeaders(['x-api-key' => 'fd54fc5c-2927-4998-8132-fb1107fc81c4', 'accept' => 'application/json'])->post('https://connect.test.hopenapi.com/api/reservation/v1/bookings/verify', [
@@ -89,6 +97,7 @@ class ReservationController extends Controller
                 ]
             ]
         ]);
+
         $order = $response->object();
 
         return view('pages.exely.reservation.order-verify', compact('order'));
@@ -471,10 +480,5 @@ class ReservationController extends Controller
 
     }
 
-
-    public function orderexely(Request $request)
-    {
-        return view('pages.exely.reservation.orderexely', compact('request'));
-    }
 
 }

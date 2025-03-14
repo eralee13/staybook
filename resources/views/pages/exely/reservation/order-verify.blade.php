@@ -1,3 +1,4 @@
+@php use Illuminate\Support\Facades\Http; @endphp
 @extends('layouts.master')
 
 @section('title', 'Забронировать')
@@ -8,11 +9,11 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-12">
-                    <h1 data-aos="fade-up" data-aos-duration="2000">Забронировать</h1>
+                    <h1 data-aos="fade-up" data-aos-duration="2000">Подтверждение брони</h1>
                     <ul class="breadcrumbs">
                         <li><a href="{{route('index')}}">@lang('main.home')</a></li>
                         <li>></li>
-                        <li>Забронировать</li>
+                        <li>Подтверждение брони</li>
                     </ul>
                 </div>
             </div>
@@ -32,9 +33,12 @@
                         @endforeach
                     @else
                         @if($order->booking != null)
+                            @php
+                                $hotel = Http::withHeaders(['x-api-key' => 'fd54fc5c-2927-4998-8132-fb1107fc81c4', 'accept' => 'application/json'])->get('https://connect.test.hopenapi.com/api/content/v1/properties/' . $order->propertyId);
+                            @endphp
                             <table>
                                 <tr>
-                                    <td>Name</td>
+                                    <td>ФИО:</td>
                                     <td>
                                         <ul>
                                             @foreach($order->booking->roomStays as $room)
@@ -46,19 +50,19 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td>Price</td>
+                                    <td>Цена:</td>
                                     <td>{{ $order->booking->total->priceBeforeTax }} {{ $order->booking->currencyCode }}</td>
                                 </tr>
                                 <tr>
-                                    <td>Property ID</td>
-                                    <td>{{ $order->booking->propertyId }}</td>
+                                    <td>Отель:</td>
+                                    <td>{{ $hotel->object()->name }}</td>
                                 </tr>
                                 <tr>
-                                    <td>Comment</td>
+                                    <td>Комментарий:</td>
                                     <td>{{ $order->booking->bookingComments[0] }}</td>
                                 </tr>
                                 <tr>
-                                    <td>Stay Dates</td>
+                                    <td>Даты:</td>
                                     <td>
                                         @foreach($order->booking->roomStays as $room)
                                             {{ $room->stayDates->arrivalDateTime }}
@@ -67,22 +71,22 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td>Rate Plan</td>
+                                    <td>Тариф:</td>
                                     <td>{{ $order->booking->roomStays[0]->ratePlan->name }}</td>
                                 </tr>
                                 <tr>
-                                    <td>Guest Count</td>
+                                    <td>Кол-во гостей:</td>
                                     <td>{{ $order->booking->roomStays[0]->guestCount->adultCount }}</td>
                                 </tr>
                                 <tr>
-                                    <td>Room Type</td>
+                                    <td>Тип комнаты:</td>
                                     <td>{{ $order->booking->roomStays[0]->roomType->name }}</td>
                                 </tr>
                             </table>
                         @else
                             <table>
                                 <tr>
-                                    <td>Name</td>
+                                    <td>ФИО:</td>
                                     <td>
                                         <ul>
                                             @foreach($order->alternativeBooking->roomStays as $room)
@@ -94,19 +98,22 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td>Price</td>
+                                    <td>Цена:</td>
                                     <td>{{ $order->alternativeBooking->total->priceBeforeTax }} {{ $order->alternativeBooking->currencyCode }}</td>
                                 </tr>
                                 <tr>
-                                    <td>Property ID</td>
-                                    <td>{{ $order->alternativeBooking->propertyId }}</td>
+                                    <td>Отель:</td>
+                                    @php
+                                        $hotel = Http::withHeaders(['x-api-key' => 'fd54fc5c-2927-4998-8132-fb1107fc81c4', 'accept' => 'application/json'])->get('https://connect.test.hopenapi.com/api/content/v1/properties/' . $order->alternativeBooking->propertyId);
+                                    @endphp
+                                    <td>{{ $hotel->object()->name }}</td>
                                 </tr>
                                 <tr>
-                                    <td>Comment</td>
+                                    <td>Комментарий:</td>
                                     <td>{{ $order->alternativeBooking->bookingComments[0] }}</td>
                                 </tr>
                                 <tr>
-                                    <td>Stay Dates</td>
+                                    <td>Даты:</td>
                                     <td>
                                         @foreach($order->alternativeBooking->roomStays as $room)
                                             {{ $room->stayDates->arrivalDateTime }}
@@ -115,22 +122,21 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td>Rate Plan</td>
+                                    <td>Тариф:</td>
                                     <td>{{ $order->alternativeBooking->roomStays[0]->ratePlan->name }}</td>
                                 </tr>
                                 <tr>
-                                    <td>Guest Count</td>
+                                    <td>Кол-во гостей:</td>
                                     <td>{{ $order->alternativeBooking->roomStays[0]->guestCount->adultCount }}</td>
                                 </tr>
                                 <tr>
-                                    <td>Room Type</td>
+                                    <td>Тип комнаты:</td>
                                     <td>{{ $order->alternativeBooking->roomStays[0]->roomType->name }}</td>
                                 </tr>
                             </table>
                         @endif
 
                         <div class="btn-wrap">
-
                             <form action="{{ route('res_bookings') }}" method="get">
                                 <input type="hidden" name="propertyId"
                                        value="{{ $order->alternativeBooking->propertyId }}">
@@ -170,7 +176,7 @@
                                        value="{{ $order->alternativeBooking->customer->contacts->phones[0]->phoneNumber }}">
                                 <input type="hidden" name="email"
                                        value="{{ $order->alternativeBooking->customer->contacts->emails[0]->emailAddress }}">
-                                <button class="more">Verify</button>
+                                <button class="more">Подтвердить</button>
                             </form>
                         </div>
                     @endif

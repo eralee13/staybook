@@ -8,11 +8,11 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-12">
-                    <h1 data-aos="fade-up" data-aos-duration="2000">Забронировать</h1>
+                    <h1 data-aos="fade-up" data-aos-duration="2000">Отмена брони</h1>
                     <ul class="breadcrumbs">
                         <li><a href="{{route('index')}}">@lang('main.home')</a></li>
                         <li>></li>
-                        <li>Забронировать</li>
+                        <li>Отмена брони</li>
                     </ul>
                 </div>
             </div>
@@ -22,12 +22,13 @@
     <div class="page">
         <div class="container">
             <div class="row">
-                <div class="col-lg-12 col-md-12">
-                    <h2>Cancel</h2>
-                    PenaltyAmount: {{ $calc->penaltyAmount }}
+                <div class="col-lg-6 col-md-12">
+                    <p>Штраф за отмену составляет: {{ $calc->penaltyAmount }}</p>
                     <form action="{{ route('res_cancel') }}">
-                        <input type="text" value="{{ $request->number }}" name="number">
-                        <button>Cancel Verify</button>
+                        <div class="form-group">
+                            <input type="text" value="{{ $request->number }}" name="number">
+                        </div>
+                        <button class="more">Отменить</button>
                     </form>
                 </div>
             </div>

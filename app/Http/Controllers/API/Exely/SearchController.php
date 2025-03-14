@@ -15,8 +15,14 @@ class SearchController extends Controller
     //Search API
     public function search_property(Request $request)
     {
+        $hotels = [];
+        $city_hotels = Hotel::where('city', $request->title)->get();
+        foreach ($city_hotels as $hotel) {
+            $hotels[] = "$hotel->exely_id";
+        }
+        //dd($hotels);
         $response = Http::accept('application/json')->withHeaders(['x-api-key' => 'fd54fc5c-2927-4998-8132-fb1107fc81c4'])->post('https://connect.test.hopenapi.com/api/search/v1/properties/room-stays/search', [
-            "propertyIds" => [$request->title],
+            "propertyIds" => $hotels,
             "adults" => $request->adult,
             "childAges" => [$request->age1, $request->age2, $request->age3],
             "include" => "",
@@ -35,7 +41,8 @@ class SearchController extends Controller
             //"corporateCodes" => ["string"],
         ]);
         $results = $response->object();
-        dd($results);
+
+        //dd($results);
         return view('pages.exely.search.search', compact('results'));
     }
 

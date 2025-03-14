@@ -16,11 +16,10 @@ class ContentController extends Controller
     //exely api
     public function properties()
     {
-        $response = Http::withHeaders(['x-api-key' => 'fd54fc5c-2927-4998-8132-fb1107fc81c4', 'accept' => 'application/json'])->get('https://connect.test.hopenapi.com/api/content/v1/properties?count=20&include=All');
+        $response = Http::withHeaders(['x-api-key' => 'fd54fc5c-2927-4998-8132-fb1107fc81c4', 'accept' => 'application/json'])->get('https://connect.test.hopenapi.com/api/content/v1/properties');
         $properties = $response->object();
         if ($properties->properties != null) {
             foreach ($properties->properties as $property) {
-                //dd($property);
                 Hotel::updateOrCreate(
                     [
                         'title' => $property->name,
