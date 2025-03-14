@@ -10,7 +10,6 @@ use App\Services\Tourmind\TmApiService;
 use App\Models\Hotel;
 use App\Models\Amenity;
 use App\Models\Room;
-use App\Models\Image;
 
 
 class HotelStaticList
@@ -40,9 +39,9 @@ class HotelStaticList
         $pageIndex = 1; // Начинаем с первой страницы
         $pageSize = 1; // Количество отелей на страницу
     
-        do {
+        //do {
             $payload = [
-                "CountryCode" => $countryCode,
+                "CountryCode" => 'UA',
                 "Pagination" => [
                     "PageIndex" => $pageIndex,
                     "PageSize" => $pageSize
@@ -110,19 +109,19 @@ class HotelStaticList
                     'status' => 1,
                 ];
     
-                $data = array_diff_key($data, [
-                    'description',
-                    'checkin',
-                    'checkout',
-                    'email',
-                    'count',
-                    'type',
-                    'address_en',
-                    'early_in',
-                    'early_out',
-                    'top',
-                    'user_id',
-                ]);
+                // $data = array_diff_key($data, [
+                //     'description',
+                //     'checkin',
+                //     'checkout',
+                //     'email',
+                //     'count',
+                //     'type',
+                //     'address_en',
+                //     'early_in',
+                //     'early_out',
+                //     'top',
+                //     'user_id',
+                // ]);
     
                 $hotel = Hotel::updateOrCreate(
                     ['tourmind_id' => $hotelData['HotelId']],
@@ -146,13 +145,13 @@ class HotelStaticList
     
                 // Сохраняем до 10 изображений
                 if (!empty($hotelData['Images'])) {
-                    $this->saveHotelImages($hotel->id, $hotelData['Images']);
+                    $this->tmApiService->saveImagesLink($hotel->id, $hotelData['Images'], 10);
                 }
             }
     
             $pageIndex++; // Переход на следующую страницу
     
-        } while ($pageIndex <= $pageCount); // Пока не загрузим все страницы
+        //} while ($pageIndex <= $pageCount); // Пока не загрузим все страницы
     
         return ['message' => 'Данные обновлены', 'count' => count($hotels)];
     }

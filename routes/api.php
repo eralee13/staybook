@@ -6,6 +6,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\V1\Tourmind\HotelStaticListController;
 use App\Http\Controllers\API\V1\Tourmind\RegionListController;
 use App\Http\Controllers\API\V1\Tourmind\RoomStaticListController;
+use App\Http\Controllers\API\V1\Tourmind\SearchOrderController;
+use App\Http\Controllers\API\V1\Tourmind\CreateOrderController;
+use App\Http\Controllers\API\V1\Tourmind\CancelOrderController;
+use App\Http\Controllers\API\V1\Tourmind\CheckRoomRateController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,6 +31,11 @@ Route::prefix('v1')->group(function(){
     Route::post('/login', [\App\Http\Controllers\API\V1\AuthController::class, 'login'])->name('login');
 });
 
+Route::post('/v1/TmHotelDetail', [HotelDetailController::class, 'fetchHotelDetail']);
+Route::post('/v1/TmCheckRoomRate', [CheckRoomRateController::class, 'fetchCheckRoomRate']);
+Route::post('/v1/TmSearchOrder', [SearchOrderController::class, 'fetchSearchOrder']);
+Route::post('/v1/TmCreateOrder', [CreateOrderController::class, 'fetchCreateOrder']);
+Route::post('/v1/TmCancelOrder', [CancelOrderController::class, 'fetchCancelOrder']);
 Route::post('/v1/TmHotels', [HotelStaticListController::class, 'fetchHotels']);
 Route::post('/v1/TmRegionList', [RegionListController::class, 'fetchRegions']);
 Route::post('/v1/TmRoomType', [RoomStaticListController::class, 'fetchRoomsTypes']);

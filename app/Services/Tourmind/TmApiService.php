@@ -3,6 +3,7 @@
 namespace App\Services\Tourmind;
 
 use Illuminate\Support\Facades\Http;
+use App\Models\Image;
 
 class TmApiService
 {
@@ -42,9 +43,25 @@ class TmApiService
         ];
     }
 
-    private function saveHotelImages($hotelId, $images)
+    public function saveImagesLink($hotelId, $images, $col)
     {
-        collect($images)->take(10)->each(function ($img) use ($hotelId) {
+        collect($images)->take($col)->each(function ($img) use ($hotelId) {
+            $imageUrl = $img['links']['1000px']['href'] ?? null;
+
+            if ($imageUrl) {
+
+                    Image::create([
+                        'hotel_id' => $hotelId,
+                        'image' => $imageUrl
+                    ]);
+                
+            }
+        });
+    }
+    
+    public function saveImages($hotelId, $images, $col)
+    {
+        collect($images)->take($col)->each(function ($img) use ($hotelId) {
             $imageUrl = $img['links']['1000px']['href'] ?? null;
 
             if ($imageUrl) {
@@ -60,7 +77,7 @@ class TmApiService
         });
     }
 
-    private function saveHotelImage($imageUrl)
+    public function saveHotelImage($imageUrl)
     {
         try {
             // Получаем имя файла из ссылки
