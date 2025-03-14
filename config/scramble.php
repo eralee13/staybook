@@ -24,7 +24,7 @@ return [
         /*
          * API version.
          */
-        'version' => env('API_VERSION', '0.0.2'),
+        'version' => env('API_VERSION', '1.1'),
 
         /*
          * Description rendered on the home page of the API documentation (`/docs/api`).
@@ -68,6 +68,7 @@ return [
      * will need to specify the local server URL manually (if needed).
      *
      * Example of non-default config (final URLs are generated using Laravel `url` helper):
+     *
      *
      * ```php
      * 'servers' => [

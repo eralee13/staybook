@@ -13,7 +13,7 @@ use Illuminate\Http\JsonResponse;
 class MealController extends Controller
 {
     /**
-     * @return Collection
+     * @return Collection|\Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function index()
     {
