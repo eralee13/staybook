@@ -37,11 +37,11 @@ class HotelStaticList
     public function getHotelList($countryCode)
     {
         $pageIndex = 1; // Начинаем с первой страницы
-        $pageSize = 100; // Количество отелей на страницу
+        $pageSize = 1; // Количество отелей на страницу
     
         //do {
             $payload = [
-                "CountryCode" => 'CN',
+                "CountryCode" => 'KZ',
                 "Pagination" => [
                     "PageIndex" => $pageIndex,
                     "PageSize" => $pageSize
@@ -79,10 +79,10 @@ class HotelStaticList
                 // Получаем первую картинку
                 $imageUrl = collect($hotelData['Images'] ?? [])->pluck('links.1000px.href')->filter()->first();
     
-                // $localImagePath = null;
-                // if ($imageUrl) {
-                //     $localImagePath = $this->saveHotelImage($imageUrl, $hotelData['HotelId']);
-                // }
+                $localImagePath = null;
+                if ($imageUrl) {
+                    $localImagePath = $this->tmApiService->saveHotelImage($imageUrl, $hotelData['HotelId']);
+                }
     
                 $nameLower = str_replace(' ', '-', $hotelData['Name']);
 
@@ -92,19 +92,19 @@ class HotelStaticList
                     $phone = '+' . $phone;
                 }
                 
-                $data = [
+                $hotelDataInsert = [
                     'code' => strtolower($nameLower) ?? '',
                     'title' => (string)$hotelData['Name'] ?? '',
                     'title_en' => $hotelData['Name'] ?? '',
                     'rating' => (int) ($hotelData['StarRating'] ?? 0),
-                    'address_en' => $hotelData['Address'] ?? null,
-                    'country_code' => $hotelData['CountryCode'] ?? null,
-                    'city' => $hotelData['CityName'] ?? null,
-                    'lat' => $hotelData['Latitude'] ?? null,
-                    'lng' => $hotelData['Longitude'] ?? null,
-                    'phone' => $phone ?? null,
-                    'description_en' => $hotelData['Description']['Location'] ?? null,
-                    'image' => $imageUrl ?? null,
+                    'address_en' => $hotelData['Address'] ?? '',
+                    'country_code' => $hotelData['CountryCode'] ?? '',
+                    'city' => $hotelData['CityName'] ?? '',
+                    'lat' => $hotelData['Latitude'] ?? '',
+                    'lng' => $hotelData['Longitude'] ?? '',
+                    'phone' => $phone ?? '',
+                    'description_en' => $hotelData['Description']['Location'] ?? '',
+                    'image' => $localImagePath ?? '',
                     'tourmind_id' => $hotelData['HotelId'],
                     'status' => 1,
                 ];
@@ -112,7 +112,7 @@ class HotelStaticList
     
                 $hotel = Hotel::updateOrCreate(
                     ['tourmind_id' => $hotelData['HotelId']],
-                    $data
+                    $hotelDataInsert
                 );
     
                 // Обновляем удобства в таблице amenities
@@ -131,8 +131,8 @@ class HotelStaticList
                 );
     
                 // Сохраняем до 10 изображений
-                if (!empty($hotelData['Images'])) {
-                    $this->tmApiService->saveImagesLink($hotel->id, $hotelData['Images'], 10);
+                if ( !empty($hotelData['Images']) ) {
+                    $this->tmApiService->saveImages($hotel->id, $hotelData['Images'], 10);
                 }
             }
     
@@ -140,7 +140,8 @@ class HotelStaticList
     
         //} while ($pageIndex <= $pageCount); // Пока не загрузим все страницы
     
-        return ['message' => 'Данные обновлены', 'count' => count($hotels)];
+        // return ['message' => 'Данные обновлены', 'count' => count($hotels)];
+        return $data;
     }
     
 

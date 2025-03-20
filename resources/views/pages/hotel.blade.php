@@ -40,7 +40,7 @@
                                     @foreach($images as $image)
                                         <div class="col-md-2">
                                             <a href="{{ Storage::url($image->image) }}"><img loading="lazy"
-                                                                                             src="{{ Storage::url($image->image) }}"
+                                                src="{{ Storage::url($image->image) }}"
                                                                                              alt=""></a>
                                         </div>
                                     @endforeach

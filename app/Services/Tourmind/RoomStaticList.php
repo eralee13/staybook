@@ -66,7 +66,7 @@ class RoomStaticList
                     );
                 } catch (Exception $e) {
                     // Обработка исключения
-                    Log::error('Ошибка: ' . $e->getMessage(), ['exception' => $e]);
+                    Log::error('Ошибка CategoryRoom: ' . $e->getMessage(), ['exception' => $e]);
 
                     // Возвращаем JSON с ошибкой
                     // return response()->json([

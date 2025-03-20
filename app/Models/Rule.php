@@ -19,7 +19,11 @@ class Rule extends Model
         'percent_day',
         'percent_book',
         'date_day',
-        'date_book'
+        'date_book',
+        'amount',
+        'rate_id',
+        'start_date_time',
+        'end_date_time'
     ];
 
     protected $hidden = [

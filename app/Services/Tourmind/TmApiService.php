@@ -3,6 +3,7 @@
 namespace App\Services\Tourmind;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use App\Models\Image;
 
 class TmApiService

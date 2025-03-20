@@ -130,7 +130,7 @@
                                     <div class="dashboard-item">
                                         <div class="images">
                                             <div class="row">
-                                                <div class="col-md-3">
+                                                <div class="col-md-12">
                                                     <img loading="lazy" src="{{ Storage::url($hotel->image) }}" alt="">
                                                 </div>
                                                 <div class="img-wrap">

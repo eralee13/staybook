@@ -2,7 +2,7 @@
     //$rooms = \App\Models\Room::where('hotel_id', $hotel->id)->orderBy('price', 'asc')->get();
     //$categoryRooms = \App\Models\Rate::where('hotel_id', $hotel->id)->where('title', $request->title)->where('food_id', $request->food_id)->orderBy('price', 'asc')->take(1)->get();
     $query = \App\Models\Rate::with('room', 'food', 'rule', 'child');
-
+    
     //food
     if ($request->filled('food_id')) {
         $food = $request->input('food_id');

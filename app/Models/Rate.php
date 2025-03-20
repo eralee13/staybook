@@ -22,6 +22,12 @@ class Rate extends Model
         'price',
         'price2',
         'rule_id',
+        'desc_en',
+        'rate_code',
+        'allotment',
+        'currency',
+        'total_price',
+        'refundable',
     ];
 
     protected $hidden = [

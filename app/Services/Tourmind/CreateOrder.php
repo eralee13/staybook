@@ -3,9 +3,14 @@
 namespace App\Services\Tourmind;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use App\Services\Tourmind\TmApiService;
+use App\Models\Hotel;
+use App\Models\Book;
+
 
 class CreateOrder
 {
@@ -18,16 +23,77 @@ class CreateOrder
         $this->baseUrl = $this->tmApiService->getBaseUrl();
     }
 
-    public function getCreateOrder(){
+    public function getCheckRoomRate(){
+
+            $nationality;
+
+            $payload = [
+                "CheckIn" => "2025-06-06",
+                "CheckOut" => "2025-06-10",
+                "HotelCodes" => [766917],
+                "Nationality" => "CN",
+                "PaxRooms" => [
+                    [
+                    "Adults" => 1,
+                    "RoomCount" => 1
+                    ]
+                ],
+                "RateCode" => "13461197298",
+                "RequestHeader" => [
+                    "AgentCode" => "tms_test",
+                    "Password" => "tms_test",
+                    "UserName" => "tms_test",
+                    "RequestTime" => now()->format('Y-m-d H:i:s')
+                ]
+            ];
+    
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json'
+            ])->post("{$this->baseUrl}/CheckRoomRate", $payload);
+    
+            if ($response->failed()) {
+                Log::channel('tourmind')->info('CheckRoomRate Ошибка при запросе к API', $response->status());
+                return ['Error' => 'CheckRoomRate Ошибка при запросе к API', 'status' => $response->status()];
+            }
+
+            $data = $response->json();
+            //print_r($data);
+        
+            //Log::channel('tourmind')->info('CheckRoomRate', ['order_id' => 123]);
+
+        //return ['message' => 'Данные обновлены', 'count' => count($regions)];
+        return $data;
+    }
+
+    public function getCreateOrder($request){
+        //$input = $request->all();
+        $userId = Auth::id();
+        $hotelid;
+        $checkIn;
+        $checkOut;
+        $email;
+        $firstName;
+        $lastName;
+        $phone;
+        $currency;
+        $adult;
+        $children;
+        $roomCount;
+        $ratecode;
+        
+
+        $checkRoom = $this->getCheckRoomRate();
+        $checkRoomPrice = $checkRoom['Hotels'][0]['RoomTypes'][0]['RateInfos'][0]['TotalPrice'];
 
         $countryCodes = $this->tmApiService->getCountryCodes();
 
         // foreach ($countryCodes as $countryCode) {
             
             $payload = [
-                "AgentRefID" => "213415",
-                "CheckIn" => "2018-08-25",
-                "CheckOut" => "2018-08-26",
+                "AgentRefID" => "swt[$userId]",
+                "CheckIn" => "2025-06-06",
+                "CheckOut" => "2025-06-10",
                 "ContactInfo" => [
                     "Email" => "xxx@google.com",
                     "FirstName" => "Tom",
@@ -35,12 +101,10 @@ class CreateOrder
                     "PhoneNo" => "1521777777"
                 ],
                 "CurrencyCode" => "CNY",
-                "HotelCode" => 235113,
+                "HotelCode" => 766917,
                 "PaxRooms" => [
                     [
                     "Adults" => 1,
-                    "Children" => 1,
-                    "ChildrenAges" => [8],
                     "PaxNames" => [
                             [
                             "FirstName" => "Era",
@@ -51,9 +115,9 @@ class CreateOrder
                     "RoomCount" => 1
                     ]
                 ],
-                "RateCode" => "2132151",
+                "RateCode" => "13461197298",
                 "SpecialRequest" => "Non-smoking room",
-                "TotalPrice" => 888,
+                "TotalPrice" => $checkRoomPrice,
                 "RequestHeader" => [
                     "AgentCode" => "tms_test",
                     "Password" => "tms_test",
@@ -100,8 +164,34 @@ class CreateOrder
             // }
 
         // }
-           
-        //return ['message' => 'Данные обновлены', 'count' => count($regions)];
-        return $data;
+        Log::channel('tourmind')->info('CreateOrder - ', $data);
+
+        if( !empty($data['OrderInfo']['ReservationID']) ){
+
+            $Book = Book::updateOrCreate(
+                [
+                    'title' => $firstName.' '.$lastName,
+                    'hotel_id' => $hotelid,
+                    'phone' => $phone,
+                    'email' => $email,
+                    'comment' => $comment,
+                    'adult' => $adult,
+                    'child' => $children,
+                    'arrivalDate' => $data['ResponseHeader']['ResponseTime'],
+                    'departureDate' => '',
+                    'book_token' => $data['ResponseHeader']['TransactionID'],
+                    // 'book_token' => $data['OrderInfo']['ReservationID'],
+                    'status' => 'В процессе',
+                    'uesr_id' => $userId,
+                ]
+            );
+
+            return ['message' => 'Заказ создан', 'status' => $data['OrderInfo']['OrderStatus']];
+
+        }else{
+
+            return ['error' => $data['Error']['ErrorMessage']];
+
+        }
     }
 }

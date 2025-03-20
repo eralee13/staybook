@@ -5,6 +5,7 @@ namespace App\Services\Tourmind;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use App\Services\Tourmind\TmApiService;
 
 class SearchOrder
@@ -20,12 +21,14 @@ class SearchOrder
 
     public function getSearchOrder(){
 
+        $userId = Auth::id();
+
         //$countryCodes = $this->tmApiService->getCountryCodes();
 
         // foreach ($countryCodes as $countryCode) {
             
             $payload = [
-                "AgentRefID" => "21345555",
+                "AgentRefID" => "swt[$userId]",
                 "RequestHeader" => [
                     "AgentCode" => "tms_test",
                     "Password" => "tms_test",

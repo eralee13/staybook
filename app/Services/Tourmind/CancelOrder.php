@@ -5,6 +5,7 @@ namespace App\Services\Tourmind;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use App\Services\Tourmind\TmApiService;
 
 class CancelOrder
@@ -20,12 +21,11 @@ class CancelOrder
 
     public function getCancelOrder(){
 
-        $countryCodes = $this->tmApiService->getCountryCodes();
-
-        // foreach ($countryCodes as $countryCode) {
+        $userId = Auth::id();
             
             $payload = [
-                "AgentRefID" => "213415",
+                "AgentRefID" => "swt[$userId]",
+                "ReservationID" => "14547394",
                 "RequestHeader" => [
                     "AgentCode" => "tms_test",
                     "Password" => "tms_test",
@@ -39,40 +39,38 @@ class CancelOrder
                 'Accept' => 'application/json'
             ])->post("{$this->baseUrl}/CancelOrder", $payload);
     
-            if ($response->failed()) {
+            if ( $response->failed() ) {
                 return ['error' => 'CancelOrder Ошибка при запросе к API', 'status' => $response->status()];
             }
 
             $data = $response->json();
             //$regions = $data['RegionListResult']['Regions'] ?? [];
             
-            foreach($regions as $region){
+            // foreach($regions as $region){
 
-                try {
-                    DB::table('cities')->updateOrInsert(
-                        ['country_id' => $region['RegionID']], // Условие проверки
-                        [
-                            'name' => $region['Name'],
-                            'country_id' => (int)$region['RegionID'],
-                            'country_code' => (string)$region['CountryCode'],
-                        ]
-                    );
+            //     try {
+            //         DB::table('cities')->updateOrInsert(
+            //             ['country_id' => $region['RegionID']], // Условие проверки
+            //             [
+            //                 'name' => $region['Name'],
+            //                 'country_id' => (int)$region['RegionID'],
+            //                 'country_code' => (string)$region['CountryCode'],
+            //             ]
+            //         );
                     
-                } catch (Exception $e) {
-                    // Обработка исключения
-                    Log::error('Ошибка: ' . $e->getMessage(), ['exception' => $e]);
+            //     } catch (Exception $e) {
+            //         // Обработка исключения
+            //         Log::error('Ошибка: ' . $e->getMessage(), ['exception' => $e]);
 
-                    // Возвращаем JSON с ошибкой
-                    // return response()->json([
-                    //     'error' => true,
-                    //     'message' => 'Произошла ошибка на сервере',
-                    //     'details' => $e->getMessage() // Можно скрыть в продакшене
-                    // ], 500);
-                }
-            }
-
-        // }
+            //         // Возвращаем JSON с ошибкой
+            //         // return response()->json([
+            //         //     'error' => true,
+            //         //     'message' => 'Произошла ошибка на сервере',
+            //         //     'details' => $e->getMessage() // Можно скрыть в продакшене
+            //         // ], 500);
+            //     }
+            // }
            
-        return ['message' => 'Данные обновлены', 'count' => count($regions)];
+        return $data;
     }
 }
