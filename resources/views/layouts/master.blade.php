@@ -17,11 +17,8 @@
           rel="stylesheet">
     <link rel="stylesheet" href="{{route('index')}}/css/main.min.css">
     <link rel="stylesheet" href="{{route('index')}}/css/style.css?ver=1.1">
-
-
     <script src="{{route('index')}}/js/scripts.min.js"></script>
-
-
+    @livewireStyles
 </head>
 
 <body>
@@ -161,6 +158,7 @@
     </div>
 </footer>
 
+@livewireScripts
 
 </body>
 

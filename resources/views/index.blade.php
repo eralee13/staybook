@@ -21,9 +21,12 @@
         <link rel="stylesheet"
               href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/css/selectize.bootstrap3.min.css"
               integrity="sha256-ze/OEYGcFbPRmvCnrSeKbRTtjG4vGLHXgOqsyLFTRjg=" crossorigin="anonymous"/>
-        <div class="search homesearch d-xl-block d-lg-block d-none">
 
-            <div class="container">
+            <livewire:hotel-search />
+
+        <div class="search homesearch d-xl-block d-lg-block d-none">
+        
+            {{-- <div class="container">
                 <form action="{{ route('searchtest') }}" class="row">
                     <div class="row">
                         <div class="col">
@@ -477,7 +480,7 @@
                         </div>
                     </div>
                 </form>
-            </div>
+            </div> --}}
         </div>
 
 {{--        <div class="form">--}}
@@ -523,13 +526,13 @@
         @php
             $date = '2025-03-07T10:44:33Z';
             $d = \Carbon\Carbon::createFromDate($date)->utc(0);
-            echo $d;
+            // echo $d;
         @endphp
 
 
 
 
-        <div class="rooms home-rooms">
+        {{-- <div class="rooms home-rooms">
             <div class="container">
                 <div class="row">
                     <div class="col-md-12">
@@ -545,7 +548,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> --}}
 
         <style>
             .check {

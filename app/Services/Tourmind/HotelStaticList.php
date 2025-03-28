@@ -37,11 +37,11 @@ class HotelStaticList
     public function getHotelList($countryCode)
     {
         $pageIndex = 1; // Начинаем с первой страницы
-        $pageSize = 1; // Количество отелей на страницу
+        $pageSize = 500; // Количество отелей на страницу
     
-        //do {
+        do {
             $payload = [
-                "CountryCode" => 'KZ',
+                "CountryCode" => $countryCode,
                 "Pagination" => [
                     "PageIndex" => $pageIndex,
                     "PageSize" => $pageSize
@@ -138,10 +138,10 @@ class HotelStaticList
     
             $pageIndex++; // Переход на следующую страницу
     
-        //} while ($pageIndex <= $pageCount); // Пока не загрузим все страницы
+        } while ($pageIndex <= $pageCount); // Пока не загрузим все страницы
     
-        // return ['message' => 'Данные обновлены', 'count' => count($hotels)];
-        return $data;
+        return ['message' => 'Данные обновлены', 'count' => count($hotels)];
+        //return $data;
     }
     
 

@@ -91,7 +91,7 @@ class CreateOrder
         // foreach ($countryCodes as $countryCode) {
             
             $payload = [
-                "AgentRefID" => "swt[$userId]",
+                "AgentRefID" => "swt$userId",
                 "CheckIn" => "2025-06-06",
                 "CheckOut" => "2025-06-10",
                 "ContactInfo" => [
