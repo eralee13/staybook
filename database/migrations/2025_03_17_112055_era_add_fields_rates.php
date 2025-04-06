@@ -16,7 +16,7 @@ return new class extends Migration
             $table->integer('allotment')->after('rate_code');
             $table->string('currency', 3)->after('allotment');
             $table->integer('total_price')->after('currency');
-            $table->boolean('refundable')->default(false)->after('total_price');
+            // $table->boolean('refundable')->default(false)->after('total_price');
         });
     }
 
@@ -30,7 +30,7 @@ return new class extends Migration
             $table->dropColumn('allotment');
             $table->dropColumn('currency');
             $table->dropColumn('total_price');
-            $table->dropColumn('refundable');
+            // $table->dropColumn('refundable');
         });
     }
 };

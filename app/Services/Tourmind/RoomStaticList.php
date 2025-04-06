@@ -6,32 +6,45 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Services\Tourmind\TmApiService;
 use App\Models\Hotel;
-use App\Models\CategoryRoom;
+use App\Models\Room;
 
 
 class RoomStaticList
 {
     protected TmApiService $tmApiService;
     protected string $baseUrl;
+    protected string $tm_agent_code;
+    protected string $tm_user_name;
+    protected string $tm_password;
 
     public function __construct(TmApiService $tmApiService)
     {
         $this->tmApiService = $tmApiService;
-        $this->baseUrl = $this->tmApiService->getBaseUrl();
+        $this->baseUrl = config('app.tm_base_url');
+        $this->tm_agent_code = config('app.tm_agent_code');
+        $this->tm_user_name = config('app.tm_user_name');
+        $this->tm_password = config('app.tm_password');
     }
 
     public function getRoomList(){
 
-        $hotels = Hotel::pluck('tourmind_id'); // Получаем только одно поле как коллекцию
+        $hotels = Hotel::whereNotNull('tourmind_id')
+            ->where('tourmind_id', '!=', '')
+            ->get(['id', 'tourmind_id']) // Извлекаем только нужные колонки
+            ->toArray();
 
-        foreach ($hotels as $tourmindId) {
-            
+            // dd($hotels);
+
+        foreach ($hotels as $hotel) {
+            $tourmindId = $hotel['tourmind_id'];
+            $hId = $hotel['id'];
+
             $payload = [
                 "HotelCode" => $tourmindId,
                 "RequestHeader" => [
-                    "AgentCode" => "tms_test",
-                    "Password" => "tms_test",
-                    "UserName" => "tms_test",
+                    "AgentCode" => $this->tm_agent_code,
+                    "Password" => $this->tm_password,
+                    "UserName" => $this->tm_user_name,
                     "RequestTime" => now()->format('Y-m-d H:i:s')
                 ]
             ];
@@ -51,22 +64,21 @@ class RoomStaticList
             foreach($types as $type){
 
                 try {
-                    CategoryRoom::updateOrCreate(
+                    Room::updateOrCreate(
 
                         [
-                            'tourmind_id' => $tourmindId,
+                            'hotel_id' => (int)$hId,
                             'type_code' => (int)$type['RoomTypeCode'],
                         ],
                         [
-                            'type_code' => (int)$type['RoomTypeCode'],
                             'title_en' => (string)$type['RoomTypeName'],
-                            'description_en' => (string)$type['BedTypeDesc']
+                            'bed' => (string)$type['BedTypeDesc']
                         ],
                         
                     );
                 } catch (Exception $e) {
                     // Обработка исключения
-                    Log::error('Ошибка CategoryRoom: ' . $e->getMessage(), ['exception' => $e]);
+                    Log::error('Ошибка Room: ' . $e->getMessage(), ['exception' => $e]);
 
                     // Возвращаем JSON с ошибкой
                     // return response()->json([
@@ -80,5 +92,6 @@ class RoomStaticList
         }
 
         return ['message' => 'Данные обновлены', 'count' => count($types)];
+        //return $hotels;
     }
 }

@@ -13,7 +13,7 @@ class UpdateHotelStaticList extends Command
      *
      * @var string
      */
-    protected $signature = 'hotel:update-hotel-static-list';
+    protected $signature = 'app:tm-hotel-static-list';
 
     /**
      * The console command description.

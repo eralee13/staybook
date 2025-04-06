@@ -11,7 +11,7 @@ class UpdateRoomStaticList extends Command
      *
      * @var string
      */
-    protected $signature = 'app:update-room-static-list';
+    protected $signature = 'app:tm-room-static-list';
 
     /**
      * The console command description.

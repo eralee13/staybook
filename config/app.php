@@ -189,5 +189,8 @@ return [
     ])->toArray(),
 
     'tm_base_url' => env('TOURMIND_API_URL'),
+    'tm_agent_code' => env('TM_AGENT_CODE'),
+    'tm_user_name' => env('TM_USER_NAME'),
+    'tm_password' => env('TM_PASSWORD'),
 
 ];

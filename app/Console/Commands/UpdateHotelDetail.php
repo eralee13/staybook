@@ -11,7 +11,7 @@ class UpdateHotelDetail extends Command
      *
      * @var string
      */
-    protected $signature = 'app:update-hotel-detail';
+    protected $signature = 'app:tm-hotel-detail';
 
     /**
      * The console command description.

@@ -1,13 +1,216 @@
 
 <div class="container">
     <div class="row">
-        <div class="col-md-12"><h2>Hotel Search Results</h2></div>
-            {{$checkin}} - {{$checkout}}
+        <div class="col-md-12"><h2>Hotel Search Results</h2>
+            
             {{ print_r(session('hotel_search'), true) }}
+        
+        </div>
+            
         <div class="col-md-12">
-            <style>.search input{ width: auto; }</style>
+            <style>.search input{ width: auto; } form label{width: 100%; } form input, form select{width: auto}</style>
             <div class="search homesearch d-xl-block d-lg-block d-none main-filter" id="main-filter">
-                <form wire:submit.prevent="" class="row">
+                <form wire:submit.prevent="filterHotels" class="row">
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="city">@lang('main.search-title')</label>
+                                <select name="city" id="city" wire:model="city">
+                                    <option value="">@lang('main.choose')</option>
+                                    <option value="Kyiv">Киев</option>
+                                    {{-- @foreach($hotels as $hotel)
+                                        <option value="{{ $hotel->id }}" data-address="{{ $hotel->__('address')
+                                    }}">{{ $hotel->title_en }} ({{ $hotel->title}})</option>
+                                    @endforeach --}}
+                                    {{-- @foreach($properties as $property)
+                                        <option value="{{ $property->id }}" data-address="{{ $property->contactInfo->address->addressLine }}">{{ $property->name }}</option>
+                                    @endforeach --}}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                
+            
+                                {{-- 
+                                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+                                <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+                                <label for="">@lang('main.search-date')</label>
+                                <input type="text" id="date_range" wire:model.lazy="dateRange" placeholder="Выберите даты">
+                                <script>
+                                    document.addEventListener('DOMContentLoaded', function () {
+                                        flatpickr("#date_range", {
+                                            mode: "range", // Включаем выбор диапазона
+                                            dateFormat: "Y-m-d", // Формат даты (YYYY-MM-DD)
+                                            minDate: "today", // Запрещаем выбор прошедших дат
+                                            locale: "ru", // Поддержка русского языка
+                                            onClose: function(selectedDates, dateStr) {
+                                                @this.set('dateRange', dateStr); // Передаем данные в Livewire
+                                            }
+                                        });
+                                    });
+                                </script> --}}
+                                
+                                <label for="">@lang('main.search-date')</label>
+                                <input type="text" wire:model="dateRange" id="date_range" class="date" placeholder="Выберите дату">
+                                <input type="hidden" wire:model="checkin" id="start_d" name="start_d" />
+                                <input type="hidden" wire:model="checkout" id="end_d" name="end_d" />
+            
+                                <script>
+                                    document.addEventListener('DOMContentLoaded', function () {
+                                        // $('#date_range').daterangepicker({
+                                        //     autoUpdateInput: false,
+                                        //     locale: {
+                                        //         format: 'YYYY-MM-DD',
+                                        //         applyLabel: 'Применить',
+                                        //         cancelLabel: 'Очистить',
+                                        //         fromLabel: 'От',
+                                        //         toLabel: 'До',
+                                        //         customRangeLabel: 'Выбрать вручную',
+                                        //         daysOfWeek: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
+                                        //         monthNames: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 
+                                        //                      'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
+                                        //         firstDay: 1
+                                        //     }
+                                        // });
+            
+                                
+            
+                                        $('#date_range').on('apply.daterangepicker', function (ev, picker) {
+                                            let dateRange = picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD');
+                                            $(this).val(dateRange);
+                                            @this.set('dateRange', dateRange); // Передача в Livewire
+                                        });
+                                
+                                        $('#date_range').on('cancel.daterangepicker', function () {
+                                            $(this).val('');
+                                            @this.set('dateRange', ''); // Очистка значения в Livewire
+                                        });
+                                    });
+                                </script>
+                                
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="">@lang('main.search-adult')</label>
+                                <select name="adults" id="adults" wire:model="adults">
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group" style="position: relative">
+                                <label for="">@lang('main.search-child')</label>
+                                <select name="countc" onchange="ageCheck(this);" wire:model="child">
+                                    <option value="">@lang('main.choose')</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                </select>
+                                <select name="age1" id="age1" class="age" wire:model="childrenage">
+                                    <option value="0">@lang('main.choose')</option>
+                                    <option value="1">1 год</option>
+                                    <option value="2">2 года</option>
+                                    <option value="3">3 года</option>
+                                    <option value="4">4 года</option>
+                                    <option value="5">5 лет</option>
+                                    <option value="6">6 лет</option>
+                                    <option value="7">7 лет</option>
+                                    <option value="8">8 лет</option>
+                                    <option value="9">9 лет</option>
+                                    <option value="10">10 лет</option>
+                                    <option value="11">11 лет</option>
+                                    <option value="12">12 лет</option>
+                                    <option value="13">13 лет</option>
+                                    <option value="14">14 лет</option>
+                                    <option value="15">15 лет</option>
+                                    <option value="16">16 лет</option>
+                                    <option value="17">17 лет</option>
+                                </select>
+                                <select name="age2" id="age2" class="age" wire:model="childrenage2">
+                                    <option value="0">@lang('main.choose')</option>
+                                    <option value="1">1 год</option>
+                                    <option value="2">2 года</option>
+                                    <option value="3">3 года</option>
+                                    <option value="4">4 года</option>
+                                    <option value="5">5 лет</option>
+                                    <option value="6">6 лет</option>
+                                    <option value="7">7 лет</option>
+                                    <option value="8">8 лет</option>
+                                    <option value="9">9 лет</option>
+                                    <option value="10">10 лет</option>
+                                    <option value="11">11 лет</option>
+                                    <option value="12">12 лет</option>
+                                    <option value="13">13 лет</option>
+                                    <option value="14">14 лет</option>
+                                    <option value="15">15 лет</option>
+                                    <option value="16">16 лет</option>
+                                    <option value="17">17 лет</option>
+                                </select>
+                                <select name="age3" id="age3" class="age" wire:model="childrenage3">
+                                    <option value="0">@lang('main.choose')</option>
+                                    <option value="1">1 год</option>
+                                    <option value="2">2 года</option>
+                                    <option value="3">3 года</option>
+                                    <option value="4">4 года</option>
+                                    <option value="5">5 лет</option>
+                                    <option value="6">6 лет</option>
+                                    <option value="7">7 лет</option>
+                                    <option value="8">8 лет</option>
+                                    <option value="9">9 лет</option>
+                                    <option value="10">10 лет</option>
+                                    <option value="11">11 лет</option>
+                                    <option value="12">12 лет</option>
+                                    <option value="13">13 лет</option>
+                                    <option value="14">14 лет</option>
+                                    <option value="15">15 лет</option>
+                                    <option value="16">16 лет</option>
+                                    <option value="17">17 лет</option>
+                                </select>
+                                <script>
+                                    function ageCheck(that) {
+                                        if (that.value == 1) {
+                                            document.getElementById("age1").style.display = "inline-block";
+                                            document.getElementById("age2").style.display = "none";
+                                            document.getElementById("age3").style.display = "none";
+                                        }
+                                        else if (that.value == 2) {
+                                            document.getElementById("age1").style.display = "inline-block";
+                                            document.getElementById("age2").style.display = "inline-block";
+                                            document.getElementById("age3").style.display = "none";
+                                        }
+                                        else if (that.value == 3) {
+                                            document.getElementById("age1").style.display = "inline-block";
+                                            document.getElementById("age2").style.display = "inline-block";
+                                            document.getElementById("age3").style.display = "inline-block";
+                                        }
+                                        else {
+                                            document.getElementById("age1").style.display = "none";
+                                            document.getElementById("age2").style.display = "none";
+                                            document.getElementById("age3").style.display = "none";
+                                        }
+                                    }
+                                </script>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="">@lang('main.search-roomCount')</label>
+                                <select name="roomCount" id="roomCount" wire:model="roomCount">
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="6">6</option>
+                                    <option value="7">7</option>
+                                    <option value="8">8</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                     <div class="row">
                         <div class="col">
                             <div class="form-group">
@@ -29,14 +232,13 @@
                                     <option value="houseboat">Houseboat</option>
                                     <option value="glamping">Glamping</option>
                                 </select>
-                                
                             </div>
                         </div>
                         <div class="col">
                             <div class="form-group">
                                 <label for="price">Цена от-до</label>
-                                <input type="text" wire:model="pricemin" name="pricemax" wire:model="pricemin">
-                                <input type="text" wire:model="pricemax" name="pricemax" wire:model="pricemax">
+                                <input type="text" wire:model="pricemin" name="pricemax" wire:model="pricemin" style="width: 45%; float: left; margin-right: 10px;">
+                                <input type="text" wire:model="pricemax" name="pricemax" wire:model="pricemax" style="width: 45%; float: left; margin-right: 10px;" >
                             </div>
                         </div>
                         <div class="col">
@@ -57,10 +259,10 @@
                                 <label for="food">@lang('main.search-include')</label>
                                 <select id="food_id" name="food_id" wire:model="food">
                                     <option value="">@lang('main.choose')</option>
-                                    <option value="RO">RO</option>
-                                    <option value="BF">BF</option>
-                                    <option value="HF">HF</option>
-                                    <option value="AI">AI</option>
+                                    <option value="1">BF</option>
+                                    <option value="2">RO</option>
+                                    <option value="3">HF</option>
+                                    <option value="4">AI</option>
                                 </select>
                             </div>
                         </div>
@@ -113,51 +315,67 @@
                         </div>
                         <div class="col">
                             <div class="form-group">
-                                <button type="submit" class="more">@lang('main.search')</button>
+                                <button type="submit" class="more" >@lang('main.search')</button>
                             </div>
                         </div>
                     </div>
                 </form>
             </div>
+            <br>    {{$pricemin}} - {{$pricemax}}
+            @if ($bookingSuccess)
+                <div class="alert alert-info mt-3">{{ $bookingSuccess }}</div>
+            @endif
         </div>
         <div class="col-md-6">
-            @if(isset($hotelDetail['Hotels']) && $hotelDetail['Hotels'])
+            @if( isset($hotelDetail['Hotels']) )
                 <div class="hotel-lists">
                     @foreach($hotelDetail['Hotels'] as $key => $hotel)
                         <div>
                             <div class="row">
                                 <div class="col-md-8">
-                                    <h3>{{ $hotelLocalData[$hotel['HotelCode']]['title_en'] ?? '' }}</h3>
-                                    <div class="address">{{ $hotelLocalData[$hotel['HotelCode']]['address_en'] ?? ''}}</div>
-                                    <a href="{{ route('hotel.rooms', ['hotelId' => $hotelLocalData[$hotel['HotelCode']]['id'], 'tmid' => $hotel['HotelCode']]) }}" class="bg-green-500 text-white px-4 py-2 rounded">
+                                    <h3>{{ $hotel['localData']['title_en'] ?? '' }} &#9733; {{ $hotel['localData']['rating'] ?? '' }}</h3>
+                                    <div class="address">{{ $hotel['localData']['address_en'] ?? ''}}</div>
+                                    <a href="{{ route('hotel.rooms', ['hotelId' => $hotel['localData']['id'], 'tmid' => $hotel['HotelCode']]) }}" class="bg-green-500 text-white px-4 py-2 rounded">
                                         Посмотреть номера
                                     </a>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="min_price">от
-                                        @php
+                                        @foreach ($hotel['RoomTypes'] as $roomType)
+                                        @if (!empty($roomType['RateInfos']))
+                                            @php
+                                                $lowestRate = reset($roomType['RateInfos']);
+                                            @endphp
+                                            {{ $lowestRate['TotalPrice'] }} {{ $lowestRate['CurrencyCode'] }}
+                                        @endif
+
+                                        {{-- Refundable - <pre>{{ print_r($roomType['RateInfos'], 1) }}</pre> --}}
+                                    @endforeach
+                                        {{-- @php
                                         $result = array_reduce($hotel['RoomTypes'], function ($carry, $roomType) {
-                                            foreach ($roomType['RateInfos'] as $rateInfo) {
-                                                if ($carry === null || $rateInfo['TotalPrice'] < $carry['price']) {
-                                                    $carry = [
-                                                        'price' => $rateInfo['TotalPrice'],
-                                                        'curr' => $rateInfo['CurrencyCode'],
-                                                        'room_name' => $roomType['Name']
-                                                        
-                                                    ];
+                                            if( isset($roomType['RateInfos']) ){
+                                                foreach ($roomType['RateInfos'] as $rateInfo) {
+                                                    if ($carry === null || $rateInfo['TotalPrice'] < $carry['price']) {
+                                                        $carry = [
+                                                            'price' => $rateInfo['TotalPrice'],
+                                                            'curr' => $rateInfo['CurrencyCode'],
+                                                            'room_name' => $roomType['Name']
+                                                            
+                                                        ];
+                                                    }
                                                 }
+                                                return $carry;
                                             }
-                                            return $carry;
                                         }, null);
                                         echo $result['price'] .' '. $result['curr'];
-                                        @endphp
+                                        @endphp --}}
                                     </div>
                                 </div>
                                 <div class="row gallery">
                                     <div class="col-md-2">
                                         @if( $hotelLocalData[$hotel['HotelCode']]['image'] )
-                                            <a href="/storage/{{ $hotelLocalData[$hotel['HotelCode']]['image'] ?? ''}}"><img
-                                                src="/storage/{{ $hotelLocalData[$hotel['HotelCode']]['image'] ?? ''}}"
+                                            <a href="/storage/{{ $hotel['localData']['image'] ?? ''}}"><img
+                                                src="/storage/{{ $hotel['localData']['image'] ?? ''}}"
                                                 alt=""></a>
                                         @endif
                                     </div>
@@ -203,13 +421,13 @@
                                     <script>
                                         DG.then(function () {
                                             var map = DG.map('map', {
-                                                center: [{{$hotelLocalData[$hotel['HotelCode']]['lat'] ?? ''}}, {{$hotelLocalData[$hotel['HotelCode']]['lng'] ?? ''}}],
+                                                center: [{{$hotel['localData']['lat'] ?? ''}}, {{$hotel['localData']['lng'] ?? ''}}],
                                                 zoom: 14
                                             });
                     
-                                            DG.marker([{{$hotelLocalData[$hotel['HotelCode']]['lat'] ?? ''}}, {{$hotelLocalData[$hotel['HotelCode']]['lng'] ?? ''}}], { scrollWheelZoom: false })
+                                            DG.marker([{{$hotel['localData']['lat'] ?? ''}}, {{$hotel['localData']['lng'] ?? ''}}], { scrollWheelZoom: false })
                                                 .addTo(map)
-                                                .bindLabel('{{$hotelLocalData[$hotel['HotelCode']]['title_en'] ?? ''}}', {
+                                                .bindLabel('{{$hotel['localData']['title_en'] ?? ''}}', {
                                                     static: true
                                                 });
                                         });
@@ -224,5 +442,6 @@
                 <h3>По вашему запросу отелей не найдено!</h3>
             @endif
         </div>
+        <div class="col-6"></div>
     </div>
 </div>

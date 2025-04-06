@@ -1,6 +1,29 @@
 <div class="container">
+    {{ print_r(session('hotel_search'), true) }}
     <form wire:submit.prevent="searchHotels" class="row">
         <div class="row">
+            <div class="col">
+                <div class="form-group">
+                    <label for="accommodation_type">Размещение</label>
+                    <select name="accommodation_type"  wire:model="accommodation_type">
+                        <option value="hotel">Hotel</option>
+                        <option value="villa">Villa</option>
+                        <option value="cottage">Cottage</option>
+                        <option value="apartment">Apartment</option>
+                        <option value="resort">Resort</option>
+                        <option value="hostel">Hostel</option>
+                        <option value="guesthouse">Guesthouse</option>
+                        <option value="bungalow">Bungalow</option>
+                        <option value="motel">Motel</option>
+                        <option value="capsule">Capsule Hotel</option>
+                        <option value="chalet">Chalet</option>
+                        <option value="lodging">Lodging</option>
+                        <option value="inn">Inn</option>
+                        <option value="houseboat">Houseboat</option>
+                        <option value="glamping">Glamping</option>
+                    </select>
+                </div>
+            </div>
             <div class="col">
                 <div class="form-group">
                     <label for="city">@lang('main.search-title')</label>
@@ -41,7 +64,7 @@
                     </script> --}}
                     
                     <label for="">@lang('main.search-date')</label>
-                    <input type="text" wire:model="date_range" id="date_range" class="date" placeholder="Выберите дату">
+                    <input type="text" wire:model="dateRange" id="date_range" class="date" placeholder="Выберите дату">
                     <input type="hidden" wire:model="checkin" id="start_d" name="start_d" />
                     <input type="hidden" wire:model="checkout" id="end_d" name="end_d" />
 
@@ -118,7 +141,7 @@
                         <option value="16">16 лет</option>
                         <option value="17">17 лет</option>
                     </select>
-                    <select name="age2" id="age2" class="age">
+                    <select name="age2" id="age2" class="age" wire:model="childrenage2">
                         <option value="0">@lang('main.choose')</option>
                         <option value="1">1 год</option>
                         <option value="2">2 года</option>
@@ -138,7 +161,7 @@
                         <option value="16">16 лет</option>
                         <option value="17">17 лет</option>
                     </select>
-                    <select name="age3" id="age3" class="age">
+                    <select name="age3" id="age3" class="age" wire:model="childrenage3">
                         <option value="0">@lang('main.choose')</option>
                         <option value="1">1 год</option>
                         <option value="2">2 года</option>
@@ -454,17 +477,17 @@
                     <label for="food">@lang('main.search-include')</label>
                     <select id="food_id" name="food_id" wire:model="food">
                         <option value="">@lang('main.choose')</option>
-                        <option value="RO">RO</option>
-                        <option value="BF">BF</option>
-                        <option value="HF">HF</option>
-                        <option value="AI">AI</option>
+                        <option value="1">BF</option>
+                        <option value="2">RO</option>
+                        <option value="3">HF</option>
+                        <option value="4">AI</option>
                     </select>
                 </div>
             </div>
             <div class="col">
                 <div class="form-group">
                     <label for="check">@lang('main.search-early')</label>
-                    <select name="early_in" id="early_in">
+                    <select name="early_in" id="early_in" wire:model="early_in">
                         <option value="">@lang('main.choose')</option>
                         <option value="06:00">06:00</option>
                         <option value="07:00">07:00</option>
@@ -480,7 +503,7 @@
             <div class="col">
                 <div class="form-group">
                     <label for="check">@lang('main.search-late')</label>
-                    <select name="early_out" id="early_out">
+                    <select name="early_out" id="early_out" wire:model="early_out">
                         <option value="">@lang('main.choose')</option>
                         <option value="15:00">15:00</option>
                         <option value="16:00">16:00</option>
@@ -496,13 +519,13 @@
             </div>
             <div class="col">
                 <div class="form-group check">
-                    <input type="checkbox" id="cancelled" name="cancelled">
+                    <input type="checkbox" id="cancelled" name="cancelled" wire:model="cancelled">
                     <label for="cancelled">@lang('main.cancelled')</label>
                 </div>
             </div>
             <div class="col">
                 <div class="form-group check">
-                    <input type="checkbox" name="extra_place" id="extra_place">
+                    <input type="checkbox" name="extra_place" id="extra_place" wire:model="extra_place">
                     <label for="extra_place">@lang('main.search-extra')</label>
                 </div>
             </div>

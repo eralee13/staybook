@@ -13,7 +13,7 @@ class UpdateRegionList extends Command
      *
      * @var string
      */
-    protected $signature = 'hotel:update-region-list';
+    protected $signature = 'app:tm-region-list';
 
     /**
      * The console command description.

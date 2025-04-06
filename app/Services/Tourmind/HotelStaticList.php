@@ -17,11 +17,17 @@ class HotelStaticList
     
     protected TmApiService $tmApiService;
     protected string $baseUrl;
+    protected string $tm_agent_code;
+    protected string $tm_user_name;
+    protected string $tm_password;
 
     public function __construct(TmApiService $tmApiService)
     {
         $this->tmApiService = $tmApiService;
-        $this->baseUrl = $this->tmApiService->getBaseUrl();
+        $this->baseUrl = config('app.tm_base_url');
+        $this->tm_agent_code = config('app.tm_agent_code');
+        $this->tm_user_name = config('app.tm_user_name');
+        $this->tm_password = config('app.tm_password');
     }
     
     public function getHotelListForAllCountries()
@@ -41,15 +47,15 @@ class HotelStaticList
     
         do {
             $payload = [
-                "CountryCode" => $countryCode,
+                "CountryCode" => 'UA',
                 "Pagination" => [
                     "PageIndex" => $pageIndex,
                     "PageSize" => $pageSize
                 ],
                 "RequestHeader" => [
-                    "AgentCode" => "tms_test",
-                    "Password" => "tms_test",
-                    "UserName" => "tms_test",
+                    "AgentCode" => $this->tm_agent_code,
+                    "Password" => $this->tm_password,
+                    "UserName" => $this->tm_user_name,
                     "RequestTime" => now()->format('Y-m-d H:i:s')
                 ]
             ];
@@ -66,7 +72,8 @@ class HotelStaticList
             $data = $response->json();
             $hotels = $data['HotelStaticListResult']['Hotels'] ?? [];
             $pageCount = $data['HotelStaticListResult']['Pagination']['PageCount'] ?? 1;
-    
+            
+
             foreach ($hotels as $hotelData) {
                 $AmenitiesHotel = collect($hotelData['AmenitiesHotel'] ?? [])->pluck('name')
                     ->unique()
@@ -86,11 +93,16 @@ class HotelStaticList
     
                 $nameLower = str_replace(' ', '-', $hotelData['Name']);
 
-                $phone = preg_replace('/[^+\d]/', '', $hotelData['Phone']);
+                if ( isset($hotelData['Phone']) ) {
+                    $phone = preg_replace('/[^+\d]/', '', $hotelData['Phone']);
 
-                if (!Str::startsWith($phone, '+')) {
-                    $phone = '+' . $phone;
+                    if (!Str::startsWith($phone, '+')) {
+                        $phone = '+' . $phone;
+                    }
+                }else{
+                    $phone = '';
                 }
+                
                 
                 $hotelDataInsert = [
                     'code' => strtolower($nameLower) ?? '',
@@ -121,7 +133,7 @@ class HotelStaticList
                     ['services' => $AmenitiesHotel]
                 );
     
-                Room::updateOrCreate(
+                $room = Room::updateOrCreate(
                     ['hotel_id' => $hotel->id],
                     [
                         'services' => $AmenitiesRoom,
@@ -129,10 +141,10 @@ class HotelStaticList
                         'description_en' => $hotelData['Description']['Rooms'] ?? null
                     ]
                 );
-    
-                // Сохраняем до 10 изображений
-                if ( !empty($hotelData['Images']) ) {
-                    $this->tmApiService->saveImages($hotel->id, $hotelData['Images'], 10);
+
+                // Сохраняем  изображений номеров
+                if ( isset($hotelData['Images']) ) {
+                    $this->tmApiService->saveRoomImages($hotel->id,  $hotelData['Images']);
                 }
             }
     

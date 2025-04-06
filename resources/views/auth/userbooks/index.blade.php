@@ -31,9 +31,9 @@
                                     </td>
                                     <td>
                                         <div class="title">{{ $book->title }}</div>
-                                        <div class="count">{{ $book->count }} @lang('admin.adult')</div>
-                                        @if($book->countc > 0)
-                                            <div class="count">{{ $book->countc }} @lang('admin.child')</div>
+                                        <div class="count">{{ $book->adult }} @lang('admin.adult')</div>
+                                        @if($book->child > 0)
+                                            <div class="count">{{ $book->child }} @lang('admin.child')</div>
                                         @endif
                                     </td>
                                     <td>
@@ -63,6 +63,7 @@
                                                 <a href="{{ route('userbooks.show', $book)}}" class="more"><i
                                                         class="fa-regular fa-eye"></i></a>
                                                 @csrf
+                                                <input type="hidden" id="api_type" name="api_type" value="{{$book->api_type}}">
                                                 <button class="btn delete"
                                                         onclick="return confirm('Do you want to cancel this?');">@lang('admin.cancel')</button>
                                             </ul>

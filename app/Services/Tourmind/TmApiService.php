@@ -60,22 +60,91 @@ class TmApiService
         });
     }
     
-    public function saveImages($hotelId, $images, $col)
+    public function saveRoomImages($hotelId, $images)
     {
-        collect($images)->take($col)->each(function ($img) use ($hotelId) {
-            $imageUrl = $img['links']['1000px']['href'] ?? null;
-
-            if ($imageUrl) {
-                $localImagePath = $this->saveHotelImage($imageUrl);
-
-                if ($localImagePath) {
-                    Image::create([
-                        'hotel_id' => $hotelId,
-                        'image' => $localImagePath
-                    ]);
-                }
-            }
+        // Фильтруем изображения, оставляем только те, где caption = 'Room'
+        $roomImages = collect($images)->filter(function ($img) {
+            return isset($img['caption']) && $img['caption'] == 'Room';
         });
+
+        // Проверяем, есть ли вообще изображения после фильтрации
+        if ($roomImages->isEmpty()) {
+            \Log::warning("Нет изображений с caption='Room' для отеля ID: $hotelId");
+            return;
+        }
+
+        // Проверяем, у всех ли изображений есть категория, если нет — задаем null
+        $roomImages = $roomImages->map(function ($img) {
+            if (!isset($img['category'])) {
+                $img['category'] = null; // Устанавливаем NULL, если категории нет
+            }
+            return $img;
+        });
+
+        // Группируем изображения по категориям
+        $groupedByCategory = $roomImages->groupBy('category');
+
+        // Логируем, какие категории есть
+        \Log::info("Группировка изображений по категориям", $groupedByCategory->toArray());
+
+        // Для каждой категории сохраняем до 3 изображений
+        $groupedByCategory->each(function ($categoryImages, $category) use ($hotelId) {
+            if ($category === null) {
+                \Log::warning("Пропущена категория NULL для отеля ID: $hotelId");
+                return; // Пропустить изображения без категории
+            }
+
+            // Ограничиваем до 3 изображений в каждой категории
+            $categoryImages->take(3)->each(function ($img) use ($hotelId, $category) {
+                $imageUrl = $img['links']['1000px']['href'] ?? null;
+
+                if ($imageUrl) {
+                    // Сохраняем изображение локально
+                    $localImagePath = $this->saveRoomImage($imageUrl);
+
+                    if ($localImagePath) {
+                        // Сохраняем в базе данных
+                        Image::create([
+                            'hotel_id' => $hotelId,
+                            'category' => $category,
+                            'caption' => $img['caption'],
+                            'image' => $localImagePath
+                        ]);
+                    }
+                }
+            });
+        });
+    }
+
+
+
+    public function saveRoomImage($imageUrl)
+    {
+        try {
+            // Получаем имя файла из ссылки
+            $fileName = basename(parse_url($imageUrl, PHP_URL_PATH));
+
+            if (!$fileName) {
+                throw new \Exception("Не удалось определить имя файла из URL: $imageUrl");
+            }
+
+            // Определяем дату (год/месяц)
+            $datePath = now()->format('Y/m');
+
+            // Полный путь для сохранения
+            $filePath = "/rooms/{$datePath}/{$fileName}";
+
+            // Загружаем изображение
+            $imageContent = Http::get($imageUrl)->body();
+
+            // Сохраняем файл
+            Storage::put($filePath, $imageContent);
+
+            return "/rooms/{$datePath}/{$fileName}"; // Путь для хранения в БД
+        } catch (\Exception $e) {
+            \Log::error("Ошибка загрузки изображения: " . $e->getMessage());
+            return null;
+        }
     }
 
     public function saveHotelImage($imageUrl)

@@ -27,6 +27,7 @@ class Book extends Model
         'child',
         'price',
         'sum',
+        'currency',
         'arrivalDate',
         'departureDate',
         'book_token',

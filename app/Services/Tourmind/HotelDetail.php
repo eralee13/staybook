@@ -16,11 +16,17 @@ class HotelDetail
 {
     protected TmApiService $tmApiService;
     protected string $baseUrl;
+    protected string $tm_agent_code;
+    protected string $tm_user_name;
+    protected string $tm_password;
 
     public function __construct(TmApiService $tmApiService)
     {
         $this->tmApiService = $tmApiService;
-        $this->baseUrl = $this->tmApiService->getBaseUrl();
+        $this->baseUrl = config('app.tm_base_url');
+        $this->tm_agent_code = config('app.tm_agent_code');
+        $this->tm_user_name = config('app.tm_user_name');
+        $this->tm_password = config('app.tm_password');
     }
 
     public function getHotelDetail(){
@@ -45,9 +51,9 @@ class HotelDetail
                     ]
                 ],
                 "RequestHeader" => [
-                    "AgentCode" => "tms_test",
-                    "Password" => "tms_test",
-                    "UserName" => "tms_test",
+                    "AgentCode" => $this->tm_agent_code,
+                    "Password" => $this->tm_password,
+                    "UserName" => $this->tm_user_name,
                     "RequestTime" => now()->format('Y-m-d H:i:s')
                 ]
             ];

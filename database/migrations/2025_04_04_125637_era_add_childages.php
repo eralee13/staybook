@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('rules', function (Blueprint $table) {
-            // $table->integer('rate_id')->after('start_date_time');
+        Schema::table('books', function (Blueprint $table) {
+            $table->string('childages', 50)->after('child');
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('rules', function (Blueprint $table) {
-            // $table->dropColumn('rate_id');
+        Schema::table('books', function (Blueprint $table) {
+            $table->dropColumn('childages');
         });
     }
 };

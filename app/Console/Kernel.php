@@ -13,10 +13,10 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         // $schedule->command('inspire')->hourly();
-        $schedule->command('app:up-hotel-detail')->daily(); 
-        $schedule->command('app:up-hotel-static-list')->daily(); 
-        $schedule->command('app:up-region-list')->daily(); 
-        $schedule->command('app:up-room-static-list')->daily(); 
+        $schedule->command('app:tm-hotel-detail')->daily(); 
+        $schedule->command('app:tm-hotel-static-list')->daily(); 
+        $schedule->command('app:tm-region-list')->daily(); 
+        $schedule->command('app:tm-room-static-list')->daily(); 
         
     }
 

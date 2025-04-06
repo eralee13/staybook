@@ -19,8 +19,14 @@ class HotelRooms extends Component
     public $hotel;
     public $checkin;
     public $checkout;
+    public $childsage;
+    public $childdrenage;
+    public $childdrenage2;
+    public $childdrenage3;
     public $rooms;
+    public $roomCount = 1;
     public $hotelLocal;
+    public $bookingSuccess = null;
 
     public function mount()
     {
@@ -32,6 +38,9 @@ class HotelRooms extends Component
     public function loadRooms()
     {
         $this->baseUrl = config('app.tm_base_url');
+        $this->tm_agent_code = config('app.tm_agent_code');
+        $this->tm_user_name = config('app.tm_user_name');
+        $this->tm_password = config('app.tm_password');
 
         if( !Auth::check() ){
             return redirect()->route('index');
@@ -40,12 +49,26 @@ class HotelRooms extends Component
         // Получаем данные из сессии
         $this->filters = session()->get('hotel_search', []);
         
-        if(!$this->filters['dateRange']){
+        if( !isset($this->filters['dateRange']) ){
             return redirect()->route('index');
         }
 
         if($this->filters['dateRange']){
             [$this->checkin, $this->checkout] = explode(' - ', $this->filters['dateRange']);
+
+            $this->childrenage = $this->filters['childrenage'];
+            $this->childrenage2 = $this->filters['childrenage2'];
+            $this->childrenage3 = $this->filters['childrenage3'];
+
+            if ( $this->filters['child'] == 1 ){
+                $this->childsage = [(int)$this->childrenage];
+            }
+            if ( $this->filters['child'] == 2 ){
+                $this->childsage = [(int)$this->childrenage, (int)$this->childrenage2];
+            }
+            if ( $this->filters['child'] == 3 ){
+                $this->childsage = [(int)$this->childrenage, (int)$this->childrenage2, (int)$this->childrenage3];
+            }
         }
         
         try {
@@ -53,8 +76,9 @@ class HotelRooms extends Component
             $roomSort = $this->oneHotelDetail();
             $this->rooms = $this->minSort($roomSort);
 
-            $this->hotelLocal = Hotel::where('tourmind_id', $this->tmid)->limit(1)
-            ->with('amenity')
+            $this->hotelLocal = Hotel::where('tourmind_id', $this->tmid)
+            ->limit(1)
+            ->with(['amenity','rooms'])
             ->get()
             ->mapWithKeys(fn($hotel) => [$hotel->tourmind_id => $hotel])
             ->toArray();
@@ -72,9 +96,9 @@ class HotelRooms extends Component
 
         // RequestHeader (заголовки запроса)
         $requestHeader = [
-                "AgentCode" => "tms_test",
-                "Password" => "tms_test",
-                "UserName" => "tms_test",
+                "AgentCode" => $this->tm_agent_code,
+                "Password" => $this->tm_password,
+                "UserName" => $this->tm_user_name,
                 "RequestTime" => now()->format('Y-m-d H:i:s')
             ];
 
@@ -91,13 +115,13 @@ class HotelRooms extends Component
         $paxRooms = [
                 [
                     "Adults" => $this->filters['adults'],
-                    "RoomCount" => 1
+                    "RoomCount" => $this->roomCount,
                 ]
             ];
 
             if ( !empty($this->filters['child']) && !empty($this->filters['childrenage'] ) ) {
                 $paxRooms[0]["Children"] = (int) $this->filters['child'];
-                $paxRooms[0]["ChildrenAges"] = $this->filters['childrenage'];
+                $paxRooms[0]["ChildrenAges"] = $this->childsage;
             }
             
 
