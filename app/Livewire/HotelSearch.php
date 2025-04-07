@@ -3,13 +3,17 @@
 namespace App\Livewire;
 
 use Livewire\Component;
+use Carbon\Carbon;
 use App\Models\Hotel;
 use App\Models\Room;
+
 
 class HotelSearch extends Component
 {
     
-    public $city;
+    protected $listeners = ['updateDateRange'];
+    public $locale;
+    public $city = 'Kyiv';
     public $dateRange;
     public $checkin;
     public $checkout;
@@ -30,9 +34,23 @@ class HotelSearch extends Component
     public $pricemin;
     public $pricemax;
 
+    public function __construct()
+    {   
+        // $this->locale = app()->getLocale();
+        // $this->startDate = Carbon::now()->addMonth()->startOfMonth()->format('Y-m-d');
+        // $this->endDate = Carbon::now()->addMonth()->startOfMonth()->addDay()->format('Y-m-d');
+        // $this->dateRange = $this->startDate .' - '. $this->endDate;
+    }
+
 
     public function searchHotels()
     {   
+        $this->validate([
+            'dateRange' => 'required',
+        ], [
+            'dateRange.required' => 'Выберите диапазон дат.',
+        ]);
+
         // Сохраняем данные в сессии
         session()->put('hotel_search', [
             'city' => $this->city,
@@ -59,6 +77,13 @@ class HotelSearch extends Component
         return redirect()->route('hotel.results');
      
     }
+
+
+    public function updateDateRange($value)
+    {
+        $this->dateRange = $value;
+    }
+
 
     public function render()
     {

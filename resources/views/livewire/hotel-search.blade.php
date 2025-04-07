@@ -62,43 +62,86 @@
                             });
                         });
                     </script> --}}
-                    
+
+                    @php
+                        use Carbon\Carbon;
+
+                        // Добавляем 1 месяц вперёд и устанавливаем на 1 и 2 число
+                        $startDate = Carbon::now()->addMonth()->startOfMonth()->format('Y-m-d');
+                        $endDate = Carbon::now()->addMonth()->startOfMonth()->addDay()->format('Y-m-d');
+
+                        // Получаем текущую локаль Laravel
+                        $locale = app()->getLocale(); // 'ru', 'en', и т.д.
+                    @endphp
+
                     <label for="">@lang('main.search-date')</label>
-                    <input type="text" wire:model="dateRange" id="date_range" class="date" placeholder="Выберите дату">
+                    <input type="text" wire:model.lazy="dateRange" id="daterange" class="da" autocomplete="off" placeholder="Выберите дату">
+                        @error('dateRange')
+                            <div class="text-danger mt-1">{{ $message }}</div>
+                        @enderror
                     <input type="hidden" wire:model="checkin" id="start_d" name="start_d" />
                     <input type="hidden" wire:model="checkout" id="end_d" name="end_d" />
-
+                    
                     <script>
-                        document.addEventListener('DOMContentLoaded', function () {
-                            // $('#date_range').daterangepicker({
-                            //     autoUpdateInput: false,
-                            //     locale: {
-                            //         format: 'YYYY-MM-DD',
-                            //         applyLabel: 'Применить',
-                            //         cancelLabel: 'Очистить',
-                            //         fromLabel: 'От',
-                            //         toLabel: 'До',
-                            //         customRangeLabel: 'Выбрать вручную',
-                            //         daysOfWeek: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
-                            //         monthNames: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 
-                            //                      'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
-                            //         firstDay: 1
-                            //     }
-                            // });
-
+                        $(function() {
+                            const locale = "{{ $locale }}";
                     
-
-                            $('#date_range').on('apply.daterangepicker', function (ev, picker) {
-                                let dateRange = picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD');
-                                $(this).val(dateRange);
-                                @this.set('dateRange', dateRange); // Передача в Livewire
-                            });
+                            // локализация для разных языков
+                            const localeSettings = {
+                                en: {
+                                    format: 'YYYY-MM-DD',
+                                    separator: ' - ',
+                                    applyLabel: 'Apply',
+                                    cancelLabel: 'Cancel',
+                                    fromLabel: 'From',
+                                    toLabel: 'To',
+                                    customRangeLabel: 'Custom',
+                                    weekLabel: 'W',
+                                    daysOfWeek: moment.weekdaysMin(),
+                                    monthNames: moment.months(),
+                                    firstDay: 1
+                                },
+                                ru: {
+                                    format: 'YYYY-MM-DD',
+                                    separator: ' - ',
+                                    applyLabel: 'Применить',
+                                    cancelLabel: 'Отмена',
+                                    fromLabel: 'С',
+                                    toLabel: 'По',
+                                    customRangeLabel: 'Свой',
+                                    weekLabel: 'Н',
+                                    customRangeLabel: 'Выбрать вручную',
+                                    daysOfWeek: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
+                                    monthNames: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 
+                                                 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
+                                    firstDay: 1,
+                                    
+                                }
+                            };
                     
-                            $('#date_range').on('cancel.daterangepicker', function () {
-                                $(this).val('');
-                                @this.set('dateRange', ''); // Очистка значения в Livewire
+                            $('#daterange').daterangepicker({
+                                autoUpdateInput: false,
+                                autoApply: true,
+                                startDate: "{{ $startDate }}",
+                                endDate: "{{ $endDate }}",
+                                locale: localeSettings[locale] || localeSettings['en'],
                             });
                         });
+                        
+                        $('#daterange').on('apply.daterangepicker', function(ev, picker) {
+                                let range = picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD');
+                                $(this).val(range);
+
+                                // Передать значение в Livewire
+                                @this.set('dateRange', range);
+                                // Livewire.emit('updateDateRange', range);
+                            });
+                    
+                            // $('#daterange').on('cancel.daterangepicker', function () {
+                            //     $(this).val('');
+                            //     @this.set('dateRange', ''); // Очистка значения в Livewire
+                            // });
+
                     </script>
                     
                 </div>

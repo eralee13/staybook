@@ -158,12 +158,12 @@ class HotelResults extends Component
         if ($this->rating){
             $query->where('rating', '=', (int)$this->rating);   
         }
-        if ($this->early_in){
-            $query->where('early_in', $this->early_in);   
-        }
-        if ($this->early_out){
-            $query->where('early_out', '>=', $this->early_out);   
-        }
+        // if ($this->early_in){
+        //     $query->where('early_in', $this->early_in);   
+        // }
+        // if ($this->early_out){
+        //     $query->where('early_out', '>=', $this->early_out);   
+        // }
             
         $query->with('amenity');
         $this->hotelLocalData = $query->get()
@@ -172,7 +172,7 @@ class HotelResults extends Component
 
 
 
-            // get tm ids local
+            // get tm local ids
         $hoteles = Hotel::where('city', $this->city);
 
         if ($this->rating){
@@ -190,7 +190,7 @@ class HotelResults extends Component
         $this->reset('hotelDetail'); 
         $this->hotelDetail = $this->getHotelDetail();
 
-
+    
 
         // merge array local to api 
         foreach ($this->hotelDetail['Hotels'] as &$hotele) {
@@ -392,7 +392,7 @@ class HotelResults extends Component
             // return $payload;
 
         } catch (\Throwable $th) {
-            $this->bookingSuccess = 'Result HotelDetail Ошибка при запросе к API';
+            $this->bookingSuccess = 'Hotel result hotelDetail Ошибка при запросе к API';
         }
     }
 
