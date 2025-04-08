@@ -5,13 +5,22 @@
             @if ($bookingSuccess)
                 <div class="alert alert-info mt-3">{{ $bookingSuccess }}</div>
             @endif
-            
+
         @if( isset($rooms) )
         <div class="col-12"><h3>{{$hotelLocal[$tmid]['title_en']}} 	&#9733; {{$hotelLocal[$tmid]['rating']}}</h3></div>
 
         @foreach($rooms['Hotels'][0]['RoomTypes'] as $room)
             <div class="col-5">
-                <img src="" alt="">
+                <div class="row">
+                    @if( isset($images) )
+                        @foreach(\Illuminate\Support\Arr::random($images, min(3, count($images))) as $image)
+                        <div class="col-4">
+                            <img src="/storage/{{$image}}" alt="">
+                        </div>
+                        @endforeach
+                    @endif
+                </div>
+                
             </div>
             <div class="col-6">
                 <h5>Номер: {{$room['Name']}}</h5>

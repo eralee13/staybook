@@ -190,144 +190,144 @@ class HotelResults extends Component
         $this->reset('hotelDetail'); 
         $this->hotelDetail = $this->getHotelDetail();
 
-    
-
-        // merge array local to api 
-        foreach ($this->hotelDetail['Hotels'] as &$hotele) {
-            $hotelCode = $hotele['HotelCode'];
-        
-            if (isset($this->hotelLocalData[$hotelCode])) {
-                // Объединяем данные
-                $hotele['localData'] = $this->hotelLocalData[$hotelCode];
-            } else {
-                // Если нет локальных данных, добавляем null
-                $hotele['localData'] = null;
-            }
-        }
-        unset($hotele); // Разрываем ссылку, чтобы избежать проблем
-        
-
-
-
-
-        
-
-        // orderby prices, food, cancelled
-        $this->hotelDetail['Hotels'] = array_map(function ($hoteli) {
-            if (empty($hoteli['RoomTypes'])) {
-                return null; // Убираем отель, если у него нет номеров
-            }
-        
-            $hotelHasValidRoomType = false;
-            $lowestRate = null;
-            $lowestRateRoomType = null;
-        
-            foreach ($hoteli['RoomTypes'] as &$roomType) {
-                // Фильтруем тарифы по цене, отмене и питанию
-                $roomType['RateInfos'] = array_filter($roomType['RateInfos'], function ($rateInfo) {
-                    $price = (float) $rateInfo['TotalPrice'];
-                    $minPrice = $this->pricemin != null ? (float) $this->pricemin : null;
-                    $maxPrice = $this->pricemax != null ? (float) $this->pricemax : null;
-        
-                    // Фильтр по цене
-                    if ($minPrice != null && $price < $minPrice) {
-                        return false;
-                    }
-                    if ($maxPrice != null && $price > $maxPrice) {
-                        return false;
-                    }
-
-                    // Фильтр по отмене (если $this->cancelled == true, оставляем только Refundable == true)
-                    if ($this->cancelled == true) {
-                        if (!isset($rateInfo['Refundable']) || $rateInfo['Refundable'] != true) {
-                            return false;
-                        }
-                    }
-        
-                    // Фильтр по питанию (если $this->food == true, оставляем только MealInfo['MealType'] == "1")
-                    if ( !empty($this->food) ) {
-                        if (!isset($rateInfo['MealInfo']['MealType']) || $rateInfo['MealInfo']['MealType'] != $this->food) {
-                            return false;
-                        }
-                    }
-        
-                    return true;
-                });
-        
-                // Если после фильтрации остались тарифы
-                if (!empty($roomType['RateInfos'])) {
-                    $hotelHasValidRoomType = true;
-        
-                    // Находим минимальную цену в этом номере
-                    $lowestRateInRoom = min(array_column($roomType['RateInfos'], 'TotalPrice'));
-        
-                    // Сохраняем номер с самым дешевым тарифом
-                    if ($lowestRate == null || $lowestRateInRoom < $lowestRate) {
-                        $lowestRate = $lowestRateInRoom;
-                        $lowestRateRoomType = $roomType;
-                    }
-                }
-            }
-            unset($roomType);
-        
-            // Если после фильтрации у отеля нет номеров, удаляем его
-            if (!$hotelHasValidRoomType || $lowestRateRoomType == null) {
-                return null;
-            }
-        
-            // Оставляем только один номер с минимальным тарифом
-            $hoteli['RoomTypes'] = [$lowestRateRoomType];
-        
-            return $hoteli;
-        }, $this->hotelDetail['Hotels']);
-        
-        // Фильтруем массив отелей, удаляя пустые элементы
-        $this->hotelDetail['Hotels'] = array_values(array_filter($this->hotelDetail['Hotels']));
-        
-        // Log::channel('tourmind')->info('DEbUG - ', $this->hotelDetail);
         // dd($this->hotelDetail);
-        
-        
 
-        // Оставляем только самый дешевый тариф в каждом отеле
-        foreach ($this->hotelDetail['Hotels'] as &$hotel) {
-            foreach ($hotel['RoomTypes'] as &$roomType) {
-                if (!empty($roomType['RateInfos'])) {
-                    // Сортируем тарифы внутри номера по цене и оставляем только один (самый дешевый)
-                    usort($roomType['RateInfos'], fn($a, $b) => (float) $a['TotalPrice'] <=> (float) $b['TotalPrice']);
-                    $roomType['RateInfos'] = [reset($roomType['RateInfos'])]; // Берём первый элемент (самый дешевый)
+        if( isset($this->hotelDetail['Hotels']) ){
+
+            // merge array local to api 
+            foreach ($this->hotelDetail['Hotels'] as &$hotele) {
+                $hotelCode = $hotele['HotelCode'];
+            
+                if (isset($this->hotelLocalData[$hotelCode])) {
+                    // Объединяем данные
+                    $hotele['localData'] = $this->hotelLocalData[$hotelCode];
+                } else {
+                    // Если нет локальных данных, добавляем null
+                    $hotele['localData'] = null;
                 }
             }
+            unset($hotele); // Разрываем ссылку, чтобы избежать проблем
+            
+            
+
+            // orderby prices, food, cancelled
+            $this->hotelDetail['Hotels'] = array_map(function ($hoteli) {
+                if (empty($hoteli['RoomTypes'])) {
+                    return null; // Убираем отель, если у него нет номеров
+                }
+            
+                $hotelHasValidRoomType = false;
+                $lowestRate = null;
+                $lowestRateRoomType = null;
+            
+                foreach ($hoteli['RoomTypes'] as &$roomType) {
+                    // Фильтруем тарифы по цене, отмене и питанию
+                    $roomType['RateInfos'] = array_filter($roomType['RateInfos'], function ($rateInfo) {
+                        $price = (float) $rateInfo['TotalPrice'];
+                        $minPrice = $this->pricemin != null ? (float) $this->pricemin : null;
+                        $maxPrice = $this->pricemax != null ? (float) $this->pricemax : null;
+            
+                        // Фильтр по цене
+                        if ($minPrice != null && $price < $minPrice) {
+                            return false;
+                        }
+                        if ($maxPrice != null && $price > $maxPrice) {
+                            return false;
+                        }
+
+                        // Фильтр по отмене (если $this->cancelled == true, оставляем только Refundable == true)
+                        if ($this->cancelled == true) {
+                            if (!isset($rateInfo['Refundable']) || $rateInfo['Refundable'] != true) {
+                                return false;
+                            }
+                        }
+            
+                        // Фильтр по питанию (если $this->food == true, оставляем только MealInfo['MealType'] == "1")
+                        if ( !empty($this->food) ) {
+                            if (!isset($rateInfo['MealInfo']['MealType']) || $rateInfo['MealInfo']['MealType'] != $this->food) {
+                                return false;
+                            }
+                        }
+            
+                        return true;
+                    });
+            
+                    // Если после фильтрации остались тарифы
+                    if (!empty($roomType['RateInfos'])) {
+                        $hotelHasValidRoomType = true;
+            
+                        // Находим минимальную цену в этом номере
+                        $lowestRateInRoom = min(array_column($roomType['RateInfos'], 'TotalPrice'));
+            
+                        // Сохраняем номер с самым дешевым тарифом
+                        if ($lowestRate == null || $lowestRateInRoom < $lowestRate) {
+                            $lowestRate = $lowestRateInRoom;
+                            $lowestRateRoomType = $roomType;
+                        }
+                    }
+                }
+                unset($roomType);
+            
+                // Если после фильтрации у отеля нет номеров, удаляем его
+                if (!$hotelHasValidRoomType || $lowestRateRoomType == null) {
+                    return null;
+                }
+            
+                // Оставляем только один номер с минимальным тарифом
+                $hoteli['RoomTypes'] = [$lowestRateRoomType];
+            
+                return $hoteli;
+            }, $this->hotelDetail['Hotels']);
+            
+            // Фильтруем массив отелей, удаляя пустые элементы
+            $this->hotelDetail['Hotels'] = array_values(array_filter($this->hotelDetail['Hotels']));
+            
+            // Log::channel('tourmind')->info('DEbUG - ', $this->hotelDetail);
+            // dd($this->hotelDetail);
+            
+            
+
+            // Оставляем только самый дешевый тариф в каждом отеле
+            foreach ($this->hotelDetail['Hotels'] as &$hotel) {
+                foreach ($hotel['RoomTypes'] as &$roomType) {
+                    if (!empty($roomType['RateInfos'])) {
+                        // Сортируем тарифы внутри номера по цене и оставляем только один (самый дешевый)
+                        usort($roomType['RateInfos'], fn($a, $b) => (float) $a['TotalPrice'] <=> (float) $b['TotalPrice']);
+                        $roomType['RateInfos'] = [reset($roomType['RateInfos'])]; // Берём первый элемент (самый дешевый)
+                    }
+                }
+            }
+            unset($hotel, $roomType); // Чистим ссылки для избежания багов
+
+
+
+            // Сортируем отели по самому низкому тарифу
+            usort($this->hotelDetail['Hotels'], function ($a, $b) {
+                // Получаем минимальный тариф для каждого отеля
+                $minPriceA = null;
+                foreach ($a['RoomTypes'] as $roomType) {
+                    if (!empty($roomType['RateInfos'])) {
+                        $minPriceA = min(array_column($roomType['RateInfos'], 'TotalPrice'));
+                        break; // Останавливаемся, как только нашли хотя бы один тариф
+                    }
+                }
+
+                $minPriceB = null;
+                foreach ($b['RoomTypes'] as $roomType) {
+                    if (!empty($roomType['RateInfos'])) {
+                        $minPriceB = min(array_column($roomType['RateInfos'], 'TotalPrice'));
+                        break;
+                    }
+                }
+
+                // Если у одного из отелей нет тарифов, он будет позже в списке
+                if ($minPriceA === null) return 1;
+                if ($minPriceB === null) return -1;
+
+                return $minPriceA <=> $minPriceB; // Сортировка по возрастанию
+            });
+
         }
-        unset($hotel, $roomType); // Чистим ссылки для избежания багов
-
-
-
-         // Сортируем отели по самому низкому тарифу
-         usort($this->hotelDetail['Hotels'], function ($a, $b) {
-            // Получаем минимальный тариф для каждого отеля
-            $minPriceA = null;
-            foreach ($a['RoomTypes'] as $roomType) {
-                if (!empty($roomType['RateInfos'])) {
-                    $minPriceA = min(array_column($roomType['RateInfos'], 'TotalPrice'));
-                    break; // Останавливаемся, как только нашли хотя бы один тариф
-                }
-            }
-
-            $minPriceB = null;
-            foreach ($b['RoomTypes'] as $roomType) {
-                if (!empty($roomType['RateInfos'])) {
-                    $minPriceB = min(array_column($roomType['RateInfos'], 'TotalPrice'));
-                    break;
-                }
-            }
-
-            // Если у одного из отелей нет тарифов, он будет позже в списке
-            if ($minPriceA === null) return 1;
-            if ($minPriceB === null) return -1;
-
-            return $minPriceA <=> $minPriceB; // Сортировка по возрастанию
-        });
         
         // dd($this->hotelDetail);
         // dd($this->hotelLocalData);
@@ -387,12 +387,14 @@ class HotelResults extends Component
                 $this->bookingSuccess = $response['Error']['ErrorMessage'];
             }
             // dd($payload);
+            // dd($response);
+            
             // $this->bookingSuccess .= print_r($payload, 1);
             return $response->json();
             // return $payload;
 
         } catch (\Throwable $th) {
-            $this->bookingSuccess = 'Hotel result hotelDetail Ошибка при запросе к API';
+            $this->bookingSuccess = "Ошибка при запросе к API или недоступен Hotel result hotelDetail";
         }
     }
 

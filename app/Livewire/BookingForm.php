@@ -178,13 +178,16 @@ class BookingForm extends Component
             $this->checkRoomRate();
 
         } catch (\Throwable $th) {
-            return 'Ошибка получения локальных данных!';
+            $this->bookingSuccess = "Ошибка получения данных - Book";
         }
     }
 
     public function confirmBooking()
     {   
         $this->baseUrl = config('app.tm_base_url');
+        $this->tm_agent_code = config('app.tm_agent_code');
+        $this->tm_user_name = config('app.tm_user_name');
+        $this->tm_password = config('app.tm_password');
 
         $validatedData = $this->validate();
 
@@ -303,7 +306,7 @@ class BookingForm extends Component
 
         $data = $response->json();
         // return $payload;
-            // dd($data);
+            // dd($payload);
 
         if (!empty($data['Hotels'][0]['RoomTypes'][0])) {
             $roomType = $data['Hotels'][0]['RoomTypes'][0]; 

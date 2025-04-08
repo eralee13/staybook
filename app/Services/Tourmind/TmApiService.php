@@ -46,21 +46,25 @@ class TmApiService
 
     public function saveImagesLink($hotelId, $images, $col)
     {
+        $i=0;
         collect($images)->take($col)->each(function ($img) use ($hotelId) {
+            $i++;
             $imageUrl = $img['links']['1000px']['href'] ?? null;
 
-            if ($imageUrl) {
+            if ($i > 1 && !empty($imageUrl)) {
+                    // Сохраняем изображение локально
+                    $localImagePath = $this->saveHotelImage($imageUrl, $hotelId);
 
                     Image::create([
                         'hotel_id' => $hotelId,
-                        'image' => $imageUrl
+                        'image' => $localImagePath
                     ]);
                 
             }
         });
     }
     
-    public function saveRoomImages($hotelId, $images)
+    public function saveRoomImages($hotelId, $images, $roomId)
     {
         // Фильтруем изображения, оставляем только те, где caption = 'Room'
         $roomImages = collect($images)->filter(function ($img) {
@@ -69,7 +73,7 @@ class TmApiService
 
         // Проверяем, есть ли вообще изображения после фильтрации
         if ($roomImages->isEmpty()) {
-            \Log::warning("Нет изображений с caption='Room' для отеля ID: $hotelId");
+            Log::warning("Нет изображений с caption='Room' для отеля ID: $hotelId");
             return;
         }
 
@@ -85,27 +89,28 @@ class TmApiService
         $groupedByCategory = $roomImages->groupBy('category');
 
         // Логируем, какие категории есть
-        \Log::info("Группировка изображений по категориям", $groupedByCategory->toArray());
+        Log::info("Группировка изображений по категориям", $groupedByCategory->toArray());
 
         // Для каждой категории сохраняем до 3 изображений
         $groupedByCategory->each(function ($categoryImages, $category) use ($hotelId) {
             if ($category === null) {
-                \Log::warning("Пропущена категория NULL для отеля ID: $hotelId");
+                Log::warning("Пропущена категория NULL для отеля ID: $hotelId");
                 return; // Пропустить изображения без категории
             }
 
             // Ограничиваем до 3 изображений в каждой категории
-            $categoryImages->take(3)->each(function ($img) use ($hotelId, $category) {
+            $categoryImages->take(10)->each(function ($img) use ($hotelId, $category) {
                 $imageUrl = $img['links']['1000px']['href'] ?? null;
 
                 if ($imageUrl) {
                     // Сохраняем изображение локально
-                    $localImagePath = $this->saveRoomImage($imageUrl);
+                    $localImagePath = $this->saveRoomImage($imageUrl, $hotelId);
 
                     if ($localImagePath) {
                         // Сохраняем в базе данных
                         Image::create([
                             'hotel_id' => $hotelId,
+                            'room_id' => $roomId,
                             'category' => $category,
                             'caption' => $img['caption'],
                             'image' => $localImagePath
@@ -118,7 +123,7 @@ class TmApiService
 
 
 
-    public function saveRoomImage($imageUrl)
+    public function saveRoomImage($imageUrl, $hotelId)
     {
         try {
             // Получаем имя файла из ссылки
@@ -128,11 +133,11 @@ class TmApiService
                 throw new \Exception("Не удалось определить имя файла из URL: $imageUrl");
             }
 
-            // Определяем дату (год/месяц)
-            $datePath = now()->format('Y/m');
+                // Определяем дату (год/месяц)
+                $datePath = now()->format('Y/m');
 
             // Полный путь для сохранения
-            $filePath = "/rooms/{$datePath}/{$fileName}";
+            $filePath = "/rooms/tourmind//{$fileName}";
 
             // Загружаем изображение
             $imageContent = Http::get($imageUrl)->body();
@@ -140,9 +145,9 @@ class TmApiService
             // Сохраняем файл
             Storage::put($filePath, $imageContent);
 
-            return "/rooms/{$datePath}/{$fileName}"; // Путь для хранения в БД
+            return "/rooms/tourmind/{$hotelId}/{$fileName}"; // Путь для хранения в БД
         } catch (\Exception $e) {
-            \Log::error("Ошибка загрузки изображения: " . $e->getMessage());
+            Log::error("Ошибка загрузки изображения: " . $e->getMessage());
             return null;
         }
     }
@@ -161,7 +166,7 @@ class TmApiService
             $datePath = now()->format('Y/m');
 
             // Полный путь для сохранения
-            $filePath = "/hotels/{$datePath}/{$fileName}";
+            $filePath = "/hotels/tourmind/{$fileName}";
 
             // Загружаем изображение
             $imageContent = Http::get($imageUrl)->body();
@@ -169,9 +174,9 @@ class TmApiService
             // Сохраняем файл
             Storage::put($filePath, $imageContent);
 
-            return "/hotels/{$datePath}/{$fileName}"; // Путь для хранения в БД
+            return "/hotels/tourmind/{$fileName}"; // Путь для хранения в БД
         } catch (\Exception $e) {
-            \Log::error("Ошибка загрузки изображения: " . $e->getMessage());
+            Log::error("Ошибка загрузки изображения: " . $e->getMessage());
             return null;
         }
     }

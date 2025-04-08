@@ -9,23 +9,17 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Hotel;
 use App\Models\Room;
+use App\Models\Image;
 
 class HotelRooms extends Component
 {   
     protected string $baseUrl;
-    public $hotelId;
-    public $tmid;
-    public $rates;
-    public $hotel;
-    public $checkin;
-    public $checkout;
-    public $childsage;
+    public $hotelId, $tmid, $hotel, $rooms, $images, $hotelLocal;
+    public $rates, $checkin, $checkout, $childsage;
     public $childdrenage;
     public $childdrenage2;
     public $childdrenage3;
-    public $rooms;
     public $roomCount = 1;
-    public $hotelLocal;
     public $bookingSuccess = null;
 
     public function mount()
@@ -83,12 +77,14 @@ class HotelRooms extends Component
             ->mapWithKeys(fn($hotel) => [$hotel->tourmind_id => $hotel])
             ->toArray();
 
-            //dd($this->rooms);
+            $images = Image::where('hotel_id', $this->hotelId)->get();
+            $this->images = $images->pluck('image')->toArray();
+            // dd($this->images);
             // dd($roomSort);
             // dd($this->hotelLocal);
 
         } catch (\Throwable $th) {
-            dd( $th);
+            $this->bookingSuccess = "Ошибка получения данных - Hotel Rooms";
         }
     }
 
