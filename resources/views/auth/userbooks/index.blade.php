@@ -41,10 +41,10 @@
                                             $room = \App\Models\Room::where('id', $book->room_id)->first();
                                             $plan = \App\Models\Rate::where('room_id', $book->room_id)->first();
                                         @endphp
-                                        <div class="title">{{ $room->__('title') }}</div>
+                                        <div class="title">{{ $room->__('title_en') }}</div>
                                         <br>
                                         @isset($plan)
-                                            <div class="title">{{ $plan->__('title') }}</div>
+                                            <div class="title">{{ $plan->__('desc_en') }}</div>
                                         @endisset
                                     </td>
                                     <td>{{ $book->showStartDate() }} - {{ $book->showEndDate() }}</td>

@@ -68,6 +68,7 @@
                                 @php
                                     //$category = \App\Models\Rate::where('room_id', $book->room_id)->firstOrFail();
                                     $room = \App\Models\Room::where('id', $book->room_id)->first();
+                                    $plan = \App\Models\Rate::where('room_id', $book->room_id)->first();
                                 @endphp
                                 <div class="img"><img src="{{ Storage::url($room->image) }}"></div>
                             </div>
@@ -78,7 +79,13 @@
                                 <div class="wrap">
                                     {{ $room->hotel->title }}
                                     <div class="name" style="margin-top: 20px">@lang('admin.room')</div>
-                                    {{ $room->title }} <br>
+                                    {{ $room->title_en }} <br>
+{{--                                    <div class="name">Тариф:</div> {{ $category->title }}--}}
+                                </div>
+                                
+                                <div class="wrap">
+                                    <div class="name" style="margin-top: 20px">@lang('admin.rate')</div>
+                                    {{ $plan->desc_en }} <br>
 {{--                                    <div class="name">Тариф:</div> {{ $category->title }}--}}
                                 </div>
                             </div>

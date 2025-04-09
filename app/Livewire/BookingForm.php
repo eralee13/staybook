@@ -153,7 +153,7 @@ class BookingForm extends Component
             $this->checkRoomRate();
 
         } catch (\Throwable $th) {
-            $this->bookingSuccess = "187 Ошибка получения данных - Book";
+            $this->bookingSuccess = "156 Ошибка получения данных - Book";
         }
     }
 
@@ -301,23 +301,24 @@ class BookingForm extends Component
                 $this->allotment = $rateInfo['Allotment'] ?? null;
                 
                 if (!empty($rateInfo['TotalPrice'])) {
-                    $total = $rateInfo['TotalPrice'];
+                    $total = (float)$rateInfo['TotalPrice'];
                     $nds = $total * 12 / 100;
-                    $this->totalPrice = $total;
+                    $this->totalPrice = (float)$total;
                     $this->nds = $nds;
                     $this->totalSum = $total + $nds;
                 }
         
                 $this->currency = $rateInfo['CurrencyCode'] ?? '';
         
-                if (!empty($rateInfo['Refundable'])) {
+                if ($rateInfo['Refundable'] == true) {
                     $this->refundable = true;
-                    $cancelPolicy = $rateInfo['CancelPolicyInfos'] ?? null;
-        
-                    if (!empty($cancelPolicy)) {
-                        $this->cancelPolicy = $cancelPolicy['Amount'] ?? null;
-                        $this->start_date_time = $cancelPolicy['From'] ?? null;
-                        $this->end_date_time = $cancelPolicy['To'] ?? null;
+                    $cancelPolicys = $rateInfo['CancelPolicyInfos'];
+                    
+                    if ( !empty($cancelPolicys) ) {
+                        
+                        $this->cancelPolicy = (float)$cancelPolicys[0]['Amount'] ?? null;
+                        $this->start_date_time = $cancelPolicys[0]['From'] ?? null;
+                        $this->end_date_time = $cancelPolicys[0]['To'] ?? null;
                     }
                 }
         
