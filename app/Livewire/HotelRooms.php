@@ -7,9 +7,11 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use App\Models\Hotel;
 use App\Models\Room;
 use App\Models\Image;
+use App\Models\Book;
 
 class HotelRooms extends Component
 {   
@@ -21,20 +23,32 @@ class HotelRooms extends Component
     public $childdrenage3;
     public $roomCount = 1;
     public $bookingSuccess = null;
+    public $token;
+
+    public function __construct(){
+
+        // $this->tmApiService = $tmApiService;
+        $this->baseUrl = config('app.tm_base_url');
+        $this->tm_agent_code = config('app.tm_agent_code');
+        $this->tm_user_name = config('app.tm_user_name');
+        $this->tm_password = config('app.tm_password');
+
+    }
 
     public function mount()
     {
         $this->hotelId = (int)$_GET['hotelId'];
         $this->tmid = (int)$_GET['tmid'];
+
+        do {
+            $this->token = Str::random(40);
+        } while (Book::where('book_token', $this->token)->exists());
+
         $this->loadRooms();
     }
 
     public function loadRooms()
     {
-        $this->baseUrl = config('app.tm_base_url');
-        $this->tm_agent_code = config('app.tm_agent_code');
-        $this->tm_user_name = config('app.tm_user_name');
-        $this->tm_password = config('app.tm_password');
 
         if( !Auth::check() ){
             return redirect()->route('index');

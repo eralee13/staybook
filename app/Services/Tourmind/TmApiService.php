@@ -4,6 +4,7 @@ namespace App\Services\Tourmind;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use App\Models\Image;
 
 class TmApiService
@@ -64,66 +65,45 @@ class TmApiService
         });
     }
     
-    public function saveRoomImages($hotelId, $images, $roomId)
+    public function saveRoomImages(int $hotelId, $images, int $roomId)
     {
-        // Фильтруем изображения, оставляем только те, где caption = 'Room'
+        // Log::channel('tourmind')->info("saveRoomImages: hotel_id={$hotelId}, room_id={$roomId}");
+    
+        // Фильтруем только изображения с caption = 'Room'
         $roomImages = collect($images)->filter(function ($img) {
-            return isset($img['caption']) && $img['caption'] == 'Room';
+            return isset($img['caption']) && strtolower($img['caption']) === 'room';
         });
-
-        // Проверяем, есть ли вообще изображения после фильтрации
+    
         if ($roomImages->isEmpty()) {
-            Log::warning("Нет изображений с caption='Room' для отеля ID: $hotelId");
+            Log::channel('tourmind')->warning("Нет изображений с caption='Room' для отеля ID: $hotelId, room ID: $roomId");
             return;
         }
-
-        // Проверяем, у всех ли изображений есть категория, если нет — задаем null
-        $roomImages = $roomImages->map(function ($img) {
-            if (!isset($img['category'])) {
-                $img['category'] = null; // Устанавливаем NULL, если категории нет
-            }
-            return $img;
-        });
-
-        // Группируем изображения по категориям
-        $groupedByCategory = $roomImages->groupBy('category');
-
-        // Логируем, какие категории есть
-        Log::info("Группировка изображений по категориям", $groupedByCategory->toArray());
-
-        // Для каждой категории сохраняем до 3 изображений
-        $groupedByCategory->each(function ($categoryImages, $category) use ($hotelId) {
-            if ($category === null) {
-                Log::warning("Пропущена категория NULL для отеля ID: $hotelId");
-                return; // Пропустить изображения без категории
-            }
-
-            // Ограничиваем до 3 изображений в каждой категории
-            $categoryImages->take(10)->each(function ($img) use ($hotelId, $category) {
-                $imageUrl = $img['links']['1000px']['href'] ?? null;
-
-                if ($imageUrl) {
-                    // Сохраняем изображение локально
-                    $localImagePath = $this->saveRoomImage($imageUrl, $hotelId);
-
-                    if ($localImagePath) {
-                        // Сохраняем в базе данных
-                        Image::create([
-                            'hotel_id' => $hotelId,
-                            'room_id' => $roomId,
-                            'category' => $category,
-                            'caption' => $img['caption'],
-                            'image' => $localImagePath
-                        ]);
-                    }
+    
+        // Ограничиваем, сколько сохранить — например, до 5
+        $roomImages->take(5)->each(function ($img) use ($hotelId, $roomId) {
+            $imageUrl = $img['links']['1000px']['href'] ?? null;
+            $category = $img['category'] ?? null;
+    
+            if ($imageUrl) {
+                $localImagePath = $this->saveRoomImage($imageUrl, $hotelId);
+    
+                if ($localImagePath) {
+                    Image::create([
+                        'hotel_id' => $hotelId,
+                        'room_id' => $roomId,
+                        'category' => $category,
+                        'caption' => $img['caption'],
+                        'image' => $localImagePath
+                    ]);
                 }
-            });
+            }
         });
     }
+    
 
 
 
-    public function saveRoomImage($imageUrl, $hotelId)
+    public function saveRoomImage($imageUrl, int $hotelId)
     {
         try {
             // Получаем имя файла из ссылки
@@ -137,22 +117,24 @@ class TmApiService
                 $datePath = now()->format('Y/m');
 
             // Полный путь для сохранения
-            $filePath = "/rooms/tourmind//{$fileName}";
+            $filePath = "/rooms/tourmind/{$hotelId}/{$fileName}";
 
             // Загружаем изображение
             $imageContent = Http::get($imageUrl)->body();
 
             // Сохраняем файл
-            Storage::put($filePath, $imageContent);
+            if (!Storage::exists($filePath)) {
+                Storage::put($filePath, $imageContent);
+            }
 
             return "/rooms/tourmind/{$hotelId}/{$fileName}"; // Путь для хранения в БД
         } catch (\Exception $e) {
-            Log::error("Ошибка загрузки изображения: " . $e->getMessage());
+            Log::channel('tourmind')->error("Ошибка загрузки изображения saveRoomImage: " . $e->getMessage());
             return null;
         }
     }
 
-    public function saveHotelImage($imageUrl)
+    public function saveHotelImage($imageUrl, int $hotelId)
     {
         try {
             // Получаем имя файла из ссылки
@@ -166,17 +148,20 @@ class TmApiService
             $datePath = now()->format('Y/m');
 
             // Полный путь для сохранения
-            $filePath = "/hotels/tourmind/{$fileName}";
+            $filePath = "/hotels/tourmind/{$hotelId}/{$fileName}";
 
             // Загружаем изображение
             $imageContent = Http::get($imageUrl)->body();
 
             // Сохраняем файл
-            Storage::put($filePath, $imageContent);
+            if (!Storage::exists($filePath)) {
+                Storage::put($filePath, $imageContent);
+            }
 
-            return "/hotels/tourmind/{$fileName}"; // Путь для хранения в БД
+            return "/hotels/tourmind/{$hotelId}/{$fileName}"; // Путь для хранения в БД
+
         } catch (\Exception $e) {
-            Log::error("Ошибка загрузки изображения: " . $e->getMessage());
+            Log::channel('tourmind')->error("Ошибка загрузки изображения saveHotelImage: " . $e->getMessage());
             return null;
         }
     }

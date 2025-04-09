@@ -1,7 +1,7 @@
 <div class="container">
     <div class="row">
         <div class="col-8">
-            <span style="font-size: 12px">{{ print_r(session('hotel_search'), true) }} {{$roomCount}}</span>
+            {{-- <span style="font-size: 12px">{{ print_r(session('hotel_search'), true) }} {{$roomCount}}</span> --}}
             <h1>Confirm</h1>
             <div class="col-12">
                 {{-- <h3>{{$hotelLocal[$tmid]['title_en']}} {{$hotelLocal[$tmid]['rating']}}</h3> --}}
@@ -52,6 +52,7 @@
                                     @if ( isset($hoteladdress) )<h4>Address: {{ $hoteladdress }}</h4>@endif
                                 </div>
                             </div>
+                            
                             @if ( isset($hotellat) && isset($hotellng) )
                             <div class="row">
                                 <div class="col-12">
@@ -66,7 +67,7 @@
                                     <!-- Подключение стилей Leaflet -->
                                     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     
-                                    <div id="map"></div>
+                                    <div wire:ignore id="map"></div>
     
                                     <!-- Подключение скрипта Leaflet -->
                                     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>

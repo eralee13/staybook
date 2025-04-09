@@ -3,7 +3,7 @@
     <div class="row">
         <div class="col-md-12"><h2>Hotel Search Results</h2>
             
-            {{ print_r(session('hotel_search'), true) }}
+            {{-- {{ print_r(session('hotel_search'), true) }} --}}
         
         </div>
             

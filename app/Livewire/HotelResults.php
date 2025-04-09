@@ -7,13 +7,16 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-use App\Services\Tourmind\TmApiService;
+// use App\Services\Tourmind\TmApiService;
 use App\Models\Hotel;
 
 class HotelResults extends Component
 {
     protected TmApiService $tmApiService;
     protected string $baseUrl;
+    protected string $tm_agent_code;
+    protected string $tm_user_name;
+    protected string $tm_password;
 
     public $filters;
     public $city;
@@ -45,13 +48,19 @@ class HotelResults extends Component
     public $rooms = [];
     public $bookingSuccess = null;
 
-    public function mount(TmApiService $tmApiService)
-    {
-        $this->tmApiService = $tmApiService;
+    public function __construct(){
+
+        
         $this->baseUrl = config('app.tm_base_url');
         $this->tm_agent_code = config('app.tm_agent_code');
         $this->tm_user_name = config('app.tm_user_name');
         $this->tm_password = config('app.tm_password');
+
+    }
+
+    public function mount()
+    {
+        // $this->tmApiService = $tmApiService;
 
         // Получаем данные из сессии
         $this->filters = session()->get('hotel_search', []);
@@ -334,7 +343,7 @@ class HotelResults extends Component
     }
 
     public function getHotelDetail(){
-        try {
+        
             // RequestHeader (заголовки запроса)
             $requestHeader = [
                     "AgentCode" => $this->tm_agent_code,
@@ -373,7 +382,7 @@ class HotelResults extends Component
                 "RequestHeader" => $requestHeader  // Просто вставляем массив RequestHeader
             ]);
 
-        
+        try {
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json'

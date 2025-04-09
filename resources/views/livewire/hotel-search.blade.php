@@ -1,5 +1,5 @@
 <div class="container">
-    {{ print_r(session('hotel_search'), true) }}
+    {{-- {{ print_r(session('hotel_search'), true) }} --}}
     <form wire:submit.prevent="searchHotels" class="row">
         <div class="row">
             <div class="col">

@@ -1,5 +1,5 @@
 <div class="container">
-    <span style="font-size: 12px">{{ print_r(session('hotel_search'), true) }}</span>
+    {{-- <span style="font-size: 12px">{{ print_r(session('hotel_search'), true) }}</span> --}}
     <div class="row">
         <br>    
             @if ($bookingSuccess)
@@ -7,7 +7,7 @@
             @endif
 
         @if( isset($rooms) )
-        <div class="col-12"><h3>{{$hotelLocal[$tmid]['title_en']}} 	&#9733; {{$hotelLocal[$tmid]['rating']}}</h3></div>
+        <div class="col-12"><br><h3>{{$hotelLocal[$tmid]['title_en']}} 	&#9733; {{$hotelLocal[$tmid]['rating']}}</h3></div>
 
         @foreach($rooms['Hotels'][0]['RoomTypes'] as $room)
             <div class="col-5">
@@ -55,7 +55,7 @@
                         <input type="hidden" name="ratecode" value="{{$room['RateInfos'][0]['RateCode']}}">
                         <input type="hidden" name="totalPrice" value="{{ $room['RateInfos'][0]['TotalPrice'] }}">
                         <input type="hidden" name="currency" value="{{ $room['RateInfos'][0]['CurrencyCode'] }}">
-                        <input type="hidden" name="token" value="{{ Str::random(40) }}">
+                        <input type="hidden" name="token" value="{{ $token }}">
                         
                         <button type="submit" class="btn btn-primary more" >Забронировать</button>
                     </form>

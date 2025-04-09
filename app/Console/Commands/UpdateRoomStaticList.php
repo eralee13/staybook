@@ -3,6 +3,8 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Http\Request;
+use App\Http\Controllers\API\V1\Tourmind\RoomStaticListController;
 
 class UpdateRoomStaticList extends Command
 {
@@ -18,7 +20,7 @@ class UpdateRoomStaticList extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'get Room types';
 
     /**
      * Execute the console command.

@@ -43,9 +43,9 @@ class HotelStaticList
     public function getHotelList($countryCode)
     {
         $pageIndex = 1; // Начинаем с первой страницы
-        $pageSize = 10; // Количество отелей на страницу
+        $pageSize = 500; // Количество отелей на страницу
     
-        // do {
+        do {
             $payload = [
                 "CountryCode" => 'UA',
                 "Pagination" => [
@@ -141,13 +141,14 @@ class HotelStaticList
                         ['hotel_id' => $hotel->id],
                         [
                             'services' => $AmenitiesRoom,
-                            'image' => $imageUrl,
+                            // 'image' => $localImagePath,
                             'description_en' => $hotelData['Description']['Rooms'] ?? null
                         ]
                     );
 
                     // Сохраняем  изображений номеров
-                    if ( isset($hotelData['Images']) ) {
+                    if ( isset($hotelData['Images'])  && is_array($hotelData['Images']) ) {
+                        Log::channel('tourmind')->error('Hotel static list Сохраняем  изображений передача roomid '.$room->id);
                         $this->tmApiService->saveRoomImages($hotel->id,  $hotelData['Images'], $room->id);
                     }
                 }
@@ -158,10 +159,10 @@ class HotelStaticList
     
             $pageIndex++; // Переход на следующую страницу
     
-        // } while ($pageIndex <= $pageCount); // Пока не загрузим все страницы
+        } while ($pageIndex <= $pageCount); // Пока не загрузим все страницы
     
-        return ['message' => 'Данные обновлены', 'count' => count($hotels)];
-        // return $data;
+        // return ['message' => 'Данные обновлены', 'count' => count($hotels)];
+        return $data;
     }
     
 

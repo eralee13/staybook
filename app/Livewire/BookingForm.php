@@ -17,44 +17,12 @@ use App\Models\Rule;
 
 class BookingForm extends Component
 {
-    public $hotel;
-    public $room;
-    public $hotelid;
-    public $tmid;
-    public $roomid;
-    public $book;
-    public $order;
-    public $city;
-    public $adults;
-    public $child;
-    public $checkin;
-    public $checkout;
-    public $childdrenage;
-    public $childdrenage2;
-    public $childdrenage3;
-    public $childsage;
-    public $citizen;
-    public $rating;
-    public $food;
-    public $early_in;
-    public $early_out;
-    public $cancelled;
-    public $extra_place;
-    public $pricemin;
-    public $pricemax;
-    public $nationality;
-    public $roomCount = 1;
-    public $hotelName;
-    public $hotelimg;
-    public $hoteldesc;
-    public $hoteladdress;
-    public $hotelcity;
-    public $hotellat;
-    public $hotellng;
-    public $roomName;
-    public $bedDesc;
-    public $allotment;
-    public $bookingSuccess = null;
+    public $hotel, $room, $hotelid, $tmid, $roomid, $book, $order;
+    public $city, $adults, $child, $checkin, $checkout, $childdrenage, $childdrenage2;
+    public $childdrenage3, $childsage, $citizen, $rating, $food, $early_in, $early_out;
+    public $cancelled, $extra_place, $pricemin, $pricemax, $nationality, $roomCount = 1;
+    public $hotelName, $hotelimg,  $hoteldesc, $hoteladdress, $hotelcity, $hotellat, $hotellng;
+    public $roomName, $bedDesc, $allotment;
     public $hotelLocal;
     public $cancelDate;
     public $RoomTypeCode;
@@ -82,6 +50,7 @@ class BookingForm extends Component
     public $start_date_time, $end_date_time;
     public $refundable;
     public $cancelPolicy;
+    public $bookingSuccess = null;
 
     protected $rules = [
         'paxfname' => 'required|string|min:3',
@@ -92,12 +61,18 @@ class BookingForm extends Component
         // 'phone' => ['required', 'string', 'regex:/^\+?[0-9\- ]{10,20}$/'],
     ];
 
-    public function mount()
-    {   
+    public function __construct(){
+
+        // $this->tmApiService = $tmApiService;
         $this->baseUrl = config('app.tm_base_url');
         $this->tm_agent_code = config('app.tm_agent_code');
         $this->tm_user_name = config('app.tm_user_name');
         $this->tm_password = config('app.tm_password');
+
+    }
+
+    public function mount()
+    {   
 
         $this->hotelid = (int)$_GET['hotelId'];
         $this->tmid = (int)$_GET['tmid'];
@@ -113,7 +88,7 @@ class BookingForm extends Component
         $this->currency = $_GET['currency'];
         $this->token = $_GET['token'];
         $this->nds = $this->totalPrice * 12 / 100;
-        
+
         $this->loadBook();
         
     }
@@ -168,8 +143,8 @@ class BookingForm extends Component
             $this->hoteldesc = $this->hotelLocal[$this->tmid]['description_en'] ?? '';
             $this->hoteladdress = $this->hotelLocal[$this->tmid]['address_en'] ?? '';
             $this->hotelcity = $this->hotelLocal[$this->tmid]['city'] ?? '';
-            $this->hotellat = $this->hotelLocal[$this->tmid]['lat'] ?? '';
-            $this->hotellng = $this->hotelLocal[$this->tmid]['lng'] ?? '';
+            $this->hotellat = $this->hotelLocal[$this->tmid]['lat'];
+            $this->hotellng = $this->hotelLocal[$this->tmid]['lng'];
 
             $this->user = auth()->user();
             $this->firstname = $this->user->name;
@@ -178,20 +153,17 @@ class BookingForm extends Component
             $this->checkRoomRate();
 
         } catch (\Throwable $th) {
-            $this->bookingSuccess = "Ошибка получения данных - Book";
+            $this->bookingSuccess = "187 Ошибка получения данных - Book";
         }
     }
 
     public function confirmBooking()
     {   
-        $this->baseUrl = config('app.tm_base_url');
-        $this->tm_agent_code = config('app.tm_agent_code');
-        $this->tm_user_name = config('app.tm_user_name');
-        $this->tm_password = config('app.tm_password');
 
         $validatedData = $this->validate();
 
         if ($this->token) {
+            $this->checkRoomRate();
             $response = $this->createOrder();
             $this->bookingSuccess = $response;
             //session()->forget('booking'); // Очистка сессии
@@ -317,8 +289,8 @@ class BookingForm extends Component
                 return isset($room['type_code']) && $room['type_code'] == $this->RoomTypeCode;
             });
         
-            $this->roomid = $roomsFiltered->pluck('id')->first() ?? '';
-        
+            $this->roomid = $roomsFiltered->pluck('id')->first() ?? null;
+           
             // Исправлено: корректное обращение к Name и BedTypeDesc
             $this->roomName = $roomType['Name'] ?? '';
             $this->bedDesc = $roomType['BedTypeDesc'] ?? '';
@@ -430,11 +402,34 @@ class BookingForm extends Component
         ]);
 
             // dd($payload);
+        // local create order
 
-        if ( !empty($this->token) ){
+            $existbook = Book::where('book_token', $this->token)->first();
+
+            if ( $existbook ){
+                return "Этот бронь уже существует!";
+            }
+
+            if ( empty($this->roomid) ){
+
+                $thisroom = Room::updateOrCreate(
+                    [
+                        'hotel_id' => (int)$this->hotelid,
+                        'type_code' => $this->RoomTypeCode,
+                    ],
+                    [
+                        'title_en' => $this->roomName,
+                        'bed' => $this->bedDesc
+                    ],
+                    
+                );
+
+                    if ( isset($thisroom->id) ){
+                        $this->roomid = $thisroom->id;
+                    }
+            }
 
             $childages = implode(',', $this->childsage ?? []);
-
             $book = Book::firstOrCreate(
                 [
                     'book_token' => $this->token,
@@ -449,7 +444,7 @@ class BookingForm extends Component
                     'comment' => $this->specdesc,
                     'adult' => $this->adults,
                     'child' => $this->child,
-                    'childages' => $childages,
+                    'childages' => $childages ?? '',
                     'price' => $this->totalPrice,
                     'sum' => $this->totalSum,
                     'currency' => $this->currency,
@@ -477,6 +472,7 @@ class BookingForm extends Component
 
                 $ruleid = $rule->id ?? '';
             }
+            
 
             $rate = Rate::UpdateOrCreate(
                 [
@@ -491,57 +487,54 @@ class BookingForm extends Component
                     'allotment' => $this->allotment,
                     'currency' => $this->currency,
                     'refundable' => $this->refundable ? 1 : 0,
-                    'rule_id' => $ruleid,
+                    'rule_id' => $ruleid ?? null,
                     
                 ]
             );
 
 
-            
-
             if ( !isset($book->id) ){
                 return "Ошибка заказ не создан на стейбук! Попробуйте через несколько секунд!";
             }
 
-        }else{
-            return "Ошибка токен не найден или не создан!";
-        }
-
-
-        $response = Http::withHeaders([
-            'Content-Type' => 'application/json',
-            'Accept' => 'application/json'
-        ])->post("{$this->baseUrl}/CreateOrder", $payload);
+            // tourmind create order
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json'
+            ])->post("{$this->baseUrl}/CreateOrder", $payload);
+                
+            if ( $response->failed() ) {
+    
+                Log::channel('tourmind')->error('522 CreateOrder - ', $response);
+    
+                return "522 Book order Ошибка при запросе к API Tourmind! Попробуйте через несколько секунд!";
+            }
+    
+    
+            $order = $response->json();
             
-        if ($response->failed()) {
+            Log::channel('tourmind')->info('CreateOrder 528 - ', $order);
+            
+            if( isset($order['OrderInfo']['ReservationID']) ){
+    
+                Book::where('book_token', $this->token)
+                    ->update([
+                        'status' => $order['OrderInfo']['OrderStatus'],
+                        'rezervation_id' => $order['OrderInfo']['ReservationID']
+                    ]);
 
-            Log::channel('tourmind')->error('CreateOrder 433 - ', $response);
+                    $this->orderCreated = true;
+                    return "Бронирование успешно создано! Статус - {$order['OrderInfo']['OrderStatus']}";
 
-            return "HotelDetail Ошибка при запросе к API Tourmind! Попробуйте через несколько секунд!";
-        }
-
-
-        $order = $response->json();
-        
-        Log::channel('tourmind')->info('CreateOrder 441 - ', $order);
-        
-        if( isset($order['OrderInfo']['ReservationID']) ){
-
-            Book::where('book_token', $this->token)
-                ->update([
-                    'status' => $order['OrderInfo']['OrderStatus'],
-                    'rezervation_id' => $order['OrderInfo']['ReservationID']
-                ]);
-
-            // $this->orderCreated = true;
-
-            return "Заказ создан! Статус - {$order['OrderInfo']['OrderStatus']}";
-
-        }else{
-
-            return $order['Error']['ErrorMessage'];
-
-        }
+                // session()->flash('success', "Бронирование успешно создано! Статус - {$order['OrderInfo']['OrderStatus']}");
+                // return redirect()->route('booking.success');
+                
+    
+            }else{
+    
+                return $order['Error']['ErrorMessage'];
+    
+            }
 
         // return $payload;
             

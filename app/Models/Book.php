@@ -31,12 +31,13 @@ class Book extends Model
         'arrivalDate',
         'departureDate',
         'book_token',
-//        'age1',
+        'childages',
 //        'age2',
 //        'age3',
         'tag',
         'status',
         'user_id',
+        'api_type',
     ];
 
     protected $hidden = [
