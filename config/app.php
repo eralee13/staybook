@@ -188,9 +188,16 @@ return [
         // 'Example' => App\Facades\Example::class,
     ])->toArray(),
 
+    // Tourmind api etting
     'tm_base_url' => env('TOURMIND_API_URL'),
     'tm_agent_code' => env('TM_AGENT_CODE'),
     'tm_user_name' => env('TM_USER_NAME'),
     'tm_password' => env('TM_PASSWORD'),
+
+    // Emerging api setting
+    'emerging_key_id' => env('EMERGING_KEY_ID'),
+    'emerging_api_key' => env('EMERGING_API_KEY'),
+    'emerging_api_url' => env('EMERGING_API_URL'),
+    
 
 ];

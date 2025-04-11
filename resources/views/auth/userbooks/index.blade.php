@@ -30,7 +30,7 @@
                                         <div class="date">@lang('admin.created') {{ $book->created_at }}</div>
                                     </td>
                                     <td>
-                                        <div class="title">{{ $book->title }}</div>
+                                        <div class="title">{{ $book->title }} {{ $book->title2 }}</div>
                                         <div class="count">{{ $book->adult }} @lang('admin.adult')</div>
                                         @if($book->child > 0)
                                             <div class="count">{{ $book->child }} @lang('admin.child')</div>
@@ -73,6 +73,7 @@
                             @endforeach
                             </tbody>
                         </table>
+                        {{ $books->links() }}
                     @else
                         <h2 style="text-align: center">@lang('admin.bookings_not_found')</h2>
                     @endif
