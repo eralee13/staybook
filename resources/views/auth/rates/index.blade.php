@@ -7,7 +7,10 @@
     <div class="page admin">
         <div class="container">
             <div class="row">
-                <div class="col-md-12">
+                <div class="col-md-3">
+                    @include('auth.layouts.sidebar')
+                </div>
+                <div class="col-md-9">
                     @include('auth.layouts.subroom')
                     <h1>@lang('admin.plans_and_rules')</h1>
                     @if($rules->isNotEmpty())
@@ -28,12 +31,11 @@
                                     <td>
                                         <form action="{{ route('rules.destroy', $rule) }}" method="post">
                                             <ul>
-                                                <li><a class="btn edit" href="{{ route('rules.edit', $rule)
-                                            }}"><i class="fa-regular fa-pen-to-square"></i></a></li>
+                                                <li><a href="{{ route('rules.edit', $rule)
+                                            }}"><img src="{{ route('index') }}/img/icons/edit.svg" alt=""></a></li>
                                                 @csrf
                                                 @method('DELETE')
-                                                <button onclick="return confirm('Do you want to delete this?');"
-                                                        class="btn delete"><i class="fa-regular fa-trash"></i></button>
+                                                <button onclick="return confirm('Do you want to delete this?');"><i class="fa-regular fa-trash"></i></button>
                                             </ul>
                                         </form>
                                     </td>
@@ -51,7 +53,7 @@
                     </div>
 
                     @if($rates->isNotEmpty())
-                        <h3>@lang('admin.plans')</h3>
+                        <h3 style="margin-top: 60px">@lang('admin.plans')</h3>
                         <table class="table">
                             <thead>
                             <tr>
@@ -90,8 +92,8 @@
                                     <td>
                                         <form action="{{ route('rates.destroy', $rate) }}" method="post">
                                             <ul>
-                                                <li><a class="btn edit" href="{{ route('rates.edit', $rate)
-                                            }}"><i class="fa-regular fa-pen-to-square"></i></a></li>
+                                                <li><a href="{{ route('rates.edit', $rate)
+                                            }}"><img src="{{ route('index') }}/img/icons/edit.svg" alt=""></a></li>
                                                 @csrf
                                                 @method('DELETE')
                                                 <button onclick="return confirm('Do you want to delete this?');"

@@ -1,22 +1,31 @@
 <div class="sidebar">
-    @php
-        if($hotel == null){
-            $hotel = 14;
-        }
-    @endphp
+{{--    @php--}}
+{{--        if($hotel == null){--}}
+{{--            $hotel = 14;--}}
+{{--        }--}}
+{{--    @endphp--}}
     <ul>
         @can('edit-hotel')
-            <li @routeactive('hotel*')><a href="{{ route('hotels.show', $hotel)}}"><i class="fas fa-gauge"></i>
-                @lang('admin.information')</a></li>
-            <li @routeactive('servic*')><a href="{{ route('amenities.index')}}"><i class="fa-regular
-            fa-bell-concierge"></i> @lang('admin.amenities')</a></li>
-            <li @routeactive('payment*')>
-            <a href="{{ route('payments.index')}}"><i class="fa-regular fa-money-bill"></i> @lang('admin.payment')</a>
-            </li>
+                <li @routeactive(
+                'hotel*') class="hotel-list"><a href="{{route('hotels.index')}}"><img src="{{ route('index') }}/img/icons/home.svg" alt=""> @lang('admin.hotels')</a></li>
+                <li @routeactive(
+                'bookings.index') class="price-list"><a href="{{route('bookings.index')}}"><img src="{{ route('index') }}/img/money.svg" alt=""> @lang('admin.rates_and_availability')</a></li>
+                <li @routeactive(
+                'listbooks.index') class="price-list"><a href="{{route('listbooks.index')}}"><img src="{{ route('index') }}/img/money.svg" alt=""> @lang('admin.bookings')</a></li>
+                <li @routeactive(
+                'rooms.index') class="room-list"><a href="{{route('rooms.index')}}"><img src="{{ route('index') }}/img/icons/bed.svg" alt=""> @lang('admin.rooms')</a></li>
+                <li @routeactive(
+                'bills.index')><a href="{{route('bills.index')}}"><img src="{{ route('index') }}/img/icons/file.svg" alt=""> @lang('admin.bills')</a></li>
+
+{{--            <li @routeactive('servic*')><a href="{{ route('amenities.index')}}"><i class="fa-regular--}}
+{{--            fa-bell-concierge"></i> @lang('admin.amenities')</a></li>--}}
+{{--            <li @routeactive('payment*')>--}}
+{{--            <a href="{{ route('payments.index')}}"><i class="fa-regular fa-money-bill"></i> @lang('admin.payment')</a>--}}
+{{--            </li>--}}
         @endcan
         <li @routeactive(
         'userbook*')>
-        <a href="{{ route('userbooks.index')}}"><i class="fa-regular fa-money-bill"></i> @lang('admin.bookings')</a>
+        <a href="{{ route('userbooks.index')}}"><i class="fa-regular fa-money-bill"></i> @lang('admin.my_bookings')</a>
         </li>
     </ul>
 </div>

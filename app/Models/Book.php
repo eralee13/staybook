@@ -30,6 +30,9 @@ class Book extends Model
         'arrivalDate',
         'departureDate',
         'book_token',
+        'currency',
+        'cancellation',
+        'rate_id',
 //        'age1',
 //        'age2',
 //        'age3',
@@ -48,7 +51,7 @@ class Book extends Model
     ];
 
     public function rooms(){
-        return $this->hasMany(Room::class, 'id', 'room_id');
+        return $this->hasMany(Room::class);
     }
 
     public function showStartDate()

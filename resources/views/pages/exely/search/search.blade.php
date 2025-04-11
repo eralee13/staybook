@@ -36,10 +36,11 @@
                             $property = Http::withHeaders(['x-api-key' => 'fd54fc5c-2927-4998-8132-fb1107fc81c4', 'accept' => 'application/json'])->get('https://connect.test.hopenapi.com/api/content/v1/properties/' . $room->propertyId);
                              $arrival = Carbon::createFromDate($room->stayDates->arrivalDateTime)->format('d.m.Y H:i');
                              $departure = Carbon::createFromDate($room->stayDates->departureDateTime)->format('d.m.Y H:i');
+                             $hotel = \App\Models\Hotel::where('exely_id', $room->propertyId)->first();
                         @endphp
                         <div class="row rooms-item">
                             <div class="col-md-3">
-                                <img src="{{ $property->object()->images[0]->url }}" alt="">
+                                <img src="{{ Storage::url($hotel->image) }}" alt="">
                             </div>
                             <div class="col-md-9">
                                 <h3>{{ $property->object()->name }}</h3>
@@ -49,14 +50,15 @@
                                     Цена: {{ $room->total->priceBeforeTax }} {{ $room->currencyCode }}</div>
                                 <div class="meal">{{ $room->mealPlanCode }}</div>
                                 <div class="btn-wrap">
-                                    <form action="{{ route('orderexely', $room->roomType->id) }}">
+                                    <form action="{{ route('search_roomstays', $room->roomType->id) }}">
                                         <input type="hidden" name="propertyId" value="{{ $room->propertyId }}">
                                         <input type="hidden" name="arrivalDate"
-                                               value="{{ $room->stayDates->arrivalDateTime }}">
+                                               value="{{ $request->arrivalDate }}">
                                         <input type="hidden" name="departureDate"
-                                               value="{{ $room->stayDates->departureDateTime }}">
+                                               value="{{ $request->departureDate }}">
                                         <input type="hidden" name="adultCount"
                                                value="{{ $room->guestCount->adultCount }}">
+                                        <input type="hidden" name="childAges[]" value="{{ implode(',', $room->guestCount->childAges) }}">
                                         <input type="hidden" name="ratePlanId" value="{{ $room->ratePlan->id }}">
                                         <input type="hidden" name="roomTypeId" value="{{ $room->roomType->id }}">
                                         <input type="hidden" name="roomType"
@@ -67,10 +69,19 @@
                                                value="{{ $room->roomType->placements[0]->code }}">
                                         <input type="hidden" name="placementCode"
                                                value="{{ $room->roomType->placements[0]->code }}">
-                                        <input type="hidden" name="guestCount"
+                                        <input type="hidden" name="adults"
                                                value="{{ $room->guestCount->adultCount }}">
-                                        {{--                                            <input type="hidden" name="childAges[]" value="{{ $room->guestCount->childAges }}">--}}
                                         <input type="hidden" name="checkSum" value="{{ $room->checksum }}">
+                                        {{--                                            <input type="hidden" name="childAges[]" value="{{ $room->guestCount->childAges }}">--}}
+                                        @php
+                                            $array_child = [];
+                                        @endphp
+                                        @foreach($room->guestCount->childAges as $child)
+                                            @php
+                                                $array_child[] = $child
+                                            @endphp
+                                        @endforeach
+                                        <input type="hidden" name="childAges" value="{{ implode(',', $array_child) }}">
                                         @foreach($room->includedServices as $serv)
                                             <input type="hidden" name="servicesId" value="{{ $serv->id }}">
                                         @endforeach
@@ -80,10 +91,9 @@
                                         <input type="hidden" name="hotel_id" value="{{ $room->propertyId }}">
                                         <input type="hidden" name="room_id" value="{{ $room->roomType->id }}">
                                         <input type="hidden" name="title" value="{{ $room->fullPlacementsName }}">
-                                        <input type="hidden" name="price"
-                                               value="{{ $room->total->priceBeforeTax }}">
+                                        <input type="hidden" name="price" value="{{ $room->total->priceBeforeTax }}">
                                         <input type="hidden" name="currency" value="{{ $room->currencyCode }}">
-                                        <button class="more">Забронировать</button>
+                                        <button class="more">Выбрать</button>
                                     </form>
                                 </div>
                             </div>

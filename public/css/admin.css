@@ -10,14 +10,14 @@
     padding-left: 0;
     margin: 10px 0;
 }
-.admin table ul li a.btn{
-    font-size: 14px;
-    padding: 8px 10px;
-    border-radius: 5px;
-}
-.admin table ul li::after{
-    display: none;
-}
+/*.admin table ul li a.btn{*/
+/*    font-size: 14px;*/
+/*    padding: 8px 10px;*/
+/*    border-radius: 5px;*/
+/*}*/
+/*.admin table ul li::after{*/
+/*    display: none;*/
+/*}*/
 .admin a.btn{
     padding: 10px 30px;
     text-decoration: none;
@@ -28,26 +28,28 @@
 .admin a.add{
     background-color: #74bb39;
 }
-.admin a.view{
-    background-color: var(--blue);
-}
-.admin a.edit{
-    background-color: orange;
-}
-.admin form .delete{
-    background-color: red;
-    height: auto;
-    color: #fff;
-    width: auto;
-    display: inline-block;
-    padding: 8px 10px;
-    border-radius: 5px;
-    font-size: 14px;
-    line-height: 1.2;
-}
+/*.admin a.view{*/
+/*    background-color: var(--blue);*/
+/*}*/
+/*.admin a.edit{*/
+/*    background-color: orange;*/
+/*}*/
+/*.admin form .delete{*/
+/*    background-color: red;*/
+/*    height: auto;*/
+/*    color: #fff;*/
+/*    width: auto;*/
+/*    display: inline-block;*/
+/*    padding: 8px 10px;*/
+/*    border-radius: 5px;*/
+/*    font-size: 14px;*/
+/*    line-height: 1.2;*/
+/*}*/
 .admin form .cancel{
     padding: 9px 30px;
     margin-left: 10px;
+    background-color: red;
+    border-radius: 8px;
 }
 .admin .input-group{
     margin-bottom: 10px;
@@ -58,10 +60,10 @@
 .admin .form-label label{
     display: inline-block;
 }
-.admin img{
-    max-width: 120px;
-    margin-bottom: 10px;
-}
+/*.admin img{*/
+/*    max-width: 120px;*/
+/*    margin-bottom: 10px;*/
+/*}*/
 .admin table img{
     max-width: 200px;
     max-height: 200px;
@@ -151,10 +153,10 @@
     display: inline-block;
     background-color: #74bb39;
 }
-.admin .sidebar ul li a{
-    border: none;
-    background-color: #fff;
-}
+/*.admin .sidebar ul li a{*/
+/*    border: none;*/
+/*    background-color: #fff;*/
+/*}*/
 header .status.active, .bills .status{
     color: #74bb39;
 }
@@ -244,5 +246,13 @@ header .logo img{
     top: 5px;
     padding: 2px 5px;
     font-size: 12px;
+    padding: 0px 5px 2px;
+    font-size: 12px;
+    background: red;
+    color: #fff;
+}
+.admin .date, .admin .name{
+    opacity: .8;
+    font-size: 14px;
 }
 

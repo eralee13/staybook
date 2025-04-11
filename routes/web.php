@@ -33,7 +33,7 @@ Route::middleware('set_locale')->group(function () {
         Route::resource("hotels", "App\Http\Controllers\Admin\HotelController");
         Route::resource("amenities", "App\Http\Controllers\Admin\AmenityController");
         Route::resource("payments", "App\Http\Controllers\Admin\PaymentController");
-        Route::resource("listbooks", "App\Http\Controllers\Admin\ListbookController");
+        //Route::resource("listbooks", "App\Http\Controllers\Admin\ListbookController");
         Route::resource("bookings", "App\Http\Controllers\Admin\BookingController");
         Route::resource("prices", "App\Http\Controllers\Admin\PriceController");
         Route::resource("rooms", "App\Http\Controllers\Admin\RoomController");
@@ -52,7 +52,9 @@ Route::middleware('set_locale')->group(function () {
 
         Route::get("search", [HotelController::class, 'search']);
         Route::get("searchbook", [ListBookController::class, 'searchbook']);
-        Route::get("/book/exelyshow/{book}", [ListBookController::class, 'exelyshow'])->name('book.exelyshow');
+        //Route::get("/book/exelyshow/{book}", [ListBookController::class, 'exelyshow'])->name('book.exelyshow');
+        Route::get("/listbooks", [ListBookController::class, 'index'])->name('listbooks.index');
+        Route::get("/listbooks/show/{book}", [ListBookController::class, 'show'])->name('listbooks.show');
 
 
 //                Route::get('/hotels/{status?}/{show_result?}/{s_query?}', [HHotelController::class, 'index'])->name
@@ -80,8 +82,8 @@ Route::middleware('set_locale')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     require __DIR__ . '/auth.php';
 
-    Scramble::registerJsonSpecificationRoute(path: 'docs/v1.0.json', api: 'v1.0');
-    Scramble::registerJsonSpecificationRoute(path: 'docs/v1.1.json', api: 'v1.1');
+    //Scramble::registerJsonSpecificationRoute(path: 'docs/v1.0.json', api: 'v1.0');
+    //Scramble::registerJsonSpecificationRoute(path: 'docs/v1.1.json', api: 'v1.1');
 
 
     Route::get('/', [PageController::class, 'index'])->name('index');

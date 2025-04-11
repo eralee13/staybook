@@ -9,69 +9,108 @@
             <div class="row">
                 <div class="col-md-12">
                     @if($books->isNotEmpty())
-                        <h1>@lang('admin.bookings')</h1>
-                        <table>
-                            <tr>
-                                <th>#</th>
-                                <th>@lang('admin.booking')</th>
-                                <th>@lang('admin.guests')</th>
-                                <th>@lang('admin.plans')</th>
-                                <th>@lang('admin.dates_of_stay')</th>
-                                <th>@lang('admin.price')</th>
-                                <th>@lang('admin.action')</th>
-                            </tr>
-                            <tbody>
-                            @foreach($books as $book)
+                        <h1>@lang('admin.my_bookings')</h1>
+                        <ul class="tabs">
+                            <li class="current"
+                            ">Все</li>
+                            <li>Будущие</li>
+                            <li>Активные</li>
+                            <li>Завершенные</li>
+                            <li>Отмененные</li>
+                        </ul>
+
+                        {{--                            <tr>--}}
+                        {{--                                <th>#</th>--}}
+                        {{--                                <th>@lang('admin.booking')</th>--}}
+                        {{--                                <th>@lang('admin.guests')</th>--}}
+                        {{--                                <th>@lang('admin.plans')</th>--}}
+                        {{--                                <th>@lang('admin.dates_of_stay')</th>--}}
+                        {{--                                <th>@lang('admin.price')</th>--}}
+                        {{--                                <th>@lang('admin.status')</th>--}}
+                        {{--                                <th>@lang('admin.action')</th>--}}
+                        {{--                            </tr>--}}
+                        @foreach($books as $book)
+                            <table>
+                                <tbody>
                                 <tr>
-                                    <td>{{ $loop->iteration }}</td>
                                     <td>
-                                        <div class="title"># {{ $book->id }}</div>
-                                        <div class="stick">B2B</div>
-                                        <div class="date">@lang('admin.created') {{ $book->created_at }}</div>
+                                        <div class="title">Заказ:</div>
+                                        <div class="value"># {{ $book->id }}</div>
                                     </td>
                                     <td>
-                                        <div class="title">{{ $book->title }}</div>
-                                        <div class="count">{{ $book->count }} @lang('admin.adult')</div>
-                                        @if($book->countc > 0)
-                                            <div class="count">{{ $book->countc }} @lang('admin.child')</div>
-                                        @endif
+                                        <div class="title">Статус:</div>
+                                        <div class="value" style="color: green">{{ $book->status }}</div>
                                     </td>
                                     <td>
+                                        <div class="title">Гость:</div>
+                                        <div class="value">{{ $book->title }}</div>
+                                        {{--                                        <div class="count">{{ $book->count }} @lang('admin.adult')</div>--}}
+                                        {{--                                        @if($book->countc > 0)--}}
+                                        {{--                                            <div class="count">{{ $book->countc }} @lang('admin.child')</div>--}}
+                                        {{--                                        @endif--}}
+                                    </td>
+                                    <td>
+                                        <div class="title">Кол-во гостей:</div>
+                                        <div class="value">{{ $book->adult }} взрос.</div>
+                                        {{--                                        <div class="count">{{ $book->count }} @lang('admin.adult')</div>--}}
+                                        {{--                                        @if($book->countc > 0)--}}
+                                        {{--                                            <div class="count">{{ $book->countc }} @lang('admin.child')</div>--}}
+                                        {{--                                        @endif--}}
+                                    </td>
+                                    <td>
+                                        <div class="title">К оплате</div>
+                                        <div class="value">{{ $book->sum }} $</div>
+                                    </td>
+                                    <td>
+                                        <div class="title">Дата создания:</div>
                                         @php
-                                            $room = \App\Models\Room::where('id', $book->room_id)->first();
-                                            $plan = \App\Models\Rate::where('room_id', $book->room_id)->first();
+                                            $date = \Carbon\Carbon::createFromDate($book->created_at)->format('d.m.Y H:i')
                                         @endphp
-                                        <div class="title">{{ $room->__('title') }}</div>
-                                        <br>
-                                        @isset($plan)
-                                            <div class="title">{{ $plan->__('title') }}</div>
-                                        @endisset
+                                        <div class="value">{{ $date }}</div>
                                     </td>
-                                    <td>{{ $book->showStartDate() }} - {{ $book->showEndDate() }}</td>
+                                </tr>
+                                <tr>
                                     <td>
-                                        @if($book->sum != 1)
-                                            <div class="title">{{ $book->sum }}</div>
-                                        @else
-                                            <div class="title">$ {{ $book->price }}</div>
-                                        @endif
-                                        <div class="status"><i class="fa-regular fa-money-bill"></i> @lang('main.paid')
-                                        </div>
+                                        <div class="title">Заезд:</div>
+                                        <div class="value">{{ $book->showStartDate() }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="title">Выезд:</div>
+                                        <div class="value">{{ $book->showEndDate() }}</div>
+                                    </td>
+                                    @php
+                                        $hotel = \App\Models\Hotel::where('id', $book->hotel_id)->first();
+                                    @endphp
+                                    <td>
+                                        <div class="title">Отель</div>
+                                        <div class="value">{{ $hotel->title }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="title">Город</div>
+                                        <div class="value">Бишкек</div>
+                                    </td>
+                                    <td>
+                                        <div class="title">Бесплатная отмена до</div>
+                                        <div class="value">10.04.2025</div>
                                     </td>
                                     <td>
                                         <form action="{{ route('userbooks.cancel', $book) }}" method="post">
                                             <ul>
                                                 <a href="{{ route('userbooks.show', $book)}}" class="more"><i
-                                                        class="fa-regular fa-eye"></i></a>
+                                                            class="fa-regular fa-eye"></i></a>
                                                 @csrf
-                                                <button class="btn delete"
-                                                        onclick="return confirm('Do you want to cancel this?');">@lang('admin.cancel')</button>
+                                                @if($book->status == 'Reserved')
+                                                    <button class="btn delete"
+                                                            onclick="return confirm('Do you want to cancel this?');"><i
+                                                                class="fa-solid fa-xmark"></i></button>
+                                                @endif
                                             </ul>
                                         </form>
                                     </td>
                                 </tr>
-                            @endforeach
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
+                        @endforeach
                     @else
                         <h2 style="text-align: center">@lang('admin.bookings_not_found')</h2>
                     @endif
@@ -79,5 +118,44 @@
             </div>
         </div>
     </div>
+    <style>
+        ul.tabs {
+            padding-left: 0;
+            text-align: left;
+        }
+
+        ul.tabs li.current {
+            background-color: #0a58ca;
+            color: #fff;
+        }
+
+        table {
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        table tbody {
+            margin-bottom: 20px;
+        }
+
+        table tr {
+            background-color: #fff;
+        }
+
+        table td, table th {
+            padding: 20px;
+            border-color: #f5f5f5;
+        }
+
+        .title {
+            font-size: 14px;
+            opacity: .6;
+        }
+
+        .value {
+            font-size: 20px;
+        }
+    </style>
 
 @endsection

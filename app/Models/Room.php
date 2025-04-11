@@ -5,11 +5,14 @@ namespace App\Models;
 use App\Models\Traits\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Rennokki\QueryCache\Traits\QueryCacheable;
 
 class Room extends Model
 {
     use Translatable;
     use SoftDeletes;
+    use QueryCacheable;
+    protected $cacheFor = 180;
 
     protected $fillable = [
         'code',

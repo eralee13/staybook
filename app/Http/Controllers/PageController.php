@@ -1,10 +1,10 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Http\Requests\MultiForm\HotelOneRequest;
 use App\Http\Requests\MultiForm\HotelTwoRequest;
 use App\Models\Book;
+use App\Models\City;
 use App\Models\Rate;
 use App\Models\Contact;
 use App\Models\Meal;
@@ -24,24 +24,20 @@ class PageController extends Controller
     public function index()
     {
         $hotels = Hotel::all();
-        $rooms = Room::where('status', 1)->inRandomOrder()->paginate(40);
+        $rooms = Room::cacheFor(now()->addHours(24))->where('status', 1)->inRandomOrder()->paginate(40);
         $foods = Meal::all();
-        $response = Http::withHeaders(['x-api-key' => 'fd54fc5c-2927-4998-8132-fb1107fc81c4', 'accept' => 'application/json'])->get('https://connect.test.hopenapi.com/api/content/v1/properties?count=20&include=All');
-        $properties = $response->object()->properties;
-        return view('index', compact('hotels', 'rooms', 'foods', 'properties'));
+        return view('index', compact('hotels', 'rooms', 'foods'));
     }
 
     public function hotels()
     {
-        $hotels = Hotel::orderBy('top', 'DESC')->paginate(30);
-        $response = Http::withHeaders(['x-api-key' => 'fd54fc5c-2927-4998-8132-fb1107fc81c4', 'accept' => 'application/json'])->get('https://connect.test.hopenapi.com/api/content/v1/properties?count=20&include=All');
-        $properties = $response->object()->properties;
-        return view('pages.hotels', compact('hotels', 'properties'));
+        $hotels = Hotel::cacheFor(now()->addHours(24))->orderBy('top', 'DESC')->paginate(30);
+        return view('pages.hotels', compact('hotels'));
     }
 
     public function hotel($code, Request $request)
     {
-        $hotel = Hotel::where('code', $code)->first();
+        $hotel = Hotel::cacheFor(now()->addHours(24))->where('code', $code)->first();
         //dd($hotel->exely_id);
         $start = Carbon::createFromDate($request->start_d);
         $end = Carbon::createFromDate($request->end_d);
@@ -64,13 +60,13 @@ class PageController extends Controller
 
     public function allrooms()
     {
-        $rooms = Room::where('status', 1)->orderBy('price', 'asc')->paginate(30);
+        $rooms = Room::cacheFor(now()->addHours(24))->where('status', 1)->orderBy('price', 'asc')->paginate(30);
         return view('pages.rooms', compact('rooms'));
     }
 
     public function room($hotel, $roomCode)
     {
-        $room = Room::withTrashed()->byCode($roomCode)->firstOrFail();
+        $room = Room::cacheFor(now()->addHours(24))->withTrashed()->byCode($roomCode)->firstOrFail();
         $user = Auth::id();
         $random = str()->random(15);
         $images = Image::where('room_id', $room->id)->get();
@@ -79,113 +75,17 @@ class PageController extends Controller
         return view('pages.room', compact('room', 'images', 'related', 'random', 'user'));
     }
 
-    public function search(Request $request)
-    {
-        $query = Rate::with('hotel', 'room', 'food', 'rule');
 
-        //hotel
-        if ($request->filled('title')) {
-            $title = (array)$request->input('title');
-            $query->whereHas('hotel', function ($quer) use ($title) {
-                $quer->where('hotel_id', $title);
-            });
-        }
-
-        //count
-        if ($request->filled('count')) {
-            $count = (array)$request->input('count');
-            $query->whereHas('room', function ($quer) use ($count) {
-                $quer->where('price2', '!=', null);
-            });
-        }
-
-        //child
-//        if ($request->filled('countc')) {
-//            $countc = (array) $request->input('countc');
-//            $query->whereHas('child', function ($quer) use ($countc) {
-//                $quer->where('age1', '!=', 0);
-//            });
-//        }
-
-        //date
-//        if ($request->filled('start_d')) {
-//            $start_d = (array) $request->input('start_d');
-//            $query->whereHas('hotel', function ($quer) use ($start_d) {
-//                $quer->where('start_d', $start_d);
-//            });
-//        }
-
-        //rating
-        if ($request->filled('rating')) {
-            $rating = (array)$request->input('rating');
-            $query->whereHas('hotel', function ($quer) use ($rating) {
-                $quer->where('rating', $rating);
-            });
-        }
-
-        //food
-        if ($request->filled('food_id')) {
-            $food = (array)$request->input('food_id');
-            $query->whereHas('food', function ($quer) use ($food) {
-                $quer->where('food_id', $food);
-            });
-        }
-
-        //early
-        if ($request->filled('early_in')) {
-            $early_in = (array)$request->input('early_in');
-            $query->whereHas('hotel', function ($quer) use ($early_in) {
-                $quer->where('early_in', $early_in);
-            });
-        }
-
-        //late
-        if ($request->filled('early_out')) {
-            $early_out = (array)$request->input('early_out');
-            $query->whereHas('hotel', function ($quer) use ($early_out) {
-                $quer->where('early_out', $early_out);
-            });
-        }
-
-        //cancellation
-        if ($request->filled('cancelled')) {
-            $cancel = (array)$request->input('cancelled');
-            $query->whereHas('rule', function ($quer) use ($cancel) {
-                $quer->where('size', 0);
-            });
-        }
-
-        //extra
-//        if ($request->filled('extra_place')) {
-//            $extra_place = (array) $request->input('extra_place');
-//            $query->whereHas('rule', function ($quer) use ($extra_place) {
-//                $quer->where('extra_place', '!=', 0);
-//                $quer->orWhere('extra_place', '!=', null);
-//            });
-//        }
-
-        $categories = $query->get();
-
-        $contacts = Contact::get();
-
-//        if ($request->filled('daterange')) {
-//            $query->whereBetween('price',[$request->left_value, $request->right_value]);
-//        }
-
-        $relrooms = Room::all();
-
-        return view('pages.search', compact('categories', 'contacts', 'request', 'relrooms'));
-    }
 
     public function about()
     {
-        $page = Page::query()->where('id', 4)->first();
+        $page = Page::cacheFor(now()->addHours(24))->where('id', 4)->first();
         return view('pages.about', compact('page'));
     }
 
     public function contactspage()
     {
-        $page = Page::query()->where('id', 5)->first();;
+        $page = Page::cacheFor(now()->addHours(24))->where('id', 5)->first();;
         $contacts = Contact::get();
         return view('pages.contacts', compact('page', 'contacts'));
     }
@@ -385,8 +285,37 @@ class PageController extends Controller
 
     public function testsearch()
     {
-        return view('pages.testsearch');
+        //$books = Book::whereBetween('arrivalDate', [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()])->get();
+        $bookingInfo = Book::with('rooms')->where('user_id', auth()->id())->get([
+                'id',
+                'room_id',
+                'arrivalDate',
+                'departureDate',
+                //'days',
+                'sum',
+                'status',
+        ]);
+        return response()->json($bookingInfo);
+        //return view('pages.testsearch', compact('books'));
     }
+
+    // Метод, отдающий массив забронированных дат на просматриваемом номере отеля
+    public function getBookedDates(Request $request, $room_id): \Illuminate\Http\JsonResponse
+    {
+
+        $bookedDates = Book::where('room_id', $room_id)->get(['arrivalDate', 'departureDate']);
+
+        foreach ($bookedDates as $book) {
+            $startDate = Carbon::parse($book->arrivalDate);
+            $endDate = Carbon::parse($book->departureDate);
+            // Количетсво дней (включительно (+1))
+            $numberOfDays = $startDate->diffInDays($endDate) + 1;
+        }
+
+        return response()->json($bookedDates);
+    }
+
+
 
 
 }

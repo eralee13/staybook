@@ -1,28 +1,14 @@
-@extends('layouts.master')
+@extends('layouts.filter_mini')
 
 @section('title', 'Контакты')
 
 @section('content')
 
-    <div class="pagetitle">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-12">
-                    <h1 data-aos="fade-up" data-aos-duration="2000">{{ $page->__('title') }}</h1>
-                    <ul class="breadcrumbs">
-                        <li><a href="{{route('index')}}">@lang('main.home')</a></li>
-                        <li>></li>
-                        <li>{{ $page->__('title') }}</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="page contacts">
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 offset-lg-2 col-md-12">
+                    <h1 data-aos="fade-up" data-aos-duration="2000">{{ $page->__('title') }}</h1>
                     <script src="https://maps.api.2gis.ru/2.0/loader.js"></script>
                     <div id="map" style="width: 100%; height: 450px;"></div>
                     <script>

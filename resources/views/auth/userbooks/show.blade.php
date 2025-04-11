@@ -67,26 +67,32 @@
                             <div class="dashboard-item">
                                 @php
                                     //$category = \App\Models\Rate::where('room_id', $book->room_id)->firstOrFail();
-                                    $room = \App\Models\Room::where('id', $book->room_id)->first();
+                                    $room = \App\Models\Room::where('id', $book->room_id)->orWhere('exely_id', $book->room_id)->first();
+                                    $hotel = \App\Models\Hotel::where('id', $book->hotel_id)->orWhere('exely_id', $book->hotel_id)->first();
                                 @endphp
-                                <div class="img"><img src="{{ Storage::url($room->image) }}"></div>
+
+                                @isset($room->image)
+                                    @if(\Illuminate\Support\Facades\Storage::exists($room->image))
+                                        <div class="img"><img src="{{ Storage::url($room->image) }}"></div>
+                                    @else
+                                        <div class="img"><img src="{{ $room->image }}"></div>
+                                    @endif
+                                @endisset
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="dashboard-item">
                                 <div class="name">@lang('admin.hotel')</div>
                                 <div class="wrap">
-                                    {{ $room->hotel->title }}
+                                    {{ $hotel->title }}
                                     <div class="name" style="margin-top: 20px">@lang('admin.room')</div>
-                                    {{ $room->title }} <br>
+                                    @isset($room) {{ $room->title }}@endisset <br>
 {{--                                    <div class="name">Тариф:</div> {{ $category->title }}--}}
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
-
                             <img src="https://maps.googleapis.com/maps/api/staticmap?center=Berkeley,CA&amp;zoom=13&amp;size=400x400&amp;key=AIzaSyA3kg7YWugGl1lTXmAmaBGPNhDW9pEh5bo&amp;signature=45D4gqkHrzXqD1o0ucV_geljI6A=" alt="">
-
                             <div class="dashboard-item">
                                 <div class="name">@lang('admin.dates_of_stay')</div>
                                 {{ $book->showStartDate() }} - {{ $book->showEndDate() }}
@@ -102,32 +108,35 @@
                             <div class="dashboard-item">
                                 <div class="name" style="margin-top: 20px">@lang('admin.status')</div>
                                 <div class="status"><i class="fa-regular fa-money-bill"></i>
-                                    @lang('main.paid')
+                                    {{ $book->status }}
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <script src="https://maps.api.2gis.ru/2.0/loader.js"></script>
-                            <div id="map" style="width: 100%; height: 300px;"></div>
-                            <script>
-                                DG.then(function () {
-                                    var map = DG.map('map', {
-                                        center: [{{$room->hotel->lat}}, {{$room->hotel->lng}}],
-                                        zoom: 14
-                                    });
 
-                                    DG.marker([{{$room->hotel->lat}}, {{$room->hotel->lng}}], {scrollWheelZoom:
-                                            false})
-                                        .addTo(map)
-                                        .bindLabel('{{$room->hotel->__('title')}}', {
-                                            static: true
+                    @isset($hotel)
+                        <div class="row">
+                            <div class="col-md-6">
+                                <script src="https://maps.api.2gis.ru/2.0/loader.js"></script>
+                                <div id="map" style="width: 100%; height: 300px;"></div>
+                                <script>
+                                    DG.then(function () {
+                                        var map = DG.map('map', {
+                                            center: [{{$hotel->lat}}, {{$hotel->lng}}],
+                                            zoom: 14
                                         });
-                                });
-                            </script>
+
+                                        DG.marker([{{$hotel->lat}}, {{$hotel->lng}}], {scrollWheelZoom:
+                                                false})
+                                            .addTo(map)
+                                            .bindLabel('{{ $hotel->title }}', {
+                                                static: true
+                                            });
+                                    });
+                                </script>
+                            </div>
                         </div>
-                    </div>
+                    @endisset
                 </div>
             </div>
         </div>

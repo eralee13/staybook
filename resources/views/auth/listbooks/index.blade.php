@@ -7,7 +7,10 @@
     <div class="page admin bookings">
         <div class="container">
             <div class="row">
-                <div class="col-md-12">
+                <div class="col-md-2">
+                    @include('auth.layouts.sidebar')
+                </div>
+                <div class="col-md-10">
                     @if($books->isNotEmpty())
                         <form>
                             <div class="form-group">
@@ -35,74 +38,12 @@
                                     <td>{{ $loop->iteration }}</td>
                                     <td>
                                         <div class="title"># {{ $book->id }}</div>
-                                        <div class="stick">B2B</div>
+{{--                                        <div class="stick">B2B</div>--}}
                                         <div class="date">@lang('admin.created') {{ $book->created_at }}</div>
                                     </td>
                                     <td>
                                         <div class="title">{{ $book->title }}</div>
-                                        <div class="count">{{ $book->count }} @lang('admin.adult')</div>
-                                        @if($book->countc > 0)
-                                            <div class="count">{{ $book->countc }} @lang('admin.child')</div>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @php
-                                            $room = \App\Models\Room::where('id', $book->room_id)->first();
-                                            $plan = \App\Models\Rate::where('room_id', $book->room_id)->first();
-                                        @endphp
-                                        <div class="title">{{ $room->__('title') }}</div>
-                                        <br>
-                                        @isset($plan)
-                                            <div class="title">{{ $plan->__('title') }}</div>
-                                        @endisset
-                                    </td>
-                                    <td>{{ $book->showStartDate() }} - {{ $book->showEndDate() }}</td>
-                                    <td>
-                                        @if($book->sum != 1)
-                                            <div class="title">{{ $book->sum }}</div>
-                                        @else
-                                            <div class="title">$ {{ $book->price }}</div>
-                                        @endif
-                                        <div class="status"><i class="fa-regular fa-money-bill"></i> @lang('main.paid')
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <form action="{{ route('listbooks.destroy', $book) }}" method="post">
-                                            <ul>
-                                                <a href="{{ route('listbooks.show', $book)}}" class="more"><i
-                                                            class="fa-regular fa-eye"></i></a>
-                                                @csrf
-                                                @method('DELETE')
-                                                @can('delete-book')
-                                                    <button class="btn delete"
-                                                            onclick="return confirm('Do you want to delete this?');"><i
-                                                                class="fa-regular
-                                                    fa-trash"></i></button>
-                                                @endcan
-                                            </ul>
-                                        </form>
-                                    </td>
-                                </tr>
-                            @endforeach
-                            </tbody>
-                        </table>
-                    @else
-                        <h2 style="text-align: center">@lang('admin.bookings_not_found')</h2>
-                    @endif
-                    @if($listbooks->isNotEmpty())
-                        <table>
-                            <tbody>
-                            @foreach($listbooks as $book)
-                                <tr>
-                                    <td>{{ $book->tag }}</td>
-                                    <td>
-                                        <div class="title"># {{ $book->id }}</div>
-                                        <div class="stick">B2B</div>
-                                        <div class="date">@lang('admin.created') {{ $book->created_at }}</div>
-                                    </td>
-                                    <td>
-                                        <div class="title">{{ $book->title }}</div>
-                                        <div class="count">{{ $book->count }} @lang('admin.adult')</div>
+                                        <div class="date">{{ $book->count }} @lang('admin.adult')</div>
                                         @if($book->countc > 0)
                                             <div class="count">{{ $book->countc }} @lang('admin.child')</div>
                                         @endif
@@ -113,8 +54,9 @@
                                             $plan = \App\Models\Rate::where('room_id', $book->room_id)->first();
                                         @endphp
                                         @isset($room)
-                                            <div class="title">{{ $room->__('title') }}</div><br>
+                                            <div class="title">{{ $room->__('title') }}</div>
                                         @endisset
+
                                         @isset($plan)
                                             <div class="title">{{ $plan->__('title') }}</div>
                                         @endisset
@@ -122,25 +64,32 @@
                                     <td>{{ $book->showStartDate() }} - {{ $book->showEndDate() }}</td>
                                     <td>
                                         @if($book->sum != 1)
-                                            <div class="title">{{ $book->sum }}</div>
+                                            <div class="title">{{ $book->sum }}
+                                                @if($book->currency)
+                                                    {{ $book->currency }}
+                                                @else
+                                                $
+                                                @endif
+                                            </div>
                                         @else
                                             <div class="title">$ {{ $book->price }}</div>
                                         @endif
-                                        <div class="status"><i class="fa-regular fa-money-bill"></i> @lang('main.paid')
+                                        <div class="status">
+                                            @if($book->status == 'Reserved')
+                                            {{ $book->status }}
+                                            @else
+                                                {{ $book->status }}
+                                            @endif
                                         </div>
                                     </td>
                                     <td>
                                         <form action="{{ route('listbooks.destroy', $book) }}" method="post">
                                             <ul>
-                                                <a href="{{ route('book.exelyshow', $book)}}" class="more"><i
-                                                            class="fa-regular fa-eye"></i></a>
+                                                <a href="{{ route('listbooks.show', $book)}}"><img src="{{ route('index') }}/img/icons/eye.svg" alt=""></a>
                                                 @csrf
                                                 @method('DELETE')
                                                 @can('delete-book')
-                                                    <button class="btn delete"
-                                                            onclick="return confirm('Do you want to delete this?');"><i
-                                                                class="fa-regular
-                                                    fa-trash"></i></button>
+                                                    <button onclick="return confirm('Do you want to delete this?');"><i class="fa-regular fa-trash"></i></button>
                                                 @endcan
                                             </ul>
                                         </form>
@@ -157,13 +106,11 @@
         </div>
     </div>
 
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-
     <script>
         $(document).ready(function () {
             $('#search').on('keyup', function () {
-                var query = $(this).val();
+                let query = $(this).val();
                 $.ajax({
                     url: "searchbook",
                     type: "GET",
@@ -172,7 +119,6 @@
                         $('#search_list').html(data);
                     }
                 });
-                //end of ajax call
             });
         });
     </script>

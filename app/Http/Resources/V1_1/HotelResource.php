@@ -28,7 +28,6 @@ class HotelResource extends JsonResource
 
         //rooms
         $rooms = Room::where('hotel_id', $this->id)->get();
-        $rooms_array = [];
         foreach ($rooms as $room) {
             //images
             $images_room = Image::where('room_id', $room->id)->get();

@@ -19,7 +19,7 @@ class UserBookController extends Controller
     public function index(Request $request)
     {
         $user = Auth::id();
-        $books = Book::where('user_id', $user)->where('status', 'Reserved')->get();
+        $books = Book::where('user_id', $user)->get();
         return view('auth.userbooks.index', compact('books'));
     }
 

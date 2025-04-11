@@ -1,68 +1,40 @@
-@extends('layouts.master')
+@extends('layouts.filter_mini')
 
 @section('title', 'Отели')
 
 @section('content')
-
-    <div class="pagetitle">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-12">
-                    <h1 data-aos="fade-up" data-aos-duration="2000">@lang('main.hotels')</h1>
-                    <ul class="breadcrumbs">
-                        <li><a href="{{route('index')}}">@lang('main.home')</a></li>
-                        <li>></li>
-                        <li>@lang('main.hotels')</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-
     @auth
-
-    <div class="page hotels">
-        <div class="container">
-            <div class="row">
-                @foreach($hotels as $hotel)
-                    <div class="col-lg-4 col-md-6 col-6" data-aos="zoom-in" data-aos-duration="2000">
-                        @if(\Illuminate\Support\Facades\Storage::exists($hotel->image))
-                            <div class="hotels-item" style="background-image: url({{ Storage::url($hotel->image) }})">
-                        @else
-                            <div class="hotels-item" style="background-image: url({{ $hotel->image }})">
-                        @endif
-                            <a href="{{ route('hotel', $hotel->code) }}">
-                                <div class="overlay"></div>
-                                <div class="text-wrap">
-                                    <h4>{{ $hotel->__('title') }}</h4>
-                                    <div class="address">{{ $hotel->__('address') }}</div>
-                                </div>
-                            </a>
-                        </div>
+        <div class="places hotels">
+            <div class="container">
+                <div class="row aic">
+                    <div class="col-md-8">
+                        <h1>Отели</h1>
                     </div>
-                @endforeach
-{{--                    @foreach($properties as $property)--}}
-{{--                        <div class="col-lg-4 col-md-6 col-6" data-aos="zoom-in" data-aos-duration="2000">--}}
-{{--                            <div class="hotels-item" style="background-image: url({{ $property->images[0]->url }})">--}}
-{{--                                <a href="{{ route('property', $property->id) }}">--}}
-{{--                                    <div class="overlay"></div>--}}
-{{--                                    <div class="text-wrap">--}}
-{{--                                        <h4>{{ $property->name}}</h4>--}}
-{{--                                        <div class="address">{{ $property->contactInfo->address->addressLine }}</div>--}}
-{{--                                    </div>--}}
-{{--                                </a>--}}
-{{--                            </div>--}}
-{{--                        </div>--}}
-{{--                    @endforeach--}}
-            </div>
-            <div class="row">
-                <div class="col-md-12">
-                    {{ $hotels->links('pagination::bootstrap-4') }}
+                    {{--                    <div class="col-md-4">--}}
+                    {{--                        <div class="other-wrap">--}}
+                    {{--                            <a href="">Другой</a>--}}
+                    {{--                        </div>--}}
+                    {{--                    </div>--}}
+                </div>
+                <div class="row">
+                    @foreach($hotels as $hotel)
+                        <div class="col-lg-4 col-md-6">
+                            <div class="places-item">
+                                    <span class="img-wrap">
+                                        <img src="{{ Storage::url($hotel->image) }}" alt="">
+                                    </span>
+                                <div class="text-wrap">
+                                    <h5>{{ $hotel->title }}</h5>
+                                    <div class="address">{{ $hotel->address }}</div>
+                                    {{--                                <div class="price">от 36 000 сом</div>--}}
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+
                 </div>
             </div>
         </div>
-    </div>
-
     @else
         <div class="page auth">
             <div class="container">
@@ -73,7 +45,8 @@
                             <h4>@lang('main.b2b')</h4>
                         </div>
                         <div class="alert alert-danger">
-                            <div class="descr">@lang('main.need_auth') <a href="{{ route('login') }}">@lang('main.auth')</a></div>
+                            <div class="descr">@lang('main.need_auth') <a
+                                        href="{{ route('login') }}">@lang('main.auth')</a></div>
                         </div>
                     </div>
                 </div>

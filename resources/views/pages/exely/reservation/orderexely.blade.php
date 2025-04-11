@@ -1,89 +1,169 @@
-@extends('layouts.master')
+@php use App\Models\Hotel; @endphp
+@extends('layouts.head')
 
 @section('title', 'Забронировать')
 
 @section('content')
 
-    <div class="pagetitle">
+    <div class="page order">
         <div class="container">
             <div class="row">
                 <div class="col-md-12">
-                    <h1 data-aos="fade-up" data-aos-duration="2000">Забронировать номер</h1>
-                    <ul class="breadcrumbs">
-                        <li><a href="{{route('index')}}">@lang('main.home')</a></li>
-                        <li>></li>
-                        <li>Забронировать номер</li>
-                    </ul>
+                    <h3><a href="search.html"><img src="{{ route('index') }}/img/icons/arrow-left.svg" alt=""></a> Подтвердите и оплатите
+                    </h3>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <div class="page">
-        <div class="container">
             <div class="row">
-                <div class="col-lg-10 offset-lg-1 col-md-12">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <img src="{{ $hotel->object()->images[0]->url }}" alt="">
-                            <h5 style="margin-top: 10px; text-align: center">{{ $hotel->object()->name }}</h5>
-                        </div>
-                        <div class="col-md-8">
-                            <div class="date">{{ $arrival }} - {{ $departure }}</div>
-                            <h4>{{ $request->hotel }}</h4>
-                            <div class="price">Цена: {{ $request->price }} {{ $request->currency }}</div>
+                <div class="col-lg-8 col-md-12 order-xl-1 order-lg-1 order-2">
+                    <h5>Ваша поездка</h5>
+                    <form action="{{ route('res_bookings_verify') }}">
+                        <input type="hidden" name="propertyId" value="{{ $request->propertyId }}">
+                        <input type="hidden" name="arrivalDate" value="{{ $request->arrivalDate }}">
+                        <input type="hidden" name="departureDate" value="{{ $request->departureDate }}">
+                        <input type="hidden" name="ratePlanId" value="{{ $request->ratePlanId }}">
+                        <input type="hidden" name="roomTypeId" value="{{ $request->roomTypeId }}">
+                        {{-- <input type="hidden" name="roomType" value="{{ $request->roomType }}">--}}
+                        {{-- <input type="hidden" name="roomCount" value="{{ $request->roomCount }}">--}}
+                        {{-- <input type="hidden" name="roomCode" value="{{ $request->roomCode }}">--}}
+                        {{-- <input type="hidden" name="placementCode" value="{{ $request->placementCode }}">--}}
+                        <input type="hidden" name="adultCount" value="{{ $request->adultCount }}">
+                        <input type="hidden" name="placements" value="{{ $request->placements }}">
+                        <input type="hidden" name="childAges[]" value="{{ implode(',', $childs) }}">
+                        <input type="hidden" name="checkSum" value="{{ $request->checkSum }}">
+                        <input type="hidden" name="servicesId" value="{{ $request->servicesId }}">
 
-                            <form action="{{ route('res_bookings_verify') }}">
-                                <input type="hidden" name="propertyId" value="{{ $request->propertyId }}">
-                                <input type="hidden" name="arrivalDate" value="{{ $request->arrivalDate }}">
-                                <input type="hidden" name="departureDate" value="{{ $request->departureDate }}">
-                                <input type="hidden" name="ratePlanId" value="{{ $request->ratePlanId }}">
-                                <input type="hidden" name="roomTypeId" value="{{ $request->roomTypeId }}">
-                                <input type="hidden" name="roomType" value="{{ $request->roomType }}">
-                                <input type="hidden" name="roomCount" value="{{ $request->roomCount }}">
-                                <input type="hidden" name="roomCode" value="{{ $request->roomCode }}">
-                                <input type="hidden" name="placementCode" value="{{ $request->placementCode }}">
-                                <input type="hidden" name="guestCount" value="{{ $request->guestCount }}">
-                                <input type="hidden" name="checkSum" value="{{ $request->checkSum }}">
-                                <input type="hidden" name="servicesId" value="{{ $request->servicesId }}">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="col-xs-4" for="title">ФИО</label>
-                                            <input type="text" class="form-control" name="name" value="Test Name"/>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="">Номер телефона</label>
-                                            <input type="text" name="phone" value="+996500500500">
-                                            <div id="output"></div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            @include('auth.layouts.error', ['fieldname' => 'email'])
-                                            <label class="col-xs-4" for="email">Email</label>
-                                            <input type="email" class="form-control" name="email" id="email"
-                                                   value="test@mail.com"/>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="">@lang('main.sum') ({{ $request->currency }})</label>
-                                            <input type="text" id="sum" name="price" value="{{ $request->price }}"
-                                                   readonly>
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        @include('auth.layouts.error', ['fieldname' => 'comment'])
-                                        <label for="">Комментарий</label>
-                                        <textarea name="comment" rows="3">Test message</textarea>
-                                    </div>
-                                    <button class="more" id="saveBtn">@lang('main.book')</button>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <div class="label">ФИО</div>
+                                    <input type="text" name="name" placeholder="Асанов А.А." required>
                                 </div>
-                            </form>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <div class="label">Гости</div>
+                                    <input type="text" value="{{ $request->adultCount }}" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="">Кол-во детей</label>
+                                    <input type="text" value="{{ count($childs) }}" readonly>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="">Номер телефона</label>
+                                    <input type="text" name="phone" id="phone" required>
+                                    <div id="output"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="">Email</label>
+                                    <input type="email" name="email" required>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    @include('auth.layouts.error', ['fieldname' => 'comment'])
+                                    <label for="">Комментарий</label>
+                                    <textarea name="comment" rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="line"></div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5>Варианты оплаты</h5>
+                                <div class="method-item current">
+                                    <div class="name">Оплатить сейчас {{ $request->price }} {{ $request->currency }}</div>
+                                </div>
+{{--                                <div class="method-item">--}}
+{{--                                    <div class="name">Оплатите часть сейчас, а остаток внесите позже--}}
+{{--                                        36,000 сом к оплате сегодня, 36,000 сом — 01 мар. 2025 г.</div>--}}
+{{--                                </div>--}}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="row payment-wrap">
+                                    <div class="col-md-6">
+                                        <h5>Оплата</h5>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="payment">
+                                            <div class="payment-item">
+                                                <img src="{{ route('index') }}/img/balance.svg" alt="">
+                                            </div>
+                                            <div class="payment-item">
+                                                <img src="{{ route('index') }}/img/mega.svg" alt="">
+                                            </div>
+                                            <div class="payment-item">
+                                                <img src="{{ route('index') }}/img/optima.svg" alt="">
+                                            </div>
+                                            <div class="payment-item">
+                                                <img src="{{ route('index') }}/img/mbank.svg" alt="">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="payment-type">
+                                    <select name="" class="payment_type" id="">
+                                        <option value="">Выбрать способ оплаты</option>
+                                        <option value="">Balance</option>
+                                        <option value="">Mega</option>
+                                        <option value="">Optima</option>
+                                        <option value="">Mbank</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="line"></div>
+                        <div class="descr">Нажимая кнопку ниже, я принимаю условия (Правила дома, установленные
+                            хозяином, Основные правила для гостей, Правила StayBook в отношении повторного бронирования
+                            и возврата средств, Условия частичной предоплаты) и соглашаюсь, что StayBook может списать
+                            средства с моего способа оплаты, если ответственность за ущерб лежит на мне.</div>
+                        <div class="btn-wrap">
+                            <button class="more" id="saveBtn">Подтвердить и оплатить</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-lg-4 col-md-12 order-xl-2 order-lg-2 order-1">
+                    @php
+                        $hotel = Hotel::where('exely_id', $request->propertyId)->first();
+                    @endphp
+                    <div class="sidebar">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <img src="{{ Storage::url($hotel->image) }}" alt="">
+                            </div>
+                            <div class="col-md-8">
+                                <h4>Двухместный номер с видом на город (двуспальная кровать)</h4>
+                                <div class="descr">{{ $hotel->title }}</div>
+                            </div>
+                        </div>
+{{--                        <div class="line"></div>--}}
+{{--                        <h5>Детализация цены</h5>--}}
+{{--                        <div class="row">--}}
+{{--                            <div class="col-md-8">--}}
+{{--                                <div class="price-item">--}}
+{{--                                    <div class="name">36,000 {{ $request->currency }} * 2 ночи</div>--}}
+{{--                                </div>--}}
+{{--                            </div>--}}
+{{--                            <div class="col-md-4">--}}
+{{--                                <div class="price">{{ $request->price }} {{ $request->currency }}</div>--}}
+{{--                            </div>--}}
+{{--                        </div>--}}
+                        <div class="line"></div>
+                        <div class="row mt">
+                            <div class="col-md-8">
+                                <div class="total">Итого</div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="price">{{ $request->price }} {{ $request->currency }}</div>
+                            </div>
                         </div>
                     </div>
                 </div>

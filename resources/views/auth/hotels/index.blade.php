@@ -4,7 +4,7 @@
 
 @section('content')
 
-    <div class="page admin mainhotels">
+    <div class="page hotels">
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
@@ -43,11 +43,10 @@
                                 <td>
                                     <form action="{{ route('hotels.destroy', $hotel) }}" method="post">
                                         <ul>
-                                            <a href="{{ route('hotels.show', $hotel) }}" class="more"><i class="fa-regular
-                                fa-pen-to-square"></i> @lang('admin.choose')</a>
+                                            <a href="{{ route('hotels.show', $hotel) }}"><img src="{{ route('index') }}/img/icons/eye.svg" alt=""></a>
                                             @csrf
                                             @method('DELETE')
-                                            <button onclick="return confirm('Do you want to delete this?');" class="btn delete"><i class="fa-regular fa-trash"></i></button>
+                                            <button onclick="return confirm('Do you want to delete this?');"><i class="fa-regular fa-trash"></i></button>
                                         </ul>
                                     </form>
                                 </td>

@@ -7,7 +7,10 @@
     <div class="page admin">
         <div class="container">
             <div class="row">
-                <div class="col-md-12">
+                <div class="col-md-3">
+                    @include('auth.layouts.sidebar')
+                </div>
+                <div class="col-md-9">
                     @include('auth.layouts.subroom')
                     <h1>@lang('admin.categoryRooms')</h1>
                     @if($cats->isNotEmpty())
@@ -27,8 +30,8 @@
                                     <td>
                                         <form action="{{ route('categoryRooms.destroy', $cat) }}" method="post">
                                             <ul>
-                                                <li><a class="btn edit" href="{{ route('categoryRooms.edit', $cat)
-                                            }}"><i class="fa-regular fa-pen-to-square"></i></a></li>
+                                                <li><a href="{{ route('categoryRooms.edit', $cat)
+                                            }}"><img src="{{ route('index') }}/img/icons/edit.svg" alt=""></a></li>
                                                 @csrf
                                                 @method('DELETE')
                                                 <button onclick="return confirm('Do you want to delete this?');"

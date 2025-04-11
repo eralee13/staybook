@@ -5,262 +5,286 @@
     @section('content')
 
         @auth
-            @isset($hotel)
-                <div class="page hotel">
-                    <div class="container">
-                        <div class="row">
-                            <div class="col-md-8">
-                                <h1>{{$hotel->__('title')}}</h1>
-                                <div class="address">{{ $hotel->__('address') }}</div>
+            <div class="page hotel">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h1>{{ $hotel->city }}</h1>
+                            <div class="fotorama" data-allowfullscreen="true" data-nav="thumbs" data-loop="true"
+                                 data-autoplay="30000">
+                                <img loading="lazy" src="{{ Storage::url($hotel->image)}}" alt="">
                             </div>
-                            <div class="col-md-4">
-                                @php
-                                    if($count_day == 0){
-                                        $count_day = 1;
-                                    }
-                                    if($count == null){
-                                        $count = 1;
-                                    }
-                                @endphp
-                                <div class="min_price">@lang('main.from') {{ $min * $count_day * $count ?? '' }} $
-                                    <div class="btn-wrap">
-                                        <a href="#price" class="more">@lang('main.view_price')</a>
-                                    </div>
+                            <h3>{{ $hotel->title }}</h3>
+                            <div class="address"><img src="{{ route('index') }}/img/marker_in.svg" alt=""> {{ $hotel->address }}</div>
+                            <h4>Описание</h4>
+                            {{ $hotel->description }}
+                            <div class="amenities">
+                                <h4>Услуги и удобства</h4>
+                                <div class="amenities-item">
+                                    <img src="{{ route('index') }}/img/icons/area.svg" alt="">
+                                    <div class="name">24 кв. м</div>
+                                </div>
+                                <div class="amenities-item">
+                                    <img src="{{ route('index') }}/img/icons/bath.svg" alt="">
+                                    <div class="name">Собственная ванная комната</div>
+                                </div>
+                                <div class="amenities-item">
+                                    <img src="{{ route('index') }}/img/icons/sauna.svg" alt="">
+                                    <div class="name">Сауна</div>
+                                </div>
+                                <div class="amenities-item">
+                                    <img src="{{ route('index') }}/img/icons/safe.svg" alt="">
+                                    <div class="name">Сейф</div>
+                                </div>
+                                <div class="amenities-item">
+                                    <img src="{{ route('index') }}/img/icons/minibar.svg" alt="">
+                                    <div class="name">Минибар</div>
+                                </div>
+                                <div class="amenities-item">
+                                    <img src="{{ route('index') }}/img/icons/wifi.svg" alt="">
+                                    <div class="name">Высокоскоростной доступ в Интернет</div>
+                                </div>
+                                <div class="amenities-item">
+                                    <img src="{{ route('index') }}/img/icons/cond.svg" alt="">
+                                    <div class="name">Кондиционер</div>
+                                </div>
+                                <div class="amenities-item">
+                                    <img src="{{ route('index') }}/img/icons/toilet.svg" alt="">
+                                    <div class="name">Туалетные принадлежности</div>
+                                </div>
+                                <div class="amenities-item">
+                                    <img src="{{ route('index') }}/img/icons/shower.svg" alt="">
+                                    <div class="name">Душ</div>
+                                </div>
+                                <div class="amenities-item">
+                                    <img src="{{ route('index') }}/img/icons/sound.svg" alt="">
+                                    <div class="name">Звукоизоляция</div>
+                                </div>
+                                <div class="amenities-item">
+                                    <img src="{{ route('index') }}/img/icons/iron.svg" alt="">
+                                    <div class="name">Гладильные принадлежности</div>
+                                </div>
+                                <div class="amenities-item">
+                                    <img src="{{ route('index') }}/img/icons/dry.svg" alt="">
+                                    <div class="name">Фен</div>
+                                </div>
+                                <div class="amenities-item">
+                                    <img src="{{ route('index') }}/img/icons/bed_sheets.svg" alt="">
+                                    <div class="name">Постельное бельё</div>
+                                </div>
+                                <div class="amenities-item">
+                                    <img src="{{ route('index') }}/img/icons/robe.svg" alt="">
+                                    <div class="name">Халат</div>
+                                </div>
+                                <div class="amenities-item">
+                                    <img src="{{ route('index') }}/img/icons/closet.svg" alt="">
+                                    <div class="name">Шкаф</div>
+                                </div>
+                                <div class="amenities-item">
+                                    <img src="{{ route('index') }}/img/icons/phone_hotel.svg" alt="">
+                                    <div class="name">Телефон</div>
+                                </div>
+                                <div class="amenities-item">
+                                    <img src="{{ route('index') }}/img/icons/heating.svg" alt="">
+                                    <div class="name">Отопление</div>
+                                </div>
+                                <div class="amenities-item">
+                                    <img src="{{ route('index') }}/img/icons/table.svg" alt="">
+                                    <div class="name">Письменный стол</div>
                                 </div>
                             </div>
-                            <div class="row gallery">
-                                <div class="col-md-2">
-                                    <a href="{{ Storage::url($hotel->image) }}"><img
-                                                src="{{ Storage::url($hotel->image) }}" alt=""></a>
-                                </div>
-                                @php
-                                    $images = \App\Models\Image::where('hotel_id', $hotel->id)->get();
-                                @endphp
-                                @isset($images)
-                                    @foreach($images as $image)
-                                        <div class="col-md-2">
-                                            <a href="{{ Storage::url($image->image) }}"><img loading="lazy"
-                                                                                             src="{{ Storage::url($image->image) }}"
-                                                                                             alt=""></a>
-                                        </div>
-                                    @endforeach
-                                @endisset
-                            </div>
-                            <div class="row">
-                                <div class="col-lg-12 col-md-12">
-                                    <div class="servlisting">
-                                        <h5>@lang('main.amenities'):</h5>
-                                        <div class="row">
-                                            @php
-                                                $amenities = \App\Models\Amenity::where('hotel_id', $hotel->id)->first();
-                                                //dd($amenities);
-                                            @endphp
-                                            @if($amenities != null)
-                                                @php
-                                                    $servs = explode(', ', $amenities->services);
-                                                @endphp
-
-                                                @foreach($servs as $service)
-                                                    <div class="col-md-4">
-                                                        <div class="item">
-                                                            <i class="fa-regular fa-check"></i> {{ $service }}
-                                                        </div>
-                                                    </div>
-                                                @endforeach
-                                            @endif
-                                        </div>
-                                        {!! $hotel->__('description') !!}
-                                        <div class="phone"><span>@lang('main.hphone')</span> <a
-                                                    href="tel:{{ $hotel->phone }}">{{
-                    $hotel->phone}}</a></div>
-                                        <div class="email"><span>Email:</span> <a
-                                                    href="mailto:{{ $hotel->email }}">{{ $hotel->email }}</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <h2>@lang('main.location')</h2>
+                            <div class="maps">
+                                <h4>Расположение</h4>
                                 <script src="https://maps.api.2gis.ru/2.0/loader.js"></script>
-                                <div id="map" style="width: 100%; height: 400px;"></div>
+                                <div id="map" style="width: 100%; height: 500px;"></div>
                                 <script>
                                     DG.then(function () {
                                         var map = DG.map('map', {
-                                            center: [{{$hotel->lat}}, {{$hotel->lng}}],
-                                            zoom: 14
+                                            center: [{{ $hotel->lat }}, {{ $hotel->lng }}],
+                                            zoom: 12
                                         });
 
-                                        DG.marker([{{$hotel->lat}}, {{$hotel->lng}}], {scrollWheelZoom: false})
+                                        DG.marker([{{ $hotel->lat }}, {{ $hotel->lng }}], { scrollWheelZoom: false })
                                             .addTo(map)
-                                            .bindLabel('{{$hotel->__('title')}}', {
+                                            .bindLabel('', {
                                                 static: true
                                             });
+
                                     });
                                 </script>
+                                <div class="address"><img src="{{ route('index') }}/img/marker_in.svg" alt=""> {{ $hotel->address }}</div>
                             </div>
-                        </div>
-                    </div>
 
-                    <div class="rooms" id="price">
-                        <div class="container">
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <h2>@lang('main.available_types')
-                                    </h2>
-                                </div>
-                            </div>
-                            @if($rooms->isNotEmpty())
-                                <div class="row rooms-item">
-                                    @foreach($rooms as $room)
-                                        <div class="col-lg-4">
-                                            <a href="{{ route('room', [isset($hotel) ? $hotel->code : $room->hotel->code, $room->code])
-                }}">
-                                                @if(\Illuminate\Support\Facades\Storage::exists($room->image))
-                                                    <img src="{{ Storage::url($room->image) }}" alt="">
-                                                @else
-                                                    <img src="{{ $room->image }}" alt="">
-                                                @endif
-                                            </a>
-                                            <h5>{{ $room->title }}</h5>
-                                            <div class="bed"><i class="fa-light fa-bed"></i> {{ $room->bed }}</div>
-                                            {{--                                <div class="amenities">--}}
-                                            {{--                                    {{ $room->amenities }}--}}
-                                            {{--                                </div>--}}
-                                            <div class="price">$ {{ $room->price * $count * $count_day }}</div>
-                                            <div class="nds">@lang('main.tax_included')</div>
-                                            <div class="btn-wrap">
-                                                <form action="{{ route('order', $room->id) }}">
-                                                    @csrf
-                                                    <input type="hidden" name="hotel_id" value="{{ $room->hotel_id }}">
-                                                    @php
-                                                        $hotel_exely = \App\Models\Hotel::where('exely_id', $room->hotel_id)->first();
-                                                    @endphp
-                                                    @if($hotel_exely != null)
-                                                        <input type="hidden" name="hotel" value="{{ $hotel_exely->title }}">
-                                                        <input type="hidden" name="lng" value="{{ $hotel_exely->lng }}">
-                                                        <input type="hidden" name="lat" value="{{ $hotel_exely->lat }}">
-                                                    @else
-                                                        <input type="hidden" name="hotel" value="{{ $room->hotel->title }}">
-                                                        <input type="hidden" name="lng" value="{{ $room->hotel->lng }}">
-                                                        <input type="hidden" name="lat" value="{{ $room->hotel->lat }}">
-                                                    @endif
-                                                    <input type="hidden" name="room_id" value="{{ $room->id }}">
-                                                    <input type="hidden" name="title" value="{{ $room->title }}">
-                                                    {{--                                        <input type="hidden" name="food" value="{{ $room->food_id }}">--}}
-                                                    {{--                                        <input type="hidden" name="cancel" value="{{ $room->rule->__('title') }}">--}}
-                                                    <input type="hidden" name="price"
-                                                           value="{{ $room->price * $count * $count_day }}">
-                                                    @if(\Illuminate\Support\Facades\Storage::exists($room->image))
-                                                        <input type="hidden" name="image" value="{{ Storage::url($room->image) }}">
-                                                    @else
-                                                        <input type="hidden" name="image" value="{{ $room->image }}">
-                                                    @endif
-                                                    <input type="hidden" name="bed" value="{{ $room->bed }}">
-                                                    <input type="hidden" name="start_d" value="{{ $request->start_d }}">
-                                                    <input type="hidden" name="end_d" value="{{ $request->end_d }}">
-                                                    <button class="more">@lang('main.book')</button>
-                                                </form>
+
+                        </div>
+{{--                        <div class="col-md-3">--}}
+{{--                            <div class="side-filter">--}}
+{{--                                <div class="title">36,000 сом <span>ночь</span></div>--}}
+
+{{--                                <form action="">--}}
+{{--                                    <div class="row">--}}
+{{--                                        <div class="col-md-6">--}}
+{{--                                            <div class="form-group">--}}
+{{--                                                <div class="label in">Заезд</div>--}}
+{{--                                                <input type="date" id="date" value="2025-04-02">--}}
+{{--                                            </div>--}}
+{{--                                        </div>--}}
+{{--                                        <div class="col-md-6">--}}
+{{--                                            <div class="form-group">--}}
+{{--                                                <div class="label out">Выезд</div>--}}
+{{--                                                <input type="date" id="date" class="out" value="2025-04-08">--}}
+{{--                                            </div>--}}
+{{--                                        </div>--}}
+{{--                                        <div class="col-md-12">--}}
+{{--                                            <div class="form-group">--}}
+{{--                                                <div class="label">Кол-во гостей</div>--}}
+{{--                                                <select name="" id="">--}}
+{{--                                                    <option value="2">2 гостей</option>--}}
+{{--                                                </select>--}}
+{{--                                            </div>--}}
+{{--                                        </div>--}}
+{{--                                        <button class="more">Забронировать</button>--}}
+{{--                                    </div>--}}
+{{--                                </form>--}}
+{{--                                <div class="sub">--}}
+{{--                                    <div class="sub-title">36,000 сом * 2 ночи</div>--}}
+{{--                                    <div class="sub-price">72,000 сом</div>--}}
+{{--                                </div>--}}
+{{--                                <div class="total">--}}
+{{--                                    <div class="total-title">Всего</div>--}}
+{{--                                    <div class="total-price">72,000 сом</div>--}}
+{{--                                </div>--}}
+
+{{--                            </div>--}}
+{{--                        </div>--}}
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="tariffs availabity">
+                                <h4>Доступные варианты</h4>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="room">
+                                            <img src="https://cdn.worldota.net/t/1024x768/extranet/08/6b/086b6cc68558e30e703961281c86447609d25b27.JPEG" alt="">
+                                            <h5>Двухместный люкс Бизнес с доступом в Бизнес гостиную</h5>
+                                            <div class="bed">2 отдельные кровати</div>
+                                            <div class="amenties">
+                                                <div class="amenities-item">
+                                                    <img src="{{ route('index') }}/img/icons/area.svg" alt="">
+                                                    <div class="name">24 кв. м</div>
+                                                </div>
+                                                <div class="amenities-item">
+                                                    <img src="{{ route('index') }}/img/icons/bath.svg" alt="">
+                                                    <div class="name">Собственная ванная комната</div>
+                                                </div>
+                                                <div class="amenities-item">
+                                                    <img src="{{ route('index') }}/img/icons/sauna.svg" alt="">
+                                                    <div class="name">Сауна</div>
+                                                </div>
+                                                <div class="amenities-item">
+                                                    <img src="{{ route('index') }}/img/icons/safe.svg" alt="">
+                                                    <div class="name">Сейф</div>
+                                                </div>
+                                                <div class="amenities-item">
+                                                    <img src="{{ route('index') }}/img/icons/minibar.svg" alt="">
+                                                    <div class="name">Минибар</div>
+                                                </div>
                                             </div>
                                         </div>
-
-                                    @endforeach
-                                </div>
-                            @else
-                                <div class="alert alert-danger">@lang('main.rooms_not_found')</div>
-                            @endif
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="pagination">
-                                        {{ $rooms->links('pagination::bootstrap-4') }}
                                     </div>
+                                    <div class="col-md-9">
+                                        <div class="tariff-wrap">
+                                            <div class="owl-carousel owl-tariffs">
+                                                @foreach($rooms as $room)
+                                                    <div class="tariffs-item">
+                                                        @isset($room->fullPlacementsName)
+                                                            <h5>{{ $room->fullPlacementsName }}</h5>
+                                                        @endisset
+
+                                                            @php
+
+                                                                $arrival = \Carbon\Carbon::createFromDate($room->stayDates->arrivalDateTime)->format('d.m.Y H:i');
+                                                                $departure = \Carbon\Carbon::createFromDate($room->stayDates->departureDateTime)->format('d.m.Y H:i');
+                                                                $cancelDate = \Carbon\Carbon::createFromDate($room->cancellationPolicy->freeCancellationDeadlineUtc)->format('d.m.Y H:i');
+                                                            @endphp
+                                                        <div class="item bed"><div class="name"></div></div>
+                                                        <div class="item meal"><div class="name">{{ $room->mealPlanCode }}</div></div>
+                                                        <div class="item cancel"><div class="name">Правила отмены: Бесплатная отмена действует до {{ $cancelDate }} ({{ $hotel->timezone }}). Размер штрафа: {{ $room->cancellationPolicy->penaltyAmount }} {{ $room->currencyCode }}</div></div>
+                                                        <div class="item price">{{ $room->total->priceBeforeTax }} {{ $room->currencyCode }}</div>
+                                                        <div class="nds">Все налоги включены</div>
+{{--                                                        <div class="night">за ночь для 1 гостя</div>--}}
+                                                        <div class="btn-wrap">
+                                                            <form action="{{ route('orderexely', $room->roomType->id) }}">
+                                                                <input type="hidden" name="propertyId" value="{{ $room->propertyId }}">
+                                                                <input type="hidden" name="arrivalDate"
+                                                                       value="{{ $room->stayDates->arrivalDateTime }}">
+                                                                <input type="hidden" name="departureDate"
+                                                                       value="{{ $room->stayDates->departureDateTime }}">
+                                                                <input type="hidden" name="adultCount"
+                                                                       value="{{ $room->guestCount->adultCount }}">
+                                                                <input type="hidden" name="childAges[]"
+                                                                       value="{{ implode(',', $room->guestCount->childAges) }}">
+                                                                <input type="hidden" name="ratePlanId" value="{{ $room->ratePlan->id }}">
+                                                                <input type="hidden" name="roomTypeId" value="{{ $room->roomType->id }}">
+                                                                <input type="hidden" name="placements" value="{{ json_encode($room->roomType->placements) }}">
+                                                                {{--                                        <input type="hidden" name="roomType"--}}
+                                                                {{--                                               value="{{ $room->roomType->placements[0]->kind }}">--}}
+                                                                {{--                                        <input type="hidden" name="roomCount"--}}
+                                                                {{--                                               value="{{ $room->roomType->placements[0]->count }}">--}}
+                                                                {{--                                        <input type="hidden" name="roomCode"--}}
+                                                                {{--                                               value="{{ $room->roomType->placements[0]->code }}">--}}
+                                                                {{--                                        <input type="hidden" name="placementCode"--}}
+                                                                {{--                                               value="{{ $room->roomType->placements[0]->code }}">--}}
+                                                                <input type="hidden" name="categoryName" value="{{ $roomName->category_id }} - {{ $roomName->title }}">
+                                                                <input type="hidden" name="mealCode" value="{{ $room->mealPlanCode }}">
+                                                                <input type="hidden" name="cancelDate" value="{{ $cancelDate }}">
+                                                                <input type="hidden" name="cancelPrice" value="{{ $room->cancellationPolicy->penaltyAmount  }}">
+                                                                <input type="hidden" name="checkSum" value="{{ $room->checksum }}">
+                                                                @foreach($room->includedServices as $serv)
+                                                                    <input type="hidden" name="servicesId" value="{{ $serv->id }}">
+                                                                @endforeach
+
+                                                                {{--                                            <input type="hidden" name="servicesQuantity" value="{{  }}">--}}
+                                                                <input type="hidden" name="hotel" value="{{ $room->fullPlacementsName }}">
+                                                                <input type="hidden" name="hotel_id" value="{{ $room->propertyId }}">
+                                                                <input type="hidden" name="room_id" value="{{ $room->roomType->id }}">
+                                                                <input type="hidden" name="title" value="{{ $room->fullPlacementsName }}">
+                                                                <input type="hidden" name="price" value="{{ $room->total->priceBeforeTax }}">
+                                                                <input type="hidden" name="currency" value="{{ $room->currencyCode }}">
+                                                                <button class="more">Забронировать</button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+
+                                            </div>
+                                        </div>
+                                    </div>
+
                                 </div>
+
                             </div>
                         </div>
                     </div>
-                    @else
-                        <div class="page">
-                            <div class="container">
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <h1>404</h1>
-                                        <p>Такой страницы не существует</p>
-                                        <div class="btn-wrap">
-                                            <a href="{{ route('index') }}">Вернуться на главную страницу</a>
-                                        </div>
-                                    </div>
-                                </div>
+                </div>
+            </div>
+        @else
+            <div class="page auth">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-8 offset-lg-2 col-md-12">
+                            <div class="img-wrap">
+                                <img src="{{ route('index') }}/img/b2b.jpg" alt="">
+                                <h4>@lang('main.b2b')</h4>
+                            </div>
+                            <div class="alert alert-danger">
+                                <div class="descr">@lang('main.need_auth') <a
+                                            href="{{ route('login') }}">@lang('main.auth')</a></div>
                             </div>
                         </div>
-                    @endisset
-                    @else
-                        <div class="page auth">
-                            <div class="container">
-                                <div class="row">
-                                    <div class="col-lg-8 offset-lg-2 col-md-12">
-                                        <div class="img-wrap">
-                                            <img src="{{ route('index') }}/img/b2b.jpg" alt="">
-                                            <h4>@lang('main.b2b')</h4>
-                                        </div>
-                                        <div class="alert alert-danger">
-                                            <div class="descr">@lang('main.need_auth') <a
-                                                        href="{{ route('login') }}">@lang('main.auth')</a></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @endauth
+                    </div>
+                </div>
+            </div>
+        @endauth
 
-                    <style>
-                        .hotel .min_price {
-                            font-size: 24px;
-                        }
-
-                        .hotel .btn-wrap {
-                            margin-top: 20px;
-                        }
-
-                        .hotel .btn-wrap .more {
-                            color: #fff;
-                        }
-
-                        .hotel .gallery {
-                            margin-top: 20px;
-                        }
-
-                        .hotel .gallery img {
-                            height: 20vh;
-                            object-fit: cover;
-                            margin-bottom: 20px;
-                        }
-
-                        .servlisting {
-                            margin: 20px 0;
-                        }
-
-                        .hotel #map {
-                            margin-top: 0px;
-                        }
-
-                        .hotel i {
-                            color: #0163b4;
-                        }
-
-                        .nds {
-                            font-size: 14px;
-                            color: #0163b4;
-                        }
-
-                        .rooms-item .col-lg-4 {
-                            margin-bottom: 40px;
-                        }
-
-                        .rooms-item img {
-                            height: 30vh;
-                            width: 100%;
-                            object-fit: cover;
-                            margin-bottom: 10px;
-                        }
-                    </style>
-
-                @endsection
+    @endsection

@@ -32,26 +32,14 @@
                 <div class="col-md-12">
                     <form action="{{ route('search_property') }}">
                         <div class="row">
-{{--                            <div class="col">--}}
-{{--                                <div class="form-group">--}}
-{{--                                    <label for="title">Название отеля</label>--}}
-{{--                                    <select name="title" id="hotel">--}}
-{{--                                        <option value="">@lang('main.choose')</option>--}}
-
-{{--                                        @foreach($properties->properties as $property)--}}
-{{--                                            <option value="{{ $property->id }}">{{ $property->name}}</option>--}}
-{{--                                        @endforeach--}}
-{{--                                    </select>--}}
-{{--                                </div>--}}
-{{--                            </div>--}}
                             <div class="col">
                                 <div class="form-group">
                                     <label for="title">Название города</label>
-                                    <select name="title" id="city" required>
+                                    <select name="city" id="city" required>
                                         <option value="">@lang('main.choose')</option>
-                                        @foreach($properties->properties as $hotel)
-                                            <option
-                                                value="{{ $hotel->contactInfo->address->cityName }}">{{ $hotel->contactInfo->address->cityName}}</option>
+                                        @
+                                        @foreach($cities as $city)
+                                            <option value="{{ $city->exely_id }}">{{ $city->title }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -59,9 +47,9 @@
                             <div class="col">
                                 <div class="form-group">
                                     <label for="">@lang('main.search-date')</label>
-                                    <input type="text" id="date" class="date">
-                                    <input type="hidden" id="start_d" name="arrivalDate">
-                                    <input type="hidden" id="end_d" name="departureDate">
+                                    <input type="text" id="date" class="date" required>
+                                    <input type="hidden" id="start_d" name="arrivalDate" value="{{ $nowDate }}">
+                                    <input type="hidden" id="end_d" name="departureDate" value="{{ $tomorrow }}">
                                 </div>
                             </div>
                         </div>
@@ -82,20 +70,26 @@
                                     <select name="adult" id="">
                                         <option value="1" selected>1</option>
                                         <option value="2">2</option>
+                                        <option value="3">3</option>
+                                        <option value="4">4</option>
+                                        <option value="5">5</option>
+                                        <option value="6">6</option>
+                                        <option value="7">7</option>
+                                        <option value="8">8</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="col">
                                 <div class="form-group" style="position: relative">
                                     <label for="">@lang('main.search-child')</label>
-                                    <select name="" onchange="ageCheck(this);">
+                                    <select name="childAges[]" onchange="ageCheck(this);">
                                         <option value="">@lang('main.choose')</option>
                                         <option value="1">1</option>
                                         <option value="2">2</option>
                                         <option value="3">3</option>
                                     </select>
                                     <select name="age1" id="age1" class="age">
-                                        <option value="0">@lang('main.choose')</option>
+                                        <option value="">@lang('main.choose')</option>
                                         <option value="1">1 год</option>
                                         <option value="2">2 года</option>
                                         <option value="3">3 года</option>
@@ -115,7 +109,7 @@
                                         <option value="17">17 лет</option>
                                     </select>
                                     <select name="age2" id="age2" class="age">
-                                        <option value="0">@lang('main.choose')</option>
+                                        <option value="">@lang('main.choose')</option>
                                         <option value="1">1 год</option>
                                         <option value="2">2 года</option>
                                         <option value="3">3 года</option>
@@ -135,7 +129,7 @@
                                         <option value="17">17 лет</option>
                                     </select>
                                     <select name="age3" id="age3" class="age">
-                                        <option value="0">@lang('main.choose')</option>
+                                        <option value="">@lang('main.choose')</option>
                                         <option value="1">1 год</option>
                                         <option value="2">2 года</option>
                                         <option value="3">3 года</option>

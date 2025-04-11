@@ -22,85 +22,55 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.12.1/dist/sweetalert2.min.css
     <link rel="stylesheet" href="{{route('index')}}/css/main.min.css">
     <link rel="stylesheet" href="{{route('index')}}/css/style.css">
 </head>
-<body>
-
+<body class="admin">
 <header>
-    <div class="container">
+    <div class="container-fluid">
         <div class="row">
-            <div class="col-md-2">
+            <div class="col-md-3">
                 <div class="logo">
-                    <a href="{{route('hotels.index')}}"><img src="{{ route('index') }}/img/logo.svg" alt="Stay
-                    Book"></a>
+                    <a href="{{route('hotels.index')}}"><img src="{{route('index')}}/img/logo.svg" alt=""></a>
                 </div>
             </div>
-            <div class="col-md-3">
-                <form>
-                    <select id="dynamic_select">
-                        <option>@lang('main.choose')</option>
-                        @foreach($hotels as $hotel)
-                            <option @if($hotel->id == $hotel_id) selected @endif value="{{ route('hotels.show', $hotel)
-                            }}" data-hotel="{{ $hotel->id }}">{{ $hotel->__('title')}}</option>
-                        @endforeach
-                    </select>
-                </form>
-            </div>
-            <div class="col-md-4">
-                @if($hotel->status == 1)
-                    <div class="status active"><i class="fa-solid fa-circle"></i> @lang('admin.active')</div>
-                @else
-                    <div class="status"><i class="fa-solid fa-circle"></i> @lang('admin.disable')</div>
-                @endif
-                <ul class="lang d-xl-inline-block d-lg-inline-block d-none">
-                    <li class="
-                            @if(session('locale')=='ru')
-                                current
-                            @endif
-                            "><a href="{{ route('locale', 'ru') }}">RU</a></li>
-                    <li class="
-                            @if(session('locale')=='en')
-                                current
-                            @endif
-                            "><a href="{{ route('locale', 'en') }}">EN</a></li>
-                </ul>
-            </div>
-            <div class="col-md-3">
+            <div class="col-md-9">
+                <div class="profile">
+                    <a href="{{ route('profile.edit') }}">Профиль</a>
+                </div>
+                <div class="wrap">
+                    <div class="lang-wrap" id="lang">
+                        <div class="currency">KGS</div>
+                        <div class="lang">
+                            <div class="lang-item">
+                                <a href="#">Русский <img src="{{route('index')}}/img/ru.svg" alt=""></a>
+                            </div>
+                        </div>
+                        <div class="overwrap" id="over">
+                            <ul class="tabs" id="tabs">
+                                <li class="current" data-tab="tab-1">Валюта</li>
+                                <li data-tab="tab-2">Язык</li>
+                            </ul>
+                            <div class="tab-content current" id="tab-1">
+                                <ul>
+                                    <li>KGS Кыргызский сом</li>
+                                    <li>RUB Российский рубль</li>
+                                    <li class="current">USD Американский доллар</li>
+                                </ul>
+                            </div>
+                            <div class="tab-content" id="tab-2">
+                                <ul>
+                                    <li><img src="{{route('index')}}/img/kg.svg" alt=""> Кыргыз тили</li>
+                                    <li  @if(session('locale')=='ru')
+                                             current
+                                            @endif><a href="{{ route('locale', 'ru') }}"><img src="{{route('index')}}/img/ru.svg" alt=""> Русский</a></li>
+                                    <li  @if(session('locale')=='en')
+                                             current
+                                            @endif><a href="{{ route('locale', 'en') }}"><img src="{{route('index')}}/img/en.svg" alt=""> English</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="homelink">
-                    <a href="{{route('index')}}" target="_blank"><i class="fas fa-house"></i> @lang('admin.visit')</a></a>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="head">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-8">
-                    <nav>
-                        <ul>
-                            <li @routeactive('hotels.index')><a href="{{route('hotels.index')}}"><i class="fas
-                            fa-hotel"></i> @lang('admin.hotels')</a></li>
-                            <li @routeactive('bookings.index')><a href="{{route('bookings.index')}}"><i
-                                        class="fa-regular
-                            fa-tag"></i> @lang('admin.rates_and_availability')</a></li>
-                            <li @routeactive('listbooks.index')><a href="{{route('listbooks.index')}}"><i
-                                        class="fa-regular fa-tag"></i> @lang('admin.bookings')</a></li>
-                            <li @routeactive('rooms.index')><a href="{{route('rooms.index')}}"><i class="fas
-                            fa-booth-curtain"></i> @lang('admin.rooms')</a></li>
-                            <li @routeactive('bills.index')><a href="{{route('bills.index')}}"><i class="fa-thin
-                            fa-money-bills"></i> @lang('admin.bills')</a></li>
-                        </ul>
-                    </nav>
-                </div>
-                <div class="col-md-4 person">
-                    <a href="{{route('profile.edit')}}"><i class="fa-regular fa-address-card"></i>
-                        @auth
-                            @php
-                                echo \Illuminate\Support\Facades\Auth::user()->name
-                            @endphp
-                        @else
-                            @lang('admin.profile')
-                        @endauth
-                    </a>
-                    <a href="{{route('logout')}}" class="delete"><i class="fa-regular fa-door-open"></i> @lang('admin.logout')</a>
+                    <a href="{{route('index')}}" target="_blank">Перейти на сайт</a>
                 </div>
             </div>
         </div>
@@ -110,17 +80,6 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.12.1/dist/sweetalert2.min.css
 
 @yield('content')
 
-<footer>
-    <div class="copy">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-12">
-                    <p>StayBook {{ date('Y') }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>

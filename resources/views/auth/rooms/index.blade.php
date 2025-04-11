@@ -7,7 +7,10 @@
     <div class="page admin">
         <div class="container">
             <div class="row">
-                <div class="col-md-12">
+                <div class="col-md-2">
+                    @include('auth.layouts.sidebar')
+                </div>
+                <div class="col-md-10">
                     <div class="row align-items-center aic">
                         <div class="col-md-7">
                             <h1>@lang('admin.rooms')</h1>
@@ -138,10 +141,10 @@
                                     <td>
                                         <form action="{{ route('rooms.destroy', $room) }}" method="post">
                                             <ul>
-                                                <li><a class="btn view" href="{{ route('rooms.show', $room)
-                                            }}"><i class="fa-regular fa-eye"></i></a></li>
-                                                <li><a class="btn edit" href="{{ route('rooms.edit', $room)
-                                            }}"><i class="fa-regular fa-pen-to-square"></i></a></li>
+                                                <li><a href="{{ route('rooms.show', $room)
+                                            }}"><img src="{{ route('index') }}/img/icons/eye.svg" alt=""></a></li>
+                                                <li><a href="{{ route('rooms.edit', $room)
+                                            }}"><img src="{{ route('index') }}/img/icons/edit.svg" alt=""></a></li>
                                                 @csrf
                                                 @method('DELETE')
                                                 <button onclick="return confirm('Do you want to delete this?');"

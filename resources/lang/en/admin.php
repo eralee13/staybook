@@ -150,4 +150,5 @@ return [
     'cats_not_found' => 'Categories room not found',
     'categoryRooms' => 'Categories room',
     'sym' => 'Symbol',
+    'my_bookings' => 'Мy bookings'
 ];

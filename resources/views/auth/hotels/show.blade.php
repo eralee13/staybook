@@ -7,21 +7,21 @@
         $role = \Spatie\Permission\Models\Role::where('id', 3)->first();
     @endphp
     @if($role->name=='Hotel')
-            <div class="page admin dashboard">
+            <div class="page dashboard">
                 <div class="container">
                     <div class="row">
                         <div class="col-md-3">
                             @include('auth.layouts.sidebar')
                         </div>
-                        <div class="col-md-6 main">
+                        <div class="col-md-9 main">
                             <div class="row">
-                                <div class="col-md-6">
+                                <div class="col-md-11">
                                     <h1>@lang('admin.main')</h1>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-1">
                                     <div class="btn-wrap">
                                         <form action="{{ route('hotels.edit', $hotel) }}">
-                                            <button><i class="fa-regular fa-pen-to-square"></i></button>
+                                            <button><img src="{{ route('index') }}/img/icons/edit.svg" alt=""></button>
                                         </form>
                                     </div>
                                 </div>
@@ -175,30 +175,6 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="profile">
-                                <div class="row">
-                                    <div class="col-md-8">
-                                        <h3>@lang('admin.employess')</h3>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <a href="{{ route('users.create') }}"><i class="fa-regular fa-plus"></i></a>
-                                    </div>
-                                </div>
-                                <div class="wrap">
-                                    <a href="{{ route('profile.edit') }}"><i class="fa-regular fa-pen-to-square"></i></a>
-                                    <div class="name">{{ $users->name }}</div>
-                                    <div class="position">
-                                        @forelse ($users->getRoleNames() as $role)
-                                            <span class="badge bg-primary">{{ $role }}</span>
-                                        @empty
-                                        @endforelse
-                                    </div>
-                                    <div class="phone"><i class="fa-regular fa-phone"></i> {{ $users->phone }}</div>
-                                    <div class="email"><i class="fa-regular fa-envelope"></i> {{ $users->email }}</div>
                                 </div>
                             </div>
                         </div>

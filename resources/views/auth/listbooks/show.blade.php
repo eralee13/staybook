@@ -7,7 +7,10 @@
     <div class="page admin">
         <div class="container">
             <div class="row">
-                <div class="col-md-12 modal-content">
+                <div class="col-md-3">
+                    @include('auth.layouts.sidebar')
+                </div>
+                <div class="col-md-9 modal-content">
                     <h1>@lang('admin.booking') #{{ $book->id }}</h1>
                     <div class="print">
                         <a href="javascript:window.print();"><i class="fa-regular fa-print"></i>
@@ -89,6 +92,10 @@
                                 {{ $book->showStartDate() }} - {{ $book->showEndDate() }}
                             </div>
                             <div class="dashboard-item">
+                                <div class="name">Кол-во дней:</div>
+                                {{ $numberOfDays }}
+                            </div>
+                            <div class="dashboard-item">
                                 <div class="name">@lang('admin.price')</div>
                                 @if($book->sum != 1)
                                     <div class="title">$ {{ $book->sum }}</div>
@@ -98,8 +105,12 @@
                             </div>
                             <div class="dashboard-item">
                                 <div class="name" style="margin-top: 20px">@lang('admin.status')</div>
-                                <div class="status"><i class="fa-regular fa-money-bill"></i>
-                                    @lang('main.paid')
+                                <div class="status">
+                                    @if($book->status == 'Reserved')
+                                        <i class="fa-regular fa-money-bill"></i> {{ $book->status }}
+                                    @else
+                                        {{ $book->status }}
+                                    @endif
                                 </div>
                             </div>
                         </div>

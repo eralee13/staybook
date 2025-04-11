@@ -8,7 +8,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-3">
-                    @include('auth.layouts.sidebarbill')
+                    @include('auth.layouts.sidebar')
                 </div>
                 <div class="col-md-9">
                     <h1>@lang('admin.agreements')</h1>
@@ -45,8 +45,8 @@
                                 <td>
                                     <form action="{{ route('bills.destroy', $bill) }}" method="post">
                                         <ul>
-                                            <li><a class="btn edit" href="{{ route('bills.edit', $bill)
-                                            }}"><i class="fa-regular fa-pen-to-square"></i></a></li>
+                                            <li><a href="{{ route('bills.edit', $bill)
+                                            }}"><img src="{{ route('index') }}/img/icons/edit.svg" alt=""></a></li>
                                             @csrf
                                             @method('DELETE')
                                             <button onclick="return confirm('Do you want to delete this?');"

@@ -31,49 +31,57 @@
 
 </head>
 
-<body>
+<body class="admin">
 <header>
-    <div class="container">
+    <div class="container-fluid">
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="logo">
-                    <a href="{{route('hotels.index')}}"><img src="{{ route('index') }}/img/logo.svg" alt="Stay
-                    Book"></a>
+                    <a href="{{route('hotels.index')}}"><img src="{{route('index')}}/img/logo.svg" alt=""></a>
                 </div>
             </div>
-            <div class="col-md-2">
-                <ul class="lang d-xl-inline-block d-lg-inline-block d-none">
-                    <li class="
-                            @if(session('locale')=='ru')
-                                current
-                            @endif
-                            "><a href="{{ route('locale', 'ru') }}">RU</a></li>
-                    <li class="
-                            @if(session('locale')=='en')
-                                current
-                            @endif
-                            "><a href="{{ route('locale', 'en') }}">EN</a></li>
-                </ul>
-            </div>
-            <div class="col-md-2">
+            <div class="col-md-9">
+                <div class="profile">
+                    <a href="{{ route('profile.edit') }}">Профиль</a>
+                </div>
+                <div class="wrap">
+                    <div class="lang-wrap" id="lang">
+                        <div class="currency">KGS</div>
+                        <div class="lang">
+                            <div class="lang-item">
+                                <a href="#">Русский <img src="{{route('index')}}/img/ru.svg" alt=""></a>
+                            </div>
+                        </div>
+                        <div class="overwrap" id="over">
+                            <ul class="tabs" id="tabs">
+                                <li class="current" data-tab="tab-1">Валюта</li>
+                                <li data-tab="tab-2">Язык</li>
+                            </ul>
+                            <div class="tab-content current" id="tab-1">
+                                <ul>
+                                    <li>KGS Кыргызский сом</li>
+                                    <li>RUB Российский рубль</li>
+                                    <li class="current">USD Американский доллар</li>
+                                </ul>
+                            </div>
+                            <div class="tab-content" id="tab-2">
+                                <ul>
+                                    <li><img src="{{route('index')}}/img/kg.svg" alt=""> Кыргыз тили</li>
+                                    <li  @if(session('locale')=='ru')
+                                             current
+                                            @endif><a href="{{ route('locale', 'ru') }}"><img src="{{route('index')}}/img/ru.svg" alt=""> Русский</a></li>
+                                    <li  @if(session('locale')=='en')
+                                             current
+                                            @endif><a href="{{ route('locale', 'en') }}"><img src="{{route('index')}}/img/en.svg" alt=""> English</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="homelink">
-                    <a href="{{route('index')}}" target="_blank"><i class="fas fa-house"></i> @lang('admin.visit')</a>
+                    <a href="{{route('index')}}" target="_blank">Перейти на сайт</a>
                 </div>
             </div>
-            @auth
-                <div class="col-md-4 person">
-                    <a href="{{route('profile.edit')}}"><i class="fa-regular fa-address-card"></i>
-                        @auth
-                            @php
-                                echo \Illuminate\Support\Facades\Auth::user()->name
-                            @endphp
-                        @else
-                            @lang('admin.profile')
-                        @endauth
-                    </a>
-                    <a href="{{route('logout')}}" class="delete"><i class="fa-regular fa-door-open"></i> @lang('admin.logout')</a>
-                </div>
-            @endauth
         </div>
     </div>
 </header>
@@ -90,10 +98,10 @@
         </div>
     </div>
 </div>
+
 @yield('content')
 
-
-<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<script src="{{ route('index') }}/js/scripts.min.js"></script>
 <script>
     $(function() {
         $('#dynamic_select').on('change', function() {

@@ -1,132 +1,159 @@
-@extends('layouts.master')
+@php use Carbon\Carbon;use Illuminate\Support\Facades\Http; @endphp
+@extends('layouts.filter_mini')
 
 @section('title', 'Поиск')
 
 @section('content')
 
-    @auth
-        <div class="pagetitle">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
-                        <h1 data-aos="fade-up" data-aos-duration="2000">@lang('main.search')</h1>
-                        <ul class="breadcrumbs">
-                            <li><a href="{{route('index')}}">@lang('main.home')</a></li>
-                            <li>></li>
-                            <li>@lang('main.search')</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        @if($categories->isNotEmpty())
+    <div class="page search">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    {{--                    <h1>Sheraton</h1>--}}
+                    {{--                    <div class="rating"><img src="img/star.svg" alt="">4.76</div>--}}
 
-            <div class="page rooms search sf">
-                <div class="container">
-                    {{--                <ul class="tabs">--}}
-                    {{--                    <li class="tab-link current" data-tab="tab-1">@lang('main.list')</li>--}}
-                    {{--                    <li class="tab-link" data-tab="tab-2">@lang('main.on_map')</li>--}}
-                    {{--                </ul>--}}
-                    <div id="tab-1" class="tab-content current">
-                        @if($categories->count() <= 1)
-                            @foreach($categories as $category)
-                                @include('layouts.cardsearch')
+
+                    @if(isset($results->errors))
+                        @foreach ($results->errors as $error)
+                            <div class="alert alert-danger">
+                                <h5>{{ $error->code }}</h5>
+                                <p style="margin-bottom: 0">{{ $error->message }}</p>
+                            </div>
+                        @endforeach
+                    @else
+                        @if($results != null)
+                            @foreach($results->roomStays as $room)
+                                @php
+                                    $property = Http::withHeaders(['x-api-key' => 'fd54fc5c-2927-4998-8132-fb1107fc81c4', 'accept' => 'application/json'])->get('https://connect.test.hopenapi.com/api/content/v1/properties/' . $room->propertyId);
+                                     $arrival = Carbon::createFromDate($room->stayDates->arrivalDateTime)->format('d.m.Y H:i');
+                                     $departure = Carbon::createFromDate($room->stayDates->departureDateTime)->format('d.m.Y H:i');
+                                     $hotel = \App\Models\Hotel::where('exely_id', $room->propertyId)->first();
+                                @endphp
+                                <div class="search-item">
+                                    <div class="row">
+                                        <div class="col-md-5 order-xl-1 order-lg-1 order-1">
+                                            <div class="img-wrap">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="main">
+                                                            <img src="{{ Storage::url($hotel->image) }}" alt="">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="primary">
+                                                            <img src="{{ Storage::url($hotel->image) }}" alt="">
+                                                        </div>
+                                                        <div class="primary">
+                                                            <img src="{{ Storage::url($hotel->image) }}" alt="">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5 order-xl-2 order-lg-2 order-3">
+                                            <h4>{{ $property->object()->name }}</h4>
+                                            <div class="amenities">
+                                                <div class="amenities-item">
+                                                    <img src="{{ route('index') }}/img/icons/bed2.svg" alt="">
+                                                    <div class="name">Двуспальная кровать</div>
+                                                </div>
+                                                <div class="amenities-item">
+                                                    <img src="{{ route('index') }}/img/icons/meal.svg" alt="">
+                                                    <div class="name">Питание включено</div>
+                                                </div>
+                                                <div class="amenities-item">
+                                                    <img src="{{ route('index') }}/img/icons/iron.svg" alt="">
+                                                    <div class="name">Гладильные принадлежности</div>
+                                                </div>
+                                                <div class="amenities-item">
+                                                    <img src="{{ route('index') }}/img/icons/wifi.svg" alt="">
+                                                    <div class="name">Доступ в интернет</div>
+                                                </div>
+                                                <div class="amenities-item">
+                                                    <img src="{{ route('index') }}/img/icons/bath.svg" alt="">
+                                                    <div class="name">Ванная комната</div>
+                                                </div>
+                                            </div>
+                                            <div class="btn-wrap">
+                                                <div class="btn-wrap">
+                                                    <form action="{{ route('search_roomstays', $room->roomType->id) }}">
+                                                        <input type="hidden" name="propertyId"
+                                                               value="{{ $room->propertyId }}">
+                                                        <input type="hidden" name="arrivalDate"
+                                                               value="{{ $request->arrivalDate }}">
+                                                        <input type="hidden" name="departureDate"
+                                                               value="{{ $request->departureDate }}">
+                                                        <input type="hidden" name="adultCount"
+                                                               value="{{ $room->guestCount->adultCount }}">
+                                                        <input type="hidden" name="childAges[]"
+                                                               value="{{ implode(',', $room->guestCount->childAges) }}">
+                                                        <input type="hidden" name="ratePlanId"
+                                                               value="{{ $room->ratePlan->id }}">
+                                                        <input type="hidden" name="roomTypeId"
+                                                               value="{{ $room->roomType->id }}">
+                                                        <input type="hidden" name="roomType"
+                                                               value="{{ $room->roomType->placements[0]->kind }}">
+                                                        <input type="hidden" name="roomCount"
+                                                               value="{{ $room->roomType->placements[0]->count }}">
+                                                        <input type="hidden" name="roomCode"
+                                                               value="{{ $room->roomType->placements[0]->code }}">
+                                                        <input type="hidden" name="placementCode"
+                                                               value="{{ $room->roomType->placements[0]->code }}">
+                                                        <input type="hidden" name="adults"
+                                                               value="{{ $room->guestCount->adultCount }}">
+                                                        <input type="hidden" name="checkSum"
+                                                               value="{{ $room->checksum }}">
+                                                        {{--                                            <input type="hidden" name="childAges[]" value="{{ $room->guestCount->childAges }}">--}}
+                                                        @php
+                                                            $array_child = [];
+                                                        @endphp
+                                                        @foreach($room->guestCount->childAges as $child)
+                                                            @php
+                                                                $array_child[] = $child
+                                                            @endphp
+                                                        @endforeach
+                                                        <input type="hidden" name="childAges"
+                                                               value="{{ implode(',', $array_child) }}">
+                                                        @foreach($room->includedServices as $serv)
+                                                            <input type="hidden" name="servicesId"
+                                                                   value="{{ $serv->id }}">
+                                                        @endforeach
+
+                                                        {{--                                            <input type="hidden" name="servicesQuantity" value="{{  }}">--}}
+                                                        <input type="hidden" name="hotel"
+                                                               value="{{ $room->fullPlacementsName }}">
+                                                        <input type="hidden" name="hotel_id"
+                                                               value="{{ $room->propertyId }}">
+                                                        <input type="hidden" name="room_id"
+                                                               value="{{ $room->roomType->id }}">
+                                                        <input type="hidden" name="title"
+                                                               value="{{ $room->fullPlacementsName }}">
+                                                        <input type="hidden" name="price"
+                                                               value="{{ $room->total->priceBeforeTax }}">
+                                                        <input type="hidden" name="currency"
+                                                               value="{{ $room->currencyCode }}">
+                                                        <button class="more">Показать все номера</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 order-xl-3 order-lg-3 order-2">
+                                            <div class="price">{{ $room->total->priceBeforeTax }} {{ $room->currencyCode }}</div>
+                                            <div class="night">ночь</div>
+                                        </div>
+                                    </div>
+                                </div>
                             @endforeach
                         @else
-                            @foreach($categories as $cat)
-                                @php
-                                    $cats = array(explode(', ', $cat->room_id));
-
-                                @endphp
-
-
-
-                                @foreach($cats as $r)
-                                    @php
-                                        $category = \App\Models\Room::where('id', $r)->get();
-                                    @endphp
-
-                                {{ $category }}
-
-                                    @include('layouts.cardsearch', compact('category'))
-                                @endforeach
-                            @endforeach
+                            <div class="alert alert-danger">Не найдено</div>
                         @endif
-                    </div>
-                    <div id="tab-2" class="tab-content">
-                        <script src="https://maps.api.2gis.ru/2.0/loader.js"></script>
-                        <div id="map" style="width: 100%; height: 500px;"></div>
-                        <script>
-                            DG.then(function () {
-                                var map = DG.map('map', {
-                                    center: [42.855608, 74.618626],
-                                    zoom: 12
-                                });
+                    @endif
 
-                                @foreach($categories as $category)
-                                DG.marker([{{ $category->room->hotel->lat ?? '' }}, {{ $category->room->hotel->lng ?? '' }}], {
-                                    scrollWheelZoom:
-                                        false
-                                }).addTo(map).bindLabel('<a target="_blank" href="{{ route('hotel', $category->room->hotel->code ?? '')
-                                        }}">{{Illuminate\Support\Str::limit(strip_tags($category->room->hotel->title ?? ''),12)
-                                        }}</a>', {
-                                    static: true
-                                });
-                                @endforeach
-                            });
-
-                            function countCheck(that) {
-                                if (that.value == 2) {
-                                    document.getElementById("title").style.display = "block";
-                                    document.getElementById("title2").style.display = "block";
-                                } else {
-                                    document.getElementById("title").style.display = "block";
-                                    document.getElementById("title2").style.display = "none";
-                                }
-                            }
-                        </script>
-                    </div>
                 </div>
             </div>
 
-        @else
-            <div class="page rooms home-rooms">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="alert alert-danger" style="margin-bottom: 40px">Номера не найдены по вашему
-                                запросу
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <h2>Другие номера</h2>
-                        </div>
-                    </div>
-                    <div class="row">
-                        @foreach($relrooms as $room)
-                            @include('layouts.card', compact('room'))
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-        @endif
-
-    @else
-        <div class="page">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="alert alert-danger">
-                            <div class="descr">Необходимо пройти <a href="{{ route('login') }}">авторизацию</a></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
-    @endauth
+    </div>
 
 @endsection
-
