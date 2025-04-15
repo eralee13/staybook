@@ -109,5 +109,5 @@ class BookingController extends Controller
         session()->flash('success', 'Booking ' . $book->title . ' deleted');
         return redirect()->route('prices.index');
     }
-
+    
 }

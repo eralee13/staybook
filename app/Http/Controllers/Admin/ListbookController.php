@@ -8,6 +8,9 @@ use App\Models\Book;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
+use App\Exports\BooksExportExcel;
+use Maatwebsite\Excel\Facades\Excel;
+use Carbon\Carbon;
 
 class ListbookController extends Controller
 {
@@ -23,7 +26,18 @@ class ListbookController extends Controller
     {
         $hotel = $request->session()->get('hotel_id');
         $books = Book::where('hotel_id', $hotel)->paginate(40);
-        $listbooks = Book::where('tag', 'exely')->get();
+
+        $month = request('month'); // если передан, например из формы
+        $currentYear = now()->year;
+
+        if ($month) {
+            $query = Book::whereYear('created_at', $currentYear);
+            $query->whereMonth('created_at', $month);
+            $listbooks = $query->paginate(10);
+        }else{
+            $listbooks = Book::orderBy('created_at', 'desc')->paginate(10);
+        }
+        
 
         return view('auth.listbooks.index', compact('books', 'listbooks'));
     }
@@ -98,5 +112,23 @@ class ListbookController extends Controller
                 <?php
             }
         }
+    }
+
+    public function export(Request $request)
+    {   
+        $month = $request->input('month');
+        $year = now()->year;
+    
+        // Формируем имя файла
+        $fileName = 'books_' . $year;
+    
+        if ($month) {
+            $monthName = Carbon::create()->month($month)->translatedFormat('F');
+            $fileName .= '_' . strtolower($monthName); // Например: books_2025_april
+        }
+    
+        $fileName .= '.xlsx';
+
+        return Excel::download(new BooksExportExcel($month), $fileName);
     }
 }

@@ -142,5 +142,9 @@ Route::middleware('set_locale')->group(function () {
     Route::get('/hotel-rooms', HotelRooms::class)->name('hotel.rooms');
     Route::get('/bookingform', BookingForm::class)->name('bookingform');
 
+    // export excel
+    Route::get('/books/export', [ListbookController::class, 'export'])->name('books.list');
+
+
 });
 
