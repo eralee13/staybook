@@ -16,7 +16,9 @@ class CategoryRoom extends Model
     protected $fillable = [
         'title',
         'title_en',
-        'code'
+        'code',
+        'type_code',
+        'tourmind_id'
     ];
 
     protected $hidden = [

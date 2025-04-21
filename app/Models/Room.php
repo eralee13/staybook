@@ -32,6 +32,7 @@ class Room extends Model
         'user_id',
         'exely_id',
         'status',
+        'type_code'
     ];
 
     protected $hidden = [

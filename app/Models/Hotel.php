@@ -38,6 +38,7 @@ class Hotel extends Model
         'top',
         'user_id',
         'exely_id',
+        'tourmind_id',
         'timezone',
         'status'
     ];

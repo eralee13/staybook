@@ -39,6 +39,8 @@ class Book extends Model
         'tag',
         'status',
         'user_id',
+        'api_type',
+        'childages',
     ];
 
     protected $hidden = [

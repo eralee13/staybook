@@ -13,6 +13,9 @@ use App\Http\Controllers\PDFController;
 use App\Http\Controllers\ProfileController;
 use Dedoc\Scramble\Scramble;
 use Illuminate\Support\Facades\Route;
+use App\Livewire\HotelResults;
+use App\Livewire\HotelRooms;
+use App\Livewire\BookingForm;
 
 /*
 |--------------------------------------------------------------------------
@@ -136,6 +139,14 @@ Route::middleware('set_locale')->group(function () {
     //email
     Route::post('contact_mail', [MainController::class, 'contact_mail'])->name('contact_mail');
     Route::post('book_mail', [PageController::class, 'book_mail'])->name('book_mail');
+
+    //Hotel list
+    Route::get('/hotel-results', HotelResults::class)->name('hotel.results');
+    Route::get('/hotel-rooms', HotelRooms::class)->name('hotel.rooms');
+    Route::get('/bookingform', BookingForm::class)->name('bookingform');
+
+    Route::get('/books/export', [ListbookController::class, 'export'])->name('books.list');
+
 
 });
 

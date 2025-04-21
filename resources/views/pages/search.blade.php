@@ -5,14 +5,12 @@
 
 @section('content')
 
-
     <div class="page search">
         <div class="container">
             <div class="row">
                 <div class="col-md-12">
                     {{--                    <h1>Sheraton</h1>--}}
                     {{--                    <div class="rating"><img src="img/star.svg" alt="">4.76</div>--}}
-
 
                     @if(isset($results->errors))
                         @foreach ($results->errors as $error)
