@@ -49,10 +49,10 @@
 </style>
 
 @php
-    $hotel = \App\Models\Hotel::where('id', $book->hotel_id)->firstOrFail();
+    $hotel = \App\Models\Hotel::where('id', $book->hotel_id)->orWhere('exely_id', $book->hotel_id)->firstOrFail();
     $contacts = \App\Models\Contact::first();
-    $room = \App\Models\Room::where('id', $book->room_id)->firstOrFail();
-    $category = \App\Models\Rate::where('room_id', $book->room_id)->firstOrFail();
+    $room = \App\Models\Room::where('id', $book->room_id)->orWhere('exely_id', $book->room_id)->firstOrFail();
+    //$category = \App\Models\Rate::where('room_id', $book->room_id)->firstOrFail();
 @endphp
 
 <div class="page admin">
@@ -62,7 +62,7 @@
                 <table>
                     <tr>
                         <td>
-                            <div class="logo"><img src="{{ public_path("img/logo.svg") }}" width="120px"
+                            <div class="logo"><img src="{{ public_path("img/logo_b.svg") }}" width="120px"
                                                    alt="Logo"></div>
                         </td>
                         <td>
@@ -90,19 +90,11 @@
                     <tr>
                         <td>Guest</td>
                         <td>
-                            {{ $book->title }} ({{ $book->count }} @lang('admin.adult'))<br>
+                            {{ $book->title }} ({{ $book->adult }} @lang('admin.adult'))<br>
                             @isset($book->title2)
                                 {{ $book->title2 }}<br>
                             @endisset
-                            @isset($book->titlec1)
-                                {{ $book->titlec1 }} - ({{$book->age1}})<br>
-                            @endisset
-                            @isset($book->titlec2)
-                                {{ $book->titlec2 }} - ({{$book->age2}})<br>
-                            @endisset
-                            @isset($book->titlec3)
-                                {{ $book->titlec3 }} - ({{$book->age3}})
-                            @endisset
+                            {{ $book->child }} - @lang('admin.child')
                         </td>
                     </tr>
                     <tr>
@@ -115,24 +107,23 @@
                     </tr>
                     <tr>
                         <td>
-                            <img src="{{ storage_path('app/public/'.$room->image) }}" width="220px" alt="Logo">
+
                         </td>
                         <td>{{ $room->title }}<br>
-                            {{ $category->title }}
                         </td>
                     </tr>
-                    <tr>
-                        <td>Bedding</td>
-                        <td>{{ $room->bed }}</td>
-                    </tr>
+{{--                    <tr>--}}
+{{--                        <td>Bedding</td>--}}
+{{--                        <td>{{ $room->bed }}</td>--}}
+{{--                    </tr>--}}
                     <tr>
                         <td colspan="2">
                             {{ $hotel->title }}<br>
                             {{ $hotel->address }}
                             <div class="descr">{!! $hotel->description !!}</div>
                             @php
-                                $lat = old('lat', isset($room->hotel->lat) ? $room->hotel->lat : 42.8746);
-                                $lng = old('lng', isset($room->hotel->lng) ? $room->hotel->lng : 74.6120);
+                                $lat = old('lat', isset($hotel->lat) ? $hotel->lat : 42.8746);
+                                $lng = old('lng', isset($hotel->lng) ? $hotel->lng : 74.6120);
                                 $zoom = 15;
                                 $width = 500;
                                 $height = 180;
@@ -152,7 +143,7 @@
                     </tr>
                     <tr>
                         <td>Accommodation price</td>
-                        <td>{{ $book->sum }}</td>
+                        <td>{{ $book->sum }} {{ $book->currency }}</td>
                     </tr>
                     <tr>
                         <td>Payment type</td>

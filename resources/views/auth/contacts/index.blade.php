@@ -7,6 +7,9 @@
     <div class="page admin">
         <div class="container">
             <div class="row">
+                <div class="col-md-3">
+                    @include('auth.layouts.sidebar')
+                </div>
                 <div class="col-md-9">
                     <div class="row">
                         <div class="col-md-7">
@@ -51,8 +54,8 @@
                             <tr>
                                 <td colspan="2">
                                     <ul>
-                                        <li><a class="btn view" href="{{ route('contacts.edit', $contact)
-                                            }}"><i class="fa-regular fa-pen-to-square"></i> Редактировать</a></li>
+                                        <li><a href="{{ route('contacts.edit', $contact)
+                                            }}"><img src="{{ route('index') }}/img/icons/edit.svg" alt=""></li>
                                     </ul>
                                 </td>
                             </tr>

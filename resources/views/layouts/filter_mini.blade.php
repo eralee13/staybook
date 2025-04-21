@@ -122,34 +122,89 @@
                         <div class="col-lg col-6">
                             <div class="form-group">
                                 <div class="label in"><img src="{{ route('index') }}/img/marker_in.svg" alt=""> Заезд</div>
-                                <input type="date" id="date" name="arrivalDate" value="{{ $now }}">
+                                <input type="text" id="date" class="date" required="">
+                                <input type="hidden" id="date" name="arrivalDate" value="{{ $now }}">
+                                <input type="hidden" id="end_d" name="departureDate" value="{{ $tomorrow }}">
                             </div>
                         </div>
+{{--                        <div class="col-lg col-6">--}}
+{{--                            <div class="form-group">--}}
+{{--                                <div class="label out"><img src="{{ route('index') }}/img/marker_out.svg" alt=""> Выезд</div>--}}
+{{--                                <input type="date" id="date" name="departureDate" value="{{ $tomorrow }}">--}}
+{{--                            </div>--}}
+{{--                        </div>--}}
                         <div class="col-lg col-6">
-                            <div class="form-group">
-                                <div class="label out"><img src="{{ route('index') }}/img/marker_out.svg" alt=""> Выезд</div>
-                                <input type="date" id="date" name="departureDate" value="{{ $tomorrow }}">
+                            <div id="count_person">
+                                <div class="form-group">
+                                    <div class="label guest"><img src="{{route('index')}}/img/user.svg" alt="">
+                                    </div>
+                                    <input type="text" value="Кол-во гостей">
+                                    <div id="count-wrap" class="count-wrap">
+                                        <!-- Взрослые -->
+                                        <div class="counter count-item">
+                                            <label>Взрослые:</label>
+                                            <a class="minus" onclick="changeCount('adult', -1)">-</a>
+                                            <span id="adult-count">1</span>
+                                            <a class="plus" onclick="changeCount('adult', 1)">+</a>
+                                            <input type="hidden" name="adult" id="adult" value="1">
+                                        </div>
+
+                                        <!-- Дети -->
+                                        <div class="counter count-item">
+                                            <label>Дети:</label>
+                                            <a class="minus" onclick="changeCount('child', -1)">-</a>
+                                            <span id="child-count">0</span>
+                                            <a class="plus" onclick="changeCount('child', 1)">+</a>
+                                            <input type="hidden" name="childAges[]" id="child">
+                                        </div>
+
+                                        <!-- Возраст детей -->
+                                        <div id="children-ages"></div>
+
+                                        <script>
+                                            let adultCount = 0;
+                                            let childCount = 0;
+                                            const maxAdults = 8;
+                                            const maxChildren = 3;
+
+                                            function changeCount(type, delta) {
+                                                if (type === 'adult') {
+                                                    adultCount = Math.max(1, Math.min(maxAdults, adultCount + delta));
+                                                    document.getElementById('adult-count').innerText = adultCount;
+                                                    document.getElementById('adult').value = adultCount;
+                                                } else if (type === 'child') {
+                                                    const newCount = childCount + delta;
+                                                    if (newCount >= 0 && newCount <= maxChildren) {
+                                                        childCount = newCount;
+                                                        document.getElementById('child-count').innerText = childCount;
+                                                        document.getElementById('child').value = childCount;
+                                                        renderChildAgeSelectors();
+                                                    }
+                                                }
+                                            }
+
+                                            function renderChildAgeSelectors() {
+                                                const container = document.getElementById('children-ages');
+                                                container.innerHTML = '';
+
+                                                for (let i = 0; i < childCount; i++) {
+                                                    const div = document.createElement('div');
+                                                    div.className = 'child-block';
+                                                    div.innerHTML = `
+		  <label>Возраст ребёнка ${i + 1}:</label>
+		  <select>
+			<option value="">-- возраст --</option>
+			${Array.from({length: 19}, (_, age) => `<option name="age${age}" value="${age}">${age}</option>`).join('')}
+		  </select>
+		`;
+                                                    container.appendChild(div);
+                                                }
+                                            }
+                                        </script>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-lg col-6">
-                            <div class="form-group">
-                                <div class="label guest"><img src="{{route('index')}}/img/user.svg" alt=""></div>
-                                <select name="adult" id="">
-                                    <option value="1">1 гость</option>
-                                    <option value="2" selected>2 гостей</option>
-                                    <option value="3">3 гостей</option>
-                                    <option value="4">4 гостей</option>
-                                    <option value="5">5 гостей</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="hidden" style="display: none">
-                            <select name="childAges" onchange="ageCheck(this);">
-                                <option value="">@lang('main.choose')</option>
-                                <option value="1" selected>1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                            </select>
+
                         </div>
                         <div class="col-lg col-6 extra">
                             <div class="form-group">

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 
@@ -13,12 +12,13 @@
     <!-- Custom Browsers Color End -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
+          rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/gh/eliyantosarage/font-awesome-pro@main/fontawesome-pro-6.5.1-web/css/all.min.css"
           rel="stylesheet">
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/css/selectize.bootstrap3.min.css"
-          integrity="sha256-ze/OEYGcFbPRmvCnrSeKbRTtjG4vGLHXgOqsyLFTRjg=" crossorigin="anonymous" />
+          integrity="sha256-ze/OEYGcFbPRmvCnrSeKbRTtjG4vGLHXgOqsyLFTRjg=" crossorigin="anonymous"/>
     <link rel="stylesheet" href="{{route('index')}}/css/main.min.css">
     <link rel="stylesheet" href="{{route('index')}}/css/style.css?ver=1.1">
 
@@ -61,12 +61,14 @@
                                 <div class="tab-content" id="tab-2">
                                     <ul>
                                         <li><img src="{{route('index')}}/img/kg.svg" alt=""> Кыргыз тили</li>
-                                        <li  @if(session('locale')=='ru')
-                                                 current
-                                                @endif><a href="{{ route('locale', 'ru') }}"><img src="{{route('index')}}/img/ru.svg" alt=""> Русский</a></li>
-                                        <li  @if(session('locale')=='en')
-                                                 current
-                                                @endif><a href="{{ route('locale', 'en') }}"><img src="{{route('index')}}/img/en.svg" alt=""> English</a></li>
+                                        <li @if(session('locale')=='ru')
+                                                current
+                                                @endif><a href="{{ route('locale', 'ru') }}"><img
+                                                        src="{{route('index')}}/img/ru.svg" alt=""> Русский</a></li>
+                                        <li @if(session('locale')=='en')
+                                                current
+                                                @endif><a href="{{ route('locale', 'en') }}"><img
+                                                        src="{{route('index')}}/img/en.svg" alt=""> English</a></li>
                                     </ul>
                                 </div>
                             </div>
@@ -78,7 +80,8 @@
                             </ul>
                         </div>
                         <div class="auth">
-                            <a href="{{ route('login') }}"><img src="{{route('index')}}/img/user_w.svg" alt=""> Войти</a>
+                            <a href="{{ route('login') }}"><img src="{{route('index')}}/img/user_w.svg" alt="">
+                                Войти</a>
                         </div>
                     </div>
                 </div>
@@ -93,19 +96,21 @@
                                 <li><a href="{{route('about')}}">О сервисе</a></li>
                                 <li><a href="{{route('contactspage')}}">Контакты</a></li>
                                 <li><a href="#"><img src="{{route('index')}}/img/kg.svg" alt=""> Кыргыз тили </a></li>
-                                <li  @if(session('locale')=='ru')
-                                         current
-                                        @endif><a href="{{ route('locale', 'ru') }}"><img src="{{route('index')}}/img/ru.svg" alt=""> Русский</a></li>
-                                <li  @if(session('locale')=='en')
-                                         current
-                                        @endif><a href="{{ route('locale', 'en') }}"><img src="{{route('index')}}/img/en.svg" alt=""> English</a></li>
+                                <li @if(session('locale')=='ru')
+                                        current
+                                        @endif><a href="{{ route('locale', 'ru') }}"><img
+                                                src="{{route('index')}}/img/ru.svg" alt=""> Русский</a></li>
+                                <li @if(session('locale')=='en')
+                                        current
+                                        @endif><a href="{{ route('locale', 'en') }}"><img
+                                                src="{{route('index')}}/img/en.svg" alt=""> English</a></li>
                             </ul>
                         </nav>
                     </div>
                 </div>
             @endauth
         </div>
-       @auth
+        @auth
             <div class="row">
                 <div class="col-md-12">
                     <h1>Остановитесь с удобством.
@@ -122,7 +127,8 @@
                         <div class="row">
                             <div class="col-lg-3 col-md-12">
                                 <div class="form-group">
-                                    <div class="label stay"><img src="{{route('index')}}/img/marker_out.svg" alt=""></div>
+                                    <div class="label stay"><img src="{{route('index')}}/img/marker_out.svg" alt="">
+                                    </div>
                                     <select name="city" id="address" required>
                                         @php
                                             $cities = \App\Models\City::all();
@@ -137,43 +143,103 @@
                             </div>
                             <div class="col-lg col-6">
                                 <div class="form-group">
-                                    <div class="label in"><img src="{{route('index')}}/img/marker_in.svg" alt=""> Заезд</div>
-                                    <input type="date" id="date" name="arrivalDate" value="{{ $now }}">
+                                    <div class="label in"><img src="{{route('index')}}/img/marker_in.svg" alt=""> Заезд
+                                    </div>
+                                    <input type="text" id="date" class="date" required="">
+                                    <input type="hidden" id="date" name="arrivalDate" value="{{ $now }}">
+                                    <input type="hidden" id="end_d" name="departureDate" value="{{ $tomorrow }}">
                                 </div>
                             </div>
+                            {{--                            <div class="col-lg col-6">--}}
+                            {{--                                <div class="form-group">--}}
+                            {{--                                    <div class="label out"><img src="{{route('index')}}/img/marker_out.svg" alt=""> Выезд</div>--}}
+                            {{--                                    <input type="date" id="date" name="departureDate" value="{{ $tomorrow }}">--}}
+                            {{--                                </div>--}}
+                            {{--                            </div>--}}
                             <div class="col-lg col-6">
-                                <div class="form-group">
-                                    <div class="label out"><img src="{{route('index')}}/img/marker_out.svg" alt=""> Выезд</div>
-                                    <input type="date" id="date" name="departureDate" value="{{ $tomorrow }}">
+                                <div id="count_person">
+                                    <div class="form-group">
+                                        <div class="label guest"><img src="{{route('index')}}/img/user.svg" alt="">
+                                        </div>
+                                        <input type="text" value="Кол-во гостей">
+                                        <div id="count-wrap" class="count-wrap">
+                                            <!-- Взрослые -->
+                                            <div class="counter count-item">
+                                                <label>Взрослые:</label>
+                                                <a class="minus" onclick="changeCount('adult', -1)">-</a>
+                                                <span id="adult-count">1</span>
+                                                <a class="plus" onclick="changeCount('adult', 1)">+</a>
+                                                <input type="hidden" name="adult" id="adult" value="1">
+                                            </div>
+
+                                            <!-- Дети -->
+                                            <div class="counter count-item">
+                                                <label>Дети:</label>
+                                                <a class="minus" onclick="changeCount('child', -1)">-</a>
+                                                <span id="child-count">0</span>
+                                                <a class="plus" onclick="changeCount('child', 1)">+</a>
+                                                <input type="hidden" name="childAges[]" id="child">
+                                            </div>
+
+                                            <!-- Возраст детей -->
+                                            <div id="children-ages"></div>
+
+                                            <script>
+                                                let adultCount = 0;
+                                                let childCount = 0;
+                                                const maxAdults = 8;
+                                                const maxChildren = 3;
+
+                                                function changeCount(type, delta) {
+                                                    if (type === 'adult') {
+                                                        adultCount = Math.max(1, Math.min(maxAdults, adultCount + delta));
+                                                        document.getElementById('adult-count').innerText = adultCount;
+                                                        document.getElementById('adult').value = adultCount;
+                                                    } else if (type === 'child') {
+                                                        const newCount = childCount + delta;
+                                                        if (newCount >= 0 && newCount <= maxChildren) {
+                                                            childCount = newCount;
+                                                            document.getElementById('child-count').innerText = childCount;
+                                                            document.getElementById('child').value = childCount;
+                                                            renderChildAgeSelectors();
+                                                        }
+                                                    }
+                                                }
+
+                                                function renderChildAgeSelectors() {
+                                                    const container = document.getElementById('children-ages');
+                                                    container.innerHTML = '';
+
+                                                    for (let i = 0; i < childCount; i++) {
+                                                        const div = document.createElement('div');
+                                                        div.className = 'child-block';
+                                                        div.innerHTML = `
+		  <label>Возраст ребёнка ${i + 1}:</label>
+		  <select>
+			<option value="">-- возраст --</option>
+			${Array.from({length: 19}, (_, age) => `<option name="age${age}" value="${age}">${age}</option>`).join('')}
+		  </select>
+		`;
+                                                        container.appendChild(div);
+                                                    }
+                                                }
+                                            </script>
+                                        </div>
+                                    </div>
                                 </div>
+
                             </div>
-                            <div class="col-lg col-6">
-                                <div class="form-group">
-                                    <div class="label guest"><img src="{{route('index')}}/img/user.svg" alt=""></div>
-                                    <select name="adult" id="">
-                                        <option value="1">1 гость</option>
-                                        <option value="2" selected>2 гостей</option>
-                                        <option value="3">3 гостей</option>
-                                        <option value="4">4 гостей</option>
-                                        <option value="5">5 гостей</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="hidden" style="display: none">
-                                <select name="childAges" onchange="ageCheck(this);">
-                                    <option value="">@lang('main.choose')</option>
-                                    <option value="1" selected>1</option>
-                                    <option value="2">2</option>
-                                    <option value="3">3</option>
-                                </select>
-                            </div>
+
                             <div class="col-lg col-6 extra">
                                 <div class="form-group">
                                     <div id="filter">
-                                        <div class="label filter"><img src="{{route('index')}}/img/setting.svg" alt=""> Фильтры</div>
+                                        <div class="label filter"><img src="{{route('index')}}/img/setting.svg" alt="">
+                                            Фильтры
+                                        </div>
                                         <select name="" id=""></select>
                                         <div class="filter-wrap" id="filter-wrap">
-                                            <div class="closebtn" id="closebtn"><img src="{{route('index')}}/img/close.svg" alt=""></div>
+                                            <div class="closebtn" id="closebtn"><img
+                                                        src="{{route('index')}}/img/close.svg" alt=""></div>
                                             <h5>Фильтры</h5>
                                             <div class="form-group">
                                                 <div class="name">Рейтинг</div>
@@ -184,7 +250,8 @@
                                                             <div class="img">
                                                                 <div class="num">1</div>
                                                                 <div class="img-wrap">
-                                                                    <img src="{{route('index')}}/img/icons/rate.svg" alt="">
+                                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                         alt="">
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -195,8 +262,10 @@
                                                             <div class="img">
                                                                 <div class="num">2</div>
                                                                 <div class="img-wrap">
-                                                                    <img src="{{route('index')}}/img/icons/rate.svg" alt="">
-                                                                    <img src="{{route('index')}}/img/icons/rate.svg" alt="">
+                                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                         alt="">
+                                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                         alt="">
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -207,9 +276,12 @@
                                                             <div class="img">
                                                                 <div class="num">3</div>
                                                                 <div class="img-wrap">
-                                                                    <img src="{{route('index')}}/img/icons/rate.svg" alt="">
-                                                                    <img src="{{route('index')}}/img/icons/rate.svg" alt="">
-                                                                    <img src="{{route('index')}}/img/icons/rate.svg" alt="">
+                                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                         alt="">
+                                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                         alt="">
+                                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                         alt="">
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -220,10 +292,14 @@
                                                             <div class="img">
                                                                 <div class="num">4</div>
                                                                 <div class="img-wrap">
-                                                                    <img src="{{route('index')}}/img/icons/rate.svg" alt="">
-                                                                    <img src="{{route('index')}}/img/icons/rate.svg" alt="">
-                                                                    <img src="{{route('index')}}/img/icons/rate.svg" alt="">
-                                                                    <img src="{{route('index')}}/img/icons/rate.svg" alt="">
+                                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                         alt="">
+                                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                         alt="">
+                                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                         alt="">
+                                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                         alt="">
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -234,11 +310,16 @@
                                                             <div class="img">
                                                                 <div class="num">5</div>
                                                                 <div class="img-wrap">
-                                                                    <img src="{{route('index')}}/img/icons/rate.svg" alt="">
-                                                                    <img src="{{route('index')}}/img/icons/rate.svg" alt="">
-                                                                    <img src="{{route('index')}}/img/icons/rate.svg" alt="">
-                                                                    <img src="{{route('index')}}/img/icons/rate.svg" alt="">
-                                                                    <img src="{{route('index')}}/img/icons/rate.svg" alt="">
+                                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                         alt="">
+                                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                         alt="">
+                                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                         alt="">
+                                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                         alt="">
+                                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                         alt="">
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -318,7 +399,8 @@
                             </div>
                             <div class="col-lg col-12">
                                 <div class="form-group">
-                                    <button class="more"><img src="{{route('index')}}/img/search.svg" alt=""> Найти</button>
+                                    <button class="more"><img src="{{route('index')}}/img/search.svg" alt=""> Найти
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -372,7 +454,8 @@
                     <div class="footer-item">
                         <ul>
                             <li>г. Бишкек,
-                                пр.Чынгыза Айтматова 91</li>
+                                пр.Чынгыза Айтматова 91
+                            </li>
                             <li><a href="tel:+996 227 225 227">+996 227 225 227</a></li>
                             <li><a href="https://instagram.com" target="_blank">Instagram</a></li>
                             <li><a href="https://wa.me/" target="_blank">WhatsApp</a></li>

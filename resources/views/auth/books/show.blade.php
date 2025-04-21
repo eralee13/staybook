@@ -34,11 +34,11 @@
                         </tr>
                         <tr>
                             <th>Количество Взрослых</th>
-                            <td>{{ $book->count }}</td>
+                            <td>{{ $book->adult }}</td>
                         </tr>
                         <tr>
                             <th>Количество Детей</th>
-                            <td>{{ $book->countc }}</td>
+                            <td>{{ $book->child }}</td>
                         </tr>
                         <tr>
                             <th>Стоимость</th>

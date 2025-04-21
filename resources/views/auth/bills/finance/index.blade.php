@@ -20,7 +20,6 @@
                             <th>@lang('admin.status')</th>
                             <th>@lang('admin.company')</th>
                             <th>@lang('admin.files')</th>
-                            <th>@lang('admin.action')</th>
                         </tr>
                         <tbody>
                         @foreach($bills as $bill)
@@ -42,25 +41,12 @@
                                     <div class="file"><a target="_blank" href="{{ Storage::url($bill->rules)
                                     }}">StayBook @lang('admin.rules_and_procedures')</a></div>
                                 </td>
-                                <td>
-                                    <form action="{{ route('bills.destroy', $bill) }}" method="post">
-                                        <ul>
-                                            <li><a href="{{ route('bills.edit', $bill)
-                                            }}"><img src="{{ route('index') }}/img/icons/edit.svg" alt=""></a></li>
-                                            @csrf
-                                            @method('DELETE')
-                                            <button onclick="return confirm('Do you want to delete this?');"><img src="{{ route('index') }}/img/icons/trash.svg" alt=""></button>
-                                        </ul>
-                                    </form>
-                                </td>
                             </tr>
                         @endforeach
                         </tbody>
                     </table>
                     @else
-                        <div class="btn-wrap" style="margin-top: 20px">
-                            <a href="{{ route('bills.create') }}" class="more">@lang('admin.conclude_contact')</a>
-                        </div>
+                       <div class="alert alert-danger">Счета не найдены</div>
                     @endif
                 </div>
             </div>

@@ -46,7 +46,7 @@
                                             <a href="{{ route('hotels.show', $hotel) }}"><img src="{{ route('index') }}/img/icons/eye.svg" alt=""></a>
                                             @csrf
                                             @method('DELETE')
-                                            <button onclick="return confirm('Do you want to delete this?');"><i class="fa-regular fa-trash"></i></button>
+                                            <button onclick="return confirm('Do you want to delete this?');"><img src="{{ route('index') }}/img/icons/trash.svg" alt=""></a></button>
                                         </ul>
                                     </form>
                                 </td>

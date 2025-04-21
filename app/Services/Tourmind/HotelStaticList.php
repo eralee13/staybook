@@ -44,6 +44,7 @@ class HotelStaticList
     {
         $pageIndex = 1; // Начинаем с первой страницы
         $pageSize = 500; // Количество отелей на страницу
+        $pageCount = 1;
     
         do {
             $payload = [
@@ -151,6 +152,8 @@ class HotelStaticList
                         Log::channel('tourmind')->error('Hotel static list Сохраняем  изображений передача roomid '.$room->id);
                         $this->tmApiService->saveRoomImages($hotel->id,  $hotelData['Images'], $room->id);
                     }
+
+                    return $data;
                 }
 
             } catch (\Throwable $th) {
@@ -161,9 +164,10 @@ class HotelStaticList
     
         } while ($pageIndex <= $pageCount); // Пока не загрузим все страницы
     
-        // return ['message' => 'Данные обновлены', 'count' => count($hotels)];
+        //return ['message' => 'Данные обновлены', 'count' => count($hotels)];
+        //return 'mess';
+
         return $data;
     }
-    
 
 }

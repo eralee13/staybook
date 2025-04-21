@@ -25,13 +25,13 @@
                                 <td>
                                     <form action="{{ route('pages.destroy', $page) }}" method="post">
                                         <ul>
-                                            <li><a class="btn view" href="{{ route('pages.show', $page)
-                                            }}">Открыть</a></li>
-                                            <li><a class="btn edit" href="{{ route('pages.edit', $page)
-                                            }}">Редактировать</a></li>
+                                            <li><a href="{{ route('pages.show', $page)
+                                            }}"><img src="{{ route('index') }}/img/icons/eye.svg" alt=""></a></li>
+                                            <li><a href="{{ route('pages.edit', $page)
+                                            }}"><img src="{{ route('index') }}/img/icons/edit.svg" alt=""></a></li>
                                             @csrf
                                             @method('DELETE')
-                                            <button class="btn delete">Удалить</button>
+                                            <button><img src="{{ route('index') }}/img/icons/trash.svg" alt=""></button>
                                         </ul>
                                     </form>
                                 </td>

@@ -111,7 +111,7 @@ class ReservationController extends Controller
 
         //dd($order);
 
-        return view('pages.exely.reservation.order-verify', compact('order'));
+        return view('pages.exely.reservation.order-verify', compact('order', 'request'));
     }
 
 
@@ -335,7 +335,7 @@ class ReservationController extends Controller
                 'sum' => $request->get('total'),
                 'status' => 'Reserved',
                 'book_token' => $res->booking->number,
-                'user_id' => 1,
+                'user_id' => Auth::id(),
             ]);
         }
         return view('pages.exely.reservation.order-booking', compact('res'));

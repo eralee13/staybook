@@ -77,10 +77,10 @@ class PageController extends Controller
 
 
 
-    public function about()
+    public function about(Request $request)
     {
         $page = Page::cacheFor(now()->addHours(24))->where('id', 4)->first();
-        return view('pages.about', compact('page'));
+        return view('pages.about', compact('page', 'request'));
     }
 
     public function contactspage()

@@ -89,7 +89,7 @@
                                                 @csrf
                                                 @method('DELETE')
                                                 @can('delete-book')
-                                                    <button onclick="return confirm('Do you want to delete this?');"><i class="fa-regular fa-trash"></i></button>
+                                                    <button onclick="return confirm('Do you want to delete this?');"><img src="{{ route('index') }}/img/icons/trash.svg" alt=""></button>
                                                 @endcan
                                             </ul>
                                         </form>

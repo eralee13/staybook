@@ -3,7 +3,11 @@
 @section('title', 'Главная страница')
 
 @section('content')
+
+
     @auth
+        <livewire:hotel-search />
+
         <div class="places">
             <div class="container">
                 <div class="row">
@@ -21,7 +25,7 @@
                                 <div class="text-wrap">
                                     <div class="address">{{ $hotel->city }}</div>
                                     <h5>{{ $hotel->title }}</h5>
-                                    <div class="rating"><img src="{{ route('index') }}/img/star.svg" alt=""> 4,76</div>
+                                    <div class="rating"><img src="{{ route('index') }}/img/star.svg" alt=""> {{ $hotel->rating }}</div>
                                 </div>
                             </div>
                         </div>

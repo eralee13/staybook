@@ -23,6 +23,8 @@ class HotelStaticListController extends Controller
         $requestData = $request->all();
         // $data = $this->HotelStaticList->getHotelListForAllCountries($requestData);
         $data = $this->HotelStaticList->getHotelList($requestData);
+
+        //dd($data);
         
         return response()->json($data);
         

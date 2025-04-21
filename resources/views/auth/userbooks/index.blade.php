@@ -10,14 +10,13 @@
                 <div class="col-md-12">
                     @if($books->isNotEmpty())
                         <h1>@lang('admin.my_bookings')</h1>
-                        <ul class="tabs">
-                            <li class="current"
-                            ">Все</li>
-                            <li>Будущие</li>
-                            <li>Активные</li>
-                            <li>Завершенные</li>
-                            <li>Отмененные</li>
-                        </ul>
+{{--                        <ul class="tabs">--}}
+{{--                            <li class="current">Все</li>--}}
+{{--                            <li>Будущие</li>--}}
+{{--                            <li>Активные</li>--}}
+{{--                            <li>Завершенные</li>--}}
+{{--                            <li>Отмененные</li>--}}
+{{--                        </ul>--}}
 
                         {{--                            <tr>--}}
                         {{--                                <th>#</th>--}}
@@ -79,7 +78,7 @@
                                         <div class="value">{{ $book->showEndDate() }}</div>
                                     </td>
                                     @php
-                                        $hotel = \App\Models\Hotel::where('id', $book->hotel_id)->first();
+                                        $hotel = \App\Models\Hotel::where('id', $book->hotel_id)->orWhere('exely_id', $book->hotel_id)->first();
                                     @endphp
                                     <td>
                                         <div class="title">Отель</div>
@@ -96,8 +95,7 @@
                                     <td>
                                         <form action="{{ route('userbooks.cancel', $book) }}" method="post">
                                             <ul>
-                                                <a href="{{ route('userbooks.show', $book)}}" class="more"><i
-                                                            class="fa-regular fa-eye"></i></a>
+                                                <a href="{{ route('userbooks.show', $book)}}"><img src="{{ route('index') }}/img/icons/eye.svg" alt=""></a>
                                                 @csrf
                                                 @if($book->status == 'Reserved')
                                                     <button class="btn delete"

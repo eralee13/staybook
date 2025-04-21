@@ -36,7 +36,7 @@
         <div class="row">
             <div class="col-md-3">
                 <div class="logo">
-                    <a href="{{route('hotels.index')}}"><img src="{{route('index')}}/img/logo.svg" alt=""></a>
+                    <a href="{{ route('profile.edit') }}"><img src="{{route('index')}}/img/logo.svg" alt=""></a>
                 </div>
             </div>
             <div class="col-md-9">

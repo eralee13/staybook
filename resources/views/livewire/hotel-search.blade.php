@@ -82,67 +82,7 @@
                     <input type="hidden" wire:model="checkin" id="start_d" name="start_d" />
                     <input type="hidden" wire:model="checkout" id="end_d" name="end_d" />
                     
-                    <script>
-                        $(function() {
-                            const locale = "{{ $locale }}";
-                    
-                            // локализация для разных языков
-                            const localeSettings = {
-                                en: {
-                                    format: 'YYYY-MM-DD',
-                                    separator: ' - ',
-                                    applyLabel: 'Apply',
-                                    cancelLabel: 'Cancel',
-                                    fromLabel: 'From',
-                                    toLabel: 'To',
-                                    customRangeLabel: 'Custom',
-                                    weekLabel: 'W',
-                                    daysOfWeek: moment.weekdaysMin(),
-                                    monthNames: moment.months(),
-                                    firstDay: 1
-                                },
-                                ru: {
-                                    format: 'YYYY-MM-DD',
-                                    separator: ' - ',
-                                    applyLabel: 'Применить',
-                                    cancelLabel: 'Отмена',
-                                    fromLabel: 'С',
-                                    toLabel: 'По',
-                                    customRangeLabel: 'Свой',
-                                    weekLabel: 'Н',
-                                    customRangeLabel: 'Выбрать вручную',
-                                    daysOfWeek: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
-                                    monthNames: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 
-                                                 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
-                                    firstDay: 1,
-                                    
-                                }
-                            };
-                    
-                            $('#daterange').daterangepicker({
-                                autoUpdateInput: false,
-                                autoApply: true,
-                                startDate: "{{ $startDate }}",
-                                endDate: "{{ $endDate }}",
-                                locale: localeSettings[locale] || localeSettings['en'],
-                            });
-                        });
-                        
-                        $('#daterange').on('apply.daterangepicker', function(ev, picker) {
-                                let range = picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD');
-                                $(this).val(range);
 
-                                // Передать значение в Livewire
-                                @this.set('dateRange', range);
-                                // Livewire.emit('updateDateRange', range);
-                            });
-                    
-                            // $('#daterange').on('cancel.daterangepicker', function () {
-                            //     $(this).val('');
-                            //     @this.set('dateRange', ''); // Очистка значения в Livewire
-                            // });
-
-                    </script>
                     
                 </div>
             </div>
@@ -489,6 +429,7 @@
                     </select>
                 </div>
             </div>
+            <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
             <script>
                 $(document).ready(function () {
                     $('#hotel').selectize({
@@ -616,3 +557,67 @@
  </div>
 @endif --}}
 </div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+
+<script>
+    $(function() {
+        const locale = "{{ $locale }}";
+
+        // локализация для разных языков
+        const localeSettings = {
+            en: {
+                format: 'YYYY-MM-DD',
+                separator: ' - ',
+                applyLabel: 'Apply',
+                cancelLabel: 'Cancel',
+                fromLabel: 'From',
+                toLabel: 'To',
+                customRangeLabel: 'Custom',
+                weekLabel: 'W',
+                daysOfWeek: moment.weekdaysMin(),
+                monthNames: moment.months(),
+                firstDay: 1
+            },
+            ru: {
+                format: 'YYYY-MM-DD',
+                separator: ' - ',
+                applyLabel: 'Применить',
+                cancelLabel: 'Отмена',
+                fromLabel: 'С',
+                toLabel: 'По',
+                customRangeLabel: 'Свой',
+                weekLabel: 'Н',
+                customRangeLabel: 'Выбрать вручную',
+                daysOfWeek: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
+                monthNames: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+                    'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
+                firstDay: 1,
+
+            }
+        };
+
+        $('#daterange').daterangepicker({
+            autoUpdateInput: false,
+            autoApply: true,
+            startDate: "{{ $startDate }}",
+            endDate: "{{ $endDate }}",
+            locale: localeSettings[locale] || localeSettings['en'],
+        });
+    });
+
+    $('#daterange').on('apply.daterangepicker', function(ev, picker) {
+        let range = picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD');
+        $(this).val(range);
+
+        // Передать значение в Livewire
+    @this.set('dateRange', range);
+        // Livewire.emit('updateDateRange', range);
+    });
+
+    // $('#daterange').on('cancel.daterangepicker', function () {
+    //     $(this).val('');
+    //     @this.set('dateRange', ''); // Очистка значения в Livewire
+    // });
+
+</script>

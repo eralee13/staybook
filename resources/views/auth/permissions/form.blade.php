@@ -11,6 +11,9 @@
     <div class="page admin">
         <div class="container">
             <div class="row">
+                <div class="col-md-3">
+                    @include('auth.layouts.sidebar')
+                </div>
                 <div class="col-md-9">
                     @isset($permission)
                         <h1>@lang('admin.edit') {{ $permission->title }}</h1>

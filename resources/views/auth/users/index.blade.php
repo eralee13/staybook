@@ -44,11 +44,11 @@
                                 <td>
                                     <form action="{{ route('users.destroy', $user) }}" method="post">
                                         <ul>
-                                            <li><a class="btn edit" href="{{ route('users.edit', $user)
-                                            }}"><i class="fa-regular fa-pen-to-square"></i></a></li>
+                                            <li><a href="{{ route('users.edit', $user)
+                                            }}"><img src="{{ route('index') }}/img/icons/edit.svg" alt=""></a></li>
                                             @csrf
                                             @method('DELETE')
-                                            <button class="btn delete"><i class="fa-regular fa-trash"></i></button>
+                                            <button class="btn delete"><img src="{{ route('index') }}/img/icons/trash.svg" alt=""></a></button>
                                         </ul>
                                     </form>
                                 </td>

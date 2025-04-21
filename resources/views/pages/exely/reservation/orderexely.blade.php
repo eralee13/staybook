@@ -36,7 +36,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <div class="label">ФИО</div>
-                                    <input type="text" name="name" placeholder="Асанов А.А." required>
+                                    <input type="text" name="name" placeholder="Асанов А.А." value="{{ Auth::user()->name }}" required>
                                 </div>
                             </div>
                             <div class="col-md-3">
@@ -55,14 +55,14 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="">Номер телефона</label>
-                                    <input type="text" name="phone" id="phone" required>
+                                    <input type="text" name="phone" id="phone" value="{{ Auth::user()->phone }}" required>
                                     <div id="output"></div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="">Email</label>
-                                    <input type="email" name="email" required>
+                                    <input type="email" name="email" value="{{ Auth::user()->email }}" required>
                                 </div>
                             </div>
                             <div class="col-md-12">

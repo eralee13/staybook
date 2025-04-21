@@ -23,7 +23,7 @@ class ContentController extends Controller
         $now = Carbon::now();
         $nowDate = Carbon::now()->format('Y-m-d');
         $tomorrow = Carbon::tomorrow()->format('Y-m-d');
-        if ($now->hour >= 0 && $now->hour < 6) {
+        if ($now->hour >= 3 && $now->hour < 4) {
             $response = Http::withHeaders(['x-api-key' => 'fd54fc5c-2927-4998-8132-fb1107fc81c4', 'accept' => 'application/json'])->get('https://connect.test.hopenapi.com/api/content/v1/properties');
             $properties = $response->object();
             if ($properties->properties != null) {

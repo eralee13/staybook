@@ -9,6 +9,9 @@
     <div class="page admin">
         <div class="container">
             <div class="row">
+                <div class="col-md-3">
+                    @include('auth.layouts.sidebar')
+                </div>
                 <div class="col-md-9">
                     <h1>Контакты</h1>
                     <form method="post" action="{{ route('contacts.update', $contact) }}">

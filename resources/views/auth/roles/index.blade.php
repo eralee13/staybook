@@ -38,18 +38,17 @@
                             <td>
                                 <form action="{{ route('roles.destroy', $role->id) }}" method="post">
                                     <ul>
-                                        <li><a href="{{ route('roles.show', $role->id) }}" class="btn view"><i class="fa-regular fa-eye"></i></a></li>
+                                        <li><a href="{{ route('roles.show', $role->id) }}"><img src="{{ route('index') }}/img/icons/eye.svg" alt=""></a></li>
                                         @csrf
                                         @method('DELETE')
                                         @if ($role->name!='Super Admin')
                                             @can('edit-role')
-                                                <li><a href="{{ route('roles.edit', $role->id) }}" class="btn edit"><i class="fa-regular fa-pen-to-square"></i></a></li>
+                                                <li><a href="{{ route('roles.edit', $role->id) }}"><img src="{{ route('index') }}/img/icons/edit.svg" alt=""></a></li>
                                             @endcan
                                             @can('delete-role')
                                                 @if ($role->name!=Auth::user()->hasRole($role->name))
-                                                    <button type="submit" class="btn delete" onclick="return confirm('Do ' +
-                                                 'you want to delete this role?');"><i class="fa-regular
-                                                 fa-trash"></i> </button>
+                                                    <button type="submit" onclick="return confirm('Do ' +
+                                                 'you want to delete this role?');"><img src="{{ route('index') }}/img/icons/trash.svg" alt=""></button>
                                                 @endif
                                             @endcan
                                         @endif

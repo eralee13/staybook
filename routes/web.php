@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\AllBillsController;
+use App\Http\Controllers\Admin\AllBookingController;
 use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\HotelController;
 use App\Http\Controllers\Admin\ListbookController;
@@ -58,6 +60,10 @@ Route::middleware('set_locale')->group(function () {
         //Route::get("/book/exelyshow/{book}", [ListBookController::class, 'exelyshow'])->name('book.exelyshow');
         Route::get("/listbooks", [ListBookController::class, 'index'])->name('listbooks.index');
         Route::get("/listbooks/show/{book}", [ListBookController::class, 'show'])->name('listbooks.show');
+
+        //finance role
+        Route::get("/allbooks", [AllBookingController::class, 'index'])->name('allbooks.index');
+        Route::get("/allbills", [AllBillsController::class, 'index'])->name('allbills.index');
 
 
 //                Route::get('/hotels/{status?}/{show_result?}/{s_query?}', [HHotelController::class, 'index'])->name

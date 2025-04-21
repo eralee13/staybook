@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Services\Tourmind\TmApiService;
+use Illuminate\Support\Str;
 
 class RegionList
 {
@@ -58,7 +59,8 @@ class RegionList
                     DB::table('cities')->updateOrInsert(
                         ['country_id' => $region['RegionID']], // Условие проверки
                         [
-                            'name' => $region['Name'],
+                            'title' => $region['Name'],
+                            'code' => Str::slug($region['Name']),
                             'country_id' => (int)$region['RegionID'],
                             'country_code' => (string)$region['CountryCode'],
                         ]

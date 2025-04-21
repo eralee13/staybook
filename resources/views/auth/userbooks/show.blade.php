@@ -75,7 +75,7 @@
                                     @if(\Illuminate\Support\Facades\Storage::exists($room->image))
                                         <div class="img"><img src="{{ Storage::url($room->image) }}"></div>
                                     @else
-                                        <div class="img"><img src="{{ $room->image }}"></div>
+                                        <div class="img"><img src="{{ route('index') }}/img/{{$room->image}}"></div>
                                     @endif
                                 @endisset
                             </div>
@@ -92,7 +92,6 @@
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <img src="https://maps.googleapis.com/maps/api/staticmap?center=Berkeley,CA&amp;zoom=13&amp;size=400x400&amp;key=AIzaSyA3kg7YWugGl1lTXmAmaBGPNhDW9pEh5bo&amp;signature=45D4gqkHrzXqD1o0ucV_geljI6A=" alt="">
                             <div class="dashboard-item">
                                 <div class="name">@lang('admin.dates_of_stay')</div>
                                 {{ $book->showStartDate() }} - {{ $book->showEndDate() }}
@@ -117,23 +116,23 @@
                     @isset($hotel)
                         <div class="row">
                             <div class="col-md-6">
-                                <script src="https://maps.api.2gis.ru/2.0/loader.js"></script>
-                                <div id="map" style="width: 100%; height: 300px;"></div>
-                                <script>
-                                    DG.then(function () {
-                                        var map = DG.map('map', {
-                                            center: [{{$hotel->lat}}, {{$hotel->lng}}],
-                                            zoom: 14
-                                        });
+                                @php
+                                    $lat = old('lat', isset($hotel->lat) ? $hotel->lat : 42.8746);
+                                    $lng = old('lng', isset($hotel->lng) ? $hotel->lng : 74.6120);
+                                    $zoom = 12;
+                                    $width = 500;
+                                    $height = 180;
 
-                                        DG.marker([{{$hotel->lat}}, {{$hotel->lng}}], {scrollWheelZoom:
-                                                false})
-                                            .addTo(map)
-                                            .bindLabel('{{ $hotel->title }}', {
-                                                static: true
-                                            });
-                                    });
-                                </script>
+                                    // Генерируем URL статического изображения карты
+                                    $mapUrl = "https://static-maps.yandex.ru/1.x/?ll=$lng,$lat&size={$width},{$height}&z=$zoom&l=map&pt=$lng,$lat,pm2rdl";
+
+                                @endphp
+
+                                @if($lat && $lng)
+                                    <img src="{{ $mapUrl }}" alt="Карта" style="width:100%; height: 180px; max-width:480px;">
+                                @else
+                                    <p>Координаты карты не указаны</p>
+                                @endif
                             </div>
                         </div>
                     @endisset

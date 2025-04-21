@@ -23,9 +23,17 @@
 {{--            <a href="{{ route('payments.index')}}"><i class="fa-regular fa-money-bill"></i> @lang('admin.payment')</a>--}}
 {{--            </li>--}}
         @endcan
-        <li @routeactive(
-        'userbook*')>
+            @hasrole('Accountant')
+            <li @routeactive(
+                'allbooks.index') class="price-list"><a href="{{route('allbooks.index')}}"><img src="{{ route('index') }}/img/money.svg" alt=""> Все бронирования</a></li>
+            <li @routeactive(
+            'allbills.index')><a href="{{route('allbills.index')}}"><img src="{{ route('index') }}/img/icons/file.svg" alt=""> Все счета</a></li>
+            @endhasrole
+            @hasrole('B2B')
+            <li @routeactive('userbook*')>
         <a href="{{ route('userbooks.index')}}"><i class="fa-regular fa-money-bill"></i> @lang('admin.my_bookings')</a>
         </li>
+            @endhasrole
+        <li><a href="{{ route('logout') }}">Выйти из системы</a></li>
     </ul>
 </div>

@@ -147,8 +147,7 @@
                                             }}"><img src="{{ route('index') }}/img/icons/edit.svg" alt=""></a></li>
                                                 @csrf
                                                 @method('DELETE')
-                                                <button onclick="return confirm('Do you want to delete this?');"
-                                                        class="btn delete"><i class="fa-regular fa-trash"></i></button>
+                                                <button onclick="return confirm('Do you want to delete this?');"><img src="{{ route('index') }}/img/icons/trash.svg" alt=""></button>
                                             </ul>
                                         </form>
                                     </td>

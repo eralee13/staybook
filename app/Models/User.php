@@ -23,6 +23,11 @@ class User extends Authenticatable
         'email',
         'phone',
         'comission',
+        'bank_name',
+        'bank_inn',
+        'bank_account',
+        'bank_bic',
+        'address',
         'password',
         'is_admin'
     ];
