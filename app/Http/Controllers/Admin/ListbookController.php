@@ -114,11 +114,11 @@ class ListbookController extends Controller
         }
     }
 
-    public function export(Request $request)
+    public function eksport(Request $request)
     {   
         $month = $request->input('month');
         $year = now()->year;
-    
+        
         // Формируем имя файла
         $fileName = 'books_' . $year;
     

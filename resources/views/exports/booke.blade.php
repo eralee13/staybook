@@ -1,5 +1,5 @@
 <table>
     <tr>
-        <td>DEBUG: </td>
+        <td>DEBUG: фыв </td>
     </tr>
 </table>

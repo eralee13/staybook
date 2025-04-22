@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Route;
 use App\Livewire\HotelResults;
 use App\Livewire\HotelRooms;
 use App\Livewire\BookingForm;
+use App\Http\Controllers\BookCalendarController;
 
 /*
 |--------------------------------------------------------------------------
@@ -143,8 +144,17 @@ Route::middleware('set_locale')->group(function () {
     Route::get('/bookingform', BookingForm::class)->name('bookingform');
 
     // export excel
-    Route::get('/books/export', [ListbookController::class, 'export'])->name('books.list');
+    Route::get('/books/eksport', [ListbookController::class, 'eksport'])->name('books.list');
 
+    // Book Calendar
+    Route::prefix('bookcalendar')->group(function () {
+        Route::get('/', [BookCalendarController::class, 'index'])->name('bookcalendar.index');
+        Route::get('/events', [BookCalendarController::class, 'getEvents'])->name('bookcalendar.events');
+        Route::post('/', [BookCalendarController::class, 'store'])->name('bookcalendar.store');
+        Route::put('/{id}', [BookCalendarController::class, 'update'])->name('bookcalendar.update');
+        Route::delete('/{id}', [BookCalendarController::class, 'destroy'])->name('bookcalendar.delete');
+    });
 
+    Route::get('/api/rates-quotas', [BookCalendarController::class, 'getRatesAndQuotas']);
 });
 

@@ -7,7 +7,13 @@
     },
     "devDependencies": {
         "axios": "^1.1.2",
-        "laravel-vite-plugin": "^0.8.0",
-        "vite": "^4.0.0"
+        "laravel-vite-plugin": "^1.2.0",
+        "vite": "^6.3.2"
+    },
+    "dependencies": {
+        "@fullcalendar/core": "^6.1.17",
+        "@fullcalendar/resource-timeline": "^6.1.17",
+        "fullcalendar": "^6.1.17",
+        "tippy.js": "^6.3.7"
     }
 }

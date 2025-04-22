@@ -57,6 +57,11 @@ class Room extends Model
     {
         return $this->belongsTo(Rate::class);
     }
+    
+    public function rates()
+    {
+        return $this->hasMany(Rate::class);
+    }
 
 //    public function rooms()
 //    {

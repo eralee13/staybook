@@ -53,6 +53,11 @@ class Book extends Model
         return $this->hasMany(Room::class, 'id', 'room_id');
     }
 
+    public function room()
+    {
+        return $this->belongsTo(Room::class);
+    }
+
     public function showStartDate()
     {
         return Carbon::createFromFormat('Y-m-d H:i:s', $this->arrivalDate)->format('d/m/Y');
