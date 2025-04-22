@@ -227,7 +227,6 @@
                                         </div>
                                     </div>
                                 </div>
-
                             </div>
 
                             <div class="col-lg col-6 extra">
@@ -437,6 +436,7 @@
         </div>
     </div>
 </div>
+
 @yield('content')
 
 <footer>
@@ -503,16 +503,7 @@
 
 <script src="{{ route('index') }}/js/scripts.min.js"></script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/js/standalone/selectize.min.js"
-        integrity="sha256-+C0A5Ilqmu4QcSPxrlGpaZxJ04VjsRjKu+G82kl5UJk=" crossorigin="anonymous"></script>
-
-<script>
-    $(document).ready(function () {
-        $('#address').selectize({
-            sortField: 'text'
-        });
-    });
-</script>
+@livewireScripts
 
 </body>
 

@@ -1,3 +1,4 @@
+@php use Carbon\Carbon; @endphp
 <div class="container">
     {{-- {{ print_r(session('hotel_search'), true) }} --}}
     <form wire:submit.prevent="searchHotels" class="row">
@@ -64,7 +65,7 @@
                     </script> --}}
 
                     @php
-                        use Carbon\Carbon;
+
 
                         // Добавляем 1 месяц вперёд и устанавливаем на 1 и 2 число
                         $startDate = Carbon::now()->addMonth()->startOfMonth()->format('Y-m-d');

@@ -98,20 +98,7 @@
             </div>
         </div>
     @else
-        <div class="page auth">
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-8 offset-lg-2 col-md-12">
-                        <div class="img-wrap">
-                            <img src="{{ route('index') }}/img/b2b.jpg" alt="">
-                            <h4>@lang('main.b2b')</h4>
-                        </div>
-                        <div class="alert alert-danger">
-                            <div class="descr">@lang('main.need_auth') <a href="{{ route('login') }}">@lang('main.auth')</a></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        @include('layouts.auth')
     @endauth
 @endsection
+

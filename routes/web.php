@@ -64,6 +64,7 @@ Route::middleware('set_locale')->group(function () {
         //finance role
         Route::get("/allbooks", [AllBookingController::class, 'index'])->name('allbooks.index');
         Route::get("/allbills", [AllBillsController::class, 'index'])->name('allbills.index');
+        Route::get('/allbooks/excel', [AllBookingController::class, 'exportExcel'])->name('excel-books');
 
 
 //                Route::get('/hotels/{status?}/{show_result?}/{s_query?}', [HHotelController::class, 'index'])->name

@@ -78,6 +78,8 @@
                                                         <input type="text" id="date">
                                                         <input type="hidden" name="arrivalDate" id="arrival">
                                                         <input type="hidden" name="departureDate" id="departure">
+                                                        <input type="hidden" name="book_token" value="{{ str()->random(15) }}">
+                                                        <input type="hidden" name="user_id" value="{{ Auth::id() }}">
                                                     </div>
                                                     <button class="more" id="saveBtn">@lang('admin.book')</button>
                                                 </form>

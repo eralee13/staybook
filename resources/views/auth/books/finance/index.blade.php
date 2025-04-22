@@ -12,9 +12,18 @@
                 </div>
                 <div class="col-md-9">
                     @if($books->isNotEmpty())
-
-                        <h1>@lang('admin.bookings')</h1>
-
+                        <div class="row align-items-center aic">
+                            <div class="col-md-9">
+                                <h1>@lang('admin.bookings')</h1>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="btn-wrap">
+                                    <a class="btn add" href="{{ route('excel-books') }}">
+                                      Выгрузить в Excel
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                         <table>
                             <tr>
                                 <th>#</th>

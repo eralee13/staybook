@@ -114,7 +114,6 @@ class SearchController extends Controller
                 ],]);
         $stays = $response->object();
 
-
         return view('pages.exely.search.search-extrastays', compact('stays'));
     }
 

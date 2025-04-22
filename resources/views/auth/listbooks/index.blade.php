@@ -12,13 +12,13 @@
                 </div>
                 <div class="col-md-10">
                     @if($books->isNotEmpty())
-                        <form>
-                            <div class="form-group">
-                                <input type="text" name="search" id="search" placeholder="@lang('admin.search')"
-                                       class="form-control"
-                                       onfocus="this.value=''">
-                            </div>
-                        </form>
+{{--                        <form>--}}
+{{--                            <div class="form-group">--}}
+{{--                                <input type="text" name="search" id="search" placeholder="@lang('admin.search')"--}}
+{{--                                       class="form-control"--}}
+{{--                                       onfocus="this.value=''">--}}
+{{--                            </div>--}}
+{{--                        </form>--}}
 
                         <h1>@lang('admin.bookings')</h1>
                         <div id="search_list"></div>
@@ -83,16 +83,12 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <form action="{{ route('listbooks.destroy', $book) }}" method="post">
+
                                             <ul>
                                                 <a href="{{ route('listbooks.show', $book)}}"><img src="{{ route('index') }}/img/icons/eye.svg" alt=""></a>
-                                                @csrf
-                                                @method('DELETE')
-                                                @can('delete-book')
-                                                    <button onclick="return confirm('Do you want to delete this?');"><img src="{{ route('index') }}/img/icons/trash.svg" alt=""></button>
-                                                @endcan
+
                                             </ul>
-                                        </form>
+
                                     </td>
                                 </tr>
                             @endforeach

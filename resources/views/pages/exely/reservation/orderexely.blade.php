@@ -171,4 +171,10 @@
         </div>
     </div>
 
+    <style>
+        #phone{
+            padding-left: 50px;
+        }
+    </style>
+
 @endsection
