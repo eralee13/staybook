@@ -22,7 +22,13 @@
                             <li>Номер брони: {{ $cancel->booking->number }}</li>
                             <li>Дата: {{ $cancel->booking->createdDateTime }}</li>
                             <li>
-                                Аннуляция: {{ $cancel->booking->cancellation->reason }} {{ $cancel->booking->cancellation->penaltyAmount }}</li>
+                                @if($cancel->booking->cancellationPolicy->freeCancellationPossible == true)
+                                    <td>Бесплатная отмена действует до ({{ $cancel->booking->cancellationPolicy->freeCancellationDeadlineLocal }}). Размер
+                                        штрафа: {{ $cancel->booking->cancellationPolicy->penaltyAmount }} {{ $cancel->booking->currencyCode }}</td>
+                                @else
+                                    <td>Возможность бесплатной отмены отсутствует. Размер штрафа
+                                        составляет: {{ $cancel->booking->cancellationPolicy->penaltyAmount }} {{ $cancel->booking->currencyCode }}</td>
+                                @endif
                             <li>Отель: {{ $cancel->booking->propertyId }}</li>
                             @foreach($cancel->booking->roomStays as $room)
                                 <li>Дата заеда: {{ $room->stayDates->arrivalDateTime }}</li>

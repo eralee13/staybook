@@ -4,7 +4,6 @@
 
 @section('content')
 
-
     <div class="page order">
         <div class="container">
             <div class="row">
@@ -23,11 +22,28 @@
                                 <li>Статус: {{ $res->booking->status }}</li>
                                 <li>Номер брони: {{ $res->booking->number }}</li>
                                 <li>ID отеля: {{ $res->booking->propertyId }}</li>
-                                <li>Даты: {{ $res->booking->roomStays[0]->stayDates->arrivalDateTime }}
-                                    - {{ $res->booking->roomStays[0]->stayDates->departureDateTime }}</li>
-                                <li>Аннуляция брони
-                                    до: {{ $res->booking->cancellationPolicy->freeCancellationDeadlineLocal }}
-                                    - {{ $res->booking->cancellationPolicy->penaltyAmount }} {{ $res->booking->currencyCode }}</li>
+                                @php
+                                    $hotel = \App\Models\Hotel::where('exely_id', $res->booking->propertyId)->first();
+                                    $arrival = \Carbon\Carbon::createFromDate($res->booking->roomStays[0]->stayDates->arrivalDateTime)->format('d.m.Y H:i');
+                                    $departure = \Carbon\Carbon::createFromDate($res->booking->roomStays[0]->stayDates->departureDateTime)->format('d.m.Y H:i');
+                                @endphp
+
+                                <li>Даты: {{ $arrival }} - {{ $departure }}
+                                    @if($res->booking->cancellationPolicy->freeCancellationDeadlineLocal == null)
+                                        {{ $hotel->timezone }}
+                                    @else
+                                        {{ $res->booking->cancellationPolicy->freeCancellationDeadlineLocal }}
+                                    @endif
+                                </li>
+                                <li>
+                                    @if($res->booking->cancellationPolicy->freeCancellationPossible == true)
+                                        Аннуляция брони
+                                        до: {{ $res->booking->cancellationPolicy->freeCancellationDeadlineLocal }}
+                                        - {{ $res->booking->cancellationPolicy->penaltyAmount }} {{ $res->booking->currencyCode }}</li>
+                                @else
+                                    Аннуляция брони
+                                    составляет: {{ $res->booking->cancellationPolicy->penaltyAmount }} {{ $res->booking->currencyCode }}
+                                @endif
                                 <li>
                                     Заказчик: {{ $res->booking->customer->firstName }} {{ $res->booking->customer->lastName }}
                                     <ul>
@@ -41,6 +57,7 @@
                             <div class="bnt-wrap">
                                 <form action="{{ route('res_calculate') }}">
                                     <input type="hidden" name="number" value="{{ $res->booking->number }}">
+                                    <input type="hidden" name="currency" value="{{ $res->booking->currencyCode }}">
                                     @if($res->booking->cancellation == null)
                                         <input type="hidden" name="cancelTime"
                                                value="{{ $res->booking->cancellationPolicy->freeCancellationDeadlineUtc }}">

@@ -122,14 +122,16 @@ Route::middleware('set_locale')->group(function () {
     Route::get('/v1/search_extrastays', [SearchController::class, 'search_extrastays'])->name('search_extrastays');
 
     //Reservation API
+    Route::get('/orderexely/{order}', [ReservationController::class, 'orderexely'])->name('orderexely');
+    Route::get('/v1/bookings/verify', [ReservationController::class, 'res_verify_bookings'])->name('res_bookings_verify');
     Route::get('/v1/bookings', [ReservationController::class, 'res_bookings'])->name('res_bookings');
     Route::get('/v1/booking', [ReservationController::class, 'res_booking'])->name('res_booking');
     Route::get('/v1/booking/modify', [ReservationController::class, 'res_modify'])->name('res_modify');
     Route::get('/v1/booking/verify', [ReservationController::class, 'res_verify'])->name('res_verify');
     Route::get('/v1/booking/cancel', [ReservationController::class, 'res_cancel'])->name('res_cancel');
     Route::get('/v1/booking/calculate', [ReservationController::class, 'res_calculate'])->name('res_calculate');
-    Route::get('/v1/bookings/verify', [ReservationController::class, 'res_verify_bookings'])->name('res_bookings_verify');
-    Route::get('/orderexely/{order}', [ReservationController::class, 'orderexely'])->name('orderexely');
+
+
 
     Route::get('/allhotels', [PageController::class, 'hotels'])->name('hotels');
     Route::get('/order/{order}', [PageController::class, 'order'])->name('order');

@@ -18,7 +18,9 @@
                         @endforeach
                     @else
                         <h1 data-aos="fade-up" data-aos-duration="2000">Отмена брони</h1>
-                        <p>Штраф за отмену составляет: {{ $calc->penaltyAmount }}</p>
+                        <p>
+                           Штраф за отмену составляет: {{ $calc->penaltyAmount }} {{ $request->currency }}
+                        </p>
                         <form action="{{ route('res_cancel') }}">
                             <div class="form-group">
                                 <input type="text" value="{{ $request->number }}" name="number">

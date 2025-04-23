@@ -117,7 +117,7 @@
 
                                         DG.marker([{{ $hotel->lat }}, {{ $hotel->lng }}], { scrollWheelZoom: false })
                                             .addTo(map)
-                                            .bindLabel('', {
+                                            .bindLabel('{{ $hotel->title }}', {
                                                 static: true
                                             });
 
@@ -215,11 +215,20 @@
                                                             $roomName = \App\Models\Room::where('exely_id', $room->roomType->id)->first();
                                                             $arrival = \Carbon\Carbon::createFromDate($room->stayDates->arrivalDateTime)->format('d.m.Y H:i');
                                                             $departure = \Carbon\Carbon::createFromDate($room->stayDates->departureDateTime)->format('d.m.Y H:i');
-                                                            $cancelDate = \Carbon\Carbon::createFromDate($room->cancellationPolicy->freeCancellationDeadlineUtc)->format('d.m.Y H:i');
+                                                            $cancelDate = \Carbon\Carbon::createFromDate($room->cancellationPolicy->freeCancellationDeadlineLocal)->format('d.m.Y H:i');
                                                         @endphp
                                                         <div class="item bed"><div class="name">{{ $room->fullPlacementsName }}</div></div>
                                                         <div class="item meal"><div class="name">{{ $room->mealPlanCode }}</div></div>
-                                                        <div class="item cancel"><div class="name">Правила отмены: Бесплатная отмена действует до {{ $cancelDate }} ({{ $hotel->timezone }}). Размер штрафа: {{ $room->cancellationPolicy->penaltyAmount }} {{ $room->currencyCode }}</div></div>
+                                                        <div class="item cancel">
+                                                            <div class="name">
+                                                                @if($room->cancellationPolicy->freeCancellationPossible == true)
+                                                                Правила отмены: Бесплатная отмена действует до {{ $cancelDate }} ({{ $hotel->timezone }}). Размер штрафа: {{ $room->cancellationPolicy->penaltyAmount }} {{ $room->currencyCode }}
+                                                                @else
+                                                                    Возможность бесплатной отмены отсутствует. Размер штрафа
+                                                                    составляет: {{ $room->cancellationPolicy->penaltyAmount }} {{ $room->currencyCode }}
+                                                                @endif
+                                                            </div>
+                                                        </div>
                                                         <div class="item price">{{ $room->total->priceBeforeTax }} {{ $room->currencyCode }}</div>
                                                         <div class="nds">Все налоги включены</div>
                                                         {{--                                                        <div class="night">за ночь для 1 гостя</div>--}}
@@ -262,6 +271,9 @@
                                                                 <input type="hidden" name="title" value="{{ $room->fullPlacementsName }}">
                                                                 <input type="hidden" name="price" value="{{ $room->total->priceBeforeTax }}">
                                                                 <input type="hidden" name="currency" value="{{ $room->currencyCode }}">
+                                                                <input type="hidden" name="freeCancellation" value="{{ $room->cancellationPolicy->freeCancellationPossible }}">
+                                                                <input type="hidden" name="freeCancellationLocal" value="{{ $room->cancellationPolicy->freeCancellationDeadlineLocal }}">
+                                                                <input type="hidden" name="penaltyAmount" value="{{ $room->cancellationPolicy->penaltyAmount }}">
                                                                 <button class="more">Забронировать</button>
                                                             </form>
                                                         </div>

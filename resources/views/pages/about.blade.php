@@ -20,12 +20,12 @@
                     <p>StayBook является зарегистрированным сервисным знаком в Кыргызской Республике.</p>
                 </div>
                 <div class="col-md-2 order-xl-2 order-lg-2 order-1">
-                    <img src="img/about_logo.svg" alt="">
+                    <img src="{{ route('index') }}/img/about_logo.svg" alt="">
                 </div>
             </div>
             <div class="row aic">
                 <div class="col-md-2">
-                    <img src="img/about_person.svg" alt="">
+                    <img src="{{ route('index') }}/img/about_person.svg" alt="">
                 </div>
                 <div class="col-md-10">
                     <p><b>StayBook</b> – ваш надежный B2B-партнер по онлайн-бронированию <br> отелей в Центральной Азии и на Кавказе</p>
@@ -38,7 +38,7 @@
                     </p>
                 </div>
                 <div class="col-md-2 order-xl-2 order-lg-2 order-1">
-                    <img src="img/about_prop.png" alt="">
+                    <img src="{{ route('index') }}/img/about_prop.png" alt="">
                 </div>
             </div>
             <div class="row">
@@ -56,7 +56,7 @@
             </div>
             <div class="row aic">
                 <div class="col-md-2">
-                    <img src="img/about_hand.png" alt="">
+                    <img src="{{ route('index') }}/img/about_hand.png" alt="">
                 </div>
                 <div class="col-md-10">
                     <p>StayBook гарантирует высокое качество сервиса, конкурентные цены и надежное партнерство в сфере гостиничного бизнеса!</p>

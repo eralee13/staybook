@@ -31,6 +31,9 @@
                         <input type="hidden" name="childAges[]" value="{{ implode(',', $childs) }}">
                         <input type="hidden" name="checkSum" value="{{ $request->checkSum }}">
                         <input type="hidden" name="servicesId" value="{{ $request->servicesId }}">
+                        <input type="hidden" name="freeCancellation" value="{{ $request->freeCancellation }}">
+                        <input type="hidden" name="freeCancellationLocal" value="{{ $request->freeCancellationLocal }}">
+                        <input type="hidden" name="penaltyAmount" value="{{ $request->penaltyAmount }}">
 
                         <div class="row">
                             <div class="col-md-6">
@@ -69,7 +72,7 @@
                                 <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'comment'])
                                     <label for="">Комментарий</label>
-                                    <textarea name="comment" rows="3"></textarea>
+                                    <textarea name="comment" rows="3">Ваш комментарий</textarea>
                                 </div>
                             </div>
                         </div>

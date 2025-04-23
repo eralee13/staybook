@@ -78,7 +78,6 @@ class SearchController extends Controller
             ->get('https://connect.test.hopenapi.com/api/search/v1/properties/' . $request->propertyId . '/room-stays?arrivalDate=' . $request->arrivalDate . '&departureDate=' . $request->departureDate . '&adults=' . $request->adults . implode($items) . '&includeExtraStays=false&includeExtraServices=false');
 
         $rooms = $response->object()->roomStays;
-        //dd($rooms);
         $rooms = collect($rooms)->sortBy('total')->values()->all();
 
         return view('pages.exely.search.search-roomstays', compact('rooms', 'request'));
