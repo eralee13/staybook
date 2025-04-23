@@ -26,7 +26,12 @@
                                 {{--                                @dd($order->booking)--}}
                                 @php
                                     $hotel = \App\Models\Hotel::where('exely_id', $order->booking->propertyId)->first();
+                                    $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
                                     $cancelPossible = $order->booking->cancellationPolicy;
+                                    if($cancelPossible->freeCancellationPossible == true) {
+                                        $cancelLocal = \Carbon\Carbon::createFromDate($cancelPossible->freeCancellationDeadlineLocal)->format('d.m.Y H:i');
+                                        $cancel_utc = \Carbon\Carbon::createFromDate($cancelPossible->freeCancellationDeadlineLocal)->format('P');
+                                    }
                                 @endphp
                                 <h1>Подтверждение заказа</h1>
                                 <table>
@@ -41,11 +46,10 @@
                                     <tr>
                                         <td>Правило отмены:</td>
                                         @if($cancelPossible->freeCancellationPossible == true)
-                                            <td>Бесплатная отмена действует до ({{ $hotel->timezone }}). Размер
-                                                штрафа: {{ $request->cancelPrice }} {{ $order->booking->currencyCode }}</td>
+                                            <td>Бесплатная отмена действует до {{ $cancelLocal }} (UTC {{ $cancel_utc }}). Размер
+                                                штрафа: {{ $cancelPossible->penaltyAmount }} {{ $order->booking->currencyCode }}</td>
                                         @else
-                                            <td>Возможность бесплатной отмены отсутствует. Размер штрафа
-                                                составляет: {{ $cancelPossible->penaltyAmount }} {{ $order->booking->currencyCode }}</td>
+                                            <td>Возможность бесплатной отмены отсутствует. Размер штрафа: {{ $cancelPossible->penaltyAmount }} {{ $order->booking->currencyCode }}</td>
                                         @endif
                                     </tr>
 
@@ -67,7 +71,7 @@
                                             @endphp
                                             <td>{{ $arrival }} - {{ $departure }}
                                                 @if($order->booking->cancellationPolicy->freeCancellationDeadlineLocal == null)
-                                                    {{ $hotel->timezone }}
+                                                    (UTC {{ $hotel_utc }})
                                                 @else
                                                     {{ $order->booking->cancellationPolicy->freeCancellationDeadlineLocal }}
                                                 @endif
@@ -153,6 +157,7 @@
                                         <td>Отель:</td>
                                         @php
                                             $hotel = \App\Models\Hotel::where('exely_id', $order->alternativeBooking->propertyId)->first();
+                                            $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
                                         @endphp
                                         <td>{{ $hotel->title }}</td>
                                     </tr>
@@ -163,14 +168,17 @@
                                     <tr>
                                         @php
                                             $cancelPossible = $order->alternativeBooking->cancellationPolicy;
+                                            if($cancelPossible->freeCancellationPossible == true) {
+                                                $cancelLocal = \Carbon\Carbon::createFromDate($cancelPossible->freeCancellationDeadlineLocal)->format('d.m.Y H:i');
+                                                $cancel_utc = \Carbon\Carbon::createFromDate($cancelPossible->freeCancellationDeadlineLocal)->format('P');
+                                            }
                                         @endphp
                                         <td>Правило отмены:</td>
                                         @if($cancelPossible->freeCancellationPossible == true)
-                                            <td>Бесплатная отмена действует до ({{ $hotel->timezone }}). Размер
-                                                штрафа: {{ $request->cancelPrice }} {{ $order->alternativeBooking->currencyCode }}</td>
+                                            <td>Бесплатная отмена действует до {{ $cancelLocal }} (UTC {{ $cancel_utc }}). Размер
+                                                штрафа: {{ $cancelPossible->penaltyAmount }} {{ $order->alternativeBooking->currencyCode }}</td>
                                         @else
-                                            <td>Возможность бесплатной отмены отсутствует. Размер штрафа
-                                                составляет: {{ $cancelPossible->penaltyAmount }} {{ $order->alternativeBooking->currencyCode }}</td>
+                                            <td>Возможность бесплатной отмены отсутствует. Размер штрафа: {{ $cancelPossible->penaltyAmount }} {{ $order->alternativeBooking->currencyCode }}</td>
                                         @endif
                                     </tr>
                                     @foreach($order->alternativeBooking->roomStays as $room)
@@ -184,12 +192,7 @@
                                         </tr>
                                         <tr>
                                             <td>Даты заезда-выезда:</td>
-                                            <td>{{ $arrival }} - {{ $departure }}
-                                                @if($cancelPossible->freeCancellationPossible == false)
-                                                    {{ $hotel->timezone }}
-                                                @else
-                                                    {{ $cancelPossible->freeCancellationDeadlineLocal }}
-                                                @endif
+                                            <td>{{ $arrival }} - {{ $departure }} (UTC {{ $hotel_utc }})
                                             </td>
                                         </tr>
                                         <tr>

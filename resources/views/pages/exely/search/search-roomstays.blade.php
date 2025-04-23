@@ -16,17 +16,19 @@
                             @endphp
 
                             <h1>{{ $hotel->city }}</h1>
-{{--                            <div class="fotorama" data-allowfullscreen="true" data-nav="thumbs" data-loop="true"--}}
-{{--                                 data-autoplay="30000">--}}
-{{--                                <img src="{{ Storage::url($hotel->image)}}" alt="">--}}
-{{--                            </div>--}}
+                            {{--                            <div class="fotorama" data-allowfullscreen="true" data-nav="thumbs" data-loop="true"--}}
+                            {{--                                 data-autoplay="30000">--}}
+                            {{--                                <img src="{{ Storage::url($hotel->image)}}" alt="">--}}
+                            {{--                            </div>--}}
                             <div class="row">
                                 <div class="col-md-6">
-                                    <img src="{{ Storage::url($hotel->image)}}" alt="" style="margin-bottom: 10px; border-radius: 12px;">
+                                    <img src="{{ Storage::url($hotel->image)}}" alt=""
+                                         style="margin-bottom: 10px; border-radius: 12px;">
                                 </div>
                             </div>
                             <h3>{{ $hotel->title }}</h3>
-                            <div class="address"><img src="{{ route('index') }}/img/marker_in.svg" alt=""> {{ $hotel->address }}</div>
+                            <div class="address"><img src="{{ route('index') }}/img/marker_in.svg"
+                                                      alt=""> {{ $hotel->address }}</div>
                             <h4>Описание</h4>
                             {{ $hotel->description }}
                             <div class="amenities">
@@ -115,7 +117,7 @@
                                             zoom: 12
                                         });
 
-                                        DG.marker([{{ $hotel->lat }}, {{ $hotel->lng }}], { scrollWheelZoom: false })
+                                        DG.marker([{{ $hotel->lat }}, {{ $hotel->lng }}], {scrollWheelZoom: false})
                                             .addTo(map)
                                             .bindLabel('{{ $hotel->title }}', {
                                                 static: true
@@ -123,49 +125,50 @@
 
                                     });
                                 </script>
-                                <div class="address"><img src="{{ route('index') }}/img/marker_in.svg" alt=""> {{ $hotel->address }}</div>
+                                <div class="address"><img src="{{ route('index') }}/img/marker_in.svg"
+                                                          alt=""> {{ $hotel->address }}</div>
                             </div>
                         </div>
-{{--                        <div class="col-md-3">--}}
-{{--                            <div class="side-filter">--}}
-{{--                                <div class="title">36,000 сом <span>ночь</span></div>--}}
+                        {{--                        <div class="col-md-3">--}}
+                        {{--                            <div class="side-filter">--}}
+                        {{--                                <div class="title">36,000 сом <span>ночь</span></div>--}}
 
-{{--                                <form action="">--}}
-{{--                                    <div class="row">--}}
-{{--                                        <div class="col-md-6">--}}
-{{--                                            <div class="form-group">--}}
-{{--                                                <div class="label in">Заезд</div>--}}
-{{--                                                <input type="date" id="date" value="2025-04-02">--}}
-{{--                                            </div>--}}
-{{--                                        </div>--}}
-{{--                                        <div class="col-md-6">--}}
-{{--                                            <div class="form-group">--}}
-{{--                                                <div class="label out">Выезд</div>--}}
-{{--                                                <input type="date" id="date" class="out" value="2025-04-08">--}}
-{{--                                            </div>--}}
-{{--                                        </div>--}}
-{{--                                        <div class="col-md-12">--}}
-{{--                                            <div class="form-group">--}}
-{{--                                                <div class="label">Кол-во гостей</div>--}}
-{{--                                                <select name="" id="">--}}
-{{--                                                    <option value="2">2 гостей</option>--}}
-{{--                                                </select>--}}
-{{--                                            </div>--}}
-{{--                                        </div>--}}
-{{--                                        <button class="more">Забронировать</button>--}}
-{{--                                    </div>--}}
-{{--                                </form>--}}
-{{--                                <div class="sub">--}}
-{{--                                    <div class="sub-title">36,000 сом * 2 ночи</div>--}}
-{{--                                    <div class="sub-price">72,000 сом</div>--}}
-{{--                                </div>--}}
-{{--                                <div class="total">--}}
-{{--                                    <div class="total-title">Всего</div>--}}
-{{--                                    <div class="total-price">72,000 сом</div>--}}
-{{--                                </div>--}}
+                        {{--                                <form action="">--}}
+                        {{--                                    <div class="row">--}}
+                        {{--                                        <div class="col-md-6">--}}
+                        {{--                                            <div class="form-group">--}}
+                        {{--                                                <div class="label in">Заезд</div>--}}
+                        {{--                                                <input type="date" id="date" value="2025-04-02">--}}
+                        {{--                                            </div>--}}
+                        {{--                                        </div>--}}
+                        {{--                                        <div class="col-md-6">--}}
+                        {{--                                            <div class="form-group">--}}
+                        {{--                                                <div class="label out">Выезд</div>--}}
+                        {{--                                                <input type="date" id="date" class="out" value="2025-04-08">--}}
+                        {{--                                            </div>--}}
+                        {{--                                        </div>--}}
+                        {{--                                        <div class="col-md-12">--}}
+                        {{--                                            <div class="form-group">--}}
+                        {{--                                                <div class="label">Кол-во гостей</div>--}}
+                        {{--                                                <select name="" id="">--}}
+                        {{--                                                    <option value="2">2 гостей</option>--}}
+                        {{--                                                </select>--}}
+                        {{--                                            </div>--}}
+                        {{--                                        </div>--}}
+                        {{--                                        <button class="more">Забронировать</button>--}}
+                        {{--                                    </div>--}}
+                        {{--                                </form>--}}
+                        {{--                                <div class="sub">--}}
+                        {{--                                    <div class="sub-title">36,000 сом * 2 ночи</div>--}}
+                        {{--                                    <div class="sub-price">72,000 сом</div>--}}
+                        {{--                                </div>--}}
+                        {{--                                <div class="total">--}}
+                        {{--                                    <div class="total-title">Всего</div>--}}
+                        {{--                                    <div class="total-price">72,000 сом</div>--}}
+                        {{--                                </div>--}}
 
-{{--                            </div>--}}
-{{--                        </div>--}}
+                        {{--                            </div>--}}
+                        {{--                        </div>--}}
                     </div>
                     <div class="row">
                         <div class="col-md-12">
@@ -175,7 +178,8 @@
                                     <div class="col-md-3">
                                         <div class="room">
 
-                                            <img src="https://cdn.worldota.net/t/1024x768/extranet/08/6b/086b6cc68558e30e703961281c86447609d25b27.JPEG" alt="">
+                                            <img src="https://cdn.worldota.net/t/1024x768/extranet/08/6b/086b6cc68558e30e703961281c86447609d25b27.JPEG"
+                                                 alt="">
                                             <h5>Двухместный люкс Бизнес с доступом в Бизнес гостиную</h5>
                                             <div class="bed">2 отдельные кровати</div>
                                             <div class="amenties">
@@ -206,26 +210,40 @@
                                         <div class="tariff-wrap">
                                             <div class="owl-carousel owl-tariffs">
                                                 @foreach($rooms as $room)
+                                                    @php
+                                                        $roomName = \App\Models\Room::where('exely_id', $room->roomType->id)->first();
+                                                        $arrival = \Carbon\Carbon::createFromDate($room->stayDates->arrivalDateTime)->format('d.m.Y H:i');
+                                                        $departure = \Carbon\Carbon::createFromDate($room->stayDates->departureDateTime)->format('d.m.Y H:i');
+                                                        $cancelDate = \Carbon\Carbon::createFromDate($room->cancellationPolicy->freeCancellationDeadlineLocal)->format('d.m.Y H:i');
+                                                        $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
+                                                        $cancel_utc = \Carbon\Carbon::createFromDate($room->cancellationPolicy->freeCancellationDeadlineLocal)->format('P');
+                                                    @endphp
                                                     <div class="tariffs-item">
                                                         @isset($room->fullPlacementsName)
-                                                            <h5>{{ $room->fullPlacementsName }}</h5>
+                                                            <h5>{{ $roomName->title }}</h5>
                                                         @endisset
-
-                                                        @php
-                                                            $roomName = \App\Models\Room::where('exely_id', $room->roomType->id)->first();
-                                                            $arrival = \Carbon\Carbon::createFromDate($room->stayDates->arrivalDateTime)->format('d.m.Y H:i');
-                                                            $departure = \Carbon\Carbon::createFromDate($room->stayDates->departureDateTime)->format('d.m.Y H:i');
-                                                            $cancelDate = \Carbon\Carbon::createFromDate($room->cancellationPolicy->freeCancellationDeadlineLocal)->format('d.m.Y H:i');
-                                                        @endphp
-                                                        <div class="item bed"><div class="name">{{ $room->fullPlacementsName }}</div></div>
-                                                        <div class="item meal"><div class="name">{{ $room->mealPlanCode }}</div></div>
+                                                        <div class="dates">
+                                                            Время заезда: {{ $arrival }} UTC {{ $hotel_utc }}
+                                                        </div>
+                                                        <div class="dates">
+                                                            Время выезда: {{ $departure }} UTC {{ $hotel_utc }}
+                                                        </div>
+                                                        <div class="item bed">
+                                                            <div class="name">{{ $room->fullPlacementsName }}</div>
+                                                        </div>
+                                                        <div class="item meal">
+                                                            <div class="name">{{ $room->mealPlanCode }}</div>
+                                                        </div>
                                                         <div class="item cancel">
                                                             <div class="name">
                                                                 @if($room->cancellationPolicy->freeCancellationPossible == true)
-                                                                Правила отмены: Бесплатная отмена действует до {{ $cancelDate }} ({{ $hotel->timezone }}). Размер штрафа: {{ $room->cancellationPolicy->penaltyAmount }} {{ $room->currencyCode }}
+                                                                    Правила отмены: Бесплатная отмена действует
+                                                                    до {{ $cancelDate }} (UTC {{ $cancel_utc }}).
+                                                                    Размер
+                                                                    штрафа: {{ $room->cancellationPolicy->penaltyAmount }} {{ $room->currencyCode }}
                                                                 @else
-                                                                    Возможность бесплатной отмены отсутствует. Размер штрафа
-                                                                    составляет: {{ $room->cancellationPolicy->penaltyAmount }} {{ $room->currencyCode }}
+                                                                    Возможность бесплатной отмены отсутствует. Размер
+                                                                    штрафа: {{ $room->cancellationPolicy->penaltyAmount }} {{ $room->currencyCode }}
                                                                 @endif
                                                             </div>
                                                         </div>
@@ -235,7 +253,8 @@
 
                                                         <div class="btn-wrap">
                                                             <form action="{{ route('orderexely', $room->roomType->id) }}">
-                                                                <input type="hidden" name="propertyId" value="{{ $room->propertyId }}">
+                                                                <input type="hidden" name="propertyId"
+                                                                       value="{{ $room->propertyId }}">
                                                                 <input type="hidden" name="arrivalDate"
                                                                        value="{{ $room->stayDates->arrivalDateTime }}">
                                                                 <input type="hidden" name="departureDate"
@@ -244,36 +263,48 @@
                                                                        value="{{ $room->guestCount->adultCount }}">
                                                                 <input type="hidden" name="childAges[]"
                                                                        value="{{ implode(',', $room->guestCount->childAges) }}">
-                                                                <input type="hidden" name="ratePlanId" value="{{ $room->ratePlan->id }}">
-                                                                <input type="hidden" name="roomTypeId" value="{{ $room->roomType->id }}">
-                                                                <input type="hidden" name="placements" value="{{ json_encode($room->roomType->placements) }}">
-                                                                {{--                                        <input type="hidden" name="roomType"--}}
-                                                                {{--                                               value="{{ $room->roomType->placements[0]->kind }}">--}}
-                                                                {{--                                        <input type="hidden" name="roomCount"--}}
-                                                                {{--                                               value="{{ $room->roomType->placements[0]->count }}">--}}
-                                                                {{--                                        <input type="hidden" name="roomCode"--}}
-                                                                {{--                                               value="{{ $room->roomType->placements[0]->code }}">--}}
-                                                                {{--                                        <input type="hidden" name="placementCode"--}}
-                                                                {{--                                               value="{{ $room->roomType->placements[0]->code }}">--}}
-                                                                <input type="hidden" name="categoryName" value="{{ $roomName->category_id }} - {{ $roomName->title }}">
-                                                                <input type="hidden" name="mealCode" value="{{ $room->mealPlanCode }}">
-                                                                <input type="hidden" name="cancelDate" value="{{ $cancelDate }}">
-                                                                <input type="hidden" name="cancelPrice" value="{{ $room->cancellationPolicy->penaltyAmount  }}">
-                                                                <input type="hidden" name="checkSum" value="{{ $room->checksum }}">
+                                                                <input type="hidden" name="ratePlanId"
+                                                                       value="{{ $room->ratePlan->id }}">
+                                                                <input type="hidden" name="roomTypeId"
+                                                                       value="{{ $room->roomType->id }}">
+                                                                <input type="hidden" name="placements"
+                                                                       value="{{ json_encode($room->roomType->placements) }}">
+                                                                <input type="hidden" name="categoryName"
+                                                                       value="{{ $roomName->category_id }} - {{ $roomName->title }}">
+                                                                <input type="hidden" name="mealCode"
+                                                                       value="{{ $room->mealPlanCode }}">
+                                                                <input type="hidden" name="cancelPossible" value="{{$room->cancellationPolicy->freeCancellationPossible}}">
+                                                                <input type="hidden" name="cancelUtc" value="{{$room->cancellationPolicy->freeCancellationDeadlineLocal}}">
+                                                                <input type="hidden" name="cancelDate"
+                                                                       value="{{ $cancelDate }}">
+                                                                <input type="hidden" name="cancelPrice"
+                                                                       value="{{ $room->cancellationPolicy->penaltyAmount  }}">
+                                                                <input type="hidden" name="checkSum"
+                                                                       value="{{ $room->checksum }}">
                                                                 @foreach($room->includedServices as $serv)
-                                                                    <input type="hidden" name="servicesId" value="{{ $serv->id }}">
+                                                                    <input type="hidden" name="servicesId"
+                                                                           value="{{ $serv->id }}">
                                                                 @endforeach
 
                                                                 {{--                                            <input type="hidden" name="servicesQuantity" value="{{  }}">--}}
-                                                                <input type="hidden" name="hotel" value="{{ $room->fullPlacementsName }}">
-                                                                <input type="hidden" name="hotel_id" value="{{ $room->propertyId }}">
-                                                                <input type="hidden" name="room_id" value="{{ $room->roomType->id }}">
-                                                                <input type="hidden" name="title" value="{{ $room->fullPlacementsName }}">
-                                                                <input type="hidden" name="price" value="{{ $room->total->priceBeforeTax }}">
-                                                                <input type="hidden" name="currency" value="{{ $room->currencyCode }}">
-                                                                <input type="hidden" name="freeCancellation" value="{{ $room->cancellationPolicy->freeCancellationPossible }}">
-                                                                <input type="hidden" name="freeCancellationLocal" value="{{ $room->cancellationPolicy->freeCancellationDeadlineLocal }}">
-                                                                <input type="hidden" name="penaltyAmount" value="{{ $room->cancellationPolicy->penaltyAmount }}">
+                                                                <input type="hidden" name="hotel"
+                                                                       value="{{ $room->fullPlacementsName }}">
+                                                                <input type="hidden" name="hotel_id"
+                                                                       value="{{ $room->propertyId }}">
+                                                                <input type="hidden" name="room_id"
+                                                                       value="{{ $room->roomType->id }}">
+                                                                <input type="hidden" name="title"
+                                                                       value="{{ $room->fullPlacementsName }}">
+                                                                <input type="hidden" name="price"
+                                                                       value="{{ $room->total->priceBeforeTax }}">
+                                                                <input type="hidden" name="currency"
+                                                                       value="{{ $room->currencyCode }}">
+                                                                <input type="hidden" name="freeCancellation"
+                                                                       value="{{ $room->cancellationPolicy->freeCancellationPossible }}">
+                                                                <input type="hidden" name="freeCancellationLocal"
+                                                                       value="{{ $room->cancellationPolicy->freeCancellationDeadlineLocal }}">
+                                                                <input type="hidden" name="penaltyAmount"
+                                                                       value="{{ $room->cancellationPolicy->penaltyAmount }}">
                                                                 <button class="more">Забронировать</button>
                                                             </form>
                                                         </div>

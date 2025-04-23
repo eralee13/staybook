@@ -23,6 +23,7 @@
                         </p>
                         <form action="{{ route('res_cancel') }}">
                             <div class="form-group">
+                                <label for="">Номер брони</label>
                                 <input type="text" value="{{ $request->number }}" name="number">
                             </div>
                             <input type="hidden" name="amount" value="{{ $calc->penaltyAmount }}">

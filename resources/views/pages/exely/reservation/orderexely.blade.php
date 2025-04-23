@@ -136,6 +136,8 @@
                 <div class="col-lg-4 col-md-12 order-xl-2 order-lg-2 order-1">
                     @php
                         $hotel = Hotel::where('exely_id', $request->propertyId)->first();
+                        $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
+                        $cancel_utc = \Carbon\Carbon::createFromDate($request->cancelUtc)->format('P');
                     @endphp
                     <div class="sidebar">
                         <div class="row">
@@ -143,8 +145,18 @@
                                 <img src="{{ Storage::url($hotel->image) }}" alt="">
                             </div>
                             <div class="col-md-8">
-                                <h4>Двухместный номер с видом на город (двуспальная кровать)</h4>
-                                <div class="descr">{{ $hotel->title }}</div>
+                                <h4>{{ $request->hotel }}</h4>
+                                <h5>{{ $request->categoryName }}</h5>
+                                <div class="descr">Отель: {{ $hotel->title }}</div>
+                                <div class="date">Время заезда/выезда: {{ $arrival }} - {{ $departure }} (UTC {{ $hotel_utc }})</div>
+                                <div class="cancel">Правила отмены:
+                                    @if($request->cancelPossible == true)
+                                     Бесплатная отмена действует до {{ $request->cancelDate }} (UTC {{ $cancel_utc }}). Размер штрафа: {{ $request->cancelPrice }} {{ $request->currency }}
+                                    @else
+                                        Возможность бесплатной отмены отсутствует. Размер
+                                        штрафа: {{ $request->cancelPrice }} {{ $request->currency }}
+                                    @endif
+                                </div>
                             </div>
                         </div>
 {{--                        <div class="line"></div>--}}

@@ -31,41 +31,12 @@
                     <select name="city" id="city" wire:model="city">
                         <option value="">@lang('main.choose')</option>
                         <option value="Kyiv">Киев</option>
-                        {{-- @foreach($hotels as $hotel)
-                            <option value="{{ $hotel->id }}" data-address="{{ $hotel->__('address')
-                        }}">{{ $hotel->title_en }} ({{ $hotel->title}})</option>
-                        @endforeach --}}
-                        {{-- @foreach($properties as $property)
-                            <option value="{{ $property->id }}" data-address="{{ $property->contactInfo->address->addressLine }}">{{ $property->name }}</option>
-                        @endforeach --}}
                     </select>
                 </div>
             </div>
             <div class="col">
                 <div class="form-group">
-                    
-
-                    {{-- 
-                    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-                    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-                    <label for="">@lang('main.search-date')</label>
-                    <input type="text" id="date_range" wire:model.lazy="dateRange" placeholder="Выберите даты">
-                    <script>
-                        document.addEventListener('DOMContentLoaded', function () {
-                            flatpickr("#date_range", {
-                                mode: "range", // Включаем выбор диапазона
-                                dateFormat: "Y-m-d", // Формат даты (YYYY-MM-DD)
-                                minDate: "today", // Запрещаем выбор прошедших дат
-                                locale: "ru", // Поддержка русского языка
-                                onClose: function(selectedDates, dateStr) {
-                                    @this.set('dateRange', dateStr); // Передаем данные в Livewire
-                                }
-                            });
-                        });
-                    </script> --}}
-
                     @php
-
 
                         // Добавляем 1 месяц вперёд и устанавливаем на 1 и 2 число
                         $startDate = Carbon::now()->addMonth()->startOfMonth()->format('Y-m-d');

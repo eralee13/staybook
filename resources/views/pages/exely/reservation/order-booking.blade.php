@@ -24,25 +24,21 @@
                                 <li>ID отеля: {{ $res->booking->propertyId }}</li>
                                 @php
                                     $hotel = \App\Models\Hotel::where('exely_id', $res->booking->propertyId)->first();
+                                    $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
+                                    $cancel_time = \Carbon\Carbon::createFromDate($res->booking->cancellationPolicy->freeCancellationDeadlineLocal)->format('d.m.Y H:i');
+                                    $cancel_utc = \Carbon\Carbon::createFromDate($res->booking->cancellationPolicy->freeCancellationDeadlineLocal)->format('P');
                                     $arrival = \Carbon\Carbon::createFromDate($res->booking->roomStays[0]->stayDates->arrivalDateTime)->format('d.m.Y H:i');
                                     $departure = \Carbon\Carbon::createFromDate($res->booking->roomStays[0]->stayDates->departureDateTime)->format('d.m.Y H:i');
                                 @endphp
 
-                                <li>Даты: {{ $arrival }} - {{ $departure }}
-                                    @if($res->booking->cancellationPolicy->freeCancellationDeadlineLocal == null)
-                                        {{ $hotel->timezone }}
-                                    @else
-                                        {{ $res->booking->cancellationPolicy->freeCancellationDeadlineLocal }}
-                                    @endif
+                                <li>Даты: {{ $arrival }} - {{ $departure }} (UTC {{ $hotel_utc }})
                                 </li>
                                 <li>
                                     @if($res->booking->cancellationPolicy->freeCancellationPossible == true)
-                                        Аннуляция брони
-                                        до: {{ $res->booking->cancellationPolicy->freeCancellationDeadlineLocal }}
-                                        - {{ $res->booking->cancellationPolicy->penaltyAmount }} {{ $res->booking->currencyCode }}</li>
+                                        Бесплатная отмена действует до: {{ $cancel_time }} (UTC {{ $cancel_utc }}) Размер
+                                        штрафа: {{ $res->booking->cancellationPolicy->penaltyAmount }} {{ $res->booking->currencyCode }}</li>
                                 @else
-                                    Аннуляция брони
-                                    составляет: {{ $res->booking->cancellationPolicy->penaltyAmount }} {{ $res->booking->currencyCode }}
+                                    Возможность бесплатной отмены отсутствует. Размер штрафа: {{ $res->booking->cancellationPolicy->penaltyAmount }} {{ $res->booking->currencyCode }}
                                 @endif
                                 <li>
                                     Заказчик: {{ $res->booking->customer->firstName }} {{ $res->booking->customer->lastName }}

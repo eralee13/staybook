@@ -18,9 +18,14 @@
                     @else
                         <h1 data-aos="fade-up" data-aos-duration="2000">Ваша бронь отменена</h1>
                         <h2>{{ $cancel->booking->status }}</h2>
+                        @php
+                            $cancel_date = \Carbon\Carbon::createFromDate($cancel->booking->createdDateTime)->format('d.m.Y H:i');
+                            $hotel = \App\Models\Hotel::where('exely_id', $cancel->booking->propertyId)->first();
+                            $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
+                        @endphp
                         <ul>
                             <li>Номер брони: {{ $cancel->booking->number }}</li>
-                            <li>Дата: {{ $cancel->booking->createdDateTime }}</li>
+{{--                            <li>Дата отмены: {{ $cancel_date }}</li>--}}
                             <li>
                                 @if($cancel->booking->cancellationPolicy->freeCancellationPossible == true)
                                     <td>Бесплатная отмена действует до ({{ $cancel->booking->cancellationPolicy->freeCancellationDeadlineLocal }}). Размер
@@ -31,8 +36,11 @@
                                 @endif
                             <li>Отель: {{ $cancel->booking->propertyId }}</li>
                             @foreach($cancel->booking->roomStays as $room)
-                                <li>Дата заеда: {{ $room->stayDates->arrivalDateTime }}</li>
-                                <li>Дата вызеда: {{ $room->stayDates->departureDateTime }}</li>
+                                @php
+                                    $arrival = \Carbon\Carbon::createFromDate($room->stayDates->arrivalDateTime)->format('d.m.Y H:i');
+                                    $departure = \Carbon\Carbon::createFromDate($room->stayDates->departureDateTime)->format('d.m.Y H:i');
+                                @endphp
+                                <li>Дата заеда/выезда: {{ $arrival }} - {{ $departure }} (UTC {{ $hotel_utc }})</li>
                                 <li>Тариф: {{ $room->ratePlan->name }}</li>
                                 <li>Тип комнаты: {{ $room->roomType->name }}</li>
                                 <li>Кол-во гостей: {{ $room->guestCount->adultCount }}</li>
