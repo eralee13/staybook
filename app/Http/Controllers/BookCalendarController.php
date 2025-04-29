@@ -3,10 +3,11 @@
 namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 use App\Models\Book;
 use App\Models\Rate;
-use App\Models\Rule;
+// use App\Models\Rule;
 use App\Models\Hotel;
 use App\Models\Room;
 use App\Models\Meal;
@@ -21,11 +22,12 @@ class BookCalendarController extends Controller
     public $childsage;
     public $roomCount;
     public $citizen;
-    public $bookingSuccess;
     public $rooms;
     public $rates;
     public $rules;
     public $hotels;
+    public $hotelslist;
+    public $token;
 
     public function __construct(){
 
@@ -38,100 +40,301 @@ class BookCalendarController extends Controller
     }
 
     // Страница календаря
-    public function index()
+    public function index(Request $request)
     {
         if( !Auth::check() ){
             return redirect()->route('index');
         }
-
-        // Подгружаем связи: у Book есть room, у room — rates
-
-        $events = Book::with('room.rates')->get()->map(function ($book) {
-            $room = $book->room;
-            $rate = $room?->rates?->first(); // Можно выбрать нужный rate логикой или хранить в Book
-        
-            $resourceId = $rate
-                ? 'room_' . $room->id . '_rate_' . $rate->id
-                : 'room_' . $room->id . '_rate_none'; // fallback
-            
-            if ($book->status == 'CANCELLED') {
-                $color = '#2563eb';
-            }else if ($book->status == 'booked') {
-                $color = '#d95d5d';
-            }else{
-                $color = '#39bb43';
-            }
-
-            return [
-                'id' => $book->id,
-                'title' => $rate->allotment ?? '',
-                'extendedProps' => [
-                    'price' => $book->price,
-                    'currency' => $book->currency,
-                    'description' => $book->price . ' ' . $book->currency . '<br>' . $book->phone . '<br>' . $book->email,
-                ],
-                'start' => Carbon::parse($book->arrivalDate)->format('Y-m-d'),
-                'end' => Carbon::parse($book->departureDate)->format('Y-m-d 23:59:59'),
-                'resourceId' => $resourceId,
-                'color' => $color, 
-            ];
-        })->toArray();
-        
-
-        $resources = [];
-
-        $rooms = Book::with('room.rates')->get()
-            ->pluck('room')
-            ->filter()
-            ->unique('id');
-
-        $meals = Meal::all()->keyBy('id'); // Создаем коллекцию, ключом которой будет meal_id
-
-        foreach ($rooms as $room) {
-            foreach ($room->rates as $rate) {
-
-                if ( is_numeric($rate->meal_id) ) {
-                    $mealTitle = $meals[$rate->meal_id]->title;
-                }else {
-                    $mealTitle = $rate->meal_id;
-                }
-                
-                $resources[] = [
-                    'id' => 'room_' . $room->id . '_rate_' . $rate->id,
-                    'title' => "<b>".$room->title_en . "</b>\n&nbsp;&nbsp;&nbsp;" . $rate->desc_en ." - ".$mealTitle,
-                ];
-            }
+        if( $request->get('hotel_id') ){
+            $hotelId = $request->get('hotel_id');
+        }else{
+            $hotelId = 908;
         }
+        
+        
+        $hotelslist = Hotel::select('id', 'title_en')
+            ->orderBy('title_en', 'asc')
+            ->get();
 
+            $meals = Meal::all()->keyBy('id');
 
+            $startDate = Carbon::now()->startOfMonth()->startOfDay();
+            $endDate = Carbon::now()->endOfMonth()->endOfDay();
 
+            // $startDate = Carbon::now()->addMonthNoOverflow()->startOfMonth()->startOfDay();
+            // $endDate = Carbon::now()->addMonthNoOverflow()->endOfMonth()->endOfDay();
+
+            // Все брони в выбранный диапазон
+            $books = Book::with('room.rates')
+            ->whereHas('room', fn($q) => $q->where('hotel_id', $hotelId))
+            ->whereBetween('arrivalDate', [$startDate, $endDate])
+            ->get();
+
+            // Все номера и тарифы отеля
+            $rooms = Room::with('rates')
+            ->where('hotel_id', $hotelId)
+            ->get();
+
+            // Собираем ресурсы
+            $resources = [];
+            foreach ($rooms as $room) {
+                // Пропускаем комнаты без тарифов или с null-тарифами
+                $validRates = $room->rates->filter();
+                if ($validRates->isEmpty()) {
+                    continue;
+                }
+
+                $parentId = 'room_' . $room->id;
+
+                $resources[] = [
+                    'id' => $parentId,
+                    'title' => $room->title_en,
+                ];
+
+                foreach ($validRates as $rate) {
+                    $mealTitle = is_numeric($rate->meal_id) && isset($meals[$rate->meal_id])
+                        ? $meals[$rate->meal_id]->title
+                        : $rate->meal_id;
+
+                    $resources[] = [
+                        'id' => $parentId . '_rate_' . $rate->id,
+                        'title' => $rate->desc_en . ' - ' . $mealTitle,
+                        'parentId' => $parentId,
+                    ];
+                }
+                }
+
+                // Индексируем брони по тарифу и дате
+                $bookingsMap = [];
+                foreach ($books as $book) {
+                $room = $book->room;
+                $validRates = $room->rates->filter();
+                foreach ($validRates as $rate) {
+                    $resourceId = 'room_' . $room->id . '_rate_' . $rate->id;
+                    $period = Carbon::parse($book->arrivalDate)->daysUntil(Carbon::parse($book->departureDate));
+
+                    foreach ($period as $date) {
+                        $bookingsMap[$resourceId][$date->format('Y-m-d')] = [
+                            'id' => $book->id,
+                            'status' => $book->status,
+                            'price' => $book->price,
+                            'currency' => $book->currency,
+                            'phone' => $book->phone,
+                            'email' => $book->email,
+                            'allotment' => $rate->allotment,
+                        ];
+                    }
+                }
+                }
+
+                // Создаём события
+                $events = [];
+                foreach ($rooms as $room) {
+                $validRates = $room->rates->filter();
+                if ($validRates->isEmpty()) {
+                    continue;
+                }
+
+                foreach ($validRates as $rate) {
+                    $resourceId = 'room_' . $room->id . '_rate_' . $rate->id;
+                    $period = Carbon::parse($startDate)->daysUntil($endDate);
+
+                    foreach ($period as $date) {
+                        $dateStr = $date->format('Y-m-d');
+                    
+                        // Завтра
+                        $tomorrow = now()->addDay()->startOfDay();
+                    
+                        if (isset($bookingsMap[$resourceId][$dateStr])) {
+                            // 🔴 Бронь — отображаем всегда
+                            $booking = $bookingsMap[$resourceId][$dateStr];
+                    
+                            $color = match ($booking['status']) {
+                                'CANCELLED' => '#e19d22',
+                                'booked', 'Pending' => '#d95d5d',
+                                default => '#39bb43',
+                            };
+                    
+                            $events[] = [
+                                'id' => $booking['id'] . '_' . $dateStr,
+                                'title' => $booking['allotment'] ?? '—',
+                                'start' => $dateStr,
+                                'end' => $dateStr,
+                                'resourceId' => $resourceId,
+                                'color' => $color,
+                                'extendedProps' => [
+                                    'status' => $color,
+                                    'rate_id' => $rate->id,
+                                    'description' => "{$booking['price']} {$booking['currency']}<br>{$booking['phone']}<br>{$booking['email']}"
+                                ]
+                            ];
+                        } else {
+                            // 🟢 Свободные квоты только с завтрашнего дня
+                            if ($date->gte($tomorrow)) {
+                                $events[] = [
+                                    'id' => 'free_' . $rate->id . '_' . $dateStr,
+                                    'title' => $rate->allotment ?? '—',
+                                    'start' => $dateStr,
+                                    'end' => $dateStr,
+                                    'resourceId' => $resourceId,
+                                    'color' => '#39bb43',
+                                    'extendedProps' => [
+                                        'room_id' => $room->id,
+                                        'rate_id' => $rate->id,
+                                    ]
+                                ];
+                            }
+                            // Иначе пропускаем (не показываем ничего)
+                        }
+                    }
+                    
+                    
+                }
+
+            }
+            
 
         return view('bookcalendar.index', [
             'resources' => $resources,
             'events' => $events,
+            'hotelslist' => $hotelslist,
         ]);
     }
 
     // Получение событий для FullCalendar (JSON)
     public function getEvents(Request $request)
     {   
-        $date = Carbon::parse($request->get('date'));
-
-        // заполняем данные из сессии
-        if( isset($date) ){
-            [$this->checkin, $this->checkout] = explode(' - ', $date);
+        if( !Auth::check() ){
+            return redirect()->route('index');
         }
 
-        // return Book::all()->map(function ($book) {
-        //     return [
-        //         'id' => $book->id,
-        //         'title' => $book->title.' '.$book->title2,
-        //         'start' => Carbon::parse($book->arrivalDate)->format('Y-m-d\TH:i:s'),
-        //         'end' => Carbon::parse($book->departureDate)->format('Y-m-d\TH:i:s'),
-        //     ];
-        // });
-        // $events = Book::select('id', 'title', 'arrivalDate', 'departureDate', 'status')->get();
-        // return response()->json($events);
+        $meals = Meal::all()->keyBy('id');
+
+            // $startDate = request('start') ? Carbon::parse(request('start'))->startOfDay() : now()->startOfMonth()->startOfDay();
+            // $endDate = request('end') ? Carbon::parse(request('end'))->endOfDay() : now()->endOfMonth()->endOfDay();
+            $hotelId = $request->get('hotel_id') ?? 908;
+            $startDate = $request->input('start') ? Carbon::parse($request->input('start'))->startOfDay() : now()->startOfMonth();
+            $endDate = $request->input('end') ? Carbon::parse($request->input('end'))->endOfDay() : now()->endOfMonth();
+
+
+            // Все брони в выбранный диапазон
+            $books = Book::with('room.rates')
+            ->whereHas('room', fn($q) => $q->where('hotel_id', $hotelId))
+            ->whereBetween('arrivalDate', [$startDate, $endDate])
+            ->get();
+
+            // Все номера и тарифы отеля
+            $rooms = Room::with('rates')
+            ->where('hotel_id', $hotelId)
+            ->get();
+
+            // Собираем ресурсы
+            $resources = [];
+            foreach ($rooms as $room) {
+            // Пропускаем комнаты без тарифов или с null-тарифами
+            $validRates = $room->rates->filter();
+            if ($validRates->isEmpty()) {
+                continue;
+            }
+
+            $parentId = 'room_' . $room->id;
+
+            $resources[] = [
+                'id' => $parentId,
+                'title' => $room->title_en,
+            ];
+
+            foreach ($validRates as $rate) {
+                $mealTitle = is_numeric($rate->meal_id) && isset($meals[$rate->meal_id])
+                    ? $meals[$rate->meal_id]->title
+                    : $rate->meal_id;
+
+                $resources[] = [
+                    'id' => $parentId . '_rate_' . $rate->id,
+                    'title' => $rate->desc_en . ' - ' . $mealTitle,
+                    'parentId' => $parentId,
+                ];
+            }
+            }
+
+            // Индексируем брони по тарифу и дате
+            $bookingsMap = [];
+            foreach ($books as $book) {
+            $room = $book->room;
+            $validRates = $room->rates->filter();
+            foreach ($validRates as $rate) {
+                $resourceId = 'room_' . $room->id . '_rate_' . $rate->id;
+                $period = Carbon::parse($book->arrivalDate)->daysUntil(Carbon::parse($book->departureDate));
+
+                foreach ($period as $date) {
+                    $bookingsMap[$resourceId][$date->format('Y-m-d')] = [
+                        'id' => $book->id,
+                        'status' => $book->status,
+                        'price' => $book->price,
+                        'currency' => $book->currency,
+                        'phone' => $book->phone,
+                        'email' => $book->email,
+                        'allotment' => $rate->allotment,
+                    ];
+                }
+            }
+            }
+
+            // Создаём события
+            $events = [];
+            foreach ($rooms as $room) {
+            $validRates = $room->rates->filter();
+            if ($validRates->isEmpty()) {
+                continue;
+            }
+
+            foreach ($validRates as $rate) {
+                $resourceId = 'room_' . $room->id . '_rate_' . $rate->id;
+                $period = Carbon::parse($startDate)->daysUntil($endDate);
+
+                foreach ($period as $date) {
+                    $dateStr = $date->format('Y-m-d');
+
+                    if (isset($bookingsMap[$resourceId][$dateStr])) {
+                        $booking = $bookingsMap[$resourceId][$dateStr];
+
+                        // Цвета статуса - как ты прислал:
+                        $color = match ($booking['status']) {
+                            'CANCELLED' => '#e19d22',
+                            'booked'    => '#d95d5d',
+                            'Pending' => '#d95d5d',
+                            default     => '#39bb43',
+                        };
+
+                        $events[] = [
+                            'id' => $booking['id'] . '_' . $dateStr,
+                            'title' => $booking['allotment'] ?? '—',
+                            'start' => $dateStr,
+                            'end' => $dateStr,
+                            'resourceId' => $resourceId,
+                            'color' => $color,
+                            'extendedProps' => [
+                                'description' => "{$booking['price']} {$booking['currency']}<br>{$booking['phone']}<br>{$booking['email']}"
+                            ]
+                        ];
+                    } else {
+                        $events[] = [
+                            'id' => 'free_' . $rate->id . '_' . $dateStr,
+                            'title' => $rate->allotment ?? '—',
+                            'start' => $dateStr,
+                            'end' => $dateStr,
+                            'resourceId' => $resourceId,
+                            'color' => '#39bb43', // Свободная квота
+                            'extendedProps' => [
+                                'room_id' => $room->id,
+                                'rate_id' => $rate->id,
+                            ]
+                        ];
+                    }
+                }
+            }
+            }
+
 
         return response()->json([
             'events' => $events,
@@ -142,15 +345,87 @@ class BookCalendarController extends Controller
     // Создание брони через календарь
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'start' => 'required|date',
-            'end' => 'nullable|date',
-            'quota' => 'nullable|integer',
-        ]);
+        // $validated = $request->validate([
+        //     'title' => 'required|string|max:255',
+        //     'start' => 'required|date',
+        //     'end' => 'nullable|date',
+        //     'quota' => 'nullable|integer',
+        // ]);
+        
+        $start = Carbon::parse($request->input('start'))->format('Y-m-d');
+        $end = Carbon::parse($request->input('end'))->format('Y-m-d');
+        $rateId = $request->input('rate_id');
+        $roomId = $request->input('room_id');
+        $hotelId = $request->input('hotel_id');
+        $allotment = $request->input('allotment');
 
-        $booking = Book::create($validated);
-        return response()->json($booking);
+        if ( empty($rateId) ) {
+            return response()->json(['error' => true, 'message' => 'Тариф не найден']);
+        }
+        
+        if ( empty($roomId) ) {
+            return response()->json(['error' => true, 'message' => 'Номер не найден']);
+        }
+        
+        try {
+
+            do {
+                $this->token = Str::random(40);
+            } while (Book::where('book_token', $this->token)->exists());
+            
+            // if ( $start == $end ) {
+            //     $endDate = Carbon::parse($start)->addDay();
+            // } else {
+            //     $endDate = $end;
+            // }
+        
+            $book = Book::firstOrCreate(
+                [
+                    'book_token' => $this->token,
+                ],
+                [
+                    'title' => '',
+                    'title2' => '',
+                    'hotel_id' => $hotelId,
+                    'room_id' => $roomId,
+                    'phone' => '',
+                    'email' => '',
+                    'comment' => '',
+                    'adult' => 0,
+                    'child' => 0,
+                    'childages' => '',
+                    'price' => 0,
+                    'sum' => 0,
+                    'currency' => '',
+                    'arrivalDate' => $start,
+                    'departureDate' => $end,
+                    'status' => 'Pending',
+                    'user_id' => Auth::id(),
+                    'api_type' => 'calendar',
+                ]
+            );
+
+            $rate = Rate::find($rateId);
+
+            if ($rate->allotment < $allotment) {
+                return response()->json(['error' => false, 'message' => 'Недостаточно квоты']);
+            }
+            elseif ( $book->id ){
+
+                // Обновляем квоту
+                $rate->allotment -= $allotment;
+                $rate->save();
+
+                return response()->json(['success' => true, 'message' => 'Бронь создан']);
+            }else{
+                return response()->json(['error' => true, 'message' => 'Ошибка создания брони! Попробуйте позже!']);
+            }
+
+        } catch (\Throwable $th) {
+            return response()->json(['error' => true, 'message' => $th->getMessage()]);
+        }
+        
+
     }
 
     // Обновление брони (перетаскивание в календаре)

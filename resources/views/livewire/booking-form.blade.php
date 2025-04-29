@@ -127,8 +127,8 @@
                                 <li class="list-group-item"><strong>Количество взрослых:</strong> {{ $adults }}</li>
                                 <li class="list-group-item"><strong>Количество детей:</strong> {{ $child }}</li>    
                                 <li class="list-group-item"><strong>Доступность номеров:</strong> {{ $allotment }}</li>
-                                <li class="list-group-item"><strong>Заезд:</strong> {{ $checkin }} </li>
-                                <li class="list-group-item"><strong>Выезд:</strong> {{ $checkout }} </li>
+                                <li class="list-group-item"><strong>Заезд:</strong> {{ $checkin }} {{ $utc }}</li>
+                                <li class="list-group-item"><strong>Выезд:</strong> {{ $checkout }} {{ $utc }}</li>
                                 <li class="list-group-item"><strong>Цена:</strong> {{ $totalPrice }} {{ $currency }}</li>
                                 <li class="list-group-item"><strong>Еда:</strong> {{ $meal }} </li>
                                 <li class="list-group-item"><strong>Политика отмены:</strong> 

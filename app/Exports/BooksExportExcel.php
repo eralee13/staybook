@@ -15,9 +15,10 @@ class BooksExportExcel implements FromView, WithColumnWidths, WithColumnFormatti
 {
     protected $month;
 
-    public function __construct($month = null)
+    public function __construct($month = null, $selYear = null)
     {
         $this->month = $month;
+        $this->selYear = $selYear;
     }
 
     public function columnWidths(): array
@@ -51,10 +52,15 @@ class BooksExportExcel implements FromView, WithColumnWidths, WithColumnFormatti
 
     public function view(): View
     {
-        $query = Book::whereYear('created_at', now()->year);
+        if ($this->selYear){
+            $query = Book::whereYear('created_at', (int) $this->selYear);
+        }else{
+            $query = Book::whereYear('created_at', now()->year);
+        }
+        
 
         if ($this->month) {
-            $query->whereMonth('created_at', $this->month);
+            $query->whereMonth('created_at','<=', $this->month);
         }
 
         return view('exports.list', ['ebooks' => $query->get(),]);

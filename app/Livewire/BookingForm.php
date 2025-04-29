@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
+use DateTimeZone;
+use DateTime;
 use App\Models\Hotel;
 use App\Models\Room;
 use App\Models\Meal;
@@ -31,11 +34,9 @@ class BookingForm extends Component
     public $totalPrice;
     public $totalSum;
     public $specdesc;
-    public $meal;
-    public $mealid;
-    public $mealall;
+    public $meal, $mealid, $mealall;
     public $checkRoomPrice;
-    public $token;
+    public $token, $utc;
     public $paxfname = 'Don';
     public $paxlname = 'Joe';
     public $email = 'jdon@gmail.com';
@@ -130,6 +131,8 @@ class BookingForm extends Component
         }
         
         try {
+            $utc = $this->getUtcOffsetByCityName();
+            $this->utc = $utc;
 
             $this->hotelLocal = Hotel::where('tourmind_id', $this->tmid)
             ->limit(1)
@@ -525,7 +528,7 @@ class BookingForm extends Component
                     ]);
 
                     $this->orderCreated = true;
-                    return "Бронирование успешно создано! Статус - {$order['OrderInfo']['OrderStatus']}";
+                    return "Бронирование успешно создано!"; // Статус - {$order['OrderInfo']['OrderStatus']}";
 
                 // session()->flash('success', "Бронирование успешно создано! Статус - {$order['OrderInfo']['OrderStatus']}");
                 // return redirect()->route('booking.success');
@@ -540,6 +543,30 @@ class BookingForm extends Component
         // return $payload;
             
     }
+
+    function getUtcOffsetByCityName()
+    {
+        $cityName = strtolower($this->city);
+        $foundTimezone = null;
+    
+        foreach (DateTimeZone::listIdentifiers() as $timezone) {
+            if (strtolower(substr($timezone, strrpos($timezone, '/') + 1)) == $cityName) {
+                $foundTimezone = $timezone;
+                break;
+            }
+        }
+    
+        if ($foundTimezone) {
+            $tz = new DateTimeZone($foundTimezone);
+            $now = new DateTime('now', $tz);
+            $offset = $tz->getOffset($now) / 3600;
+    
+            return 'UTC' . ($offset >= 0 ? '+' : '') . $offset;
+        }
+    
+        return 'Timezone not found';
+    }
+    
 
     public function render()
     {

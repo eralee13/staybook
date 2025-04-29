@@ -21,20 +21,22 @@
                                 </select>
                             </div>
                         
-                            {{-- <select name="year">
-                                <option value="">-- Год --</option>
-                                @for($y = now()->year; $y >= 2000; $y--)
-                                    <option value="{{ $y }}" {{ request('year') == $y ? 'selected' : '' }}>
-                                        {{ $y }}
-                                    </option>
-                                @endfor
-                            </select> --}}
+                            <div class="col">
+                                <select name="year">
+                                    @for($y = 2020; $y <= now()->year; $y++)
+                                        <option value="{{ $y }}" {{ (request('year', now()->year) == $y) ? 'selected' : '' }}>
+                                            {{ $y }}
+                                        </option>
+                                    @endfor
+
+                                </select>
+                            </div>
                         
                             <div class="col">
                                 <button type="submit" class="btn more">Фильтровать</button>
                             </div>
                             <div class="col">
-                                <a href="{{ route('books.list') }}?month={{ request('month') }}" class="btn btn-success more">
+                                <a href="{{ route('books.list') }}?month={{ request('month') }}&year={{ request('year') }}" class="btn btn-success more">
                                     📥 Выгрузить в Excel
                                 </a>
                             </div>

@@ -117,10 +117,17 @@ class ListbookController extends Controller
     public function eksport(Request $request)
     {   
         $month = $request->input('month');
+        $selYear = $request->input('year');
+        
         $year = now()->year;
         
         // Формируем имя файла
-        $fileName = 'books_' . $year;
+        if ( $selYear ){
+            $fileName = 'books_' . $selYear;
+        }else{
+            $fileName = 'books_' . $year;
+        }
+        
     
         if ($month) {
             $monthName = Carbon::create()->month($month)->translatedFormat('F');
@@ -129,6 +136,6 @@ class ListbookController extends Controller
     
         $fileName .= '.xlsx';
 
-        return Excel::download(new BooksExportExcel($month), $fileName);
+        return Excel::download(new BooksExportExcel($month, $selYear), $fileName);
     }
 }

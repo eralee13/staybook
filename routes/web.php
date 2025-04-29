@@ -150,7 +150,7 @@ Route::middleware('set_locale')->group(function () {
     Route::prefix('bookcalendar')->group(function () {
         Route::get('/', [BookCalendarController::class, 'index'])->name('bookcalendar.index');
         Route::get('/events', [BookCalendarController::class, 'getEvents'])->name('bookcalendar.events');
-        Route::post('/', [BookCalendarController::class, 'store'])->name('bookcalendar.store');
+        Route::post('/create', [BookCalendarController::class, 'store'])->name('bookcalendar.store');
         Route::put('/{id}', [BookCalendarController::class, 'update'])->name('bookcalendar.update');
         Route::delete('/{id}', [BookCalendarController::class, 'destroy'])->name('bookcalendar.delete');
     });
