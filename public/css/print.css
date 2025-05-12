@@ -9,6 +9,6 @@ header form, header .status, header .homelink, .head, footer, .modal .closeBtn{
     margin-left: 60px;
     max-width: 100%;
 }
-.admin .modal-content .download, .admin .modal-content .print{
+.admin .modal-content .download, .admin .modal-content .print, .admin header, .admin .sidebar{
     display: none;
 }

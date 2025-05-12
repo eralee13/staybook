@@ -43,7 +43,7 @@
                                 <td>
                                     <form action="{{ route('hotels.destroy', $hotel) }}" method="post">
                                         <ul>
-                                            <a href="{{ route('hotels.show', $hotel) }}"><img src="{{ route('index') }}/img/icons/eye.svg" alt=""></a>
+                                            <a href="{{ route('hotels.show', $hotel) }}" class="select-hotel" data-hotel="{{ $hotel->id }}"><img src="{{ route('index') }}/img/icons/eye.svg" alt=""></a>
                                             @csrf
                                             @method('DELETE')
                                             <button onclick="return confirm('Do you want to delete this?');"><img src="{{ route('index') }}/img/icons/trash.svg" alt=""></a></button>
@@ -53,6 +53,8 @@
                             </tr>
                         @endforeach
                     </table>
+
+
                     {{ $hotels->links('pagination::bootstrap-4') }}
                 </div>
             </div>

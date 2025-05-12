@@ -284,3 +284,24 @@ header .logo img{
     background-color: #f2dede;
     border-color: #ebccd1;
 }
+.admin form ul button{
+    padding: 0;
+}
+nav ul{
+    padding-left: 0;
+    text-align: center;
+    margin-top: 20px;
+}
+nav ul li{
+    display: inline-block;
+    padding: 5px 15px;
+}
+nav ul li.active{
+    background-color: #0a58ca;
+    color: #fff;
+    border-radius: 5px;
+}
+nav ul li a{
+    text-decoration: none;
+    color: #000;
+}

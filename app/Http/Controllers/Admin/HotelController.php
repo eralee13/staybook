@@ -7,6 +7,7 @@ use App\Http\Requests\HotelRequest;
 use App\Mail\HotelDeleteMail;
 use App\Mail\HotelMail;
 use App\Mail\HotelUpdateMail;
+use App\Models\City;
 use App\Models\Hotel;
 use App\Models\Image;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -14,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -101,8 +103,8 @@ class HotelController extends Controller
         $pathname = 'pdf/agreement_' . $hotel->id . '.pdf';
         Storage::put($pathname, $pdf->output());
 
-        // rules
-        $pdf2 = PDF::loadView('pdf.rules', $data);
+        // cancellations
+        $pdf2 = PDF::loadView('pdf.cancellations', $data);
         $pathname2 = 'pdf/rules_' . $hotel->id . '.pdf';
         Storage::put($pathname2, $pdf2->output());
 
@@ -110,7 +112,7 @@ class HotelController extends Controller
             array(
                 'title' => $hotel->title,
                 'agreement' => $pathname,
-                'rules' => $pathname2,
+                'cancellations' => $pathname2,
                 'hotel_id' => $hotel->id,
                 'status' => 1,
                 'created_at' => date('Y-m-d H:s:i'),
@@ -132,7 +134,7 @@ class HotelController extends Controller
         $users = Auth::user();
         $images = Image::where('hotel_id', $hotel->id)->get();
         $request->session()->put('hotel_id', $hotel->id);
-
+        //dd($request->session()->get('hotel_id'));
         return view('auth.hotels.show', compact('hotel', 'users', 'images'));
     }
 
@@ -141,8 +143,15 @@ class HotelController extends Controller
      */
     public function edit(Hotel $hotel)
     {
+        $hotelId = session('hotel_id');
+        if (!$hotelId) {
+            return redirect()->route('hotels.index')->with('error', 'Сначала выберите отель');
+        }
+        $cities = City::orderBy('title', 'ASC')->get();
         $images = Image::where('hotel_id', $hotel->id)->get();
-        return view('auth.hotels.form', compact('hotel', 'images'));
+        $timezones = \DateTimeZone::listIdentifiers();
+
+        return view('auth.hotels.form', compact('hotel', 'images', 'cities', 'timezones'));
     }
 
     /**
@@ -189,7 +198,7 @@ class HotelController extends Controller
         $pathname = 'pdf/agreement_' . $hotel->id . '.pdf';
         Storage::put($pathname, $pdf->output());
 
-        // rules
+        // cancellations
         $pdf2 = PDF::loadView('pdf.rules', $data);
         $pathname2 = 'pdf/rules_' . $hotel->id . '.pdf';
         Storage::put($pathname2, $pdf2->output());
@@ -202,6 +211,8 @@ class HotelController extends Controller
             ]);
 
         //Mail::to('info@timmedia.store')->send(new HotelUpdateMail($request));
+
+        session(['hotel_id' => $request->hotel_id]);
 
         session()->flash('success', $request->title . ' updated');
         return redirect()->route('hotels.show', $hotel);
@@ -216,7 +227,7 @@ class HotelController extends Controller
         Storage::delete($hotel->image);
         //$bill = Bill::where('hotel_id', $hotel->id)->firstOrFail();
         //Storage::delete($bill->agreement);
-        //Storage::delete($bill->rules);
+        //Storage::delete($bill->cancellations);
         $images = Image::where('hotel_id', $hotel->id)->get();
         foreach ($images as $image) {
             Storage::delete($image->image);
@@ -225,8 +236,6 @@ class HotelController extends Controller
         DB::table('bills')->where('hotel_id', $hotel->id)->delete();
         DB::table('rooms')->where('hotel_id', $hotel->id)->delete();
         DB::table('rates')->where('hotel_id', $hotel->id)->delete();
-        DB::table('accommodations')->where('hotel_id', $hotel->id)->delete();
-        DB::table('rules')->where('hotel_id', $hotel->id)->delete();
         DB::table('amenities')->where('hotel_id', $hotel->id)->delete();
         DB::table('payments')->where('hotel_id', $hotel->id)->delete();
         Mail::to('info@timmedia.store')->send(new HotelDeleteMail($hotel));
@@ -236,7 +245,6 @@ class HotelController extends Controller
 
     public function search(Request $request)
     {
-
         if ($request->ajax()) {
             $data = Hotel::where('id', 'like', '%' . $request->search . '%')
                 ->orwhere('title', 'like', '%' . $request->search . '%')

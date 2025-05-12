@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('rules', function (Blueprint $table) {
+        Schema::table('cancellations', function (Blueprint $table) {
             $table->integer('amount');
             //$table->string('currency', 3)->nullable()->after('amount');
             $table->dateTime('start_date_time')->nullable();
@@ -24,7 +24,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('rules', function (Blueprint $table) {
+        Schema::table('cancellations', function (Blueprint $table) {
             $table->dropColumn('amount');
             $table->dropColumn('start_date_time');
             $table->dropColumn('end_date_time');

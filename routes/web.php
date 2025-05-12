@@ -42,11 +42,9 @@ Route::middleware('set_locale')->group(function () {
         Route::resource("bookings", "App\Http\Controllers\Admin\BookingController");
         Route::resource("prices", "App\Http\Controllers\Admin\PriceController");
         Route::resource("rooms", "App\Http\Controllers\Admin\RoomController");
-        Route::resource("categoryRooms", "App\Http\Controllers\Admin\CategoryRoomController");
         Route::resource("rates", "App\Http\Controllers\Admin\RateController");
         Route::resource("meals", "App\Http\Controllers\Admin\MealController");
-        Route::resource("rules", "App\Http\Controllers\Admin\RuleController");
-        Route::resource("accommodations", "App\Http\Controllers\Admin\AccommodationController");
+        Route::resource("cancellations", "App\Http\Controllers\Admin\CancelRuleController");
         Route::resource("pages", "App\Http\Controllers\Admin\PageController");
         Route::resource("images", "App\Http\Controllers\Admin\ImageController");
         Route::resource("bills", "App\Http\Controllers\Admin\BillController");
@@ -97,6 +95,8 @@ Route::middleware('set_locale')->group(function () {
 
 
     Route::get('/', [PageController::class, 'index'])->name('index');
+    Route::get('/search', [PageController::class, 'search'])->name('search');
+
     Route::get("/searchtest", [PageController::class, 'searchtest'])->name('searchtest');
     Route::get('/allrooms', [PageController::class, 'allrooms'])->name('allrooms');
     Route::get('/products/create-step-one', [PageController::class, 'createStepOne'])->name('createStepOne');
@@ -131,31 +131,30 @@ Route::middleware('set_locale')->group(function () {
     Route::get('/v1/booking/cancel', [ReservationController::class, 'res_cancel'])->name('res_cancel');
     Route::get('/v1/booking/calculate', [ReservationController::class, 'res_calculate'])->name('res_calculate');
 
-
-
+    //TourMind
+    Route::get('/hotel-results', HotelResults::class)->name('hotel.results');
+    Route::get('/hotel-rooms', HotelRooms::class)->name('hotel.rooms');
+    Route::get('/bookingform', BookingForm::class)->name('bookingform');
     Route::get('/allhotels', [PageController::class, 'hotels'])->name('hotels');
     Route::get('/order/{order}', [PageController::class, 'order'])->name('order');
-
     Route::get('/testsearch', [PageController::class, 'testsearch'])->name('testsearch');
 
 
     Route::get('/about', [PageController::class, 'about'])->name('about');
     Route::get('/contactspage', [PageController::class, 'contactspage'])->name('contactspage');
-    Route::get('/search', [PageController::class, 'search'])->name('search');
+
     Route::get('/hotel/{hotel}', [PageController::class, 'hotel'])->name('hotel');
     Route::get('/hotel/{hotel}/{rooms}', [PageController::class, 'room'])->name('room');
+
+    //local front book
+    Route::get('/book/verify', [PageController::class, 'book_verify'])->name('book_verify');
+    Route::get('/book/reserve', [PageController::class, 'book_reserve'])->name('book_reserve');
+    Route::get('/book/cancel/calculate', [PageController::class, 'cancel_calculate'])->name('cancel_calculate');
+    Route::get('/book/cancel/confirm', [PageController::class, 'cancel_confirm'])->name('cancel_confirm');
 
     //email
     Route::post('contact_mail', [MainController::class, 'contact_mail'])->name('contact_mail');
     Route::post('book_mail', [PageController::class, 'book_mail'])->name('book_mail');
-
-    //Hotel list
-    Route::get('/hotel-results', HotelResults::class)->name('hotel.results');
-    Route::get('/hotel-rooms', HotelRooms::class)->name('hotel.rooms');
-    Route::get('/bookingform', BookingForm::class)->name('bookingform');
-
-    Route::get('/books/export', [ListbookController::class, 'export'])->name('books.list');
-
 
 });
 

@@ -83,7 +83,7 @@ return array(
         /**
          * Protocol whitelist
          *
-         * Protocols and PHP wrappers allowed in URIs, and the validation rules
+         * Protocols and PHP wrappers allowed in URIs, and the validation cancellations
          * that determine if a resouce may be loaded. Full support is not guaranteed
          * for the protocols/wrappers specified
          * by this array.
@@ -91,9 +91,9 @@ return array(
          * @var array
          */
         'allowed_protocols' => [
-            "file://" => ["rules" => []],
-            "http://" => ["rules" => []],
-            "https://" => ["rules" => []]
+            "file://" => ["cancellations" => []],
+            "http://" => ["cancellations" => []],
+            "https://" => ["cancellations" => []]
         ],
 
          /**
@@ -152,7 +152,7 @@ return array(
 
         /**
          * html target media view which should be rendered into pdf.
-         * List of types and parsing rules for future extensions:
+         * List of types and parsing cancellations for future extensions:
          * http://www.w3.org/TR/REC-html40/types.html
          *   screen, tty, tv, projection, handheld, print, braille, aural, all
          * Note: aural is deprecated in CSS 2.1 because it is replaced by speech in CSS 3.

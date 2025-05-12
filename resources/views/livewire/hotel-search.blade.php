@@ -1,488 +1,276 @@
 @php use Carbon\Carbon; @endphp
 <div class="container">
     {{-- {{ print_r(session('hotel_search'), true) }} --}}
-    <form wire:submit.prevent="searchHotels" class="row">
+    <form wire:submit.prevent="searchHotels">
         <div class="row">
-            <div class="col">
+            <div class="col-lg-3 col-md-12">
                 <div class="form-group">
-                    <label for="accommodation_type">Размещение</label>
-                    <select name="accommodation_type"  wire:model="accommodation_type">
-                        <option value="hotel">Hotel</option>
-                        <option value="villa">Villa</option>
-                        <option value="cottage">Cottage</option>
-                        <option value="apartment">Apartment</option>
-                        <option value="resort">Resort</option>
-                        <option value="hostel">Hostel</option>
-                        <option value="guesthouse">Guesthouse</option>
-                        <option value="bungalow">Bungalow</option>
-                        <option value="motel">Motel</option>
-                        <option value="capsule">Capsule Hotel</option>
-                        <option value="chalet">Chalet</option>
-                        <option value="lodging">Lodging</option>
-                        <option value="inn">Inn</option>
-                        <option value="houseboat">Houseboat</option>
-                        <option value="glamping">Glamping</option>
-                    </select>
-                </div>
-            </div>
-            <div class="col">
-                <div class="form-group">
-                    <label for="city">@lang('main.search-title')</label>
+                    <div class="label stay"><img src="{{route('index')}}/img/marker_out.svg" alt="">
+                    </div>
                     <select name="city" id="city" wire:model="city">
-                        <option value="">@lang('main.choose')</option>
-                        <option value="Kyiv">Киев</option>
+                        @php
+                            $cities = \App\Models\City::all();
+                            $now = \Carbon\Carbon::now()->format('Y-m-d');
+                            $tomorrow = \Carbon\Carbon::tomorrow()->format('Y-m-d');
+                        @endphp
+                        @foreach($cities as $city)
+                            <option value="{{ $city->exely_id }}">{{ $city->title }}</option>
+                        @endforeach
                     </select>
                 </div>
             </div>
-            <div class="col">
+            <div class="col-lg col-6">
                 <div class="form-group">
-                    @php
+                    <div class="label in"><img src="{{route('index')}}/img/marker_in.svg" alt=""> Заезд
+                    </div>
+                    <input type="text" wire:model.lazy="dateRange" id="daterange" class="date">
+                    <input type="hidden" wire:model="checkin" id="start_d" name="start_d" value="{{ $now }}">
+                    <input type="hidden" wire:model="checkout" id="end_d" name="end_d" value="{{ $tomorrow }}">
+                </div>
+            </div>
+            <div class="col-lg col-6">
+                <div id="count_person">
+                    <div class="form-group">
+                        <div class="label guest"><img src="{{route('index')}}/img/user.svg" alt="">
+                        </div>
+                        <input type="text" value="Кол-во гостей">
+                        <div id="count-wrap" class="count-wrap">
+                            <!-- Взрослые -->
+                            <div class="counter count-item">
+                                <label>Взрослые:</label>
+                                <a class="minus" onclick="changeCount('adult', -1)">-</a>
+                                <span id="adult-count">1</span>
+                                <a class="plus" onclick="changeCount('adult', 1)">+</a>
+                                <input wire:model="adult" type="hidden" name="adult" id="adult" value="1">
+                            </div>
 
-                        // Добавляем 1 месяц вперёд и устанавливаем на 1 и 2 число
-                        $startDate = Carbon::now()->addMonth()->startOfMonth()->format('Y-m-d');
-                        $endDate = Carbon::now()->addMonth()->startOfMonth()->addDay()->format('Y-m-d');
+                            <!-- Дети -->
+                            <div class="counter count-item">
+                                <label>Дети:</label>
+                                <a class="minus" onclick="changeCount('child', -1)">-</a>
+                                <span id="child-count">0</span>
+                                <a class="plus" onclick="changeCount('child', 1)">+</a>
+                                <input wire:model="child" type="hidden" name="childAges[]" id="child">
+                            </div>
 
-                        // Получаем текущую локаль Laravel
-                        $locale = app()->getLocale(); // 'ru', 'en', и т.д.
-                    @endphp
+                            <!-- Возраст детей -->
+                            <div id="children-ages"></div>
 
-                    <label for="">@lang('main.search-date')</label>
-                    <input type="text" wire:model.lazy="dateRange" id="daterange" class="da" autocomplete="off" placeholder="Выберите дату">
-                        @error('dateRange')
-                            <div class="text-danger mt-1">{{ $message }}</div>
-                        @enderror
-                    <input type="hidden" wire:model="checkin" id="start_d" name="start_d" />
-                    <input type="hidden" wire:model="checkout" id="end_d" name="end_d" />
-                    
+                            <script>
+                                let adultCount = 0;
+                                let childCount = 0;
+                                const maxAdults = 8;
+                                const maxChildren = 3;
 
-                    
+                                function changeCount(type, delta) {
+                                    if (type === 'adult') {
+                                        adultCount = Math.max(1, Math.min(maxAdults, adultCount + delta));
+                                        document.getElementById('adult-count').innerText = adultCount;
+                                        document.getElementById('adult').value = adultCount;
+                                    } else if (type === 'child') {
+                                        const newCount = childCount + delta;
+                                        if (newCount >= 0 && newCount <= maxChildren) {
+                                            childCount = newCount;
+                                            document.getElementById('child-count').innerText = childCount;
+                                            document.getElementById('child').value = childCount;
+                                            renderChildAgeSelectors();
+                                        }
+                                    }
+                                }
+
+                                function renderChildAgeSelectors() {
+                                    const container = document.getElementById('children-ages');
+                                    container.innerHTML = '';
+
+                                    for (let i = 0; i < childCount; i++) {
+                                        const div = document.createElement('div');
+                                        div.className = 'child-block';
+                                        div.innerHTML = `
+		  <label>Возраст ребёнка ${i + 1}:</label>
+		  <select name="age${i + 1}" wire:model="childrenage${i + 1}">
+			<option value="">-- возраст --</option>
+			${Array.from({length: 19}, (_, age) => `<option value="${age}">${age}</option>`).join('')}
+		  </select>
+		`;
+                                        container.appendChild(div);
+                                    }
+                                }
+                            </script>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="col">
+
+            <div class="col-lg col-6 extra">
                 <div class="form-group">
-                    <label for="">@lang('main.search-adult')</label>
-                    <select name="adults" id="adults" wire:model="adults">
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                    </select>
-                </div>
-            </div>
-            <div class="col">
-                <div class="form-group" style="position: relative">
-                    <label for="">@lang('main.search-child')</label>
-                    <select name="countc" onchange="ageCheck(this);" wire:model="child">
-                        <option value="">@lang('main.choose')</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                    </select>
-                    <select name="age1" id="age1" class="age" wire:model="childrenage">
-                        <option value="0">@lang('main.choose')</option>
-                        <option value="1">1 год</option>
-                        <option value="2">2 года</option>
-                        <option value="3">3 года</option>
-                        <option value="4">4 года</option>
-                        <option value="5">5 лет</option>
-                        <option value="6">6 лет</option>
-                        <option value="7">7 лет</option>
-                        <option value="8">8 лет</option>
-                        <option value="9">9 лет</option>
-                        <option value="10">10 лет</option>
-                        <option value="11">11 лет</option>
-                        <option value="12">12 лет</option>
-                        <option value="13">13 лет</option>
-                        <option value="14">14 лет</option>
-                        <option value="15">15 лет</option>
-                        <option value="16">16 лет</option>
-                        <option value="17">17 лет</option>
-                    </select>
-                    <select name="age2" id="age2" class="age" wire:model="childrenage2">
-                        <option value="0">@lang('main.choose')</option>
-                        <option value="1">1 год</option>
-                        <option value="2">2 года</option>
-                        <option value="3">3 года</option>
-                        <option value="4">4 года</option>
-                        <option value="5">5 лет</option>
-                        <option value="6">6 лет</option>
-                        <option value="7">7 лет</option>
-                        <option value="8">8 лет</option>
-                        <option value="9">9 лет</option>
-                        <option value="10">10 лет</option>
-                        <option value="11">11 лет</option>
-                        <option value="12">12 лет</option>
-                        <option value="13">13 лет</option>
-                        <option value="14">14 лет</option>
-                        <option value="15">15 лет</option>
-                        <option value="16">16 лет</option>
-                        <option value="17">17 лет</option>
-                    </select>
-                    <select name="age3" id="age3" class="age" wire:model="childrenage3">
-                        <option value="0">@lang('main.choose')</option>
-                        <option value="1">1 год</option>
-                        <option value="2">2 года</option>
-                        <option value="3">3 года</option>
-                        <option value="4">4 года</option>
-                        <option value="5">5 лет</option>
-                        <option value="6">6 лет</option>
-                        <option value="7">7 лет</option>
-                        <option value="8">8 лет</option>
-                        <option value="9">9 лет</option>
-                        <option value="10">10 лет</option>
-                        <option value="11">11 лет</option>
-                        <option value="12">12 лет</option>
-                        <option value="13">13 лет</option>
-                        <option value="14">14 лет</option>
-                        <option value="15">15 лет</option>
-                        <option value="16">16 лет</option>
-                        <option value="17">17 лет</option>
-                    </select>
-                    <script>
-                        function ageCheck(that) {
-                            if (that.value == 1) {
-                                document.getElementById("age1").style.display = "inline-block";
-                                document.getElementById("age2").style.display = "none";
-                                document.getElementById("age3").style.display = "none";
-                            }
-                            else if (that.value == 2) {
-                                document.getElementById("age1").style.display = "inline-block";
-                                document.getElementById("age2").style.display = "inline-block";
-                                document.getElementById("age3").style.display = "none";
-                            }
-                            else if (that.value == 3) {
-                                document.getElementById("age1").style.display = "inline-block";
-                                document.getElementById("age2").style.display = "inline-block";
-                                document.getElementById("age3").style.display = "inline-block";
-                            }
-                            else {
-                                document.getElementById("age1").style.display = "none";
-                                document.getElementById("age2").style.display = "none";
-                                document.getElementById("age3").style.display = "none";
-                            }
-                        }
-                    </script>
-                </div>
-            </div>
-            <div class="col">
-                <div class="form-group">
-                    <button type="submit" class="more">@lang('main.search')</button>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col">
-                <div class="form-group">
-                    <label for="citizenship">@lang('main.citizenship')</label>
-                    <select name="citizenship" id="citizen" wire:model="citizen">
-                        <option value="">@lang('main.choose')</option>
-                        <option value="AX">AALAND ISLANDS</option>
-                        <option value="AF">AFGHANISTAN</option>
-                        <option value="AL">ALBANIA</option>
-                        <option value="DZ">ALGERIA</option>
-                        <option value="AS">AMERICAN SAMOA</option>
-                        <option value="AD">ANDORRA</option>
-                        <option value="AO">ANGOLA</option>
-                        <option value="AI">ANGUILLA</option>
-                        <option value="AQ">ANTARCTICA</option>
-                        <option value="AG">ANTIGUA AND BARBUDA</option>
-                        <option value="AR">ARGENTINA</option>
-                        <option value="AM">ARMENIA</option>
-                        <option value="AW">ARUBA</option>
-                        <option value="AU">AUSTRALIA</option>
-                        <option value="AT">AUSTRIA</option>
-                        <option value="AZ">AZERBAIJAN</option>
-                        <option value="BS">BAHAMAS</option>
-                        <option value="BH">BAHRAIN</option>
-                        <option value="BD">BANGLADESH</option>
-                        <option value="BB">BARBADOS</option>
-                        <option value="BY">BELARUS</option>
-                        <option value="BE">BELGIUM</option>
-                        <option value="BZ">BELIZE</option>
-                        <option value="BJ">BENIN</option>
-                        <option value="BM">BERMUDA</option>
-                        <option value="BT">BHUTAN</option>
-                        <option value="BO">BOLIVIA</option>
-                        <option value="BA">BOSNIA AND HERZEGOWINA</option>
-                        <option value="BW">BOTSWANA</option>
-                        <option value="BV">BOUVET ISLAND</option>
-                        <option value="BR">BRAZIL</option>
-                        <option value="IO">BRITISH INDIAN OCEAN TERRITORY</option>
-                        <option value="BN">BRUNEI DARUSSALAM</option>
-                        <option value="BG">BULGARIA</option>
-                        <option value="BF">BURKINA FASO</option>
-                        <option value="BI">BURUNDI</option>
-                        <option value="KH">CAMBODIA</option>
-                        <option value="CM">CAMEROON</option>
-                        <option value="CA">CANADA</option>
-                        <option value="CV">CAPE VERDE</option>
-                        <option value="KY">CAYMAN ISLANDS</option>
-                        <option value="CF">CENTRAL AFRICAN REPUBLIC</option>
-                        <option value="TD">CHAD</option>
-                        <option value="CL">CHILE</option>
-                        <option value="CN">CHINA</option>
-                        <option value="CX">CHRISTMAS ISLAND</option>
-                        <option value="CO">COLOMBIA</option>
-                        <option value="KM">COMOROS</option>
-                        <option value="CK">COOK ISLANDS</option>
-                        <option value="CR">COSTA RICA</option>
-                        <option value="CI">COTE D'IVOIRE</option>
-                        <option value="CU">CUBA</option>
-                        <option value="CY">CYPRUS</option>
-                        <option value="CZ">CZECH REPUBLIC</option>
-                        <option value="DK">DENMARK</option>
-                        <option value="DJ">DJIBOUTI</option>
-                        <option value="DM">DOMINICA</option>
-                        <option value="DO">DOMINICAN REPUBLIC</option>
-                        <option value="EC">ECUADOR</option>
-                        <option value="EG">EGYPT</option>
-                        <option value="SV">EL SALVADOR</option>
-                        <option value="GQ">EQUATORIAL GUINEA</option>
-                        <option value="ER">ERITREA</option>
-                        <option value="EE">ESTONIA</option>
-                        <option value="ET">ETHIOPIA</option>
-                        <option value="FO">FAROE ISLANDS</option>
-                        <option value="FJ">FIJI</option>
-                        <option value="FI">FINLAND</option>
-                        <option value="FR">FRANCE</option>
-                        <option value="GF">FRENCH GUIANA</option>
-                        <option value="PF">FRENCH POLYNESIA</option>
-                        <option value="TF">FRENCH SOUTHERN TERRITORIES</option>
-                        <option value="GA">GABON</option>
-                        <option value="GM">GAMBIA</option>
-                        <option value="GE">GEORGIA</option>
-                        <option value="DE">GERMANY</option>
-                        <option value="GH">GHANA</option>
-                        <option value="GI">GIBRALTAR</option>
-                        <option value="GR">GREECE</option>
-                        <option value="GL">GREENLAND</option>
-                        <option value="GD">GRENADA</option>
-                        <option value="GP">GUADELOUPE</option>
-                        <option value="GU">GUAM</option>
-                        <option value="GT">GUATEMALA</option>
-                        <option value="GN">GUINEA</option>
-                        <option value="GW">GUINEA-BISSAU</option>
-                        <option value="GY">GUYANA</option>
-                        <option value="HT">HAITI</option>
-                        <option value="HM">HEARD AND MC DONALD ISLANDS</option>
-                        <option value="HN">HONDURAS</option>
-                        <option value="HK">HONG KONG</option>
-                        <option value="HU">HUNGARY</option>
-                        <option value="IS">ICELAND</option>
-                        <option value="IN">INDIA</option>
-                        <option value="ID">INDONESIA</option>
-                        <option value="IQ">IRAQ</option>
-                        <option value="IE">IRELAND</option>
-                        <option value="IL">ISRAEL</option>
-                        <option value="IT">ITALY</option>
-                        <option value="JM">JAMAICA</option>
-                        <option value="JP">JAPAN</option>
-                        <option value="JO">JORDAN</option>
-                        <option value="KZ">KAZAKHSTAN</option>
-                        <option value="KE">KENYA</option>
-                        <option value="KI">KIRIBATI</option>
-                        <option value="KW">KUWAIT</option>
-                        <option value="KG">KYRGYZSTAN</option>
-                        <option value="LA">LAO PEOPLE'S DEMOCRATIC REPUBLIC</option>
-                        <option value="LV">LATVIA</option>
-                        <option value="LB">LEBANON</option>
-                        <option value="LS">LESOTHO</option>
-                        <option value="LR">LIBERIA</option>
-                        <option value="LY">LIBYAN ARAB JAMAHIRIYA</option>
-                        <option value="LI">LIECHTENSTEIN</option>
-                        <option value="LT">LITHUANIA</option>
-                        <option value="LU">LUXEMBOURG</option>
-                        <option value="MO">MACAU</option>
-                        <option value="MG">MADAGASCAR</option>
-                        <option value="MW">MALAWI</option>
-                        <option value="MY">MALAYSIA</option>
-                        <option value="MV">MALDIVES</option>
-                        <option value="ML">MALI</option>
-                        <option value="MT">MALTA</option>
-                        <option value="MH">MARSHALL ISLANDS</option>
-                        <option value="MQ">MARTINIQUE</option>
-                        <option value="MR">MAURITANIA</option>
-                        <option value="MU">MAURITIUS</option>
-                        <option value="YT">MAYOTTE</option>
-                        <option value="MX">MEXICO</option>
-                        <option value="MC">MONACO</option>
-                        <option value="MN">MONGOLIA</option>
-                        <option value="MS">MONTSERRAT</option>
-                        <option value="MA">MOROCCO</option>
-                        <option value="MZ">MOZAMBIQUE</option>
-                        <option value="MM">MYANMAR</option>
-                        <option value="NA">NAMIBIA</option>
-                        <option value="NR">NAURU</option>
-                        <option value="NP">NEPAL</option>
-                        <option value="NL">NETHERLANDS</option>
-                        <option value="AN">NETHERLANDS ANTILLES</option>
-                        <option value="NC">NEW CALEDONIA</option>
-                        <option value="NZ">NEW ZEALAND</option>
-                        <option value="NI">NICARAGUA</option>
-                        <option value="NE">NIGER</option>
-                        <option value="NG">NIGERIA</option>
-                        <option value="NU">NIUE</option>
-                        <option value="NF">NORFOLK ISLAND</option>
-                        <option value="MP">NORTHERN MARIANA ISLANDS</option>
-                        <option value="NO">NORWAY</option>
-                        <option value="OM">OMAN</option>
-                        <option value="PK">PAKISTAN</option>
-                        <option value="PW">PALAU</option>
-                        <option value="PA">PANAMA</option>
-                        <option value="PG">PAPUA NEW GUINEA</option>
-                        <option value="PY">PARAGUAY</option>
-                        <option value="PE">PERU</option>
-                        <option value="PH">PHILIPPINES</option>
-                        <option value="PN">PITCAIRN</option>
-                        <option value="PL">POLAND</option>
-                        <option value="PT">PORTUGAL</option>
-                        <option value="PR">PUERTO RICO</option>
-                        <option value="QA">QATAR</option>
-                        <option value="RE">REUNION</option>
-                        <option value="RO">ROMANIA</option>
-                        <option value="RU">RUSSIAN FEDERATION</option>
-                        <option value="RW">RWANDA</option>
-                        <option value="SH">SAINT HELENA</option>
-                        <option value="KN">SAINT KITTS AND NEVIS</option>
-                        <option value="LC">SAINT LUCIA</option>
-                        <option value="PM">SAINT PIERRE AND MIQUELON</option>
-                        <option value="VC">SAINT VINCENT AND THE GRENADINES</option>
-                        <option value="WS">SAMOA</option>
-                        <option value="SM">SAN MARINO</option>
-                        <option value="ST">SAO TOME AND PRINCIPE</option>
-                        <option value="SA">SAUDI ARABIA</option>
-                        <option value="SN">SENEGAL</option>
-                        <option value="CS">SERBIA AND MONTENEGRO</option>
-                        <option value="SC">SEYCHELLES</option>
-                        <option value="SL">SIERRA LEONE</option>
-                        <option value="SG">SINGAPORE</option>
-                        <option value="SK">SLOVAKIA</option>
-                        <option value="SI">SLOVENIA</option>
-                        <option value="SB">SOLOMON ISLANDS</option>
-                        <option value="SO">SOMALIA</option>
-                        <option value="ZA">SOUTH AFRICA</option>
-                        <option value="GS">SOUTH GEORGIA AND THE SOUTH SANDWICH ISLANDS</option>
-                        <option value="ES">SPAIN</option>
-                        <option value="LK">SRI LANKA</option>
-                        <option value="SD">SUDAN</option>
-                        <option value="SR">SURINAME</option>
-                        <option value="SJ">SVALBARD AND JAN MAYEN ISLANDS</option>
-                        <option value="SZ">SWAZILAND</option>
-                        <option value="SE">SWEDEN</option>
-                        <option value="CH">SWITZERLAND</option>
-                        <option value="SY">SYRIAN ARAB REPUBLIC</option>
-                        <option value="TW">TAIWAN</option>
-                        <option value="TJ">TAJIKISTAN</option>
-                        <option value="TH">THAILAND</option>
-                        <option value="TL">TIMOR-LESTE</option>
-                        <option value="TG">TOGO</option>
-                        <option value="TK">TOKELAU</option>
-                        <option value="TO">TONGA</option>
-                        <option value="TT">TRINIDAD AND TOBAGO</option>
-                        <option value="TN">TUNISIA</option>
-                        <option value="TR">TURKEY</option>
-                        <option value="TM">TURKMENISTAN</option>
-                        <option value="TC">TURKS AND CAICOS ISLANDS</option>
-                        <option value="TV">TUVALU</option>
-                        <option value="UG">UGANDA</option>
-                        <option value="UA">UKRAINE</option>
-                        <option value="AE">UNITED ARAB EMIRATES</option>
-                        <option value="GB">UNITED KINGDOM</option>
-                        <option value="US">UNITED STATES</option>
-                        <option value="UM">UNITED STATES MINOR OUTLYING ISLANDS</option>
-                        <option value="UY">URUGUAY</option>
-                        <option value="UZ">UZBEKISTAN</option>
-                        <option value="VU">VANUATU</option>
-                        <option value="VE">VENEZUELA</option>
-                        <option value="VN">VIET NAM</option>
-                        <option value="WF">WALLIS AND FUTUNA ISLANDS</option>
-                        <option value="EH">WESTERN SAHARA</option>
-                        <option value="YE">YEMEN</option>
-                        <option value="ZM">ZAMBIA</option>
-                        <option value="ZW">ZIMBABWE</option>
-                    </select>
-                </div>
-            </div>
-            <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-            <script>
-                $(document).ready(function () {
-                    $('#hotel').selectize({
-                        sortField: 'text'
-                    });
-                    $('#citizen').selectize({
-                        sortField: 'text'
-                    });
-                    // $('#rating').selectize({
-                    //     sortField: 'text'
-                    // });
-                });
-            </script>
-            <div class="col">
-                <div class="form-group">
-                    <label for="rating">@lang('main.search-rating')</label>
-                    <select name="rating" id="rating" wire:model="rating">
-                        <option value="">@lang('main.choose')</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                    </select>
+                    <div id="filter">
+                        <div class="label filter"><img src="{{route('index')}}/img/setting.svg" alt="">
+                            Фильтры
+                        </div>
+                        <div class="filter-wrap" id="filter-wrap">
+                            <div class="closebtn" id="closebtn"><img
+                                        src="{{route('index')}}/img/close.svg" alt=""></div>
+                            <h5>Фильтры</h5>
+                            <div class="form-group">
+                                <div class="name">Рейтинг</div>
+                                <div class="row justify-content-center">
+                                    <div class="col-lg col-md-4 col-4">
+                                        <div class="item">
+                                            <input type="radio" name="rating" value="1" wire:model="rating">
+                                            <div class="img">
+                                                <div class="num">1</div>
+                                                <div class="img-wrap">
+                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                         alt="">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg col-md-4 col-4">
+                                        <div class="item">
+                                            <input type="radio" name="rating" value="2" wire:model="rating">
+                                            <div class="img">
+                                                <div class="num">2</div>
+                                                <div class="img-wrap">
+                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                         alt="">
+                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                         alt="">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg col-md-4 col-4">
+                                        <div class="item">
+                                            <input type="radio" name="rating" value="3" wire:model="rating">
+                                            <div class="img">
+                                                <div class="num">3</div>
+                                                <div class="img-wrap">
+                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                         alt="">
+                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                         alt="">
+                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                         alt="">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg col-md-4 col-6">
+                                        <div class="item">
+                                            <input type="radio" name="rating" value="4" wire:model="rating">
+                                            <div class="img">
+                                                <div class="num">4</div>
+                                                <div class="img-wrap">
+                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                         alt="">
+                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                         alt="">
+                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                         alt="">
+                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                         alt="">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg col-md-4 col-6">
+                                        <div class="item">
+                                            <input type="radio" name="rating" value="5" wire:model="rating">
+                                            <div class="img">
+                                                <div class="num">5</div>
+                                                <div class="img-wrap">
+                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                         alt="">
+                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                         alt="">
+                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                         alt="">
+                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                         alt="">
+                                                    <img src="{{route('index')}}/img/icons/rate.svg"
+                                                         alt="">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="line"></div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-lg-3">
+                                        <div class="apart-item">
+                                            <img src="{{route('index')}}/img/hotelb.svg" alt="">
+                                            <h6>Отели</h6>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="line"></div>
+                            <div class="name">Прибытие</div>
+                            <div class="form-group" id="income">
+                                <div class="row">
+                                    <div class="col-md-6 col-6">
+                                        <div class="itemm">
+                                            <input type="checkbox" value="early_in" wire:model="early_in">
+                                            <label for="">Ранний заезд</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 col-6">
+                                        <div class="itemm">
+                                            <input type="checkbox" value="late_out" wire:model="late_out">
+                                            <label for="">Поздний выезд</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="line"></div>
+                            <div class="form-group" id="meal">
+                                <div class="name">Виды питания</div>
+                                <div class="row justify-content-center">
+                                    <div class="col-lg col-md-4 col-4">
+                                        <div class="itemmm">
+                                            <input type="radio" value="RO" wire:model="meal">
+                                            <label for="">RO</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg col-md-4 col-4">
+                                        <div class="itemmm">
+                                            <input type="radio" value="BF" wire:model="meal">
+                                            <label for="">BF</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg col-md-4 col-4">
+                                        <div class="itemmm">
+                                            <input type="radio" value="HF" wire:model="meal">
+                                            <label for="">HF</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg col-md-4 col-4">
+                                        <div class="itemmm">
+                                            <input type="radio" value="FF" wire:model="meal">
+                                            <label for="">FF</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg col-md-4 col-4">
+                                        <div class="itemmm">
+                                            <input type="radio" value="AI" wire:model="meal">
+                                            <label for="">AI</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {{--                                            <button type="submit" class="more">Найти</button>--}}
+                        </div>
+                    </div>
 
                 </div>
             </div>
-            <div class="col">
+            <div class="col-lg col-12">
                 <div class="form-group">
-                    <label for="food">@lang('main.search-include')</label>
-                    <select id="food_id" name="food_id" wire:model="food">
-                        <option value="">@lang('main.choose')</option>
-                        <option value="1">BF</option>
-                        <option value="2">RO</option>
-                        <option value="3">HF</option>
-                        <option value="4">AI</option>
-                    </select>
-                </div>
-            </div>
-            <div class="col">
-                <div class="form-group">
-                    <label for="check">@lang('main.search-early')</label>
-                    <select name="early_in" id="early_in" wire:model="early_in">
-                        <option value="">@lang('main.choose')</option>
-                        <option value="06:00">06:00</option>
-                        <option value="07:00">07:00</option>
-                        <option value="08:00">08:00</option>
-                        <option value="09:00">09:00</option>
-                        <option value="10:00">10:00</option>
-                        <option value="11:00">11:00</option>
-                        <option value="12:00">12:00</option>
-                        <option value="13:00">13:00</option>
-                    </select>
-                </div>
-            </div>
-            <div class="col">
-                <div class="form-group">
-                    <label for="check">@lang('main.search-late')</label>
-                    <select name="early_out" id="early_out" wire:model="early_out">
-                        <option value="">@lang('main.choose')</option>
-                        <option value="15:00">15:00</option>
-                        <option value="16:00">16:00</option>
-                        <option value="17:00">17:00</option>
-                        <option value="18:00">18:00</option>
-                        <option value="19:00">19:00</option>
-                        <option value="20:00">20:00</option>
-                        <option value="21:00">21:00</option>
-                        <option value="22:00">22:00</option>
-                        <option value="23:00">23:00</option>
-                    </select>
-                </div>
-            </div>
-            <div class="col">
-                <div class="form-group check">
-                    <input type="checkbox" id="cancelled" name="cancelled" wire:model="cancelled">
-                    <label for="cancelled">@lang('main.cancelled')</label>
-                </div>
-            </div>
-            <div class="col">
-                <div class="form-group check">
-                    <input type="checkbox" name="extra_place" id="extra_place" wire:model="extra_place">
-                    <label for="extra_place">@lang('main.search-extra')</label>
+                    <button type="submit" class="more"><img src="{{route('index')}}/img/search.svg" alt=""> Найти
+                    </button>
                 </div>
             </div>
         </div>
@@ -539,7 +327,7 @@
         // локализация для разных языков
         const localeSettings = {
             en: {
-                format: 'YYYY-MM-DD',
+                format: 'DD/MM/YYYY',
                 separator: ' - ',
                 applyLabel: 'Apply',
                 cancelLabel: 'Cancel',
@@ -552,7 +340,7 @@
                 firstDay: 1
             },
             ru: {
-                format: 'YYYY-MM-DD',
+                format: 'DD/MM/YYYY',
                 separator: ' - ',
                 applyLabel: 'Применить',
                 cancelLabel: 'Отмена',
@@ -572,14 +360,14 @@
         $('#daterange').daterangepicker({
             autoUpdateInput: false,
             autoApply: true,
-            startDate: "{{ $startDate }}",
-            endDate: "{{ $endDate }}",
+            startDate: "{{ $now }}",
+            endDate: "{{ $tomorrow }}",
             locale: localeSettings[locale] || localeSettings['en'],
         });
     });
 
     $('#daterange').on('apply.daterangepicker', function(ev, picker) {
-        let range = picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD');
+        let range = picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY');
         $(this).val(range);
 
         // Передать значение в Livewire

@@ -24,7 +24,6 @@
                         <div id="search_list"></div>
                         <table>
                             <tr>
-                                <th>#</th>
                                 <th>@lang('admin.booking')</th>
                                 <th>@lang('admin.guests')</th>
                                 <th>@lang('admin.plans')</th>
@@ -35,7 +34,6 @@
                             <tbody>
                             @foreach($books as $book)
                                 <tr>
-                                    <td>{{ $loop->iteration }}</td>
                                     <td>
                                         <div class="title"># {{ $book->id }}</div>
 {{--                                        <div class="stick">B2B</div>--}}
@@ -43,9 +41,9 @@
                                     </td>
                                     <td>
                                         <div class="title">{{ $book->title }}</div>
-                                        <div class="date">{{ $book->count }} @lang('admin.adult')</div>
-                                        @if($book->countc > 0)
-                                            <div class="count">{{ $book->countc }} @lang('admin.child')</div>
+                                        <div class="date">{{ $book->adult }} @lang('admin.adult')</div>
+                                        @if($book->child > 0)
+                                            <div class="date">{{ $book->child }} @lang('admin.child')</div>
                                         @endif
                                     </td>
                                     <td>
@@ -76,9 +74,9 @@
                                         @endif
                                         <div class="status">
                                             @if($book->status == 'Reserved')
-                                            {{ $book->status }}
+                                                <span style="color: green">{{ $book->status }}</span>
                                             @else
-                                                {{ $book->status }}
+                                                <span style="color: red">{{ $book->status }}</span>
                                             @endif
                                         </div>
                                     </td>

@@ -9,7 +9,7 @@
         $query->where('food_id', $food);
     }
 
-    //cancellation
+    //cancellations
     if ($request->filled('cancelled')) {
         $cancel = $request->input('cancelled');
         $query->whereHas('rule', function ($quer) use ($cancel) {

@@ -16,22 +16,22 @@ class Book extends Model
         'hotel_id',
         'room_id',
         'title',
-        'title2',
-//        'titlec1',
-//        'titlec2',
-//        'titlec3',
+        //'title2',
         'phone',
         'email',
         'comment',
         'adult',
         'child',
+        'childAges',
         'price',
         'sum',
         'arrivalDate',
         'departureDate',
         'book_token',
         'currency',
-        'cancellation',
+        'cancellations',
+        'cancellation_id',
+        'cancel_penalty',
         'rate_id',
 //        'age1',
 //        'age2',
@@ -40,7 +40,6 @@ class Book extends Model
         'status',
         'user_id',
         'api_type',
-        'childages',
     ];
 
     protected $hidden = [
@@ -58,11 +57,11 @@ class Book extends Model
 
     public function showStartDate()
     {
-        return Carbon::createFromFormat('Y-m-d H:i:s', $this->arrivalDate)->format('d/m/Y');
+        return Carbon::createFromFormat('Y-m-d H:i:s', $this->arrivalDate)->format('d.m.Y');
     }
 
     public function showEndDate()
     {
-        return Carbon::createFromFormat('Y-m-d H:i:s', $this->departureDate)->format('d/m/Y');
+        return Carbon::createFromFormat('Y-m-d H:i:s', $this->departureDate)->format('d.m.Y');
     }
 }

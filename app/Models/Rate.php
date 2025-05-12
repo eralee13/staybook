@@ -21,13 +21,20 @@ class Rate extends Model
         'meal_id',
         'price',
         'price2',
-        'rule_id',
         'desc_en',
         'rate_code',
         'allotment',
         'currency',
         'total_price',
         'refundable',
+        'adult',
+        'child',
+        'bed_type',
+        'children_allowed',
+        'free_children_age',
+        'child_extra_fee',
+        'availability',
+        'cancellation_rule_id'
     ];
 
     protected $hidden = [
@@ -44,6 +51,11 @@ class Rate extends Model
         return $this->belongsTo(Hotel::class);
     }
 
+    public function bookings()
+    {
+        return $this->hasMany(Book::class);
+    }
+
     /**
      * @return BelongsTo
      */
@@ -51,15 +63,6 @@ class Rate extends Model
     {
         return $this->belongsTo(Room::class);
     }
-
-    /**
-     * @return BelongsTo
-     */
-    public function accommodation()
-    {
-        return $this->belongsTo(Accommodation::class);
-    }
-
     /**
      * @return BelongsTo
      */
@@ -71,9 +74,9 @@ class Rate extends Model
     /**
      * @return BelongsTo
      */
-    public function rule()
+    public function cancellationRule()
     {
-        return $this->belongsTo(Rule::class);
+        return $this->belongsTo(CancellationRule::class);
     }
 
 }

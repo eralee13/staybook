@@ -10,29 +10,19 @@ use Rennokki\QueryCache\Traits\QueryCacheable;
 class Room extends Model
 {
     use Translatable;
-    use SoftDeletes;
-    use QueryCacheable;
-    protected $cacheFor = 180;
+    //use QueryCacheable;
+    //protected $cacheFor = 0;
 
     protected $fillable = [
-        'code',
         'title',
         'title_en',
         'description',
         'description_en',
-        'hotel_id',
-        'category_id',
-        'count',
-        'bed',
-        'area',
-        'services',
-        'price',
-        'price2',
-        'image',
-        'user_id',
+        'tourmind_id',
         'exely_id',
-        'status',
-        'type_code'
+        'hotel_id',
+        'area',
+        'amenities',
     ];
 
     protected $hidden = [
@@ -41,49 +31,19 @@ class Room extends Model
         'deleted_at'
     ];
 
-    public function hotel()
-    {
-        return $this->belongsTo(Hotel::class);
-    }
-
-    public function category()
-    {
-        return $this->belongsTo(CategoryRoom::class);
-    }
 
     public function book()
     {
         return $this->belongsTo(Book::class);
     }
 
-    public function rate()
+    public function rates()
     {
-        return $this->belongsTo(Rate::class);
+        return $this->hasMany(Rate::class);
     }
-
-//    public function rooms()
-//    {
-//        return $this->hasMany(Room::class);
-//    }
 
     public function images()
     {
         return $this->belongsToMany(Image::class, 'images');
     }
-
-    public function scopeByCode($query, $code)
-    {
-        return $query->where('code', $code);
-    }
-
-    public function meal()
-    {
-        return $this->belongsTo(Meal::class);
-    }
-
-    public function rule()
-    {
-        return $this->belongsTo(Rule::class);
-    }
-
 }

@@ -15,7 +15,7 @@ class RateRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation cancellations that apply to the request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
      */
@@ -24,6 +24,16 @@ class RateRequest extends FormRequest
         $rules = [
             'title' => 'required|min:3|max:255',
             'title_en' => 'required|min:3|max:255',
+            'hotel_id' => 'required',
+            'room_id' => 'required',
+            'meal_id' => 'required',
+            'bed_type' => 'required',
+            'price' => 'required|numeric',
+            'cancellation_rule_id' => 'required',
+            'availability' => 'required',
+            'adult' => 'required',
+            'free_children_age' => 'required',
+            'child_extra_fee' => 'required',
         ];
         return $rules;
     }

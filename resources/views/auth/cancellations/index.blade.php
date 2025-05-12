@@ -1,20 +1,24 @@
 @extends('auth.layouts.master')
 
-@section('title', __('admin.rules'))
+@section('title', __('admin.cancellations'))
 
 @section('content')
 
     <div class="page admin">
         <div class="container">
             <div class="row">
-                <div class="col-md-12">
+                <div class="col-md-2">
+                    @include('auth.layouts.sidebar')
+                </div>
+                <div class="col-md-10">
+                    @include('auth.layouts.subroom')
                     <div class="row align-items-center aic">
                         <div class="col-md-7">
-                            <h1>@lang('admin.rules')</h1>
+                            <h1>Политика отмены</h1>
                         </div>
                         <div class="col-md-5">
                             <div class="btn-wrap">
-                                <a class="btn add" href="{{ route('rules.create') }}"><i class="fa-solid
+                                <a class="btn add" href="{{ route('cancellations.create') }}"><i class="fa-solid
                                 fa-plus"></i> @lang('admin.add')</a>
                             </div>
                         </div>
@@ -26,22 +30,26 @@
                             <tr>
                                 <th>ID</th>
                                 <th>@lang('admin.title')</th>
+                                <th>Тип штрафа</th>
+                                <th>Размер штрафа</th>
                                 <th>@lang('admin.action')</th>
                             </tr>
                             </thead>
                             <tbody>
-                            @foreach($rules as $rule)
+                            @foreach($rules as $cancellation)
                                 <tr>
-                                    <td>{{ $rule->id }}</td>
-                                    <td>{{ $rule->title }}</td>
+                                    <td>{{ $cancellation->id }}</td>
+                                    <td>{{ $cancellation->title }}</td>
+                                    <td>{{ $cancellation->penalty_type }}</td>
+                                    <td>{{ $cancellation->penalty_amount }}</td>
                                     <td>
-                                        <form action="{{ route('rules.destroy', $rule) }}" method="post">
+                                        <form action="{{ route('cancellations.destroy', $cancellation) }}" method="post">
                                             <ul>
-                                                <li><a class="btn edit" href="{{ route('rules.edit', $rule)
-                                            }}"><i class="fa-regular fa-pen-to-square"></i></a></li>
+                                                <li><a href="{{ route('cancellations.edit', $cancellation)
+                                            }}"><img src="{{ route('index') }}/img/icons/edit.svg" alt=""></a></li>
                                                 @csrf
                                                 @method('DELETE')
-                                                <button onclick="return confirm('Do you want to delete this?');" class="btn delete"><i class="fa-regular fa-trash"></i></button>
+                                                <button onclick="return confirm('Do you want to delete this?');"><img src="{{ route('index') }}/img/icons/trash.svg" alt=""></a></button>
                                             </ul>
                                         </form>
                                     </td>

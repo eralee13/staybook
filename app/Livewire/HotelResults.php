@@ -23,23 +23,23 @@ class HotelResults extends Component
     public $dateRange;
     public $checkin;
     public $checkout;
-    public $adults;
+    public $adult;
     public $child;
-    public $childrenage;
+    public $childrenage1;
     public $childrenage2;
     public $childrenage3;
     public $roomCount = 1;
-    public $citizen;
+    //public $citizen;
     public $rating;
-    public $food;
+    public $meal;
     public $early_in;
-    public $early_out;
-    public $cancelled;
-    public $extra_place;
+    public $late_out;
+    //public $cancelled;
+    //public $extra_place;
     public $pricemin;
     public $pricemax;
     public $hotels;
-    public $accommodation_type;
+    //public $accommodation_type;
     public $childsage;
     
     //public $hotels = [7717374,830200,15521517,9273845,15542971,16743376,15527733,7666450,15647622,739487,781812,9070368,19831432,776289];
@@ -76,37 +76,34 @@ class HotelResults extends Component
         
         $this->city = $this->filters['city'];
         $this->dateRange = $this->filters['dateRange'];
-        $this->adults = (int)$this->filters['adults'];
+        $this->adult = (int)$this->filters['adult'];
         $this->child = (int)$this->filters['child'];
-        $this->childrenage = (int)$this->filters['childrenage'];
+        $this->childrenage1 = (int)$this->filters['childrenage1'];
         $this->childrenage2 = (int)$this->filters['childrenage2'];
         $this->childrenage3 = (int)$this->filters['childrenage3'];
         $this->roomCount = (int)$this->filters['roomCount'];
-        $this->citizen = $this->filters['citizen'];
-        $this->accommodation_type = $this->filters['accommodation_type'];
+        //$this->citizen = $this->filters['citizen'];
+        //$this->accommodation_type = $this->filters['accommodation_type'];
         $this->pricemin = $this->filters['pricemin'];
         $this->pricemax = $this->filters['pricemax'];
         $this->rating = (int)$this->filters['rating'];
-        $this->food = $this->filters['food'];
+        $this->meal = $this->filters['meal'];
         $this->early_in = $this->filters['early_in'];
-        $this->early_out = $this->filters['early_out'];
-        $this->cancelled = $this->filters['cancelled'];
-        $this->extra_place = $this->filters['extra_place'];
+        $this->late_out = $this->filters['late_out'];
+        //$this->cancelled = $this->filters['cancelled'];
+        //$this->extra_place = $this->filters['extra_place'];
 
         if ( $this->child == 1 ){
-            $this->childsage = [(int)$this->childrenage];
+            $this->childsage1 = [(int)$this->childrenage1];
         }
         if ( $this->child == 2 ){
-            $this->childsage = [(int)$this->childrenage, (int)$this->childrenage2];
+            $this->childsage = [(int)$this->childrenage1, (int)$this->childrenage2];
         }
         if ( $this->child == 3 ){
-            $this->childsage = [(int)$this->childrenage, (int)$this->childrenage2, (int)$this->childrenage3];
+            $this->childsage = [(int)$this->childrenage1, (int)$this->childrenage2, (int)$this->childrenage3];
         }
 
-        if ($this->accommodation_type == 'hotel'){
-            // start tourmind
-            $this->tmGetHotels();
-        }
+        $this->tmGetHotels();
         
         
     }
@@ -117,20 +114,20 @@ class HotelResults extends Component
         session()->put('hotel_search', [
             'city' => $this->city,
             'dateRange' => $this->dateRange,
-            'adults' => (int)$this->adults,
+            'adult' => (int)$this->adult,
             'child' => (int)$this->child,
-            'childrenage' => (int)$this->childrenage,
+            'childrenage1' => (int)$this->childrenage1,
             'childrenage2' => (int)$this->childrenage2,
             'childrenage3' => (int)$this->childrenage3,
             'roomCount' => (int)$this->roomCount,
-            'accommodation_type' => $this->accommodation_type,
-            'citizen' => $this->citizen,
+            //'accommodation_type' => $this->accommodation_type,
+            //'citizen' => $this->citizen,
             'rating' => (int)$this->rating,
-            'food' => $this->food,
+            'meal' => $this->meal,
             'early_in' => $this->early_in,
-            'early_out' => $this->early_out,
-            'cancelled' => (bool)$this->cancelled,
-            'extra_place' => (bool)$this->extra_place,
+            'late_out' => $this->late_out,
+            //'cancelled' => (bool)$this->cancelled,
+            //'extra_place' => (bool)$this->extra_place,
             'pricemin' => $this->pricemin,
             'pricemax' => $this->pricemax,
         ]);
@@ -141,9 +138,7 @@ class HotelResults extends Component
     public function filterHotels()
     {
         // start tourmind
-        if ($this->accommodation_type == 'hotel'){
-            $this->tmGetHotels();
-        }
+        $this->tmGetHotels();
 
     }
 
@@ -151,13 +146,13 @@ class HotelResults extends Component
         // tourmind get data hotels
 
         if ( $this->child == 1 ){
-            $this->childsage = [(int)$this->childrenage];
+            $this->childsage = [(int)$this->childrenage1];
         }
         if ( $this->child == 2 ){
-            $this->childsage = [(int)$this->childrenage, (int)$this->childrenage2];
+            $this->childsage = [(int)$this->childrenage1, (int)$this->childrenage2];
         }
         if ( $this->child == 3 ){
-            $this->childsage = [(int)$this->childrenage, (int)$this->childrenage2, (int)$this->childrenage3];
+            $this->childsage = [(int)$this->childrenage1, (int)$this->childrenage2, (int)$this->childrenage3];
         }
         
         // get local hotels filtereble
@@ -245,15 +240,15 @@ class HotelResults extends Component
                         }
 
                         // Фильтр по отмене (если $this->cancelled == true, оставляем только Refundable == true)
-                        if ($this->cancelled == true) {
-                            if (!isset($rateInfo['Refundable']) || $rateInfo['Refundable'] != true) {
-                                return false;
-                            }
-                        }
+//                        if ($this->cancelled == true) {
+//                            if (!isset($rateInfo['Refundable']) || $rateInfo['Refundable'] != true) {
+//                                return false;
+//                            }
+//                        }
             
                         // Фильтр по питанию (если $this->food == true, оставляем только MealInfo['MealType'] == "1")
-                        if ( !empty($this->food) ) {
-                            if (!isset($rateInfo['MealInfo']['MealType']) || $rateInfo['MealInfo']['MealType'] != $this->food) {
+                        if ( !empty($this->meal) ) {
+                            if (!isset($rateInfo['MealInfo']['MealType']) || $rateInfo['MealInfo']['MealType'] != $this->meal) {
                                 return false;
                             }
                         }
@@ -358,19 +353,19 @@ class HotelResults extends Component
                 "CheckOut" => $this->checkout,
                 "HotelCodes" => $this->hotels,
                 "IsDailyPrice" => false,
-                "Nationality" => $this->citizen ?? "EN",
+                //"Nationality" => $this->citizen ?? "EN",
             ];
 
             // PaxRooms (информация о размещении гостей)
             $paxRooms = [
                     [
-                        "Adults" => (int)$this->adults,
+                        "Adults" => (int)$this->adult,
                         "RoomCount" => (int)$this->roomCount,
                     ]
                 ];
 
 
-                if ( !empty($this->child) && !empty($this->childrenage ) ) {
+                if ( !empty($this->child) && !empty($this->childrenage1 ) ) {
                     $paxRooms[0]["Children"] = (int) $this->child;
                     $paxRooms[0]["ChildrenAges"] = $this->childsage;
                 }

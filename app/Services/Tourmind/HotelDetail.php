@@ -133,7 +133,7 @@ class HotelDetail
                                             'end_date_time' => $RateInfo['CancelPolicyInfos'][0]['To'] ?? '',
                                             'amount' => $RateInfo['CancelPolicyInfos'][0]['Amount'] ?? '',
                                             'title' => 'Бесплатная отмена до указанной даты',
-                                            'title_en' => 'Free cancellation until the specified date',
+                                            'title_en' => 'Free cancellations until the specified date',
                                         ]
                                     );
 

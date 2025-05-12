@@ -186,6 +186,7 @@ return [
 
     'aliases' => Facade::defaultAliases()->merge([
         // 'Example' => App\Facades\Example::class,
+        App\Http\Middleware\LogApiRequests::class,
     ])->toArray(),
 
     // Tourmind api etting

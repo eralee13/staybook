@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class RuleRequest extends FormRequest
+class CancellationRuleRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -15,7 +15,7 @@ class RuleRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation cancellations that apply to the request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
      */
@@ -23,8 +23,8 @@ class RuleRequest extends FormRequest
     {
         $rules = [
             'title' => 'required|min:1|max:255',
-            'title_en' => 'required|min:1|max:255',
-            'size' => 'required|min:1|max:255',
+            'penalty_type' => 'required',
+            'penalty_amount' => 'required|numeric',
         ];
         return $rules;
     }

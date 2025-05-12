@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\MultiForm\HotelOneRequest;
@@ -23,10 +24,201 @@ class PageController extends Controller
 {
     public function index()
     {
-        $hotels = Hotel::all();
-        $rooms = Room::cacheFor(now()->addHours(24))->where('status', 1)->inRandomOrder()->paginate(40);
-        $foods = Meal::all();
-        return view('index', compact('hotels', 'rooms', 'foods'));
+        $hotels = Hotel::where('tourmind_id', null)->get();
+        $cities = City::where('country_id', null)->orderBy('title', 'asc')->get();
+        $tomorrow = Carbon::tomorrow()->format('Y-m-d');
+        return view('index', compact('hotels', 'cities', 'tomorrow'));
+    }
+
+    public function search(Request $request)
+    {
+        $cities = City::where('country_id', null)->orderBy('title', 'asc')->get();
+        $tomorrow = Carbon::tomorrow()->format('Y-m-d');
+        $query = Hotel::with(['rates' => function ($q) use ($request) {
+//            if ($request->filled('min_price')) {
+//                $q->where('price', '>=', $request->min_price);
+//            }
+//
+//            if ($request->filled('max_price')) {
+//                $q->where('price', '<=', $request->max_price);
+//            }
+
+            if ($request->filled('adult')) {
+                $q->where('availability', '>=', $request->adult);
+            }
+
+            if ($request->filled('meal_id')) {
+                $q->where('meal_id', $request->meal_id);
+            }
+
+//            if ($request->boolean('early_in')) {
+//                $q->where('early_in', true);
+//            }
+//
+//            if ($request->boolean('late_out')) {
+//                $q->where('late_out', true);
+//            }
+
+            // Показать только те тарифы, у которых нет бронирования
+            if ($request->filled('start_d') && $request->filled('end_d')) {
+                $startTime = $request->start_d;
+                $endTime = $request->end_d;
+
+                $q->whereDoesntHave('bookings', function ($b) use ($startTime, $endTime) {
+                    $b->where('status', 'reserved')
+                        ->where(function ($query) use ($startTime, $endTime) {
+                            $query->whereBetween('arrivalDate', [$startTime, $endTime])
+                                ->orWhereBetween('departureDate', [$startTime, $endTime])
+                                ->orWhere(function ($q) use ($startTime, $endTime) {
+                                    $q->where('arrivalDate', '<=', $startTime)
+                                        ->where('departureDate', '>=', $endTime);
+                                });
+                        });
+                });
+            }
+
+        }]);
+
+        // Filter hotels by rating
+        if ($request->filled('rating')) {
+            $query->where('rating', '>=', $request->rating);
+        }
+
+        if ($request->filled('city')) {
+            $query->where('city', $request->city);
+        }
+
+        // Sorting by hotel rating
+        if ($request->sort === 'highest_rating') {
+            $query->orderBy('rating', 'desc');
+        } elseif ($request->sort === 'lowest_rating') {
+            $query->orderBy('rating', 'asc');
+        }
+
+        $hotels = $query->get()->filter(function ($hotel) {
+            return $hotel->rates->isNotEmpty();
+        });
+
+        // Sorting by price (after loading filtered rates)
+        if ($request->sort === 'lowest_price') {
+            $hotels = $hotels->sortBy(fn($h) => $h->rates->min('price'));
+        } elseif ($request->sort === 'highest_price') {
+            $hotels = $hotels->sortByDesc(fn($h) => $h->rates->max('price'));
+        }
+        $related = Hotel::where('tourmind_id', null)->whereIn('id', [14, 15])->get();
+
+        return view('pages.search', compact('hotels', 'cities', 'tomorrow', 'request', 'related'));
+    }
+
+    public function hotel($code, Request $request)
+    {
+        $hotel = Hotel::cacheFor(now()->addHours(24))->where('code', $code)->first();
+        $arrival = Carbon::createFromDate($request->arrivalDate);
+        $departure = Carbon::createFromDate($request->departureDate);
+        $count_day = $arrival->diffInDays($departure);
+        $adult = $request->adult;
+
+        $query = Room::with(['rates' => function ($q) use ($request) {
+            if ($request->filled('adult')) {
+                $q->where('availability', '>=', $request->adult);
+            }
+
+            if ($request->filled('meal_id')) {
+                $q->where('meal_id', $request->meal_id);
+            }
+
+            // Показать только те тарифы, у которых нет бронирования
+            if ($request->filled('arrivalDate') && $request->filled('departureDate')) {
+                $startTime = $request->arrivalDate;
+                $endTime = $request->departureDate;
+
+                $q->whereDoesntHave('bookings', function ($b) use ($startTime, $endTime) {
+                    $b->where('status', 'reserved')
+                        ->where(function ($query) use ($startTime, $endTime) {
+                            $query->whereBetween('arrivalDate', [$startTime, $endTime])
+                                ->orWhereBetween('departureDate', [$startTime, $endTime])
+                                ->orWhere(function ($q) use ($startTime, $endTime) {
+                                    $q->where('arrivalDate', '<=', $startTime)
+                                        ->where('departureDate', '>=', $endTime);
+                                });
+                        });
+                });
+            }
+        }])->where('hotel_id', $hotel->id);
+
+        $rooms = $query->get()->filter(function ($room) {
+            return $room->rates->isNotEmpty();
+        });
+
+        if ($hotel->exely_id != null) {
+            return view('pages.hotel', compact('hotel', 'arrival', 'departure', 'adult', 'count_day', 'request', 'rooms'));
+        } else {
+            return view('pages.hotel', compact('hotel', 'arrival', 'departure', 'adult', 'count_day', 'request', 'rooms'));
+        }
+    }
+
+    public function order(Request $request)
+    {
+        //dd($request->all());
+        $arrival = Carbon::createFromDate($request->arrivalDate)->format('d.m.Y');
+        $departure = Carbon::createFromDate($request->departureDate)->format('d.m.Y');
+
+        return view('pages.order', compact('request', 'arrival', 'departure'));
+    }
+
+    public function book_verify(Request $request)
+    {
+        $arrival = Carbon::createFromDate($request->arrivalDate)->format('d.m.Y');
+        $departure = Carbon::createFromDate($request->departureDate)->format('d.m.Y');
+
+        return view('pages.order-verify', compact('request', 'arrival', 'departure'));
+    }
+
+    public function book_reserve(Request $request)
+    {
+        $date = date('Ymd'); // текущая дата: 20250507
+        $part1 = random_int(100000, 999999); // 6-значное число
+        $part2 = random_int(1000000000, 9999999999); // 10-значное число
+        $str = "{$date}-{$part1}-{$part2}";
+        $data = [
+            'hotel_id' => $request->get('propertyId'),
+            'room_id' => $request->get('roomTypeId'),
+            'rate_id' => $request->get('ratePlanId'),
+            'cancellation_id' => $request->get('cancellation_id'),
+            'cancel_penalty' => $request->get('cancelPrice'),
+            'arrivalDate' => $request->get('arrivalDate'),
+            'departureDate' => $request->get('departureDate'),
+            'currency' => $res->booking->currencyCode ?? '$',
+            'title' => $request->get('firstName'),
+            'phone' => $request->get('phone'),
+            'email' => $request->get('email'),
+            'comment' => $request->get('comment'),
+            'adult' => $request->get('adultCount'),
+            'child' => $request->get('child'),
+            'childAges' => implode(',', $request->get('childAges')),
+            'sum' => $request->get('total'),
+            'status' => 'Reserved',
+            'book_token' => $res->booking->number ?? $str,
+            'user_id' => Auth::id() ?? '1',
+        ];
+        $book = Book::create($data);
+
+        return view('pages.order-reserve', compact('book'));
+    }
+
+    public function cancel_calculate(Request $request)
+    {
+        $book = Book::where('book_token', $request->number)->firstOrFail();
+        return view('pages.cancel-calculate', compact('book', 'request'));
+    }
+
+    public function cancel_confirm(Request $request, Book $book)
+    {
+        $book->where('book_token', $request->number)->update([
+            'status' => "Cancelled"
+        ]);
+        $book = Book::where('book_token', $request->number)->firstOrFail();
+        return view('pages.cancel-confirm', compact('book', 'request'));
     }
 
     public function hotels()
@@ -35,28 +227,6 @@ class PageController extends Controller
         return view('pages.hotels', compact('hotels'));
     }
 
-    public function hotel($code, Request $request)
-    {
-        $hotel = Hotel::cacheFor(now()->addHours(24))->where('code', $code)->first();
-        //dd($hotel->exely_id);
-        $start = Carbon::createFromDate($request->start_d);
-        $end = Carbon::createFromDate($request->end_d);
-        $count_day = $start->diffInDays($end);
-        $count = $request->count;
-        if($hotel->exely_id != null){
-            $min = Room::where('hotel_id', $hotel->exely_id)->where('status', 1)->min('price');
-            $rooms = Room::where('hotel_id', $hotel->exely_id)->where('status', 1)->paginate(10);
-            return view('pages.hotel', compact('hotel', 'rooms', 'min', 'start', 'end', 'count', 'count_day', 'request'));
-        } else{
-            if ($hotel != null) {
-                $min = Room::where('hotel_id', $hotel->id)->where('status', 1)->min('price');
-                $rooms = Room::where('hotel_id', $hotel->id)->where('status', 1)->orderBy('price', 'asc')->paginate(10);
-                return view('pages.hotel', compact('hotel', 'rooms', 'min', 'start', 'end', 'count', 'count_day', 'request'));
-            } else {
-                return view('pages.hotel', compact('hotel', 'start', 'end', 'count', 'count_day', 'request'));
-            }
-        }
-    }
 
     public function allrooms()
     {
@@ -71,10 +241,9 @@ class PageController extends Controller
         $random = str()->random(15);
         $images = Image::where('room_id', $room->id)->get();
         //$related = Room::where('id', '!=', $room->id)->where('hotel_id', $room->hotel_id)->where('status', 1)->orderBy('price', 'asc')->get();
-        $related = Room::where('id', '!=', $room->id)->where('hotel_id', )->where('status', 1)->orderBy('created_at', 'DESC')->get();
+        $related = Room::where('id', '!=', $room->id)->where('hotel_id')->where('status', 1)->orderBy('created_at', 'DESC')->get();
         return view('pages.room', compact('room', 'images', 'related', 'random', 'user'));
     }
-
 
 
     public function about(Request $request)
@@ -89,6 +258,7 @@ class PageController extends Controller
         $contacts = Contact::get();
         return view('pages.contacts', compact('page', 'contacts'));
     }
+
 
     public function createStepOne(Request $request)
     {
@@ -210,7 +380,7 @@ class PageController extends Controller
             $query->where('early_out', $early_out);
         }
 
-        //cancellation
+        //cancellations
 //        if ($request->filled('cancelled')) {
 //            $cancel = $request->input('cancelled');
 //            $query->whereHas('rule', function ($quer) use ($cancel) {
@@ -238,17 +408,6 @@ class PageController extends Controller
         $relprops = $response->object()->properties;
 
         return view('pages.searchtest', compact('hotels', 'contacts', 'relhotels', 'count', 'count_day', 'start', 'end', 'query', 'request', 'properties', 'relprops'));
-    }
-
-    public function order(Request $request)
-    {
-        $start = $request->start_d;
-        $end = $request->end_d;
-        $price = $request->price;
-        $book_token = str()->random(15);
-        $user = Auth::id();
-
-        return view('pages.order', compact('request', 'start', 'end', 'price', 'book_token', 'user'));
     }
 
     public function book_mail(Request $request)
@@ -287,13 +446,13 @@ class PageController extends Controller
     {
         //$books = Book::whereBetween('arrivalDate', [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()])->get();
         $bookingInfo = Book::with('rooms')->where('user_id', auth()->id())->get([
-                'id',
-                'room_id',
-                'arrivalDate',
-                'departureDate',
-                //'days',
-                'sum',
-                'status',
+            'id',
+            'room_id',
+            'arrivalDate',
+            'departureDate',
+            //'days',
+            'sum',
+            'status',
         ]);
         return response()->json($bookingInfo);
         //return view('pages.testsearch', compact('books'));
@@ -314,8 +473,6 @@ class PageController extends Controller
 
         return response()->json($bookedDates);
     }
-
-
 
 
 }

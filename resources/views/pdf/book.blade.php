@@ -52,7 +52,8 @@
     $hotel = \App\Models\Hotel::where('id', $book->hotel_id)->orWhere('exely_id', $book->hotel_id)->firstOrFail();
     $contacts = \App\Models\Contact::first();
     $room = \App\Models\Room::where('id', $book->room_id)->orWhere('exely_id', $book->room_id)->firstOrFail();
-    //$category = \App\Models\Rate::where('room_id', $book->room_id)->firstOrFail();
+    $img = \App\Models\Image::where('room_id', $room->id)->first();
+    $rate = \App\Models\Rate::where('id', $book->rate_id)->first();
 @endphp
 
 <div class="page admin">
@@ -82,18 +83,27 @@
                         <td>{{ $book->created_at }}</td>
                     </tr>
                     <tr>
+                        <td>Hotel</td>
+                        <td>{{ $hotel->title }}</td>
+                    </tr>
+                    <tr>
+                        <td>Room</td>
+                        <td>{{ $room->title }}</td>
+                    </tr>
+                    <tr>
                         <td>Rate</td>
                         <td>
-                            <div class="stick">B2B</div>
+                            <div class="stick">{{ $rate->title }}</div>
                         </td>
+                    </tr>
+                    <tr>
+                        <td>Bedding</td>
+                        <td>{{ $rate->bed_type }}</td>
                     </tr>
                     <tr>
                         <td>Guest</td>
                         <td>
                             {{ $book->title }} ({{ $book->adult }} @lang('admin.adult'))<br>
-                            @isset($book->title2)
-                                {{ $book->title2 }}<br>
-                            @endisset
                             {{ $book->child }} - @lang('admin.child')
                         </td>
                     </tr>
@@ -105,17 +115,6 @@
                         <td>Check Out</td>
                         <td>{{ $book->showEndDate() }} until {{ $hotel->checkout }}</td>
                     </tr>
-                    <tr>
-                        <td>
-
-                        </td>
-                        <td>{{ $room->title }}<br>
-                        </td>
-                    </tr>
-{{--                    <tr>--}}
-{{--                        <td>Bedding</td>--}}
-{{--                        <td>{{ $room->bed }}</td>--}}
-{{--                    </tr>--}}
                     <tr>
                         <td colspan="2">
                             {{ $hotel->title }}<br>
@@ -148,7 +147,11 @@
                     <tr>
                         <td>Payment type</td>
                         <td>
-                            <div class="pay">{{ $book->status }}</div>
+                            @if($book->status == 'Reserved')
+                                <span style="color: green">{{ $book->status }}</span>
+                            @else
+                                <span style="color: red">{{ $book->status }}</span>
+                            @endif
                         </td>
                     </tr>
                 </table>

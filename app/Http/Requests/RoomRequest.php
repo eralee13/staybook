@@ -15,7 +15,7 @@ class RoomRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation cancellations that apply to the request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
      */
@@ -24,12 +24,10 @@ class RoomRequest extends FormRequest
         $rules = [
             'title' => 'required|min:3|max:255',
             'title_en' => 'required|min:3|max:255',
-            'description' => 'required|min:5',
-            'description_en' => 'required|min:5',
-            'hotel_id' => 'required|min:2',
-            'area' => 'required|min:1',
-            'count' => 'required|min:1',
-            'bed' => 'required',
+            //'description' => 'required|min:5',
+            //'description_en' => 'required|min:5',
+            //'hotel_id' => 'required|min:2',
+            //'area' => 'required|min:1',
             'image' => 'image|mimes:jpg,bmp,png,svg,jpeg,webp|max:3000'
         ];
         return $rules;

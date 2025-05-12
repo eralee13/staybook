@@ -15,7 +15,7 @@ class HotelRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation cancellations that apply to the request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
      */
@@ -27,11 +27,10 @@ class HotelRequest extends FormRequest
             'description' => 'required|min:5',
             'description_en' => 'required|min:5',
             'type' => 'required|min:2',
-            'count' => 'required|min:1',
             'checkin' => 'required|min:2',
             'checkout' => 'required|min:2',
-            'early_in' => 'required|min:2',
-            'early_out' => 'required|min:2',
+            'city' => 'required',
+            'timezone' => 'required',
             'rating' => 'required|min:1',
             'address' => 'required|min:5',
             'address_en' => 'required|min:5',

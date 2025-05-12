@@ -13,26 +13,6 @@
                 <div class="alert alert-warning">Ошибка: Нет данных о бронировании! Попробуйте заново поискать!</div>
                 @else
                 <form action="">
-                    {{-- <div class="col-12">
-                        <div class="form-group">
-                            <label for="">@lang('main.search-adult')</label>
-                            <select name="adults" id="adults" wire:model="adults">
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                                <option value="4">4</option>
-                                <option value="5">5</option>
-                                <option value="6">6</option>
-                                <option value="7">7</option>
-                                <option value="8">8</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <label for="">@lang('main.search-date')</label>
-                        <input type="date" wire:model="checkin" id="start_d" name="start_d" />
-                        <input type="date" wire:model="checkout" id="end_d" name="end_d" />
-                    </div> --}}
                     <div class="row">
                         <div class="col-12 mt-5 mb-5">
                             <h3>{{ $hotelName }}</h3>
@@ -124,7 +104,7 @@
                                 <li class="list-group-item"><strong>Отель:</strong> {{ $hotelName }}</li>
                                 <li class="list-group-item"><strong>Номер:</strong> {{ $roomName }}</li>
                                 <li class="list-group-item"><strong>Тип номера:</strong> {{ $bedDesc }}</li>
-                                <li class="list-group-item"><strong>Количество взрослых:</strong> {{ $adults }}</li>
+                                <li class="list-group-item"><strong>Количество взрослых:</strong> {{ $adult }}</li>
                                 <li class="list-group-item"><strong>Количество детей:</strong> {{ $child }}</li>    
                                 <li class="list-group-item"><strong>Доступность номеров:</strong> {{ $allotment }}</li>
                                 <li class="list-group-item"><strong>Заезд:</strong> {{ $checkin }} </li>

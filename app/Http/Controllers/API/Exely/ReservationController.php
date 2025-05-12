@@ -230,7 +230,7 @@ class ReservationController extends Controller
                         'room_id' => $request->get('roomTypeId'),
                         'arrivalDate' => $request->get('arrivalDate'),
                         'departureDate' => $request->get('departureDate'),
-                        'cancellation' => $res->booking->cancellationPolicy->penaltyAmount,
+                        'cancellations' => $res->booking->cancellationPolicy->penaltyAmount,
                         'rate_id' => $request->get('ratePlanId'),
                         'currency' => $res->booking->currencyCode,
                         //'rateId' => $request->get('ratePlanId'),
@@ -268,7 +268,7 @@ class ReservationController extends Controller
             $cancel = Carbon::createFromDate($request->cancelTime)->setTimezone('UTC')->format('Y-m-d\TH:i:s\Z');
             $response = Http::timeout(30)
                 ->withHeaders(['x-api-key' => 'fd54fc5c-2927-4998-8132-fb1107fc81c4', 'accept' => 'application/json'])
-                ->get('https://connect.test.hopenapi.com/api/reservation/v1/bookings/' . $request->number . '/calculate-cancellation-penalty?cancellationDateTimeUtc=' . $cancel);
+                ->get('https://connect.test.hopenapi.com/api/reservation/v1/bookings/' . $request->number . '/calculate-cancellations-penalty?cancellationDateTimeUtc=' . $cancel);
             // Проверка на успешность
             if ($response->successful()) {
                 $calc = $response->object();
@@ -290,7 +290,7 @@ class ReservationController extends Controller
             $response = Http::timeout(60)
                 ->withHeaders(['x-api-key' => 'fd54fc5c-2927-4998-8132-fb1107fc81c4', 'accept' => 'application/json'])
                 ->post('https://connect.test.hopenapi.com/api/reservation/v1/bookings/' . $request->number . '/cancel', [
-                    "reason" => "Booking cancellation",
+                    "reason" => "Booking cancellations",
                     "expectedPenaltyAmount" => $request->amount
                 ]);
 

@@ -5,29 +5,316 @@
 
 @section('content')
 
-    <div class="page search">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-12">
-                    {{--                    <h1>Sheraton</h1>--}}
-                    {{--                    <div class="rating"><img src="img/star.svg" alt="">4.76</div>--}}
+    @auth
+        <div class="main-filter" style="padding-bottom: 40px">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+                        <form action="{{ route('search') }}">
+                            <div class="row">
+                                <div class="col-lg-3 col-md-12">
+                                    <div class="form-group">
+                                        <div class="label stay"><img src="{{ route('index') }}/img/marker_out.svg"
+                                                                     alt="">
+                                        </div>
+                                        <select name="city" id="address" required>
+                                            <option value="{{ $request->city }}">{{ $request->city }}</option>
+                                            @foreach($cities as $city)
+                                                <option value="{{ $city->title }}">{{ $city->title }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-lg col-6">
+                                    <div class="form-group">
+                                        <div class="label in"><img src="{{ route('index') }}/img/marker_in.svg" alt="">
+                                            Заезд
+                                        </div>
+                                        <input type="text" id="date" class="date" required="">
+                                        <input type="hidden" id="arrivalDate" name="arrivalDate"
+                                               value="{{ $request->arrivalDate }}">
+                                        <input type="hidden" id="departureDate" name="departureDate"
+                                               value="{{ $request->departureDate }}">
+                                    </div>
+                                </div>
+                                {{--                        <div class="col-lg col-6">--}}
+                                {{--                            <div class="form-group">--}}
+                                {{--                                <div class="label out"><img src="{{ route('index') }}/img/marker_out.svg" alt=""> Выезд</div>--}}
+                                {{--                                <input type="date" id="date" name="departureDate" value="{{ $tomorrow }}">--}}
+                                {{--                            </div>--}}
+                                {{--                        </div>--}}
+                                <div class="col-lg col-6">
+                                    <div id="count_person">
+                                        <div class="form-group">
+                                            <div class="label guest"><img src="{{route('index')}}/img/user.svg" alt="">
+                                            </div>
+                                            <input type="text" value="Кол-во гостей">
+                                            <div id="count-wrap" class="count-wrap">
+                                                <!-- Взрослые -->
+                                                <div class="counter count-item">
+                                                    <label>Взрослые:</label>
+                                                    <a class="minus" onclick="changeCount('adult', -1)">-</a>
+                                                    <span id="adult-count">{{ $request->adult ?? 1 }}</span>
+                                                    <a class="plus" onclick="changeCount('adult', 1)">+</a>
+                                                    <input type="hidden" name="adult" id="adult"
+                                                           value="{{ $request->adult ?? 1 }}">
+                                                </div>
 
-                    @if(isset($results->errors))
-                        @foreach ($results->errors as $error)
-                            <div class="alert alert-danger">
-                                <h5>{{ $error->code }}</h5>
-                                <p style="margin-bottom: 0">{{ $error->message }}</p>
+                                                <!-- Дети -->
+                                                <div class="counter count-item">
+                                                    <label>Дети:</label>
+                                                    <a class="minus" onclick="changeCount('child', -1)">-</a>
+                                                    <span id="child-count">{{ count($request->childAges) ?? 0 }}</span>
+                                                    <a class="plus" onclick="changeCount('child', 1)">+</a>
+                                                    <input type="hidden" name="childAges[]" id="child">
+                                                </div>
+
+                                                <!-- Возраст детей -->
+                                                <div id="children-ages"></div>
+
+                                                <script>
+                                                    let adultCount = 0;
+                                                    let childCount = 0;
+                                                    const maxAdults = 8;
+                                                    const maxChildren = 3;
+
+                                                    function changeCount(type, delta) {
+                                                        if (type === 'adult') {
+                                                            adultCount = Math.max(1, Math.min(maxAdults, adultCount + delta));
+                                                            document.getElementById('adult-count').innerText = adultCount;
+                                                            document.getElementById('adult').value = adultCount;
+                                                        } else if (type === 'child') {
+                                                            const newCount = childCount + delta;
+                                                            if (newCount >= 0 && newCount <= maxChildren) {
+                                                                childCount = newCount;
+                                                                document.getElementById('child-count').innerText = childCount;
+                                                                document.getElementById('child').value = childCount;
+                                                                renderChildAgeSelectors();
+                                                            }
+                                                        }
+                                                    }
+
+                                                    function renderChildAgeSelectors() {
+                                                        const container = document.getElementById('children-ages');
+                                                        container.innerHTML = '';
+
+                                                        for (let i = 0; i < childCount; i++) {
+                                                            const div = document.createElement('div');
+                                                            div.className = 'child-block';
+                                                            div.innerHTML = `
+		  <label>Возраст ребёнка ${i + 1}:</label>
+		  <select name="age${i + 1}">
+			<option value="">-- возраст --</option>
+			${Array.from({length: 19}, (_, age) => `<option value="${age}">${age}</option>`).join('')}
+		  </select>
+		`;
+                                                            container.appendChild(div);
+                                                        }
+                                                    }
+                                                </script>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="col-lg col-6 extra">
+                                    <div class="form-group">
+                                        <div id="filter">
+                                            <div class="label filter"><img src="{{route('index')}}/img/setting.svg"
+                                                                           alt="">
+                                                Фильтры
+                                            </div>
+                                            <div class="filter-wrap" id="filter-wrap">
+                                                <div class="closebtn" id="closebtn"><img
+                                                            src="{{route('index')}}/img/close.svg" alt=""></div>
+                                                <h5>Фильтры</h5>
+                                                <div class="form-group">
+                                                    <div class="name">Рейтинг</div>
+                                                    <div class="row justify-content-center">
+                                                        <div class="col-lg col-md-4">
+                                                            <div class="item">
+                                                                <input type="radio" id="1" name="rating" value="1"
+                                                                       @if($request->rating == 1) checked @endif>
+                                                                <div class="img @if($request->rating == 1) active @endif">
+                                                                    <label for="1">1</label>
+                                                                    <div class="img-wrap">
+                                                                        <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                             alt="">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-lg col-md-4">
+                                                            <div class="item">
+                                                                <input type="radio" name="rating" value="2" id="2"
+                                                                       @if($request->rating == 2) checked @endif>
+                                                                <div class="img @if($request->rating == 2) active @endif">
+                                                                    <label for="2">2</label>
+                                                                    <div class="img-wrap">
+                                                                        <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                             alt="">
+                                                                        <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                             alt="">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-lg col-md-4">
+                                                            <div class="item">
+                                                                <input type="radio" name="rating" value="3" id="3"
+                                                                       @if($request->rating == 3) checked @endif>
+                                                                <div class="img @if($request->rating == 3) active @endif">
+                                                                    <label for="3">3</label>
+                                                                    <div class="img-wrap">
+                                                                        <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                             alt="">
+                                                                        <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                             alt="">
+                                                                        <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                             alt="">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-lg col-md-4">
+                                                            <div class="item">
+                                                                <input type="radio" name="rating" value="4" id="4"
+                                                                       @if($request->rating == 4) checked @endif>
+                                                                <div class="img @if($request->rating == 4) active @endif">
+                                                                    <label for="4">4</label>
+                                                                    <div class="img-wrap">
+                                                                        <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                             alt="">
+                                                                        <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                             alt="">
+                                                                        <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                             alt="">
+                                                                        <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                             alt="">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-lg col-md-4">
+                                                            <div class="item">
+                                                                <input type="radio" name="rating" value="5" id="5"
+                                                                       @if($request->rating == 5) checked @endif>
+                                                                <div class="img @if($request->rating == 5) active @endif">
+                                                                    <label for="5">5</label>
+                                                                    <div class="img-wrap">
+                                                                        <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                             alt="">
+                                                                        <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                             alt="">
+                                                                        <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                             alt="">
+                                                                        <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                             alt="">
+                                                                        <img src="{{route('index')}}/img/icons/rate.svg"
+                                                                             alt="">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="line"></div>
+                                                <div class="form-group">
+                                                    <div class="row">
+                                                        <div class="col-lg-3">
+                                                            <div class="apart-item">
+                                                                <img src="{{route('index')}}/img/hotelb.svg" alt="">
+                                                                <h6>Отели</h6>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="line"></div>
+                                                <div class="name">Прибытие</div>
+                                                <div class="form-group" id="income">
+                                                    <div class="row">
+                                                        <div class="col-md-6 col-6">
+                                                            <div class="itemm">
+                                                                <input type="checkbox" value="early_in">
+                                                                <label for="">Ранний заезд</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6 col-6">
+                                                            <div class="itemm">
+                                                                <input type="checkbox" value="late_out">
+                                                                <label for="">Поздний выезд</label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="line"></div>
+                                                <div class="form-group" id="meal">
+                                                    <div class="name">Виды питания</div>
+                                                    <div class="row">
+                                                        <div class="col-lg col-md-4 col-4">
+                                                            <div class="itemmm @if($request->meal_id == 1) active @endif">
+                                                                <input type="radio" value="1" id="ro" name="meal_id"
+                                                                       @if($request->meal_id == 1) checked @endif">
+                                                                <label for="ro">RO</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-lg col-md-4 col-4">
+                                                            <div class="itemmm @if($request->meal_id == 2) active @endif">
+                                                                <input type="radio" value="2" id="bb" name="meal_id"
+                                                                       @if($request->meal_id == 2) checked @endif>
+                                                                <label for="bb">BB</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-lg col-md-4 col-4">
+                                                            <div class="itemmm @if($request->meal_id == 3) active @endif">
+                                                                <input type="radio" id="hb" value="3" name="meal_id"
+                                                                       @if($request->meal_id == 3) checked @endif>
+                                                                <label for="hb">HB</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-lg col-md-4 col-4">
+                                                            <div class="itemmm @if($request->meal_id == 4) active @endif">
+                                                                <input type="radio" id="fb" value="4" name="meal_id"
+                                                                       @if($request->meal_id == 4) checked @endif>
+                                                                <label for="fb">FB</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-lg col-md-4 col-4">
+                                                            <div class="itemmm @if($request->meal_id == 5) active @endif">
+                                                                <input type="radio" id="ai" value="5" name="meal_id"
+                                                                       @if($request->meal_id == 5) checked @endif>
+                                                                <label for="ai">AI</label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <button class="more">Найти</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg col-12">
+                                    <div class="form-group">
+                                        <button class="more"><img src="{{ route('index') }}/img/search.svg" alt="">
+                                            Найти
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-                        @endforeach
-                    @else
-                        @if($results != null)
-                            @foreach($results->roomStays as $room)
-                                @php
-                                    $property = Http::withHeaders(['x-api-key' => 'fd54fc5c-2927-4998-8132-fb1107fc81c4', 'accept' => 'application/json'])->get('https://connect.test.hopenapi.com/api/content/v1/properties/' . $room->propertyId);
-                                     $arrival = Carbon::createFromDate($room->stayDates->arrivalDateTime)->format('d.m.Y H:i');
-                                     $departure = Carbon::createFromDate($room->stayDates->departureDateTime)->format('d.m.Y H:i');
-                                     $hotel = \App\Models\Hotel::where('exely_id', $room->propertyId)->first();
-                                @endphp
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page search">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+                        @if($hotels->filter()->isEmpty())
+                            <div class="alert alert-danger">По данному запросу Отели не найдены</div>
+                            <h3>Другие отели</h3>
+                            @foreach($related as $hotel)
                                 <div class="search-item">
                                     <div class="row">
                                         <div class="col-md-5 order-xl-1 order-lg-1 order-1">
@@ -50,7 +337,7 @@
                                             </div>
                                         </div>
                                         <div class="col-md-5 order-xl-2 order-lg-2 order-3">
-                                            <h4>{{ $property->object()->name }}</h4>
+                                            <h4>{{ $hotel->title }}</h4>
                                             <div class="amenities">
                                                 <div class="amenities-item">
                                                     <img src="{{ route('index') }}/img/icons/bed2.svg" alt="">
@@ -75,83 +362,154 @@
                                             </div>
                                             <div class="btn-wrap">
                                                 <div class="btn-wrap">
-                                                    <form action="{{ route('search_roomstays', $room->roomType->id) }}">
-                                                        <input type="hidden" name="propertyId"
-                                                               value="{{ $room->propertyId }}">
+                                                    <form action="{{ route('hotel', $hotel->code) }}">
                                                         <input type="hidden" name="arrivalDate"
                                                                value="{{ $request->arrivalDate }}">
                                                         <input type="hidden" name="departureDate"
                                                                value="{{ $request->departureDate }}">
-                                                        <input type="hidden" name="adultCount"
-                                                               value="{{ $room->guestCount->adultCount }}">
+                                                        <input type="hidden" name="adult"
+                                                               value="{{ $request->adult }}">
                                                         <input type="hidden" name="childAges[]"
-                                                               value="{{ implode(',', $room->guestCount->childAges) }}">
-                                                        <input type="hidden" name="ratePlanId"
-                                                               value="{{ $room->ratePlan->id }}">
-                                                        <input type="hidden" name="roomTypeId"
-                                                               value="{{ $room->roomType->id }}">
-                                                        <input type="hidden" name="roomType"
-                                                               value="{{ $room->roomType->placements[0]->kind }}">
-                                                        <input type="hidden" name="roomCount"
-                                                               value="{{ $room->roomType->placements[0]->count }}">
-                                                        <input type="hidden" name="roomCode"
-                                                               value="{{ $room->roomType->placements[0]->code }}">
-                                                        <input type="hidden" name="placementCode"
-                                                               value="{{ $room->roomType->placements[0]->code }}">
-                                                        <input type="hidden" name="adults"
-                                                               value="{{ $room->guestCount->adultCount }}">
-                                                        <input type="hidden" name="checkSum"
-                                                               value="{{ $room->checksum }}">
-                                                        {{--                                            <input type="hidden" name="childAges[]" value="{{ $room->guestCount->childAges }}">--}}
-                                                        @php
-                                                            $array_child = [];
-                                                        @endphp
-                                                        @foreach($room->guestCount->childAges as $child)
-                                                            @php
-                                                                $array_child[] = $child
-                                                            @endphp
-                                                        @endforeach
-                                                        <input type="hidden" name="childAges"
-                                                               value="{{ implode(',', $array_child) }}">
-                                                        @foreach($room->includedServices as $serv)
-                                                            <input type="hidden" name="servicesId"
-                                                                   value="{{ $serv->id }}">
-                                                        @endforeach
-
-                                                        {{--                                            <input type="hidden" name="servicesQuantity" value="{{  }}">--}}
-                                                        <input type="hidden" name="hotel"
-                                                               value="{{ $room->fullPlacementsName }}">
-                                                        <input type="hidden" name="hotel_id"
-                                                               value="{{ $room->propertyId }}">
-                                                        <input type="hidden" name="room_id"
-                                                               value="{{ $room->roomType->id }}">
-                                                        <input type="hidden" name="title"
-                                                               value="{{ $room->fullPlacementsName }}">
-                                                        <input type="hidden" name="price"
-                                                               value="{{ $room->total->priceBeforeTax }}">
-                                                        <input type="hidden" name="currency"
-                                                               value="{{ $room->currencyCode }}">
+                                                               value="{{ $request->childAges }}">
+                                                        <input type="hidden" name="age1"
+                                                               value="{{ $request->age1 }}">
+                                                        <input type="hidden" name="age2"
+                                                               value="{{ $request->age2 }}">
+                                                        <input type="hidden" name="age3"
+                                                               value="{{ $request->age3 }}">
+                                                        <input type="hidden" name="meal_id"
+                                                               value="{{ $request->meal_id }}">
                                                         <button class="more">Показать все номера</button>
                                                     </form>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="col-md-2 order-xl-3 order-lg-3 order-2">
-                                            <div class="price">{{ $room->total->priceBeforeTax }} {{ $room->currencyCode }}</div>
+                                            @php
+                                                if($request->adult == 2){
+                                                    $min = \App\Models\Rate::where('hotel_id', $hotel->id)->orderBy('price2', 'asc')->min('price2');
+                                                } else {
+                                                    $min = \App\Models\Rate::where('hotel_id', $hotel->id)->orderBy('price', 'asc')->min('price');
+                                                }
+
+                                            @endphp
+                                            <div class="price">от $ {{ $min }}</div>
                                             <div class="night">ночь</div>
                                         </div>
                                     </div>
                                 </div>
                             @endforeach
                         @else
-                            <div class="alert alert-danger">Не найдено</div>
-                        @endif
-                    @endif
+                            @foreach($hotels as $hotel)
+                                <div class="search-item">
+                                    <div class="row">
+                                        <div class="col-md-5 order-xl-1 order-lg-1 order-1">
+                                            <div class="img-wrap">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="main">
+                                                            <img src="{{ Storage::url($hotel->image) }}" alt="">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="primary">
+                                                            <img src="{{ Storage::url($hotel->image) }}" alt="">
+                                                        </div>
+                                                        <div class="primary">
+                                                            <img src="{{ Storage::url($hotel->image) }}" alt="">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5 order-xl-2 order-lg-2 order-3">
+                                            <h4>{{ $hotel->title }}</h4>
+                                            <div class="amenities">
+                                                <div class="amenities-item">
+                                                    <img src="{{ route('index') }}/img/icons/bed2.svg" alt="">
+                                                    <div class="name">Двуспальная кровать</div>
+                                                </div>
+                                                <div class="amenities-item">
+                                                    <img src="{{ route('index') }}/img/icons/meal.svg" alt="">
+                                                    <div class="name">Питание включено</div>
+                                                </div>
+                                                <div class="amenities-item">
+                                                    <img src="{{ route('index') }}/img/icons/iron.svg" alt="">
+                                                    <div class="name">Гладильные принадлежности</div>
+                                                </div>
+                                                <div class="amenities-item">
+                                                    <img src="{{ route('index') }}/img/icons/wifi.svg" alt="">
+                                                    <div class="name">Доступ в интернет</div>
+                                                </div>
+                                                <div class="amenities-item">
+                                                    <img src="{{ route('index') }}/img/icons/bath.svg" alt="">
+                                                    <div class="name">Ванная комната</div>
+                                                </div>
+                                            </div>
+                                            <div class="btn-wrap">
+                                                <div class="btn-wrap">
+                                                    <form action="{{ route('hotel', $hotel->code) }}">
+                                                        <input type="hidden" name="arrivalDate"
+                                                               value="{{ $request->arrivalDate }}">
+                                                        <input type="hidden" name="departureDate"
+                                                               value="{{ $request->departureDate }}">
+                                                        <input type="hidden" name="adult"
+                                                               value="{{ $request->adult }}">
+                                                        <input type="hidden" name="child"
+                                                               value="{{ $request->child }}">
+                                                        <input type="hidden" name="childAges[]"
+                                                               value="{{ implode(',', $request->childAges) }}">
 
+
+{{--                                                        <input type="hidden" name="age1"--}}
+{{--                                                               value="{{ $request->age1 }}">--}}
+{{--                                                        <input type="hidden" name="age2"--}}
+{{--                                                               value="{{ $request->age2 }}">--}}
+{{--                                                        <input type="hidden" name="age3"--}}
+{{--                                                               value="{{ $request->age3 }}">--}}
+                                                        <input type="hidden" name="meal_id"
+                                                               value="{{ $request->meal_id }}">
+                                                        <button class="more">Показать все номера</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-2 order-xl-3 order-lg-3 order-2">
+                                            @php
+                                                $arr = \Carbon\Carbon::parse($request->arrivalDate);
+                                                $dep = \Carbon\Carbon::parse($request->departureDate);
+                                                $nights = $arr->diffInDays($dep);
+                                                $rate = \App\Models\Rate::where('hotel_id', $hotel->id)->orderBy('price', 'asc')->first();
+                                                $price_child = 0;
+                                                if (count(array_filter($request->childAges, fn($item) => is_null($item))) === 0) {
+                                                    foreach ($request->childAges as $age){
+                                                        if($rate->free_children_age <= $age ){
+                                                            $price_child += $rate->child_extra_fee;
+                                                        }
+                                                    }
+                                                }
+                                                if($request->adult >= 2){
+                                                    $min = ($rate->price2 + $price_child) * $request->adult * $nights;
+                                                } else {
+                                                    $min = ($rate->price + $price_child) * $request->adult * $nights;
+                                                }
+                                            @endphp
+                                            <div class="price">от {{ $min }} $</div>
+                                            <div class="night">ночь</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        @endempty
+                    </div>
                 </div>
-            </div>
 
+            </div>
         </div>
-    </div>
+
+    @else
+        @include('layouts.auth')
+    @endauth
 
 @endsection

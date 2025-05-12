@@ -17,11 +17,7 @@ class Meal extends Model
      */
     protected $fillable = [
         'title',
-        'title_en',
-        'price',
-        'hotel_id',
         'code',
-        'sym'
     ];
 
     protected $hidden = [

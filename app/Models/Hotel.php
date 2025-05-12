@@ -12,7 +12,7 @@ class Hotel extends Model
     use Translatable;
     use SoftDeletes;
     use QueryCacheable;
-    protected $cacheFor = 180;
+    protected $cacheFor = 0;
 
     protected $fillable = [
         'code',
@@ -25,15 +25,14 @@ class Hotel extends Model
         'checkout',
         'phone',
         'email',
-        'count',
         'type',
         'city',
         'address',
         'address_en',
         'lng',
         'lat',
-        'early_in',
-        'late_out',
+        //'early_in',
+        //'late_out',
         'rating',
         'top',
         'user_id',
@@ -50,7 +49,7 @@ class Hotel extends Model
 
     public function rates()
     {
-        return $this->hasMany(Rate::class, 'id', 'rate_id');
+        return $this->hasMany(Rate::class);
     }
 
 //    public function policy(){
@@ -77,15 +76,6 @@ class Hotel extends Model
         return $this->hasMany(Meal::class);
     }
 
-    public function rules()
-    {
-        return $this->hasMany(Rule::class);
-    }
-
-    public function accommodations()
-    {
-        return $this->hasMany(Accommodation::class);
-    }
 
     public function city()
     {

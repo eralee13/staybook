@@ -18,8 +18,8 @@ use App\Models\Rule;
 class BookingForm extends Component
 {
     public $hotel, $room, $hotelid, $tmid, $roomid, $book, $order;
-    public $city, $adults, $child, $checkin, $checkout, $childdrenage, $childdrenage2;
-    public $childdrenage3, $childsage, $citizen, $rating, $food, $early_in, $early_out;
+    public $city, $adult, $child, $checkin, $checkout, $childdrenage1, $childdrenage2;
+    public $childdrenage3, $childsage, $rating, $meal, $early_in, $late_out;
     public $cancelled, $extra_place, $pricemin, $pricemax, $nationality, $roomCount = 1;
     public $hotelName, $hotelimg,  $hoteldesc, $hoteladdress, $hotelcity, $hotellat, $hotellng;
     public $roomName, $bedDesc, $allotment;
@@ -31,7 +31,6 @@ class BookingForm extends Component
     public $totalPrice;
     public $totalSum;
     public $specdesc;
-    public $meal;
     public $mealid;
     public $mealall;
     public $checkRoomPrice;
@@ -108,24 +107,24 @@ class BookingForm extends Component
 
         if( $this->filters['dateRange'] ){
             [$this->checkin, $this->checkout] = explode(' - ', $this->filters['dateRange']);
-            $this->adults = $this->filters['adults'];
+            $this->adult = $this->filters['adult'];
             $this->child = $this->filters['child'];
-            $this->citizen = $this->filters['citizen'];
+            //$this->citizen = $this->filters['citizen'];
             $this->city = $this->filters['city'];
             $this->roomCount = $this->filters['roomCount'];
 
-            $this->childrenage = $this->filters['childrenage'];
+            $this->childrenage1 = $this->filters['childrenage1'];
             $this->childrenage2 = $this->filters['childrenage2'];
             $this->childrenage3 = $this->filters['childrenage3'];
 
             if ( $this->filters['child'] == 1 ){
-                $this->childsage = [(int)$this->childrenage];
+                $this->childsage = [(int)$this->childrenage1];
             }
             if ( $this->filters['child'] == 2 ){
-                $this->childsage = [(int)$this->childrenage, (int)$this->childrenage2];
+                $this->childsage = [(int)$this->childrenage1, (int)$this->childrenage2];
             }
             if ( $this->filters['child'] == 3 ){
-                $this->childsage = [(int)$this->childrenage, (int)$this->childrenage2, (int)$this->childrenage3];
+                $this->childsage = [(int)$this->childrenage1, (int)$this->childrenage2, (int)$this->childrenage3];
             }
         }
         
@@ -188,13 +187,13 @@ class BookingForm extends Component
             "CheckOut" => $this->checkout,
             "HotelCodes" => [$this->tmid],
             "IsDailyPrice" => false,
-            "Nationality" => $this->citizen ?? "EN",
+            "Nationality" => "EN",
         ];
 
         // PaxRooms (информация о размещении гостей)
         $paxRooms = [
                 [
-                    "Adults" => $this->filters['adults'],
+                    "Adults" => $this->filters['adult'],
                     "RoomCount" => $this->roomCount
                 ]
             ];
@@ -249,7 +248,7 @@ class BookingForm extends Component
         // PaxRooms (информация о размещении гостей)
         $paxRooms = [
                 [
-                    "Adults" => $this->adults,
+                    "Adults" => $this->adult,
                     "RoomCount" => $this->roomCount
                 ]
             ];
@@ -368,7 +367,7 @@ class BookingForm extends Component
         // PaxRooms (информация о размещении гостей)
         $paxRooms = [
                 [
-                    "Adults" => $this->adults,
+                    "Adults" => $this->adult,
                     "RoomCount" => $this->roomCount
                 ]
             ];
@@ -443,7 +442,7 @@ class BookingForm extends Component
                     'phone' => $this->phone,
                     'email' => $this->email,
                     'comment' => $this->specdesc,
-                    'adult' => $this->adults,
+                    'adult' => $this->adult,
                     'child' => $this->child,
                     'childages' => $childages ?? '',
                     'price' => $this->totalPrice,
@@ -464,7 +463,7 @@ class BookingForm extends Component
                 $rule = Rule::create(
                     [   
                         "title" => 'Бесплатная отмена до указанной даты',
-                        "title_en" => 'Free cancellation until the specified date',
+                        "title_en" => 'Free cancellations until the specified date',
                         "amount" => $this->cancelPolicy,
                         "start_date_time" => $this->start_date_time,
                         "end_date_time" => $this->end_date_time

@@ -1,6 +1,6 @@
 @extends('layouts.head')
 
-@section('title', 'Об отеле')
+@section('title', 'Ошибка ' . $response->status())
 
 @section('content')
 
@@ -8,7 +8,8 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-12">
-                    <h1>Ошибка 400</h1>
+                    <h1>Ошибка {{ $response->status() }}</h1>
+                    <h4>Отправлен неверный запрос к серверу</h4>
                     <h4>Запрос завершился ошибкой: {{ $response->status() }}</h4>
                     <div class="btn-wrap">
                         <a href="{{ route('index') }}">Попробуйте снова</a>

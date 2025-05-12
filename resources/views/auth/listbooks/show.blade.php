@@ -36,15 +36,6 @@
                                 @isset($book->title2)
                                     {{ $book->title2 }}<br>
                                 @endisset
-                                @isset($book->titlec1)
-                                    {{ $book->titlec1 }} - ({{$book->age1}})<br>
-                                @endisset
-                                @isset($book->titlec2)
-                                    {{ $book->titlec2 }} - ({{$book->age2}})<br>
-                                @endisset
-                                @isset($book->titlec3)
-                                    {{ $book->titlec3 }} - ({{$book->age3}})
-                                @endisset
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -52,7 +43,7 @@
                                 <div class="name">@lang('admin.count')</div>
                                 <div>{{ $book->adult }} @lang('admin.adult')</div>
                                 @if($book->child > 0)
-                                    <div>{{ $book->child }} @lang('admin.child')</div>
+                                    <div>{{ $book->child }} @lang('admin.child') (возраст: {{$book->childages}})</div>
                                 @endif
                             </div>
                         </div>
@@ -69,20 +60,23 @@
                         <div class="col-md-4">
                             <div class="dashboard-item">
                                 @php
-                                    //$category = \App\Models\Rate::where('room_id', $book->room_id)->firstOrFail();
+                                    $hotel = \App\Models\Hotel::where('id', $book->hotel_id)->first();
                                     $room = \App\Models\Room::where('id', $book->room_id)->first();
+                                    $img = \App\Models\Image::where('room_id', $room->id)->first();
+                                    $rate = \App\Models\Rate::where('id', $book->rate_id)->first();
                                 @endphp
-                                <div class="img"><img src="{{ Storage::url($room->image) }}"></div>
+                                <div class="img"><img src="{{ Storage::url($img->image) }}"></div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="dashboard-item">
                                 <div class="name">@lang('admin.hotel')</div>
                                 <div class="wrap">
-                                    {{ $room->hotel->title }}
+                                    {{ $hotel->title }}
                                     <div class="name" style="margin-top: 20px">@lang('admin.room')</div>
                                     {{ $room->title }} <br>
-{{--                                    <div class="name">Тариф:</div> {{ $category->title }}--}}
+                                    <div class="name" style="margin-top: 20px">Тариф</div>
+                                    {{ $rate->title }} <br>
                                 </div>
                             </div>
                         </div>
@@ -107,9 +101,9 @@
                                 <div class="name" style="margin-top: 20px">@lang('admin.status')</div>
                                 <div class="status">
                                     @if($book->status == 'Reserved')
-                                        <i class="fa-regular fa-money-bill"></i> {{ $book->status }}
+                                        <span style="color: green">{{ $book->status }}</span>
                                     @else
-                                        {{ $book->status }}
+                                        <span style="color: red">{{ $book->status }}</span>
                                     @endif
                                 </div>
                             </div>

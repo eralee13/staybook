@@ -113,14 +113,55 @@
                                     </select>
                                 </div>
                             </div>
+
                             <div class="col-md-6">
-                                @include('auth.layouts.error', ['fieldname' => 'count'])
                                 <div class="form-group">
-                                    <label for="">@lang('admin.number_of_room')</label>
-                                    <input type="number" name="count" value="{{ old('count', isset($hotel) ?
-                                    $hotel->count : null) }}">
+                                    @include('auth.layouts.error', ['fieldname' => 'city'])
+                                    <label for="">Укажите город</label>
+                                    <select name="city" id="">
+                                        @isset($hotel)
+                                            <option value="{{ $hotel->city }}"
+                                                    selected>{{ $hotel->city }}</option>
+                                        @else
+                                            <option value="">@lang('admin.choose')</option>
+                                        @endisset
+                                        @foreach($cities as $city)
+                                            @isset($hotel)
+                                                @if($hotel->city != $city->title)
+                                                    <option value="{{ $city->title }}">{{ $city->title }}</option>
+                                                @endif
+                                            @else
+                                                <option value="{{ $city->id }}">{{ $city->title }}</option>
+                                            @endisset
+                                        @endforeach
+                                    </select>
                                 </div>
                             </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @include('auth.layouts.error', ['fieldname' => 'timezone'])
+                                    <label for="">Часовой пояс</label>
+                                    <select name="timezone" id="">
+                                        @isset($hotel)
+                                            <option value="{{ $hotel->timezone }}"
+                                                    selected>{{ $hotel->timezone }}</option>
+                                        @else
+                                            <option value="">@lang('admin.choose')</option>
+                                        @endisset
+                                        @foreach($timezones as $timezone)
+                                            @isset($hotel)
+                                                @if($hotel->timezone != $timezone)
+                                                    <option value="{{ $timezone }}">{{ $timezone }}</option>
+                                                @endif
+                                            @else
+                                                <option value="{{ $timezone }}">{{ $timezone }}</option>
+                                            @endisset
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
                             <div class="col-md-6">
                                 <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'checkin'])
@@ -183,56 +224,56 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    @include('auth.layouts.error', ['fieldname' => 'early_in'])
-                                    <label for="early_in">@lang('admin.early_checkin')</label>
-                                    <select name="early_in" id="early_in">
-                                        @isset($hotel)
-                                            <option @if($hotel->early_in)
-                                                        selected>
-                                                {{ $hotel->early_in }}</option>
-                                        @else
-                                            <option>Choose</option>
-                                        @endif
-                                        @endisset
-                                        <option value="06:00">06:00</option>
-                                        <option value="07:00">07:00</option>
-                                        <option value="08:00">08:00</option>
-                                        <option value="09:00">09:00</option>
-                                        <option value="10:00">10:00</option>
-                                        <option value="11:00">11:00</option>
-                                        <option value="12:00">12:00</option>
-                                        <option value="13:00">13:00</option>
-                                    </select>
-                                </div>
-                            </div>
+                            {{--                            <div class="col-md-6">--}}
+                            {{--                                <div class="form-group">--}}
+                            {{--                                    @include('auth.layouts.error', ['fieldname' => 'early_in'])--}}
+                            {{--                                    <label for="early_in">@lang('admin.early_checkin')</label>--}}
+                            {{--                                    <select name="early_in" id="early_in">--}}
+                            {{--                                        @isset($hotel)--}}
+                            {{--                                            <option @if($hotel->early_in)--}}
+                            {{--                                                        selected>--}}
+                            {{--                                                {{ $hotel->early_in }}</option>--}}
+                            {{--                                        @else--}}
+                            {{--                                            <option>Choose</option>--}}
+                            {{--                                        @endif--}}
+                            {{--                                        @endisset--}}
+                            {{--                                        <option value="06:00">06:00</option>--}}
+                            {{--                                        <option value="07:00">07:00</option>--}}
+                            {{--                                        <option value="08:00">08:00</option>--}}
+                            {{--                                        <option value="09:00">09:00</option>--}}
+                            {{--                                        <option value="10:00">10:00</option>--}}
+                            {{--                                        <option value="11:00">11:00</option>--}}
+                            {{--                                        <option value="12:00">12:00</option>--}}
+                            {{--                                        <option value="13:00">13:00</option>--}}
+                            {{--                                    </select>--}}
+                            {{--                                </div>--}}
+                            {{--                            </div>--}}
 
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    @include('auth.layouts.error', ['fieldname' => 'early_out'])
-                                    <label for="early_out">@lang('admin.late_checkout')</label>
-                                    <select name="early_out" id="early_out">
-                                        @isset($hotel)
-                                            <option @if($hotel->early_out)
-                                                        selected>
-                                                {{ $hotel->early_out }}</option>
-                                        @else
-                                            <option>Choose</option>
-                                        @endif
-                                        @endisset
-                                        <option value="15:00">15:00</option>
-                                        <option value="16:00">16:00</option>
-                                        <option value="17:00">17:00</option>
-                                        <option value="18:00">18:00</option>
-                                        <option value="19:00">19:00</option>
-                                        <option value="20:00">20:00</option>
-                                        <option value="21:00">21:00</option>
-                                        <option value="22:00">22:00</option>
-                                        <option value="23:00">23:00</option>
-                                    </select>
-                                </div>
-                            </div>
+                            {{--                            <div class="col-md-6">--}}
+                            {{--                                <div class="form-group">--}}
+                            {{--                                    @include('auth.layouts.error', ['fieldname' => 'early_out'])--}}
+                            {{--                                    <label for="early_out">@lang('admin.late_checkout')</label>--}}
+                            {{--                                    <select name="early_out" id="early_out">--}}
+                            {{--                                        @isset($hotel)--}}
+                            {{--                                            <option @if($hotel->early_out)--}}
+                            {{--                                                        selected>--}}
+                            {{--                                                {{ $hotel->early_out }}</option>--}}
+                            {{--                                        @else--}}
+                            {{--                                            <option>Choose</option>--}}
+                            {{--                                        @endif--}}
+                            {{--                                        @endisset--}}
+                            {{--                                        <option value="15:00">15:00</option>--}}
+                            {{--                                        <option value="16:00">16:00</option>--}}
+                            {{--                                        <option value="17:00">17:00</option>--}}
+                            {{--                                        <option value="18:00">18:00</option>--}}
+                            {{--                                        <option value="19:00">19:00</option>--}}
+                            {{--                                        <option value="20:00">20:00</option>--}}
+                            {{--                                        <option value="21:00">21:00</option>--}}
+                            {{--                                        <option value="22:00">22:00</option>--}}
+                            {{--                                        <option value="23:00">23:00</option>--}}
+                            {{--                                    </select>--}}
+                            {{--                                </div>--}}
+                            {{--                            </div>--}}
 
 
                             <div class="col-md-6">
@@ -297,7 +338,7 @@
                                 </style>
 
                                 <!-- Подключение стилей Leaflet -->
-                                <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+                                <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
                                 <div id="map"></div>
 
@@ -328,7 +369,7 @@
                                     L.control.scale().addTo(map);
 
                                     // Обработчик клика по карте
-                                    map.on('click', function(e) {
+                                    map.on('click', function (e) {
                                         var lat = e.latlng.lat;  // Широта
                                         var lng = e.latlng.lng;  // Долгота
 

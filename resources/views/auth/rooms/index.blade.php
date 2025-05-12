@@ -13,6 +13,7 @@
                 <div class="col-md-10">
                     <div class="row align-items-center aic">
                         <div class="col-md-7">
+                            <h6>{{ $hotel->title }}</h6>
                             <h1>@lang('admin.rooms')</h1>
                         </div>
                         <div class="col-md-5">
@@ -25,86 +26,13 @@
 
                     @if($rooms->isNotEmpty())
                         @include('auth.layouts.subroom')
-
-                        {{--                        <form class="row">--}}
-                        {{--                            <div class="col px-1">--}}
-                        {{--                                <label for="">Status</label>--}}
-                        {{--                                <select class="form-control w-100" id="ch_status">--}}
-                        {{--                                    <option value="" {{ $status === null ? 'selected' : '' }}>--}}
-                        {{--                                        Choose--}}
-                        {{--                                    </option>--}}
-                        {{--                                    <option value="1" {{ $status === '1' ? 'selected' : '' }}>--}}
-                        {{--                                        Active--}}
-                        {{--                                    </option>--}}
-                        {{--                                    <option value="0" {{ $status === '0' ? 'selected' : '' }}>--}}
-                        {{--                                        Disable--}}
-                        {{--                                    </option>--}}
-                        {{--                                </select>--}}
-                        {{--                            </div>--}}
-                        {{--                            <div class="col px-1">--}}
-                        {{--                                <label for="">Show count</label>--}}
-                        {{--                                <select class="form-control w-100" id="show_item_at_once">--}}
-                        {{--                                    <option value="0">Choose</option>--}}
-                        {{--                                    <option value="10" {{ $show_result == 10 ? 'selected' : '' }}>--}}
-                        {{--                                        10--}}
-                        {{--                                    </option>--}}
-                        {{--                                    <option value="20" {{ $show_result == 20 ? 'selected' : '' }}>--}}
-                        {{--                                        20--}}
-                        {{--                                    </option>--}}
-                        {{--                                    <option value="40" {{ $show_result == 40 ? 'selected' : '' }}>--}}
-                        {{--                                        40--}}
-                        {{--                                    </option>--}}
-                        {{--                                    <option value="80" {{ $show_result == 80 ? 'selected' : '' }}>--}}
-                        {{--                                        80--}}
-                        {{--                                    </option>--}}
-                        {{--                                    <option value="120" {{ $show_result == 120 ? 'selected' : '' }}>--}}
-                        {{--                                        120--}}
-                        {{--                                    </option>--}}
-                        {{--                                    <option value="200" {{ $show_result == 200 ? 'selected' : '' }}>--}}
-                        {{--                                        200--}}
-                        {{--                                    </option>--}}
-                        {{--                                    <option value="all"--}}
-                        {{--                                            {{ $show_result == 'all' ? 'selected' : '' }}>--}}
-                        {{--                                        Show all--}}
-                        {{--                                    </option>--}}
-                        {{--                                </select>--}}
-                        {{--                            </div>--}}
-                        {{--                            <div class="col px-1">--}}
-                        {{--                                <label for="">Search</label>--}}
-                        {{--                                <input type="search" class="form-control w-100" placeholder="Search..."--}}
-                        {{--                                       name="s_query" id="s_query" value="{{ $s_query ?? '' }}">--}}
-                        {{--                            </div>--}}
-                        {{--                            <div class="col ps-1">--}}
-                        {{--                                <label for=""></label>--}}
-                        {{--                                <button class="btn btn-primary w-100 more apply" type="button"--}}
-                        {{--                                        id="filter_btn">Apply--}}
-                        {{--                                </button>--}}
-                        {{--                            </div>--}}
-                        {{--                            <style>--}}
-                        {{--                                form.row {--}}
-                        {{--                                    margin-bottom: 30px;--}}
-                        {{--                                }--}}
-
-                        {{--                                form input, form select {--}}
-                        {{--                                    height: 40px;--}}
-                        {{--                                }--}}
-
-                        {{--                                .apply {--}}
-                        {{--                                    height: 40px;--}}
-                        {{--                                    margin-top: 23px;--}}
-                        {{--                                }--}}
-                        {{--                            </style>--}}
-                        {{--                        </form>--}}
                         <table class="table">
                             <thead>
                             <tr>
                                 <th>#</th>
                                 <th>@lang('admin.image')</th>
                                 <th>@lang('admin.title')</th>
-                                <th>@lang('admin.categoryRooms')</th>
-                                <th>@lang('admin.plans')</th>
-                                <th>@lang('admin.price')</th>
-                                {{--                                <th>@lang('admin.nutrition')</th>--}}
+                                <th>@lang('admin.area')</th>
                                 <th>@lang('admin.action')</th>
                             </tr>
                             </thead>
@@ -112,37 +40,23 @@
                             @foreach($rooms as $room)
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
-                                    <td><img src="{{ Storage::url($room->image) }}" alt="" width="100px"></td>
-                                    <td>{{ $room->__('title') }}</td>
+                                    @php
+                                        $image = \App\Models\Image::where('room_id', $room->id)->orderBy('id', 'DESC')->first();
+                                    @endphp
                                     <td>
-                                        @isset($room->category_id)
-                                            {{ $room->category->title }}
+                                        @if ($image)
+                                            <img src="{{ Storage::url($image->image) }}" alt="{{ $room->__('title') }}" width="100px">
+                                        @else
+                                            <img src="{{ route('index') }}/img/noimage.png" alt="" width="100px">
                                         @endif
                                     </td>
-                                    <td>
-                                        @php
-                                            $plan = \App\Models\Rate::where('room_id', $room->id)->first();
-                                        @endphp
-                                        @isset($plan)
-                                            {{ $plan->__('title') }}
-                                        @endisset
-                                    </td>
-                                    <td>$ {{ $room->price }}<br>
-                                        $ {{ $room->price2 }}
-                                    </td>
-                                    {{--                                    <td>--}}
-                                    {{--                                        @php--}}
-                                    {{--                                            $food = \App\Models\Rate::where('food_id', $room->id)->first();--}}
-                                    {{--                                        @endphp--}}
-                                    {{--                                        @isset($food)--}}
-                                    {{--                                            {{ $food->title }}--}}
-                                    {{--                                        @endisset--}}
-                                    {{--                                    </td>--}}
+                                    <td>{{ $room->__('title') }}</td>
+                                    <td>{{ $room->area }} м<sup>2</sup></td>
                                     <td>
                                         <form action="{{ route('rooms.destroy', $room) }}" method="post">
                                             <ul>
-                                                <li><a href="{{ route('rooms.show', $room)
-                                            }}"><img src="{{ route('index') }}/img/icons/eye.svg" alt=""></a></li>
+{{--                                                <li><a href="{{ route('rooms.show', $room)--}}
+{{--                                            }}"><img src="{{ route('index') }}/img/icons/eye.svg" alt=""></a></li>--}}
                                                 <li><a href="{{ route('rooms.edit', $room)
                                             }}"><img src="{{ route('index') }}/img/icons/edit.svg" alt=""></a></li>
                                                 @csrf

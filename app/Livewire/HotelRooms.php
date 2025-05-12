@@ -64,18 +64,18 @@ class HotelRooms extends Component
         if($this->filters['dateRange']){
             [$this->checkin, $this->checkout] = explode(' - ', $this->filters['dateRange']);
 
-            $this->childrenage = $this->filters['childrenage'];
+            $this->childrenage1 = $this->filters['childrenage1'];
             $this->childrenage2 = $this->filters['childrenage2'];
             $this->childrenage3 = $this->filters['childrenage3'];
 
             if ( $this->filters['child'] == 1 ){
-                $this->childsage = [(int)$this->childrenage];
+                $this->childsage = [(int)$this->childrenage1];
             }
             if ( $this->filters['child'] == 2 ){
-                $this->childsage = [(int)$this->childrenage, (int)$this->childrenage2];
+                $this->childsage = [(int)$this->childrenage1, (int)$this->childrenage2];
             }
             if ( $this->filters['child'] == 3 ){
-                $this->childsage = [(int)$this->childrenage, (int)$this->childrenage2, (int)$this->childrenage3];
+                $this->childsage = [(int)$this->childrenage1, (int)$this->childrenage2, (int)$this->childrenage3];
             }
         }
         
@@ -124,12 +124,12 @@ class HotelRooms extends Component
         // PaxRooms (информация о размещении гостей)
         $paxRooms = [
                 [
-                    "Adults" => $this->filters['adults'],
+                    "Adults" => $this->filters['adult'],
                     "RoomCount" => $this->roomCount,
                 ]
             ];
 
-            if ( !empty($this->filters['child']) && !empty($this->filters['childrenage'] ) ) {
+            if ( !empty($this->filters['child']) && !empty($this->filters['childrenage1'] ) ) {
                 $paxRooms[0]["Children"] = (int) $this->filters['child'];
                 $paxRooms[0]["ChildrenAges"] = $this->childsage;
             }

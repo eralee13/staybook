@@ -85,7 +85,7 @@
             <td>{{ $room->bed }}</td>
         </tr>
 {{--        <tr>--}}
-{{--            <td>Free cancellation</td>--}}
+{{--            <td>Free cancellations</td>--}}
 {{--            <td>--}}
 {{--                @if($room->hotel->cancelled == 0 || $room->hotel->cancelled == '')--}}
 {{--                    @isset($book->end_d)--}}
