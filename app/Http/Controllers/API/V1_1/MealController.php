@@ -19,17 +19,4 @@ class MealController extends Controller
     {
         return MealResource::collection(Meal::all());
     }
-
-    /**
-     * @param $id
-     * @return JsonResponse
-     */
-    public function show($id){
-        try {
-            $meal = Meal::findOrFail($id);
-            return response()->json($meal, 200);
-        } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'Meal not found'], 404);
-        }
-    }
 }

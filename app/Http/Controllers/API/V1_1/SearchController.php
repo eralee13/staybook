@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\API\V1_1\SearchOneRequest;
 use App\Http\Requests\API\V1_1\SearchRequest;
 use App\Models\Hotel;
+use App\Models\Room;
 use Illuminate\Http\JsonResponse;
 
 class SearchController extends Controller
@@ -16,33 +17,39 @@ class SearchController extends Controller
      */
     public function index(SearchRequest $request)
     {
-        $query = Hotel::with('rooms');
-        //title
-        if ($request->filled('hotel_ids')) {
-            $hotel_ids = (array)$request->input('hotel_ids');
-            $query->whereIn('id', $hotel_ids);
+        $query = Hotel::with(['rates' => function ($q) use ($request) {
+            if ($request->filled('adult')) {
+                $q->where('availability', '>=', $request->adult);
+            }
+
+            if ($request->filled('start_d') && $request->filled('end_d')) {
+                $startTime = $request->start_d;
+                $endTime = $request->end_d;
+
+                $q->whereDoesntHave('bookings', function ($b) use ($startTime, $endTime) {
+                    $b->where('status', 'reserved')
+                        ->where(function ($query) use ($startTime, $endTime) {
+                            $query->whereBetween('arrivalDate', [$startTime, $endTime])
+                                ->orWhereBetween('departureDate', [$startTime, $endTime])
+                                ->orWhere(function ($q) use ($startTime, $endTime) {
+                                    $q->where('arrivalDate', '<=', $startTime)
+                                        ->where('departureDate', '>=', $endTime);
+                                });
+                        });
+                });
+            }
+
+        }]);
+        //city
+        if ($request->filled('city')) {
+            $query->where('city', $request->get('city'));
         }
 
-        //adult
-//        if ($request->filled('adults')) {
-//            $adult = $request->input('adults');
-//            $query->whereHas('rooms', function ($quer) use ($adult) {
-//                $quer->where('count', $adult);
-//            });
-//        }
+        if ($request->filled('rating')) {
+            $query->where('rating', '>=', $request->rating);
+        }
 
-//        //checkin
-//        if ($request->filled('check_in')) {
-//            $checkin = (array)$request->input('check_in');
-//            $query->where('checkin', $checkin);
-//        }
-//
-//        //checkout
-//        if ($request->filled('check_out')) {
-//            $checkout = (array)$request->input('check_out');
-//            $query->where('checkout', $checkin);
-//        }
-        $hotels = $query->get();
+        $hotels = $query->where('status', 1)->get();
 
         return response()->json($hotels);
     }
@@ -54,24 +61,37 @@ class SearchController extends Controller
      */
     public function show($id, SearchOneRequest $request)
     {
-        $query = Hotel::with('rooms')->where('id', $id);
+        $query = Room::with(['rates' => function ($q) use ($request) {
+            if ($request->filled('adult')) {
+                $q->where('availability', '>=', $request->adult);
+            }
 
-        //title
+            if ($request->filled('child')) {
+                $q->where('child', '>=', $request->child);
+            }
+            if ($request->filled('arrivalDate') && $request->filled('departureDate')) {
+                $startTime = $request->arrivalDate;
+                $endTime = $request->departureDate;
 
-        //checkin
-//        if ($request->filled('check_in')) {
-//            $checkin = (array)$request->input('check_in');
-//            $query->where('checkin', $checkin);
-//        }
+                $q->whereDoesntHave('bookings', function ($b) use ($startTime, $endTime) {
+                    $b->where('status', 'reserved')
+                        ->where(function ($query) use ($startTime, $endTime) {
+                            $query->whereBetween('arrivalDate', [$startTime, $endTime])
+                                ->orWhereBetween('departureDate', [$startTime, $endTime])
+                                ->orWhere(function ($q) use ($startTime, $endTime) {
+                                    $q->where('arrivalDate', '<=', $startTime)
+                                        ->where('departureDate', '>=', $endTime);
+                                });
+                        });
+                });
+            }
+        }])->where('hotel_id', $id);
 
-        //checkout
-//        if ($request->filled('check_out')) {
-//            $checkout = (array)$request->input('check_out');
-//            $query->where('checkout', $checkout);
-//        }
-        $hotels = $query->get();
+        $rooms = $query->get()->filter(function ($room) {
+            return $room->rates->isNotEmpty();
+        });
 
-        return response()->json($hotels);
+        return response()->json($rooms);
     }
 
 }

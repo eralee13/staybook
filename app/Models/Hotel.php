@@ -12,7 +12,22 @@ class Hotel extends Model
     use Translatable;
     use SoftDeletes;
     use QueryCacheable;
+
     protected $cacheFor = 0;
+
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+        'deleted_at',
+        'user_id',
+        'exely_id',
+        'tourmind_id',
+        'rate_id',
+        'top',
+        'status',
+        'early_in',
+        'late_out'
+    ];
 
     protected $fillable = [
         'code',

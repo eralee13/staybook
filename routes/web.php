@@ -90,8 +90,8 @@ Route::middleware('set_locale')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     require __DIR__ . '/auth.php';
 
-    //Scramble::registerJsonSpecificationRoute(path: 'docs/v1.0.json', api: 'v1.0');
-    //Scramble::registerJsonSpecificationRoute(path: 'docs/v1.1.json', api: 'v1.1');
+    Scramble::registerJsonSpecificationRoute(path: 'docs/v1.0.json', api: 'v1.0');
+    Scramble::registerJsonSpecificationRoute(path: 'docs/v1.1.json', api: 'v1.1');
 
 
     Route::get('/', [PageController::class, 'index'])->name('index');

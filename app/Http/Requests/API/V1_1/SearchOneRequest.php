@@ -22,12 +22,10 @@ class SearchOneRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //'hotel_id' => 'integer|exists:hotels,id|required',
-            'residency' => 'required|string',
-            'adults' => 'required|integer',
+            'adult' => 'required|integer',
             'children_ages' => 'array',
-            'check_in' => 'required|date|date_format:Y-m-d|after_or_equal:today',
-            'check_out' => 'required|date|date_format:Y-m-d|after_or_equal:check_in',
+            'arrivalDate' => 'required|date|date_format:Y-m-d|after_or_equal:today',
+            'departureDate' => 'required|date|date_format:Y-m-d|after_or_equal:check_in',
         ];
     }
 }

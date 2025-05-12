@@ -47,6 +47,10 @@ class PageController extends Controller
                 $q->where('availability', '>=', $request->adult);
             }
 
+            if ($request->filled('child')) {
+                $q->where('child', '>=', $request->child);
+            }
+
             if ($request->filled('meal_id')) {
                 $q->where('meal_id', $request->meal_id);
             }
@@ -79,13 +83,12 @@ class PageController extends Controller
 
         }]);
 
-        // Filter hotels by rating
-        if ($request->filled('rating')) {
-            $query->where('rating', '>=', $request->rating);
-        }
-
         if ($request->filled('city')) {
             $query->where('city', $request->city);
+        }
+
+        if ($request->filled('rating')) {
+            $query->where('rating', '>=', $request->rating);
         }
 
         // Sorting by hotel rating
@@ -99,7 +102,6 @@ class PageController extends Controller
             return $hotel->rates->isNotEmpty();
         });
 
-        // Sorting by price (after loading filtered rates)
         if ($request->sort === 'lowest_price') {
             $hotels = $hotels->sortBy(fn($h) => $h->rates->min('price'));
         } elseif ($request->sort === 'highest_price') {
@@ -121,6 +123,10 @@ class PageController extends Controller
         $query = Room::with(['rates' => function ($q) use ($request) {
             if ($request->filled('adult')) {
                 $q->where('availability', '>=', $request->adult);
+            }
+
+            if ($request->filled('child')) {
+                $q->where('child', '>=', $request->child);
             }
 
             if ($request->filled('meal_id')) {

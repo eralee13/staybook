@@ -21,7 +21,7 @@ class BookingController extends Controller
     public function store(BookRequest $request)
     {
         try {
-            $booking = Book::create($request->validated());
+            Book::create($request->validated());
             return response()->json('Book created successfully', 201);
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => $e]);
@@ -45,8 +45,8 @@ class BookingController extends Controller
                     'firstName' => $booking->title,
                     'phone' => $booking->phone,
                     'email' => $booking->email,
-                    'arrivalDate' => $booking->arrival_date,
-                    'departureDate' => $booking->departure_date,
+                    'arrivalDate' => $booking->arrivalDate,
+                    'departureDate' => $booking->departureDate,
                 ]
             );
         } catch (ModelNotFoundException $e) {

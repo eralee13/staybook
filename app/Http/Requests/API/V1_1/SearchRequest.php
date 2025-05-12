@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\API\V1_1;
 
+use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 
 class SearchRequest extends FormRequest
@@ -19,15 +20,24 @@ class SearchRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
+
+    protected function prepareForValidation()
+    {
+        $this->merge([
+            'arrivalDate' => $this->input('arrivalDate', Carbon::today()->toDateString()),
+        ]);
+    }
+
+
     public function rules(): array
     {
         return [
-            'hotel_ids' => 'array|required|exists:hotels,id',
-            'residency' => 'required|string',
-            'adults' => 'required|integer',
+            'city' => 'required|exists:cities,title',
+            'arrivalDate' => 'required|date|date_format:Y-m-d',
+            'departureDate' => 'required|date|date_format:Y-m-d|after_or_equal:arrivalDate',
+            'adult' => 'required|integer',
             'children_ages' => 'array',
-            'check_in' => 'required|date|date_format:Y-m-d|after_or_equal:today',
-            'check_out' => 'required|date|date_format:Y-m-d|after_or_equal:check_in',
+            'rating' => 'integer|between:1,5',
         ];
     }
 }
