@@ -122,6 +122,7 @@ class BookCalendarController extends Controller
                             'phone' => $book->phone,
                             'email' => $book->email,
                             'allotment' => $rate->allotment,
+                            'bookallotment' => $book->allotment,
                         ];
                     }
                 }
@@ -154,10 +155,17 @@ class BookCalendarController extends Controller
                                 'booked', 'Pending' => '#d95d5d',
                                 default => '#39bb43',
                             };
+
+                            $quota = '';
+                            if ($color == '#d95d5d') {
+                                $quota = $booking['bookallotment'] ?? '';
+                            } else {
+                                $quota = $booking['allotment'] ?? '';
+                            }
                     
                             $events[] = [
                                 'id' => $booking['id'] . '_' . $dateStr,
-                                'title' => $booking['allotment'] ?? '—',
+                                'title' => $quota,
                                 'start' => $dateStr,
                                 'end' => $dateStr,
                                 'resourceId' => $resourceId,
@@ -274,7 +282,7 @@ class BookCalendarController extends Controller
                         'currency' => $book->currency,
                         'phone' => $book->phone,
                         'email' => $book->email,
-                        'allotment' => $rate->allotment,
+                        'allotment' => $book->allotment,
                     ];
                 }
             }
@@ -291,7 +299,7 @@ class BookCalendarController extends Controller
             foreach ($validRates as $rate) {
                 $resourceId = 'room_' . $room->id . '_rate_' . $rate->id;
                 $period = Carbon::parse($startDate)->daysUntil($endDate);
-
+                    
                 foreach ($period as $date) {
                     $dateStr = $date->format('Y-m-d');
 
@@ -318,18 +326,20 @@ class BookCalendarController extends Controller
                             ]
                         ];
                     } else {
-                        $events[] = [
-                            'id' => 'free_' . $rate->id . '_' . $dateStr,
-                            'title' => $rate->allotment ?? '—',
-                            'start' => $dateStr,
-                            'end' => $dateStr,
-                            'resourceId' => $resourceId,
-                            'color' => '#39bb43', // Свободная квота
-                            'extendedProps' => [
-                                'room_id' => $room->id,
-                                'rate_id' => $rate->id,
-                            ]
-                        ];
+                        if( !empty($rate->allotment) ){
+                            $events[] = [
+                                'id' => 'free_' . $rate->id . '_' . $dateStr,
+                                'title' => $rate->allotment ?? '—',
+                                'start' => $dateStr,
+                                'end' => $dateStr,
+                                'resourceId' => $resourceId,
+                                'color' => '#39bb43', // Свободная квота
+                                'extendedProps' => [
+                                    'room_id' => $room->id,
+                                    'rate_id' => $rate->id,
+                                ]
+                            ];
+                        }
                     }
                 }
             }
@@ -357,7 +367,7 @@ class BookCalendarController extends Controller
         $rateId = $request->input('rate_id');
         $roomId = $request->input('room_id');
         $hotelId = $request->input('hotel_id');
-        $allotment = $request->input('allotment');
+        $allotment = (int) $request->input('allotment');
 
         if ( empty($rateId) ) {
             return response()->json(['error' => true, 'message' => 'Тариф не найден']);
@@ -391,11 +401,12 @@ class BookCalendarController extends Controller
                     'phone' => '',
                     'email' => '',
                     'comment' => '',
-                    'adult' => 0,
-                    'child' => 0,
+                    'allotment' => $allotment,
+                    'adult' => '',
+                    'child' => null,
                     'childages' => '',
-                    'price' => 0,
-                    'sum' => 0,
+                    'price' => null,
+                    'sum' => null,
                     'currency' => '',
                     'arrivalDate' => $start,
                     'departureDate' => $end,
@@ -425,7 +436,6 @@ class BookCalendarController extends Controller
             return response()->json(['error' => true, 'message' => $th->getMessage()]);
         }
         
-
     }
 
     // Обновление брони (перетаскивание в календаре)

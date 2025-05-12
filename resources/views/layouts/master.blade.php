@@ -18,6 +18,9 @@
     <link rel="stylesheet" href="{{route('index')}}/css/main.min.css">
     <link rel="stylesheet" href="{{route('index')}}/css/style.css?ver=1.1">
     <script src="{{route('index')}}/js/scripts.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.min.js" integrity="sha384-VQqxDN0EQCkWoxt/0vsQvZswzTHUVOImccYmSyhJTp7kGtPed0Qcx8rK9h9YEgx+" crossorigin="anonymous"></script>
+
 </head>
 
 <body>

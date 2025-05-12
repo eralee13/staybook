@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // initialDate: nextMonth,
         headerToolbar: {
             center: '',
-            right: 'prev,next'
+            right: ''
         },
         customButtons: {
             customHtml: {
@@ -38,8 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
         slotMaxTime: '24:00:00',
         timezone: 'Asian/Bishkek',
         eventClick: function(info) {
-            console.log('Event clicked:', info.event);
-            console.log('Event ID:', info.event.extendedProps.rate_id);
+            // console.log('Event clicked:', info.event);
             const event = info.event;
         
             if (event.backgroundColor == '#39bb43') {
@@ -70,18 +69,18 @@ document.addEventListener('DOMContentLoaded', function () {
         eventRender: function(info) {
             info.el.innerHTML = info.event.title; // Убедись, что FullCalendar отображает HTML
         },
-        datesSet: function(info) {
-            // info.start, info.end — даты текущего видимого диапазона
-            console.log('Новый диапазон дат:', info.startStr, 'до', info.endStr);
+        // datesSet: function(info) {
+        //     // info.start, info.end — даты текущего видимого диапазона
+        //     console.log('Новый диапазон дат:', info.startStr, 'до', info.endStr);
     
-            // здесь ты можешь сохранить выбранный диапазон в переменные
-            selectedStart = dayjs(info.startStr).format('YYYY-DD-MM');
-            selectedEnd = dayjs(info.endStr).format('YYYY-DD-MM');
+        //     // здесь ты можешь сохранить выбранный диапазон в переменные
+        //     selectedStart = dayjs(info.startStr).format('YYYY-DD-MM');
+        //     selectedEnd = dayjs(info.endStr).format('YYYY-DD-MM');
             
     
-            // и перезагрузить события
-            refetchCalendar();
-        },
+        //     // и перезагрузить события
+        //     //refetchCalendar();
+        // },
         resourceLabelContent: function(info) {
             // Проверяем, есть ли title в info.resource
             const title = info.resource ? info.resource.title : ''; // Безопасный доступ к title
@@ -112,25 +111,28 @@ document.addEventListener('DOMContentLoaded', function () {
         height: 'auto',
         nowIndicator: true,
         eventDidMount: function(info) {
+            console.log(info.backgroundColor);
             const event = info.event;
             const el = info.el;
-        
-            const content = `
-                <div style="padding: 4px 8px; font-size: 14px;">
-                    <strong>${event.title}</strong><br>
-                    ${event.extendedProps.description ?? ''}
-                </div>
-            `;
-        
-            tippy(el, {
-                content: content,
-                allowHTML: true,
-                theme: 'light-border',
-                placement: 'right',
-                // delay: [100, 0], // задержка на показ
-                zIndex: 9999999,
-                // appendTo: document.body,
-            });
+            if (event.backgroundColor == '#d95d5d') {
+                const content = `
+                    <div style="padding: 4px 8px; font-size: 14px;">
+                        <strong>${event.title}</strong><br>
+                        ${event.extendedProps.description ?? ''}
+                    </div>
+                `;
+            
+                tippy(el, {
+                    content: content,
+                    allowHTML: true,
+                    theme: 'light-border',
+                    placement: 'right',
+                    // delay: [100, 0], // задержка на показ
+                    zIndex: 9999999,
+                    // appendTo: document.body,
+                });
+            }
+            
         }
         
         
@@ -185,7 +187,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 
-    // Обработка формы
+    // Обработка формы создания бронирования
     document.getElementById('createBookingForm').addEventListener('submit', function(e) {
         e.preventDefault();
 

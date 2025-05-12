@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Route;
 use App\Livewire\HotelResults;
 use App\Livewire\HotelRooms;
 use App\Livewire\BookingForm;
+use App\Livewire\HotelWizard;
 use App\Http\Controllers\BookCalendarController;
 
 /*
@@ -89,7 +90,8 @@ Route::middleware('set_locale')->group(function () {
 
     Route::get('/', [PageController::class, 'index'])->name('index');
     Route::get("/searchtest", [PageController::class, 'searchtest'])->name('searchtest');
-    Route::get('/allrooms', [PageController::class, 'allrooms'])->name('allrooms');
+    Route::get('/allrooms', [HotelWizard::class, 'allrooms'])->name('allrooms');
+    Route::get('/products/create', HotelWizard::class)->name('product.create');
     Route::get('/products/create-step-one', [PageController::class, 'createStepOne'])->name('createStepOne');
     Route::post('/products/create-step-one', [PageController::class, 'postCreateStepOne'])->name('postCreateStepOne');
     Route::get('/products/create-step-two', [PageController::class, 'createStepTwo'])->name('createStepTwo');
@@ -138,7 +140,7 @@ Route::middleware('set_locale')->group(function () {
     Route::post('contact_mail', [MainController::class, 'contact_mail'])->name('contact_mail');
     Route::post('book_mail', [PageController::class, 'book_mail'])->name('book_mail');
 
-    //Hotel list
+    //Search Hotel list 
     Route::get('/hotel-results', HotelResults::class)->name('hotel.results');
     Route::get('/hotel-rooms', HotelRooms::class)->name('hotel.rooms');
     Route::get('/bookingform', BookingForm::class)->name('bookingform');
@@ -151,8 +153,8 @@ Route::middleware('set_locale')->group(function () {
         Route::get('/', [BookCalendarController::class, 'index'])->name('bookcalendar.index');
         Route::get('/events', [BookCalendarController::class, 'getEvents'])->name('bookcalendar.events');
         Route::post('/create', [BookCalendarController::class, 'store'])->name('bookcalendar.store');
-        Route::put('/{id}', [BookCalendarController::class, 'update'])->name('bookcalendar.update');
-        Route::delete('/{id}', [BookCalendarController::class, 'destroy'])->name('bookcalendar.delete');
+        // Route::put('/{id}', [BookCalendarController::class, 'update'])->name('bookcalendar.update');
+        // Route::delete('/{id}', [BookCalendarController::class, 'destroy'])->name('bookcalendar.delete');
     });
 
     Route::get('/api/rates-quotas', [BookCalendarController::class, 'getRatesAndQuotas']);
