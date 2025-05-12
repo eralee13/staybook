@@ -17,8 +17,6 @@ class HotelFilter extends ApiFilter
         'rating' => ['eq', 'lt', 'gt', 'lte'],
         'lng' => 'eq',
         'lat' => 'eq',
-        'early_in' => 'eq',
-        'early_out' => 'eq',
         'type' => 'eq'
     ];
 

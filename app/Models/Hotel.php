@@ -26,7 +26,8 @@ class Hotel extends Model
         'top',
         'status',
         'early_in',
-        'late_out'
+        'late_out',
+        'count'
     ];
 
     protected $fillable = [
@@ -76,11 +77,6 @@ class Hotel extends Model
         return $this->hasOne(Amenity::class);
     }
 
-    public function payment()
-    {
-        return $this->hasOne(Payment::class);
-    }
-
     public function scopeByCode($query, $code)
     {
         return $query->where('code', $code);
@@ -95,5 +91,10 @@ class Hotel extends Model
     public function city()
     {
         return $this->belongsTo(City::class);
+    }
+
+    public function cancellation()
+    {
+        return $this->hasMany(CancellationRule::class);
     }
 }

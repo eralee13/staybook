@@ -26,7 +26,6 @@ class BookingController extends Controller
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => $e]);
         }
-
     }
 
     /**

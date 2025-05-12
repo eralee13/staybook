@@ -32,7 +32,7 @@ class BookingController extends Controller
     public function show($id)
     {
         try {
-            $book = Book::where('status', '!=', 'Отменен пользователем')->findOrFail($id);
+            $book = Book::findOrFail($id);
             return response()->json($book);
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'Book not found'], 404);
@@ -45,30 +45,12 @@ class BookingController extends Controller
      */
     public function store(StoreBookRequest $request)
     {
-        $params = $request->validated();
-        $booking = Book::create($params);
-        $room = Room::where('id', $request->room_id)->firstOrFail();
-        //dd($room);
-        $room->decrement('count', $request->adult);
-
-        return response()->json($booking);
-    }
-
-    /**
-     * @param Request $request
-     * @param $id
-     * @return JsonResponse
-     */
-    public function update(UpdateBookRequest $request, $id)
-    {
-        $booking = Book::findOrFail($id);
-        if (!$booking) {
-            return response()->json([
-                'error' => 'Unable to booking'
-            ], 404);
+        try {
+            Book::create($request->validated());
+            return response()->json('Book created successfully', 201);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => $e]);
         }
-        $booking->update($request->all());
-        return response()->json('Book updated');
     }
 
     /**
@@ -77,11 +59,13 @@ class BookingController extends Controller
      */
     public function cancel(CancelRequest $request)
     {
-        $book_token = $request->book_token;
-        //$id = $request->book_id;
         try {
-            $book = Book::where('book_token', $book_token)->where('status', 'Reserved')->first();
-            $book->update(['status' => 'Cancelled']);
+            $book = Book::where('book_token', $request->book_token)->where('status', 'Reserved')->first();
+            if(!$book){
+                return response()->json('Not found');
+            } else {
+                $book->update(['status' => 'Cancelled']);
+            }
             return response()->json('Book cancelled');
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'Book not found'], 404);

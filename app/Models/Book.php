@@ -16,7 +16,6 @@ class Book extends Model
         'hotel_id',
         'room_id',
         'title',
-        //'title2',
         'phone',
         'email',
         'comment',
@@ -33,9 +32,6 @@ class Book extends Model
         'cancellation_id',
         'cancel_penalty',
         'rate_id',
-//        'age1',
-//        'age2',
-//        'age3',
         'tag',
         'status',
         'user_id',
@@ -48,7 +44,9 @@ class Book extends Model
         'deleted_at',
         'tag',
         'status',
-        'price'
+        'price',
+        'title2',
+        'count'
     ];
 
     public function rooms(){

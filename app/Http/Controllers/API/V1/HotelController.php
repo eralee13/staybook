@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\V1;
 use App\Filters\V1\HotelFilter;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\V1\HotelCollection;
+use App\Http\Resources\V1\HotelResource;
 use App\Models\Hotel;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -15,20 +16,19 @@ class HotelController extends Controller
      * @param Request $request
      * @return HotelCollection
      */
-    public function index(Request $request)
+    public function index()
     {
-        $filter = new HotelFilter();
-        $queryItems = $filter->transform($request);//'column', 'operator', 'value'
-        if(count($queryItems) == 0){
-            return new HotelCollection(Hotel::paginate(20));
-        } else {
-            return new HotelCollection(Hotel::where($queryItems)->paginate(20));
+        try {
+            $hotels = Hotel::where('status', 1)->paginate(20);
+            return response()->json($hotels);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'Hotels not found'], 404);
         }
     }
 
     public function show($id){
         try {
-            $hotel = Hotel::findOrFail($id);
+            $hotel = Hotel::with('rooms', 'rates', 'cancellation')->where('status', 1)->findOrFail($id);
             return response()->json($hotel);
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'Hotel not found'], 404);
