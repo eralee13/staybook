@@ -14,16 +14,16 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-//Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//    return $request->user();
-//});
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    return $request->user();
+});
 
-//Route::prefix('v1.0')->group(function(){
-//    //Route::post('/register', [\App\Http\Controllers\API\V1\AuthController::class, 'register'])->name('register');
-//    Route::post('/login', [\App\Http\Controllers\API\V1\AuthController::class, 'login'])->name('login');
-//});
+Route::prefix('base')->group(function(){
+    //Route::post('/register', [\App\Http\Controllers\API\V1\AuthController::class, 'register'])->name('register');
+    Route::post('/login', [\App\Http\Controllers\API\V1\AuthController::class, 'login'])->name('login');
+});
 
-Route::prefix('')->middleware(['throttle:api', 'auth:sanctum'])->group(function () {
+Route::prefix('base')->middleware(['throttle:api', 'auth:sanctum'])->group(function () {
     Route::get('/getHotels', [\App\Http\Controllers\API\V1\HotelController::class, 'index'])->name('getHotelList');
     Route::get('/getHotels/{hotel}', [\App\Http\Controllers\API\V1\HotelController::class, 'show'])->name('showHotel');
 

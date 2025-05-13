@@ -13,8 +13,12 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::prefix('')->group(function(){
+    //Route::post('/register', [\App\Http\Controllers\API\V1\AuthController::class, 'register'])->name('register');
+    Route::post('/login', [\App\Http\Controllers\API\V1\AuthController::class, 'login'])->name('login');
+});
 
-Route::prefix('')->group(function () {
+Route::prefix('')->middleware(['throttle:api', 'auth:sanctum'])->group(function () {
     Route::get('/getHotels/{hotel}', [\App\Http\Controllers\API\V1_1\HotelController::class, 'show'])->name('showHotel');
     Route::get('/getMeals', [\App\Http\Controllers\API\V1_1\MealController::class, 'index'])->name('getMealList');
     Route::post('/searchHotel', [\App\Http\Controllers\API\V1_1\SearchController::class, 'index'])->name('searchHotels');

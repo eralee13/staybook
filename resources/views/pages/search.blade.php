@@ -37,12 +37,6 @@
                                                value="{{ $request->departureDate }}">
                                     </div>
                                 </div>
-                                {{--                        <div class="col-lg col-6">--}}
-                                {{--                            <div class="form-group">--}}
-                                {{--                                <div class="label out"><img src="{{ route('index') }}/img/marker_out.svg" alt=""> Выезд</div>--}}
-                                {{--                                <input type="date" id="date" name="departureDate" value="{{ $tomorrow }}">--}}
-                                {{--                            </div>--}}
-                                {{--                        </div>--}}
                                 <div class="col-lg col-6">
                                     <div id="count_person">
                                         <div class="form-group">
@@ -64,7 +58,7 @@
                                                 <div class="counter count-item">
                                                     <label>Дети:</label>
                                                     <a class="minus" onclick="changeCount('child', -1)">-</a>
-                                                    <span id="child-count">{{ count($request->childAges) ?? 0 }}</span>
+                                                    <span id="child-count">{{ $request->child ?? 0 }}</span>
                                                     <a class="plus" onclick="changeCount('child', 1)">+</a>
                                                     <input type="hidden" name="childAges[]" id="child">
                                                 </div>
@@ -457,16 +451,13 @@
                                                                value="{{ $request->adult }}">
                                                         <input type="hidden" name="child"
                                                                value="{{ $request->child }}">
-                                                        <input type="hidden" name="childAges[]"
-                                                               value="{{ implode(',', $request->childAges) }}">
-
-
-{{--                                                        <input type="hidden" name="age1"--}}
-{{--                                                               value="{{ $request->age1 }}">--}}
-{{--                                                        <input type="hidden" name="age2"--}}
-{{--                                                               value="{{ $request->age2 }}">--}}
-{{--                                                        <input type="hidden" name="age3"--}}
-{{--                                                               value="{{ $request->age3 }}">--}}
+                                                        @if($request->childAges)
+                                                            <input type="hidden" name="childAges[]"
+                                                                   value="{{ implode(',', $request->childAges) }}">
+                                                        @else
+                                                            <input type="hidden" name="childAges[]"
+                                                                   value="">
+                                                        @endif
                                                         <input type="hidden" name="meal_id"
                                                                value="{{ $request->meal_id }}">
                                                         <button class="more">Показать все номера</button>
@@ -482,10 +473,12 @@
                                                 $nights = $arr->diffInDays($dep);
                                                 $rate = \App\Models\Rate::where('hotel_id', $hotel->id)->orderBy('price', 'asc')->first();
                                                 $price_child = 0;
-                                                if (count(array_filter($request->childAges, fn($item) => is_null($item))) === 0) {
-                                                    foreach ($request->childAges as $age){
-                                                        if($rate->free_children_age <= $age ){
-                                                            $price_child += $rate->child_extra_fee;
+                                                if($request->childAges){
+                                                    if (count(array_filter($request->childAges, fn($item) => is_null($item))) === 0) {
+                                                        foreach ($request->childAges as $age){
+                                                            if($rate->free_children_age <= $age ){
+                                                                $price_child += $rate->child_extra_fee;
+                                                            }
                                                         }
                                                     }
                                                 }

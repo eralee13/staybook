@@ -88,31 +88,36 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="">Название банка</label>
-                                    <input type="text" name="bank_name" value="{{ old('bank_name', $user->bank_name) }}">
+                                    <input type="text" name="bank_name" value="{{ old('bank_name', isset
+                            ($user) ? $user->bank_name : null) }}">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="">ИНН</label>
-                                    <input type="text" name="bank_inn" value="{{ old('bank_inn', $user->bank_inn) }}">
+                                    <input type="text" name="bank_inn" value="{{ old('bank_inn', isset
+                            ($user) ? $user->bank_inn : null) }}">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="">Р/с</label>
-                                    <input type="text" name="bank_account" value="{{ old('bank_account', $user->bank_account) }}">
+                                    <input type="text" name="bank_account" value="{{ old('bank_account', isset
+                            ($user) ? $user->bank_account : null) }}">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="">БИК</label>
-                                    <input type="text" name="bank_bic" value="{{ old('bank_bic', $user->bank_bic) }}">
+                                    <input type="text" name="bank_bic" value="{{ old('bank_bic', isset
+                            ($user) ? $user->bank_bic : null) }}">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="">Адрес</label>
-                                    <input type="text" name="address" value="{{ old('address', $user->address) }}">
+                                    <input type="text" name="address" value="{{ old('address', isset
+                            ($user) ? $user->address : null) }}">
                                 </div>
                             </div>
                         </div>

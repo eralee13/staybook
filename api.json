@@ -7,7 +7,7 @@
     },
     "servers": [
         {
-            "url": "http:\/\/127.0.0.1:8000\/api"
+            "url": "http://127.0.0.1:8000/api"
         }
     ],
     "security": [
@@ -16,104 +16,18 @@
         }
     ],
     "paths": {
-        "\/v1.0\/v1.0\/getAccommodations": {
-            "get": {
-                "operationId": "getAccommodationList",
-                "tags": [
-                    "Accommodation"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Array of `AccommodationResource`",
-                        "content": {
-                            "application\/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#\/components\/schemas\/AccommodationResource"
-                                            }
-                                        }
-                                    },
-                                    "required": [
-                                        "data"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#\/components\/responses\/AuthenticationException"
-                    }
-                }
-            }
-        },
-        "\/v1.0\/v1.0\/getAccommodations\/{id}": {
-            "get": {
-                "operationId": "showAccommodation",
-                "tags": [
-                    "Accommodation"
-                ],
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "404": {
-                        "description": "",
-                        "content": {
-                            "application\/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "example": "Accommodation not found"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application\/json": {
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#\/components\/responses\/AuthenticationException"
-                    }
-                }
-            }
-        },
-        "\/v1.0\/v1.0\/login": {
+        "/v1.0/base/login": {
             "post": {
-                "operationId": "login",
+                "operationId": "v1.auth.login_0",
                 "tags": [
                     "Auth"
                 ],
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "application\/json": {
+                        "application/json": {
                             "schema": {
-                                "$ref": "#\/components\/schemas\/LoginRequest"
+                                "$ref": "#/components/schemas/LoginRequest"
                             }
                         }
                     }
@@ -122,7 +36,7 @@
                     "404": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
@@ -145,7 +59,7 @@
                     "200": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
@@ -170,15 +84,91 @@
                         }
                     },
                     "422": {
-                        "$ref": "#\/components\/responses\/ValidationException"
+                        "$ref": "#/components/responses/ValidationException"
                     },
                     "403": {
-                        "$ref": "#\/components\/responses\/AuthorizationException"
+                        "$ref": "#/components/responses/AuthorizationException"
                     }
                 }
             }
         },
-        "\/v1.0\/v1.0\/getBooks\/{id}": {
+        "/v1.1/login": {
+            "post": {
+                "operationId": "v1.auth.login_0",
+                "tags": [
+                    "Auth"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LoginRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Unauthorised."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        },
+                                        "data": {
+                                            "type": "string"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "User login successfully."
+                                        }
+                                    },
+                                    "required": [
+                                        "success",
+                                        "data",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    }
+                }
+            }
+        },
+        "/v1.0/base/getBooks/{id}": {
             "get": {
                 "operationId": "showBook",
                 "tags": [
@@ -198,7 +188,7 @@
                     "404": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
@@ -217,7 +207,7 @@
                     "200": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "string"
                                 }
@@ -225,12 +215,12 @@
                         }
                     },
                     "401": {
-                        "$ref": "#\/components\/responses\/AuthenticationException"
+                        "$ref": "#/components/responses/AuthenticationException"
                     }
                 }
             }
         },
-        "\/v1.0\/v1.0\/storeBook": {
+        "/v1.0/base/storeBook": {
             "post": {
                 "operationId": "v1.booking.store",
                 "tags": [
@@ -239,9 +229,9 @@
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "application\/json": {
+                        "application/json": {
                             "schema": {
-                                "$ref": "#\/components\/schemas\/StoreBookRequest"
+                                "$ref": "#/components/schemas/StoreBookRequest"
                             }
                         }
                     }
@@ -250,174 +240,7 @@
                     "200": {
                         "description": "",
                         "content": {
-                            "application\/json": {
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#\/components\/responses\/AuthenticationException"
-                    },
-                    "422": {
-                        "$ref": "#\/components\/responses\/ValidationException"
-                    },
-                    "403": {
-                        "$ref": "#\/components\/responses\/AuthorizationException"
-                    }
-                }
-            }
-        },
-        "\/v1.0\/v1.0\/updateBook\/{id}": {
-            "post": {
-                "operationId": "updateBook",
-                "tags": [
-                    "Booking"
-                ],
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application\/json": {
-                            "schema": {
-                                "$ref": "#\/components\/schemas\/UpdateBookRequest"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application\/json": {
-                                "schema": {
-                                    "type": "string",
-                                    "example": "Book updated"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "",
-                        "content": {
-                            "application\/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "example": "Unable to booking"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#\/components\/responses\/AuthenticationException"
-                    },
-                    "422": {
-                        "$ref": "#\/components\/responses\/ValidationException"
-                    },
-                    "403": {
-                        "$ref": "#\/components\/responses\/AuthorizationException"
-                    }
-                }
-            }
-        },
-        "\/v1.0\/v1.0\/cancelBook": {
-            "post": {
-                "operationId": "booking.cancel",
-                "tags": [
-                    "Booking"
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application\/json": {
-                            "schema": {
-                                "$ref": "#\/components\/schemas\/CancelRequest"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "404": {
-                        "description": "",
-                        "content": {
-                            "application\/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "example": "Book not found"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application\/json": {
-                                "schema": {
-                                    "type": "string",
-                                    "example": "Book cancelled"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#\/components\/responses\/AuthenticationException"
-                    },
-                    "422": {
-                        "$ref": "#\/components\/responses\/ValidationException"
-                    },
-                    "403": {
-                        "$ref": "#\/components\/responses\/AuthorizationException"
-                    }
-                }
-            }
-        },
-        "\/v1.1\/v1.1\/storeBook": {
-            "post": {
-                "operationId": "v1_1.booking.store",
-                "tags": [
-                    "Booking"
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application\/json": {
-                            "schema": {
-                                "$ref": "#\/components\/schemas\/BookRequest"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
@@ -435,7 +258,7 @@
                     "201": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "string",
                                     "example": "Book created successfully"
@@ -443,27 +266,97 @@
                             }
                         }
                     },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
                     "422": {
-                        "$ref": "#\/components\/responses\/ValidationException"
+                        "$ref": "#/components/responses/ValidationException"
                     },
                     "403": {
-                        "$ref": "#\/components\/responses\/AuthorizationException"
+                        "$ref": "#/components/responses/AuthorizationException"
                     }
                 }
             }
         },
-        "\/v1.1\/v1.1\/getStatus": {
+        "/v1.0/base/cancelBook": {
             "post": {
-                "operationId": "getStatus",
+                "operationId": "booking.cancel",
                 "tags": [
                     "Booking"
                 ],
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "application\/json": {
+                        "application/json": {
                             "schema": {
-                                "$ref": "#\/components\/schemas\/BookStatusRequest"
+                                "$ref": "#/components/schemas/CancelRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Book not found"
+                                        }
+                                    },
+                                    "required": [
+                                        "error"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "string",
+                                            "example": "Book cancelled"
+                                        },
+                                        {
+                                            "type": "string",
+                                            "example": "Not found"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    }
+                }
+            }
+        },
+        "/v1.1/storeBook": {
+            "post": {
+                "operationId": "v1_1.booking.store",
+                "tags": [
+                    "Booking"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BookRequest"
                             }
                         }
                     }
@@ -472,7 +365,65 @@
                     "200": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "error"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string",
+                                    "example": "Book created successfully"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    }
+                }
+            }
+        },
+        "/v1.1/getStatus": {
+            "post": {
+                "operationId": "getStatus",
+                "tags": [
+                    "Booking"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BookStatusRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
                                 "schema": {
                                     "anyOf": [
                                         {
@@ -530,16 +481,19 @@
                             }
                         }
                     },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
                     "422": {
-                        "$ref": "#\/components\/responses\/ValidationException"
+                        "$ref": "#/components/responses/ValidationException"
                     },
                     "403": {
-                        "$ref": "#\/components\/responses\/AuthorizationException"
+                        "$ref": "#/components/responses/AuthorizationException"
                     }
                 }
             }
         },
-        "\/v1.1\/v1.1\/cancelBook": {
+        "/v1.1/cancelBook": {
             "post": {
                 "operationId": "booking.cancelBook",
                 "tags": [
@@ -548,9 +502,9 @@
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "application\/json": {
+                        "application/json": {
                             "schema": {
-                                "$ref": "#\/components\/schemas\/App.Http.Requests.API.V1_1.CancelRequest"
+                                "$ref": "#/components/schemas/App.Http.Requests.API.V1_1.CancelRequest"
                             }
                         }
                     }
@@ -559,7 +513,7 @@
                     "404": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
@@ -578,7 +532,7 @@
                     "200": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "string",
                                     "example": "Book cancelled"
@@ -586,76 +540,35 @@
                             }
                         }
                     },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
                     "422": {
-                        "$ref": "#\/components\/responses\/ValidationException"
+                        "$ref": "#/components/responses/ValidationException"
                     },
                     "403": {
-                        "$ref": "#\/components\/responses\/AuthorizationException"
+                        "$ref": "#/components/responses/AuthorizationException"
                     }
                 }
             }
         },
-        "\/v1.0\/v1.0\/getCategoryRooms": {
+        "/v1.0/base/getHotels": {
             "get": {
-                "operationId": "getCategoryRoomList",
+                "operationId": "getHotelList",
                 "tags": [
-                    "CategoryRoom"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Array of `CategoryRoomResource`",
-                        "content": {
-                            "application\/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#\/components\/schemas\/CategoryRoomResource"
-                                            }
-                                        }
-                                    },
-                                    "required": [
-                                        "data"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#\/components\/responses\/AuthenticationException"
-                    }
-                }
-            }
-        },
-        "\/v1.0\/v1.0\/getCategoryRooms\/{id}": {
-            "get": {
-                "operationId": "showCategoryRoom",
-                "tags": [
-                    "CategoryRoom"
-                ],
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
+                    "Hotel"
                 ],
                 "responses": {
                     "404": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
                                         "error": {
                                             "type": "string",
-                                            "example": "Category Room not found"
+                                            "example": "Hotels not found"
                                         }
                                     },
                                     "required": [
@@ -668,7 +581,7 @@
                     "200": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "string"
                                 }
@@ -676,43 +589,12 @@
                         }
                     },
                     "401": {
-                        "$ref": "#\/components\/responses\/AuthenticationException"
+                        "$ref": "#/components/responses/AuthenticationException"
                     }
                 }
             }
         },
-        "\/v1.0\/v1.0\/getHotels": {
-            "get": {
-                "operationId": "hotel.index",
-                "tags": [
-                    "Hotel"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "`HotelCollection`",
-                        "content": {
-                            "application\/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#\/components\/schemas\/HotelCollection"
-                                        }
-                                    },
-                                    "required": [
-                                        "data"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#\/components\/responses\/AuthenticationException"
-                    }
-                }
-            }
-        },
-        "\/v1.0\/v1.0\/getHotels\/{id}": {
+        "/v1.0/base/getHotels/{id}": {
             "get": {
                 "operationId": "v1.hotel.show",
                 "tags": [
@@ -732,7 +614,7 @@
                     "404": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
@@ -751,7 +633,7 @@
                     "200": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "string"
                                 }
@@ -759,12 +641,12 @@
                         }
                     },
                     "401": {
-                        "$ref": "#\/components\/responses\/AuthenticationException"
+                        "$ref": "#/components/responses/AuthenticationException"
                     }
                 }
             }
         },
-        "\/v1.1\/v1.1\/getHotels\/{id}": {
+        "/v1.1/getHotels/{id}": {
             "get": {
                 "operationId": "v1_1.hotel.show",
                 "tags": [
@@ -784,7 +666,7 @@
                     "404": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
@@ -803,17 +685,20 @@
                     "200": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "string"
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
                     }
                 }
             }
         },
-        "\/v1.0\/v1.0\/getMeals": {
+        "/v1.0/base/getMeals": {
             "get": {
                 "operationId": "v1.meal.index",
                 "tags": [
@@ -823,14 +708,14 @@
                     "200": {
                         "description": "Array of `MealResource`",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#\/components\/schemas\/MealResource"
+                                                "$ref": "#/components/schemas/MealResource"
                                             }
                                         }
                                     },
@@ -842,64 +727,12 @@
                         }
                     },
                     "401": {
-                        "$ref": "#\/components\/responses\/AuthenticationException"
+                        "$ref": "#/components/responses/AuthenticationException"
                     }
                 }
             }
         },
-        "\/v1.0\/v1.0\/getMeals\/{id}": {
-            "get": {
-                "operationId": "showMeal",
-                "tags": [
-                    "Meal"
-                ],
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "404": {
-                        "description": "",
-                        "content": {
-                            "application\/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "example": "Meal not found"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application\/json": {
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#\/components\/responses\/AuthenticationException"
-                    }
-                }
-            }
-        },
-        "\/v1.1\/v1.1\/getMeals": {
+        "/v1.1/getMeals": {
             "get": {
                 "operationId": "v1_1.meal.index",
                 "tags": [
@@ -909,45 +742,14 @@
                     "200": {
                         "description": "Array of `App.Http.Resources.V1_1.MealResource`",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#\/components\/schemas\/App.Http.Resources.V1_1.MealResource"
-                                            }
-                                        }
-                                    },
-                                    "required": [
-                                        "data"
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "\/v1.0\/v1.0\/getRates": {
-            "get": {
-                "operationId": "getRateList",
-                "tags": [
-                    "Rate"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Array of `RateResource`",
-                        "content": {
-                            "application\/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#\/components\/schemas\/RateResource"
+                                                "$ref": "#/components/schemas/App.Http.Resources.V1_1.MealResource"
                                             }
                                         }
                                     },
@@ -959,330 +761,23 @@
                         }
                     },
                     "401": {
-                        "$ref": "#\/components\/responses\/AuthenticationException"
+                        "$ref": "#/components/responses/AuthenticationException"
                     }
                 }
             }
         },
-        "\/v1.0\/v1.0\/getRates\/{id}": {
-            "get": {
-                "operationId": "showRate",
-                "tags": [
-                    "Rate"
-                ],
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "404": {
-                        "description": "",
-                        "content": {
-                            "application\/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "example": "Rate not found"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application\/json": {
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#\/components\/responses\/AuthenticationException"
-                    }
-                }
-            }
-        },
-        "\/v1.0\/v1.0\/getRooms": {
-            "get": {
-                "operationId": "getRoomList",
-                "tags": [
-                    "Room"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Array of `RoomResource`",
-                        "content": {
-                            "application\/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#\/components\/schemas\/RoomResource"
-                                            }
-                                        }
-                                    },
-                                    "required": [
-                                        "data"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#\/components\/responses\/AuthenticationException"
-                    }
-                }
-            }
-        },
-        "\/v1.0\/v1.0\/getRooms\/{id}": {
-            "get": {
-                "operationId": "showRoom",
-                "tags": [
-                    "Room"
-                ],
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "404": {
-                        "description": "",
-                        "content": {
-                            "application\/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "example": "Room not found"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application\/json": {
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#\/components\/responses\/AuthenticationException"
-                    }
-                }
-            }
-        },
-        "\/v1.0\/v1.0\/getRules": {
-            "get": {
-                "operationId": "getRuleList",
-                "tags": [
-                    "Rule"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Array of `RuleResource`",
-                        "content": {
-                            "application\/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#\/components\/schemas\/RuleResource"
-                                            }
-                                        }
-                                    },
-                                    "required": [
-                                        "data"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#\/components\/responses\/AuthenticationException"
-                    }
-                }
-            }
-        },
-        "\/v1.0\/v1.0\/getRules\/{id}": {
-            "get": {
-                "operationId": "showRule",
-                "tags": [
-                    "Rule"
-                ],
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "404": {
-                        "description": "",
-                        "content": {
-                            "application\/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "example": "Rule not found"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application\/json": {
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#\/components\/responses\/AuthenticationException"
-                    }
-                }
-            }
-        },
-        "\/v1.1\/v1.1\/getHotels": {
-            "get": {
-                "operationId": "v1_1.search.index_0",
-                "tags": [
-                    "Search"
-                ],
-                "parameters": [
-                    {
-                        "name": "hotel_ids",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    {
-                        "name": "residency",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "adults",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "children_ages",
-                        "in": "query",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    {
-                        "name": "check_in",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "date-time"
-                        }
-                    },
-                    {
-                        "name": "check_out",
-                        "in": "query",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "date-time"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application\/json": {
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "$ref": "#\/components\/responses\/ValidationException"
-                    },
-                    "403": {
-                        "$ref": "#\/components\/responses\/AuthorizationException"
-                    }
-                }
-            }
-        },
-        "\/v1.1\/v1.1\/searchHotel": {
+        "/v1.0/base/searchHotel": {
             "post": {
-                "operationId": "searchHotels",
+                "operationId": "v1.search.index",
                 "tags": [
                     "Search"
                 ],
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "application\/json": {
+                        "application/json": {
                             "schema": {
-                                "$ref": "#\/components\/schemas\/SearchRequest"
+                                "$ref": "#/components/schemas/SearchRequest"
                             }
                         }
                     }
@@ -1291,25 +786,28 @@
                     "200": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "string"
                                 }
                             }
                         }
                     },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
                     "422": {
-                        "$ref": "#\/components\/responses\/ValidationException"
+                        "$ref": "#/components/responses/ValidationException"
                     },
                     "403": {
-                        "$ref": "#\/components\/responses\/AuthorizationException"
+                        "$ref": "#/components/responses/AuthorizationException"
                     }
                 }
             }
         },
-        "\/v1.1\/v1.1\/searchHotel\/{id}": {
+        "/v1.0/base/searchHotel/{id}": {
             "post": {
-                "operationId": "searchHotel",
+                "operationId": "v1.search.show",
                 "tags": [
                     "Search"
                 ],
@@ -1326,9 +824,9 @@
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "application\/json": {
+                        "application/json": {
                             "schema": {
-                                "$ref": "#\/components\/schemas\/SearchOneRequest"
+                                "$ref": "#/components/schemas/SearchOneRequest"
                             }
                         }
                     }
@@ -1337,18 +835,109 @@
                     "200": {
                         "description": "",
                         "content": {
-                            "application\/json": {
+                            "application/json": {
                                 "schema": {
                                     "type": "string"
                                 }
                             }
                         }
                     },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
                     "422": {
-                        "$ref": "#\/components\/responses\/ValidationException"
+                        "$ref": "#/components/responses/ValidationException"
                     },
                     "403": {
-                        "$ref": "#\/components\/responses\/AuthorizationException"
+                        "$ref": "#/components/responses/AuthorizationException"
+                    }
+                }
+            }
+        },
+        "/v1.1/searchHotel": {
+            "post": {
+                "operationId": "v1_1.search.index",
+                "tags": [
+                    "Search"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SearchRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    }
+                }
+            }
+        },
+        "/v1.1/searchHotel/{id}": {
+            "post": {
+                "operationId": "v1_1.search.show",
+                "tags": [
+                    "Search"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SearchOneRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
                     }
                 }
             }
@@ -1362,74 +951,6 @@
             }
         },
         "schemas": {
-            "AccommodationResource": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "hotel_id": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "room_id": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "place_without": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "place_extra": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "price_without": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "price_extra": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "age_from": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "age_to": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    }
-                },
-                "required": [
-                    "id",
-                    "hotel_id",
-                    "room_id",
-                    "place_without",
-                    "place_extra",
-                    "price_without",
-                    "price_extra",
-                    "age_from",
-                    "age_to"
-                ],
-                "title": "AccommodationResource"
-            },
             "App.Http.Requests.API.V1_1.CancelRequest": {
                 "type": "object",
                 "properties": {
@@ -1449,15 +970,19 @@
                 "type": "object",
                 "properties": {
                     "id": {
+                        "type": "integer"
+                    },
+                    "code": {
                         "type": "string"
                     },
-                    "name": {
+                    "title": {
                         "type": "string"
                     }
                 },
                 "required": [
                     "id",
-                    "name"
+                    "code",
+                    "title"
                 ],
                 "title": "App.Http.Resources.V1_1.MealResource"
             },
@@ -1473,7 +998,16 @@
                     "rate_id": {
                         "type": "integer"
                     },
-                    "client_reference_id": {
+                    "user_id": {
+                        "type": "integer"
+                    },
+                    "adult": {
+                        "type": "integer"
+                    },
+                    "childages": {
+                        "type": "string"
+                    },
+                    "title": {
                         "type": "string"
                     },
                     "phone": {
@@ -1484,48 +1018,45 @@
                         "format": "email"
                     },
                     "sum": {
-                        "type": "number"
-                    },
-                    "payment": {
-                        "type": "string"
-                    },
-                    "title": {
-                        "type": "string"
-                    },
-                    "adult": {
-                        "type": "integer"
+                        "type": "integer",
+                        "minimum": 1
                     },
                     "comment": {
-                        "type": "string",
-                        "description": "'last_name' => 'required|string',\n'is_child' => 'required|boolean',"
+                        "type": "string"
                     },
                     "arrivalDate": {
                         "type": "string",
-                        "format": "date-time"
+                        "format": "date"
                     },
                     "departureDate": {
                         "type": "string",
-                        "format": "date-time"
+                        "format": "date"
                     },
                     "book_token": {
                         "type": "string"
                     },
-                    "user_id": {
-                        "type": "integer"
-                    },
                     "status": {
-                        "type": "string"
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "reserved",
+                            "cancelled"
+                        ]
                     }
                 },
                 "required": [
                     "hotel_id",
                     "room_id",
+                    "rate_id",
+                    "user_id",
+                    "adult",
+                    "title",
                     "phone",
                     "email",
                     "sum",
-                    "title",
                     "arrivalDate",
-                    "departureDate"
+                    "departureDate",
+                    "book_token"
                 ],
                 "title": "BookRequest"
             },
@@ -1561,171 +1092,6 @@
                 ],
                 "title": "CancelRequest"
             },
-            "CategoryRoomResource": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "title": {
-                        "type": "string"
-                    },
-                    "title_en": {
-                        "type": "string"
-                    },
-                    "code": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "id",
-                    "title",
-                    "title_en",
-                    "code"
-                ],
-                "title": "CategoryRoomResource"
-            },
-            "HotelCollection": {
-                "type": "array",
-                "items": {
-                    "$ref": "#\/components\/schemas\/HotelResource"
-                },
-                "title": "HotelCollection"
-            },
-            "HotelResource": {
-                "type": "object",
-                "properties": {
-                    "code": {
-                        "type": "string"
-                    },
-                    "id": {
-                        "type": "integer"
-                    },
-                    "title": {
-                        "type": "string"
-                    },
-                    "title_en": {
-                        "type": "string"
-                    },
-                    "description": {
-                        "type": "string"
-                    },
-                    "description_en": {
-                        "type": "string"
-                    },
-                    "checkin": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "checkout": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "city": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "address": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "address_en": {
-                        "type": "string"
-                    },
-                    "lng": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "lat": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "email": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "phone": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "count": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "rating": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "early_in": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "late_out": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "type": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "image": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    }
-                },
-                "required": [
-                    "code",
-                    "id",
-                    "title",
-                    "title_en",
-                    "description",
-                    "description_en",
-                    "checkin",
-                    "checkout",
-                    "city",
-                    "address",
-                    "address_en",
-                    "lng",
-                    "lat",
-                    "email",
-                    "phone",
-                    "count",
-                    "rating",
-                    "early_in",
-                    "late_out",
-                    "type",
-                    "image"
-                ],
-                "title": "HotelResource"
-            },
             "LoginRequest": {
                 "type": "object",
                 "properties": {
@@ -1754,240 +1120,21 @@
                     "title": {
                         "type": "string"
                     },
-                    "title_en": {
-                        "type": "string"
-                    },
-                    "price": {
-                        "type": "integer"
-                    },
-                    "hotel_id": {
-                        "type": "integer"
-                    }
-                },
-                "required": [
-                    "id",
-                    "title",
-                    "title_en",
-                    "price",
-                    "hotel_id"
-                ],
-                "title": "MealResource"
-            },
-            "RateResource": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "title": {
-                        "type": "string"
-                    },
-                    "title_en": {
-                        "type": "string"
-                    },
-                    "hotel_id": {
-                        "type": "integer"
-                    },
-                    "room_id": {
-                        "type": "string"
-                    },
-                    "meal_id": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "rule_id": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "price": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "price2": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    }
-                },
-                "required": [
-                    "id",
-                    "title",
-                    "title_en",
-                    "hotel_id",
-                    "room_id",
-                    "meal_id",
-                    "rule_id",
-                    "price",
-                    "price2"
-                ],
-                "title": "RateResource"
-            },
-            "RoomResource": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
                     "code": {
                         "type": "string"
-                    },
-                    "title": {
-                        "type": "string"
-                    },
-                    "title_en": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "hotel_id": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "count": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "description": {
-                        "type": "string"
-                    },
-                    "description_en": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "area": {
-                        "type": "integer"
-                    },
-                    "services": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "price": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "price2": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "bed": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "image": {
-                        "type": "string"
-                    },
-                    "category_id": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    }
-                },
-                "required": [
-                    "id",
-                    "code",
-                    "title",
-                    "title_en",
-                    "hotel_id",
-                    "count",
-                    "description",
-                    "description_en",
-                    "area",
-                    "services",
-                    "price",
-                    "price2",
-                    "bed",
-                    "image",
-                    "category_id"
-                ],
-                "title": "RoomResource"
-            },
-            "RuleResource": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "title": {
-                        "type": "string"
-                    },
-                    "title_en": {
-                        "type": "string"
-                    },
-                    "hotel_id": {
-                        "type": "integer"
-                    },
-                    "size": {
-                        "type": "integer"
-                    },
-                    "percent_book": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "percent_day": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "date_day": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
-                    },
-                    "date_book": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
                     }
                 },
                 "required": [
                     "id",
                     "title",
-                    "title_en",
-                    "hotel_id",
-                    "size",
-                    "percent_book",
-                    "percent_day",
-                    "date_day",
-                    "date_book"
+                    "code"
                 ],
-                "title": "RuleResource"
+                "title": "MealResource"
             },
             "SearchOneRequest": {
                 "type": "object",
                 "properties": {
-                    "residency": {
-                        "type": "string",
-                        "description": "'hotel_id' => 'integer|exists:hotels,id|required',"
-                    },
-                    "adults": {
+                    "adult": {
                         "type": "integer"
                     },
                     "children_ages": {
@@ -1996,36 +1143,37 @@
                             "type": "string"
                         }
                     },
-                    "check_in": {
+                    "arrivalDate": {
                         "type": "string",
-                        "format": "date-time"
+                        "format": "date"
                     },
-                    "check_out": {
+                    "departureDate": {
                         "type": "string",
-                        "format": "date-time"
+                        "format": "date"
                     }
                 },
                 "required": [
-                    "residency",
-                    "adults",
-                    "check_in",
-                    "check_out"
+                    "adult",
+                    "arrivalDate",
+                    "departureDate"
                 ],
                 "title": "SearchOneRequest"
             },
             "SearchRequest": {
                 "type": "object",
                 "properties": {
-                    "hotel_ids": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "residency": {
+                    "city": {
                         "type": "string"
                     },
-                    "adults": {
+                    "arrivalDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "departureDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "adult": {
                         "type": "integer"
                     },
                     "children_ages": {
@@ -2034,21 +1182,15 @@
                             "type": "string"
                         }
                     },
-                    "check_in": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "check_out": {
-                        "type": "string",
-                        "format": "date-time"
+                    "rating": {
+                        "type": "integer"
                     }
                 },
                 "required": [
-                    "hotel_ids",
-                    "residency",
-                    "adults",
-                    "check_in",
-                    "check_out"
+                    "city",
+                    "arrivalDate",
+                    "departureDate",
+                    "adult"
                 ],
                 "title": "SearchRequest"
             },
@@ -2061,12 +1203,10 @@
                     "room_id": {
                         "type": "integer"
                     },
-                    "title": {
-                        "type": "string",
-                        "minLength": 3,
-                        "maxLength": 255
+                    "rate_id": {
+                        "type": "integer"
                     },
-                    "title2": {
+                    "title": {
                         "type": "string",
                         "minLength": 3,
                         "maxLength": 255
@@ -2084,7 +1224,7 @@
                         "type": "integer",
                         "minimum": 1
                     },
-                    "child": {
+                    "childages": {
                         "type": [
                             "string",
                             "null"
@@ -2092,18 +1232,14 @@
                     },
                     "arrivalDate": {
                         "type": "string",
-                        "format": "date-time"
+                        "format": "date"
                     },
                     "departureDate": {
                         "type": "string",
-                        "format": "date-time"
+                        "format": "date"
                     },
                     "sum": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ],
-                        "minimum": 1
+                        "type": "integer"
                     },
                     "user_id": {
                         "type": "integer"
@@ -2115,115 +1251,35 @@
                     },
                     "status": {
                         "type": "string",
-                        "minLength": 3,
-                        "maxLength": 255
+                        "enum": [
+                            "pending",
+                            "reserved",
+                            "cancelled"
+                        ]
                     }
                 },
                 "required": [
                     "hotel_id",
                     "room_id",
+                    "rate_id",
                     "title",
                     "phone",
                     "email",
                     "adult",
                     "arrivalDate",
                     "departureDate",
+                    "sum",
                     "user_id",
                     "book_token"
                 ],
                 "title": "StoreBookRequest"
-            },
-            "UpdateBookRequest": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "hotel_id": {
-                        "type": "integer"
-                    },
-                    "room_id": {
-                        "type": "integer"
-                    },
-                    "title": {
-                        "type": "string",
-                        "minLength": 3,
-                        "maxLength": 255
-                    },
-                    "title2": {
-                        "type": "string",
-                        "minLength": 3,
-                        "maxLength": 255
-                    },
-                    "phone": {
-                        "type": "string",
-                        "minLength": 10,
-                        "maxLength": 15
-                    },
-                    "email": {
-                        "type": "string",
-                        "format": "email"
-                    },
-                    "adult": {
-                        "type": "integer",
-                        "minimum": 1
-                    },
-                    "child": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "arrivalDate": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "departureDate": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "sum": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ],
-                        "minimum": 1
-                    },
-                    "user_id": {
-                        "type": "integer"
-                    },
-                    "book_token": {
-                        "type": "string",
-                        "minLength": 15,
-                        "maxLength": 15
-                    },
-                    "status": {
-                        "type": "string",
-                        "minLength": 3,
-                        "maxLength": 255
-                    }
-                },
-                "required": [
-                    "id",
-                    "hotel_id",
-                    "room_id",
-                    "title",
-                    "phone",
-                    "email",
-                    "adult",
-                    "arrivalDate",
-                    "departureDate",
-                    "user_id",
-                    "book_token"
-                ],
-                "title": "UpdateBookRequest"
             }
         },
         "responses": {
             "ValidationException": {
                 "description": "Validation error",
                 "content": {
-                    "application\/json": {
+                    "application/json": {
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -2253,7 +1309,7 @@
             "AuthorizationException": {
                 "description": "Authorization error",
                 "content": {
-                    "application\/json": {
+                    "application/json": {
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -2272,7 +1328,7 @@
             "AuthenticationException": {
                 "description": "Unauthenticated",
                 "content": {
-                    "application\/json": {
+                    "application/json": {
                         "schema": {
                             "type": "object",
                             "properties": {

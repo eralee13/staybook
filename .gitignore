@@ -35,7 +35,7 @@ public/storage/
 *.sublime-workspace
 
 # Composer & NPM
-composer.lock
+#composer.lock
 package-lock.json
 pnpm-lock.yaml
 yarn.lock
