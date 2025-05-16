@@ -19,14 +19,16 @@ Route::prefix('')->group(function(){
 });
 
 Route::prefix('')->middleware(['throttle:api', 'auth:sanctum'])->group(function () {
-    Route::get('/getHotels/{hotel}', [\App\Http\Controllers\API\V1_1\HotelController::class, 'show'])->name('showHotel');
-    Route::get('/getMeals', [\App\Http\Controllers\API\V1_1\MealController::class, 'index'])->name('getMealList');
-    Route::post('/searchHotel', [\App\Http\Controllers\API\V1_1\SearchController::class, 'index'])->name('searchHotels');
-    Route::post('/searchHotel/{hotel}', [\App\Http\Controllers\API\V1_1\SearchController::class, 'show'])->name('searchHotel');
+    Route::get('/hotels/', [\App\Http\Controllers\API\V1_1\HotelController::class, 'HotelStatic'])->name('HotelStatic');
+    Route::get('/meals', [\App\Http\Controllers\API\V1_1\MealController::class, 'meals'])->name('Meals');
 
-    Route::post('/storeBook', [\App\Http\Controllers\API\V1_1\BookingController::class, 'store'])->name('storeBook');
-    Route::post('/getStatus', [\App\Http\Controllers\API\V1_1\BookingController::class, 'getStatus'])->name('getStatus');
-    Route::post('/cancelBook', [\App\Http\Controllers\API\V1_1\BookingController::class, 'cancelBook'])->name('cancelBook');
+    Route::post('/search', [\App\Http\Controllers\API\V1_1\SearchController::class, 'search'])->name('search');
+    Route::post('/searchHotel/{hotel_id}', [\App\Http\Controllers\API\V1_1\SearchController::class, 'show'])->name('searchHotel');
+    Route::post('/rateDetails/{hotel_id}/{rate_id}', [\App\Http\Controllers\API\V1_1\SearchController::class, 'ratedetails'])->name('rateDetails');
+
+    Route::post('/book', [\App\Http\Controllers\API\V1_1\BookingController::class, 'book'])->name('book');
+    Route::post('/status', [\App\Http\Controllers\API\V1_1\BookingController::class, 'status'])->name('status');
+    Route::post('/cancel', [\App\Http\Controllers\API\V1_1\BookingController::class, 'cancel'])->name('cancel');
 
     Route::fallback(function () {
         return response()->json(['Not found'], 404);

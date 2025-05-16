@@ -22,8 +22,8 @@ class BookStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => 'required|integer|exists:books,id',
-            'book_token' => 'required|string|exists:books,book_token',
+            'reservation_id' => 'required|integer|exists:books,id',
+            'client_reference_id' => 'required|string|exists:books,book_token',
         ];
     }
 }

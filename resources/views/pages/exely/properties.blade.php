@@ -37,7 +37,6 @@
                                     <label for="title">Название города</label>
                                     <select name="city" id="city" required>
                                         <option value="">@lang('main.choose')</option>
-                                        @
                                         @foreach($cities as $city)
                                             <option value="{{ $city->exely_id }}">{{ $city->title }}</option>
                                         @endforeach
@@ -54,16 +53,7 @@
                             </div>
                         </div>
                         <div class="row">
-                            <script>
-                                $(document).ready(function () {
-                                    $('#hotel').selectize({
-                                        sortField: 'text'
-                                    });
-                                    $('#city').selectize({
-                                        sortField: 'text'
-                                    });
-                                });
-                            </script>
+
                             <div class="col">
                                 <div class="form-group">
                                     <label for="">@lang('main.search-adult')</label>

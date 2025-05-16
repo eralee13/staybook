@@ -49,10 +49,21 @@ class Book extends Model
         'count'
     ];
 
+    public function hotel()
+    {
+        return $this->belongsTo(Hotel::class);
+    }
+
     public function room()
     {
         return $this->belongsTo(Room::class);
     }
+
+    public function rate()
+    {
+        return $this->belongsTo(Rate::class);
+    }
+
 
     public function showStartDate()
     {

@@ -15,7 +15,7 @@ class HotelController extends Controller
      * @param Request $request
      * @return HotelCollection
      */
-    public function index(Request $request)
+    public function HotelStatic(Request $request)
     {
         $filter = new HotelFilter();
         $queryItems = $filter->transform($request);//'column', 'operator', 'value'

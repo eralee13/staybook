@@ -93,27 +93,27 @@ Route::middleware('set_locale')->group(function () {
 
     //Exely API
     Route::get('/v1/properties', [ContentController::class, 'properties'])->name('properties');
-    Route::get('/v1/properties/{property}', [ContentController::class, 'property'])->name('property');
-    Route::get('/v1/meals', [ContentController::class, 'meals'])->name('meals');
-    Route::get('/v1/roomtypes', [ContentController::class, 'roomtypes'])->name('roomtypes');
-    Route::get('/v1/amenities', [ContentController::class, 'amenities'])->name('amenities');
-    Route::get('/v1/extrarules', [ContentController::class, 'extrarules'])->name('extrarules');
+    //Route::gmpet('/v1/properties/{property}', [ContentController::class, 'property'])->name('property');
+    //Route::get('/v1/meals', [ContentController::class, 'meals'])->name('meals');
+    //Route::get('/v1/roomtypes', [ContentController::class, 'roomtypes'])->name('roomtypes');
+    //Route::get('/v1/amenities', [ContentController::class, 'amenities'])->name('amenities');
+    //Route::get('/v1/extrarules', [ContentController::class, 'extrarules'])->name('extrarules');
 
     //Search API
     Route::get('/v1/search_property', [SearchController::class, 'search_property'])->name('search_property');
     Route::get('/v1/search_roomstays', [SearchController::class, 'search_roomstays'])->name('search_roomstays');
-    Route::get('/v1/search_services', [SearchController::class, 'search_services'])->name('search_services');
-    Route::get('/v1/search_extrastays', [SearchController::class, 'search_extrastays'])->name('search_extrastays');
+    //Route::get('/v1/search_services', [SearchController::class, 'search_services'])->name('search_services');
+    //Route::get('/v1/search_extrastays', [SearchController::class, 'search_extrastays'])->name('search_extrastays');
 
     //Reservation API
     Route::get('/orderexely/{order}', [ReservationController::class, 'orderexely'])->name('orderexely');
     Route::get('/v1/bookings/verify', [ReservationController::class, 'res_verify_bookings'])->name('res_bookings_verify');
     Route::get('/v1/bookings', [ReservationController::class, 'res_bookings'])->name('res_bookings');
-    Route::get('/v1/booking', [ReservationController::class, 'res_booking'])->name('res_booking');
-    Route::get('/v1/booking/modify', [ReservationController::class, 'res_modify'])->name('res_modify');
-    Route::get('/v1/booking/verify', [ReservationController::class, 'res_verify'])->name('res_verify');
-    Route::get('/v1/booking/cancel', [ReservationController::class, 'res_cancel'])->name('res_cancel');
+    //Route::get('/v1/booking', [ReservationController::class, 'res_booking'])->name('res_booking');
+    //Route::get('/v1/booking/modify', [ReservationController::class, 'res_modify'])->name('res_modify');
+    //Route::get('/v1/booking/verify', [ReservationController::class, 'res_verify'])->name('res_verify');
     Route::get('/v1/booking/calculate', [ReservationController::class, 'res_calculate'])->name('res_calculate');
+    Route::get('/v1/booking/cancel', [ReservationController::class, 'res_cancel'])->name('res_cancel');
 
     //TourMind
     Route::get('/hotel-results', HotelResults::class)->name('hotel.results');

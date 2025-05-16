@@ -23,20 +23,23 @@ class BookRequest extends FormRequest
     {
         return [
             'hotel_id' => 'required|exists:hotels,id',
-            'room_id' => 'required|exists:rooms,id',
             'rate_id' => 'required|exists:rates,id',
-            'user_id' => 'required|integer|exists:users,id',
-            'adult' => 'required|integer',
-            'childages' => 'string',
-            'title' => 'required|string',
-            'phone' => 'required|string',
+            'client_reference_id' => 'required',
+            'firstname' => 'required',
+            'lastname' => 'required',
+            'is_child' => 'required|boolean',
             'email' => 'required|string|email',
-            'sum' => 'required|integer|min:1',
+            'phone' => 'required|string',
+            'price' => 'required|integer|min:1',
+            'payment' => 'string|nullable',
+            'room_id' => 'integer|exists:rooms,id',
             'comment' => 'string',
             'arrivalDate' => 'required|date|date_format:Y-m-d',
             'departureDate' => 'required|date|date_format:Y-m-d',
-            'book_token' => 'required|string',
-            'status' => 'string|in:pending,reserved,cancelled',
+            'adult' => 'required|integer|min:1',
+            'childages' => 'string',
+            'cancellation_rule_id' => 'integer|exists:cancellation_rules,id',
+            //'user_id' => 'required|integer|exists:users,id',
         ];
     }
 }

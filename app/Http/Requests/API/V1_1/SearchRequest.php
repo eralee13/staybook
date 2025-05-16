@@ -32,12 +32,12 @@ class SearchRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'city' => 'required|exists:cities,title',
-            'arrivalDate' => 'required|date|date_format:Y-m-d',
-            'departureDate' => 'required|date|date_format:Y-m-d|after_or_equal:arrivalDate',
-            'adult' => 'required|integer',
+            'hotel_ids' => 'required|array',
+            'check_in' => 'required|date|date_format:Y-m-d',
+            'check_out' => 'required|date|date_format:Y-m-d|after_or_equal:arrivalDate',
+            'adults' => 'required|integer|min:1',
             'children_ages' => 'array',
-            'rating' => 'integer|between:1,5',
+            'residency' => 'required|string',
         ];
     }
 }

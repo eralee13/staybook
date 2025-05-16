@@ -2,22 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\MultiForm\HotelOneRequest;
-use App\Http\Requests\MultiForm\HotelTwoRequest;
 use App\Models\Book;
 use App\Models\City;
-use App\Models\Rate;
 use App\Models\Contact;
-use App\Models\Meal;
-use App\Models\Image;
 use App\Models\Page;
 use App\Models\Room;
 use App\Models\Hotel;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
 
 class PageController extends Controller
 {
@@ -90,7 +83,6 @@ class PageController extends Controller
             $query->where('rating', '>=', $request->rating);
         }
 
-        // Sorting by hotel rating
         if ($request->sort === 'highest_rating') {
             $query->orderBy('rating', 'desc');
         } elseif ($request->sort === 'lowest_rating') {

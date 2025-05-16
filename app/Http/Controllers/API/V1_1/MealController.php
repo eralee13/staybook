@@ -15,7 +15,7 @@ class MealController extends Controller
     /**
      * @return Collection|\Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
-    public function index()
+    public function meals()
     {
         return MealResource::collection(Meal::all());
     }
