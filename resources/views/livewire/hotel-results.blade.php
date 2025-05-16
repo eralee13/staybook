@@ -97,7 +97,18 @@
                                 <select name="adults" id="adults" wire:model="adults">
                                     <option value="1">1</option>
                                     <option value="2">2</option>
+                                    <option value="3">3</option>    
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="6">6</option>
+                                    <option value="7">7</option>
+                                    <option value="8">8</option>
+                                    <option value="9">9</option>
+                                    <option value="10">10</option>
                                 </select>
+                                @error('adults')
+                                    <div class="alert alert-danger">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col">
@@ -203,10 +214,6 @@
                                     <option value="2">2</option>
                                     <option value="3">3</option>
                                     <option value="4">4</option>
-                                    <option value="5">5</option>
-                                    <option value="6">6</option>
-                                    <option value="7">7</option>
-                                    <option value="8">8</option>
                                 </select>
                             </div>
                         </div>
@@ -335,7 +342,7 @@
                                 <div class="col-md-8">
                                     <h3>{{ $hotel['localData']['title_en'] ?? '' }} &#9733; {{ $hotel['localData']['rating'] ?? '' }}</h3>
                                     <div class="address">{{ $hotel['localData']['address_en'] ?? ''}}</div>
-                                    <a href="{{ route('hotel.rooms', ['hotelId' => $hotel['localData']['id'], 'tmid' => $hotel['HotelCode']]) }}" class="bg-green-500 text-white px-4 py-2 rounded">
+                                    <a href="{{ route('hotel.rooms', ['hotelId' => $hotel['localData']['id'], 'tmid' => $hotel['HotelCode']]) }}" class="btn btn-success px-4 py-2 rounded">
                                         Посмотреть номера
                                     </a>
                                 </div>

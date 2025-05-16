@@ -124,6 +124,7 @@
                                 <li class="list-group-item"><strong>Отель:</strong> {{ $hotelName }}</li>
                                 <li class="list-group-item"><strong>Номер:</strong> {{ $roomName }}</li>
                                 <li class="list-group-item"><strong>Тип номера:</strong> {{ $bedDesc }}</li>
+                                <li class="list-group-item"><strong>Кол-во номеров:</strong> {{ $roomCount }}</li>
                                 <li class="list-group-item"><strong>Количество взрослых:</strong> {{ $adults }}</li>
                                 <li class="list-group-item"><strong>Количество детей:</strong> {{ $child }}</li>    
                                 <li class="list-group-item"><strong>Доступность номеров:</strong> {{ $allotment }}</li>
@@ -131,10 +132,11 @@
                                 <li class="list-group-item"><strong>Выезд:</strong> {{ $checkout }} {{ $utc }}</li>
                                 <li class="list-group-item"><strong>Цена:</strong> {{ $totalPrice }} {{ $currency }}</li>
                                 <li class="list-group-item"><strong>Еда:</strong> {{ $meal }} </li>
+                                <li>{{ $start_date_time }} - {{ $end_date_time }}</li>
                                 <li class="list-group-item"><strong>Политика отмены:</strong> 
                                     @if($refundable == true)
-                                        Бесплатная отмена действия до {{$cancelDate}}
-                                        Сумма штрафа {{$cancelPolicy}}
+                                        Бесплатная отмена действия до {{ $cancelDate }} {{$utc}}!
+                                        Иначе Сумма штрафа {{ $cancelPolicy }}!
                                     @else
                                         Отмена невозможно!
                                     @endif
@@ -142,39 +144,6 @@
                                 <li class="list-group-item"><strong>Токен бронирования:</strong> {{ $token }}</li>
                             </ul>
                         </div>
-                        <div class="col-12">
-                            <h3>ФИО гостя</h3>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label for="paxfname">firstname</label>
-                                <input wire:model="paxfname" type="text" name="paxfname" required>
-                                @error('paxfname') <span class="text-danger">{{ $message }}</span> @enderror
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label for="paxlname">lastname</label>
-                                <input wire:model="paxlname" type="text" name="paxlname" required>
-                                 @error('paxlname') <span class="text-danger">{{ $message }}</span> @enderror
-                            </div>
-                        </div>
-                        
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label for="lastname">Email</label>
-                                <input wire:model="email" type="email" name="email" required>
-                                    @error('email') <span class="text-danger">{{ $message }}</span> @enderror
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label for="phone">Phone</label>
-                                <input wire:model="phone" type="tel" name="phone"  id="phone" class="phone" required>
-                                    @error('phone') <span class="text-danger">{{ $message }}</span> @enderror
-                            </div>
-                        </div>
-                        
                         <div class="col-12">
                             <h3>Контактное лицо</h3>
                         </div>
@@ -192,6 +161,99 @@
                                  @error('lastname') <span class="text-danger">{{ $message }}</span> @enderror
                             </div>
                         </div>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label for="lastname">Email</label>
+                                <input wire:model="email" type="email" name="email" required>
+                                    @error('email') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label for="phone">Phone</label>
+                                <input wire:model="phone" type="tel" name="phone"  id="phone" class="phone" required>
+                                    @error('phone') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <br>
+                            <h3>ФИО гостя</h3>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label for="paxfname">firstname</label>
+                                <input wire:model="paxfname" type="text" name="paxfname" required>
+                                @error('paxfname') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label for="paxlname">lastname</label>
+                                <input wire:model="paxlname" type="text" name="paxlname" required>
+                                 @error('paxlname') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                        @if($roomCount >= 2)
+                            <div class="col-12 fio2">
+                                <br>
+                                <h3>ФИО гостя 2</h3>
+                            </div>
+                            <div class="col-6 fio2">
+                                <div class="form-group">
+                                    <label for="paxfname">firstname</label>
+                                    <input wire:model="paxfname2" type="text" name="paxfname2" required>
+                                    @error('paxfname2') <span class="text-danger">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                            <div class="col-6 fio2">
+                                <div class="form-group">
+                                    <label for="paxlname">lastname</label>
+                                    <input wire:model="paxlname2" type="text" name="paxlname2" required>
+                                    @error('paxlname2') <span class="text-danger">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                        @endif
+                        @if($roomCount >= 3)
+                            <div class="col-12 fio3">
+                                <br>
+                                <h3>ФИО гостя 3</h3>
+                            </div>
+                            <div class="col-6 fio3">
+                                <div class="form-group">
+                                    <label for="paxfname">firstname</label>
+                                    <input wire:model="paxfname3" type="text" name="paxfname3" required>
+                                    @error('paxfname3') <span class="text-danger">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                            <div class="col-6 fio3">
+                                <div class="form-group">
+                                    <label for="paxlname">lastname</label>
+                                    <input wire:model="paxlname3" type="text" name="paxlname3" required>
+                                    @error('paxlname3') <span class="text-danger">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                        @endif
+                        @if($roomCount >= 4)
+                            <div class="col-12 fio4">
+                                <br>
+                                <h3>ФИО гостя 4</h3>
+                            </div>
+                            <div class="col-6 fio4">
+                                <div class="form-group">
+                                    <label for="paxfname">firstname</label>
+                                    <input wire:model="paxfname4" type="text" name="paxfname4" required>
+                                    @error('paxfname4') <span class="text-danger">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                            <div class="col-6 fio4">
+                                <div class="form-group">
+                                    <label for="paxlname">lastname</label>
+                                    <input wire:model="paxlname4" type="text" name="paxlname4" required>
+                                    @error('paxlname4') <span class="text-danger">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                        @endif
+                        
                     </div>
                     
                     <div class="col-12">

@@ -5,6 +5,9 @@
 		},
 		{
 			"path": "../../../../../../../Dockertest"
+		},
+		{
+			"path": "C:/OSPanel/home"
 		}
 	],
 	"settings": {}

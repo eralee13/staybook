@@ -50,12 +50,19 @@ class HotelResults extends Component
 
     public function __construct(){
 
-        
         $this->baseUrl = config('app.tm_base_url');
         $this->tm_agent_code = config('app.tm_agent_code');
         $this->tm_user_name = config('app.tm_user_name');
         $this->tm_password = config('app.tm_password');
 
+    }
+
+    public function rules()
+    {
+        return [
+            'adults' => 'required|integer|min:1',
+            'roomCount' => 'required|integer|min:1',
+        ];
     }
 
     public function mount()
@@ -149,6 +156,13 @@ class HotelResults extends Component
 
     public function tmGetHotels(){
         // tourmind get data hotels
+
+        $this->validate();
+
+        if ($this->adults < $this->roomCount) {
+            $this->addError('adults', 'Количество взрослых не может быть меньше количества комнат.');
+            return;
+        }
 
         if ( $this->child == 1 ){
             $this->childsage = [(int)$this->childrenage];

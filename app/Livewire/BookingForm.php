@@ -20,6 +20,7 @@ use App\Models\Rule;
 
 class BookingForm extends Component
 {
+    public $filters;
     public $hotel, $room, $hotelid, $tmid, $roomid, $book, $order;
     public $city, $adults, $child, $checkin, $checkout, $childdrenage, $childdrenage2;
     public $childdrenage3, $childsage, $citizen, $rating, $food, $early_in, $early_out;
@@ -39,6 +40,12 @@ class BookingForm extends Component
     public $token, $utc;
     public $paxfname = 'Don';
     public $paxlname = 'Joe';
+    public $paxfname2 = 'dee';
+    public $paxlname2 = 'see';
+    public $paxfname3 = 'jon';
+    public $paxlname3 = 'son';
+    public $paxfname4 = 'djeki';
+    public $paxlname4 = 'chan';
     public $email = 'jdon@gmail.com';
     public $phone = '+996700555222';
 
@@ -281,6 +288,7 @@ class BookingForm extends Component
 
         $data = $response->json();
         // return $payload;
+            // dd(json_encode($payload, true));
             // dd($payload);
 
         if (!empty($data['Hotels'][0]['RoomTypes'][0])) {
@@ -294,7 +302,6 @@ class BookingForm extends Component
         
             $this->roomid = $roomsFiltered->pluck('id')->first() ?? null;
            
-            // Исправлено: корректное обращение к Name и BedTypeDesc
             $this->roomName = $roomType['Name'] ?? '';
             $this->bedDesc = $roomType['BedTypeDesc'] ?? '';
         
@@ -322,6 +329,11 @@ class BookingForm extends Component
                         $this->cancelPolicy = (float)$cancelPolicys[0]['Amount'] ?? null;
                         $this->start_date_time = $cancelPolicys[0]['From'] ?? null;
                         $this->end_date_time = $cancelPolicys[0]['To'] ?? null;
+
+                        if( $cancelPolicys[0]['From'] ){
+                            $this->cancelDate = $cancelPolicys[0]['From'];
+                        }
+                        
                     }
                 }
         
@@ -329,9 +341,13 @@ class BookingForm extends Component
                 $this->mealid = data_get($rateInfo, 'MealInfo.MealType', '');
         
                 if (!empty($this->mealid)) {
-                    $this->mealall = Meal::all(['id', 'title', 'title_en']);
-                    $mealVal = collect($this->mealall)->firstWhere('id', (int)$this->mealid)['title'] ?? '';
-                    $this->meal = $mealVal;
+
+                    $meal = Meal::where('api_id', (int)$this->mealid)
+                        ->where('api_name', 'tm')
+                        ->select('title')
+                        ->first();
+
+                        $this->meal = $meal->title ?? '';
                 }
             }
         } else {
@@ -344,7 +360,10 @@ class BookingForm extends Component
     public function createOrder(){
 
         $userId = Auth::id();
-        $agentid = "swt-" . $userId;
+        
+        do {
+            $agentid = "SWT-" . now()->format('Ymd') . '-' . Str::uuid();
+        } while (Book::where('agent_ref_id', $agentid)->exists());
 
         // RequestHeader (заголовки запроса)
         $requestHeader = [
@@ -372,7 +391,7 @@ class BookingForm extends Component
         $paxRooms = [
                 [
                     "Adults" => $this->adults,
-                    "RoomCount" => $this->roomCount
+                    "RoomCount" => $this->roomCount,
                 ]
             ];
 
@@ -381,15 +400,30 @@ class BookingForm extends Component
                 $paxRooms[0]["ChildrenAges"] = $this->childsage;
             }
         
-            $paxRooms[0] = array_merge($paxRooms[0], [
-                "PaxNames" => [
-                    [
+            $paxList = [];
+
+            for ($i = 0; $i < $this->roomCount; $i++) {
+                $j = $i + 1;
+
+                if($j > 1){
+
+                    $paxList[] = [
+                        "FirstName" => $this->{'paxfname' . $j},
+                        "LastName" => $this->{'paxlname' . $j},
+                        "Type" => "ADU",
+                    ];
+                        
+                }else{
+                    $paxList[] = [
                         "FirstName" => $this->paxfname,
                         "LastName" => $this->paxlname,
                         "Type" => "ADU",
-                    ]
-                ]
-            ]);
+                    ];
+                }
+                
+            }
+
+            $paxRooms[0]["PaxNames"] = $paxList;
 
         $ContactInfo = [
                 "Email" => $this->user->email,
@@ -406,6 +440,7 @@ class BookingForm extends Component
         ]);
 
             // dd($payload);
+            // die;
         // local create order
 
             $existbook = Book::where('book_token', $this->token)->first();
@@ -434,6 +469,18 @@ class BookingForm extends Component
             }
 
             $childages = implode(',', $this->childsage ?? []);
+
+            $offset = str_replace('UTC', '', $this->utc); // '+3'
+
+            // Преобразуем в +03:00
+            $formattedOffset = sprintf('%+03d:00', (int)$offset);
+
+            // Получаем текущую дату/время в нужной зоне
+            $utcdatetime = Carbon::now($formattedOffset);
+
+            // Форматируем результат
+            $utcdatetime = $utcdatetime->format('Y-m-d H:i:s');
+
             $book = Book::firstOrCreate(
                 [
                     'book_token' => $this->token,
@@ -451,12 +498,15 @@ class BookingForm extends Component
                     'childages' => $childages ?? '',
                     'price' => $this->totalPrice,
                     'sum' => $this->totalSum,
+                    'utc' => $offset,
                     'currency' => $this->currency,
+                    'cancel_date' => $utcdatetime,
                     'arrivalDate' => $this->checkin,
                     'departureDate' => $this->checkout,
                     // 'status' => $order['OrderInfo']['OrderStatus'],
                     'user_id' => $userId,
                     'api_type' => 'tourmind',
+                    'agent_ref_id' => $agentid,
                 ]
             );
 
@@ -469,8 +519,8 @@ class BookingForm extends Component
                         "title" => 'Бесплатная отмена до указанной даты',
                         "title_en" => 'Free cancellation until the specified date',
                         "amount" => $this->cancelPolicy,
-                        "start_date_time" => $this->start_date_time,
-                        "end_date_time" => $this->end_date_time
+                        // "start_date_time" => $this->start_date_time,
+                        "end_date_time" => $this->start_date_time
                     ]
                 );
 
@@ -509,6 +559,7 @@ class BookingForm extends Component
                 
             if ( $response->failed() ) {
     
+                Log::channel('tourmind')->error('521 CreateOrder - ', $payload);
                 Log::channel('tourmind')->error('522 CreateOrder - ', $response);
     
                 return "522 Book order Ошибка при запросе к API Tourmind! Попробуйте через несколько секунд!";

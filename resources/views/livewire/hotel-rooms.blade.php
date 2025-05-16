@@ -32,8 +32,8 @@
                     <li>Доступность номеров: {{$room['RateInfos'][0]['Allotment']}}</li>
                     <li>Политика отмены: 
                         @if($room['RateInfos'][0]['Refundable'] == true)
-                            Бесплатная отмена действия до {{$room['RateInfos'][0]['CancelPolicyInfos'][0]['To']}}
-                            Сумма штрафа {{$room['RateInfos'][0]['CancelPolicyInfos'][0]['Amount']}} {{$room['RateInfos'][0]['CancelPolicyInfos'][0]['CurrencyCode']}}
+                            Бесплатная отмена действия до {{$room['RateInfos'][0]['CancelPolicyInfos'][0]['From']}}!
+                            Иначе Сумма штрафа {{$room['RateInfos'][0]['CancelPolicyInfos'][0]['Amount']}} {{$room['RateInfos'][0]['CancelPolicyInfos'][0]['CurrencyCode']}}
                         @else
                             Отмена невозможно!
                         @endif
@@ -51,7 +51,7 @@
                         <input type="hidden" name="allotment" value="{{$room['RateInfos'][0]['Allotment'] ?? 0}}">
                         <input type="hidden" name="Refundable" value="{{$room['RateInfos'][0]['Refundable'] ?? ''}}">
                         <input type="hidden" name="cancelPolicy" value="{{$room['RateInfos'][0]['CancelPolicyInfos'][0]['Amount'] ?? ''}} {{$room['RateInfos'][0]['CancelPolicyInfos'][0]['CurrencyCode'] ?? ''}}">
-                        <input type="hidden" name="cancelDate" id="cancelDate" value="{{$room['RateInfos'][0]['CancelPolicyInfos'][0]['To'] ?? ''}}">
+                        <input type="hidden" name="cancelDate" id="cancelDate" value="{{$room['RateInfos'][0]['CancelPolicyInfos'][0]['From'] ?? ''}}">
                         <input type="hidden" name="ratecode" value="{{$room['RateInfos'][0]['RateCode']}}">
                         <input type="hidden" name="totalPrice" value="{{ $room['RateInfos'][0]['TotalPrice'] }}">
                         <input type="hidden" name="currency" value="{{ $room['RateInfos'][0]['CurrencyCode'] }}">

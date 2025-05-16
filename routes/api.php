@@ -11,6 +11,7 @@ use App\Http\Controllers\API\V1\Tourmind\CreateOrderController;
 use App\Http\Controllers\API\V1\Tourmind\CancelOrderController;
 use App\Http\Controllers\API\V1\Tourmind\CheckRoomRateController;
 use App\Http\Controllers\API\V1\Tourmind\HotelDetailController;
+use App\Http\Controllers\API\V1\Emerging\EmergingHotelController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,6 +33,7 @@ Route::prefix('v1')->group(function(){
     Route::post('/login', [\App\Http\Controllers\API\V1\AuthController::class, 'login'])->name('login');
 });
 
+// tourmind
 Route::post('/v1/TmHotelDetail', [HotelDetailController::class, 'fetchHotelDetail']);
 Route::post('/v1/TmCheckRoomRate', [CheckRoomRateController::class, 'fetchCheckRoomRate']);
 Route::post('/v1/TmSearchOrder', [SearchOrderController::class, 'fetchSearchOrder']);
@@ -40,6 +42,9 @@ Route::post('/v1/TmCancelOrder', [CancelOrderController::class, 'fetchCancelOrde
 Route::post('/v1/TmHotels', [HotelStaticListController::class, 'fetchHotels']);
 Route::post('/v1/TmRegionList', [RegionListController::class, 'fetchRegions']);
 Route::post('/v1/TmRoomType', [RoomStaticListController::class, 'fetchRoomsTypes']);
+
+// emerging
+Route::get('/v1/EmergingHotelStatic', [EmergingHotelController::class, 'fetchHotelStatic']);
 
 Route::prefix('v1')->middleware(['throttle:api', 'auth:sanctum'])->group(function () {
     Route::get('/getHotels', [\App\Http\Controllers\API\V1\HotelController::class, 'index'])->name('getHotelList');

@@ -150,7 +150,7 @@ class HotelRooms extends Component
         // if ($response->failed()) {
         //     return ['Error' => ["ErrorMessage" => 'HotelDetail Ошибка при запросе к API']];
         // }
-
+           
         return $response->json();
         // return json_encode($payload);
         

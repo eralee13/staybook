@@ -49,8 +49,10 @@ class UserBookController extends Controller
                 $cancelFee = $res['CancelResult']['CancelFee'];
                 $curr = $res['CancelResult']['CurrencyCode'];
 
-                Book::where('id', $book->id)->update(['status' => 'Cancelled', 'cancelFee' => $cancelFee]);
+                Book::where('id', $book->id)->update(['status' => 'Cancelled']);
                 $message = "is {$res['CancelResult']['OrderStatus']} CancelFee {$cancelFee} {$curr}";
+             }else{
+                $message = $res['Error'];
              }
 
         }else{
@@ -69,31 +71,31 @@ class UserBookController extends Controller
 
         // cancel order from tourmind
         $this->baseUrl = config('app.tm_base_url');
-        $userId = Auth::id();
+        // $userId = Auth::id();
         
 
        try {
         
-        $agent = "swt-".$userId;
-        $reservId = $book->revervation_id;
-        $token = $book->book_token;
+            $agent = $book->agent_ref_id;
+            $reservId = $book->revervation_id;
+            $token = $book->book_token;
 
-            $payload = [
-                "AgentRefID" => $agent,
-                "RequestHeader" => [
-                    "AgentCode" => "tms_test",
-                    "Password" => "tms_test",
-                    "UserName" => "tms_test",
-                    "TransactionID" => $token,
-                    "RequestTime" => now()->format('Y-m-d H:i:s')
-                ]
-            ];
+                $payload = [
+                    "AgentRefID" => $agent,
+                    "RequestHeader" => [
+                        "AgentCode" => "tms_test",
+                        "Password" => "tms_test",
+                        "UserName" => "tms_test",
+                        "TransactionID" => $token,
+                        "RequestTime" => now()->format('Y-m-d H:i:s')
+                    ]
+                ];
             
-            $response = Http::withHeaders([
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json'
-            ])->post("{$this->baseUrl}/CancelOrder", $payload);
-    
+                    $response = Http::withHeaders([
+                        'Content-Type' => 'application/json',
+                        'Accept' => 'application/json'
+                    ])->post("{$this->baseUrl}/CancelOrder", $payload);
+            
             // if ( $response->failed() ) {
             //     return ['error' => 'CancelOrder Ошибка при запросе к API', 'status' => $response->status()];
             // }
@@ -104,8 +106,8 @@ class UserBookController extends Controller
             
 
         } catch (\Throwable $th) {
-            session->flash('error', "TM CancelOrder Ошибка при запросе к API: " . $th->getMessage());
-            // throw new \Exception("TM CancelOrder Ошибка при запросе к API: " . $th->getMessage(), 0, $th);
+                return ["Error" => "TM CancelOrder Ошибка при запросе к API: " . $th->getMessage()];
+                // throw new \Exception("TM CancelOrder Ошибка при запросе к API: " . $th->getMessage(), 0, $th);
            }
         
     }
