@@ -12,6 +12,9 @@ use App\Http\Controllers\API\V1\Tourmind\CancelOrderController;
 use App\Http\Controllers\API\V1\Tourmind\CheckRoomRateController;
 use App\Http\Controllers\API\V1\Tourmind\HotelDetailController;
 use App\Http\Controllers\API\V1\Emerging\EmergingHotelController;
+use App\Http\Controllers\API\V1\Emerging\EmergingDescTransHotelController;
+use App\Http\Controllers\API\V1\Emerging\EmergingRegionController;
+use App\Http\Controllers\API\V1\Emerging\EmergingTestController;
 
 /*
 |--------------------------------------------------------------------------
@@ -45,6 +48,9 @@ Route::post('/v1/TmRoomType', [RoomStaticListController::class, 'fetchRoomsTypes
 
 // emerging
 Route::get('/v1/EmergingHotelStatic', [EmergingHotelController::class, 'fetchHotelStatic']);
+Route::get('/v1/EmergingRegionList', [EmergingRegionController::class, 'fetchRegionStatic']);
+Route::get('/v1/EmergingDescTransHotel', [EmergingDescTransHotelController::class, 'fetchDescTranslationData']);
+Route::get('/v1/EmergingTest', [EmergingTestController::class, 'fetchTest']);
 
 Route::prefix('v1')->middleware(['throttle:api', 'auth:sanctum'])->group(function () {
     Route::get('/getHotels', [\App\Http\Controllers\API\V1\HotelController::class, 'index'])->name('getHotelList');

@@ -22,7 +22,7 @@ class BookingForm extends Component
 {
     public $filters;
     public $hotel, $room, $hotelid, $tmid, $roomid, $book, $order;
-    public $city, $adults, $child, $checkin, $checkout, $childdrenage, $childdrenage2;
+    public $city, $adults, $child, $checkin, $checkout, $childdrenage, $childdrenage2, $guestsall;
     public $childdrenage3, $childsage, $citizen, $rating, $food, $early_in, $early_out;
     public $cancelled, $extra_place, $pricemin, $pricemax, $nationality, $roomCount = 1;
     public $hotelName, $hotelimg,  $hoteldesc, $hoteladdress, $hotelcity, $hotellat, $hotellng;
@@ -163,7 +163,7 @@ class BookingForm extends Component
             $this->checkRoomRate();
 
         } catch (\Throwable $th) {
-            $this->bookingSuccess = "156 Ошибка получения данных - Book";
+            $this->bookingSuccess = "156 Ошибка получения данных - Book".$th->getMessage();
         }
     }
 
@@ -468,6 +468,22 @@ class BookingForm extends Component
                     }
             }
 
+                if ( $this->roomCount == 1){
+                    $this->guestsall = [$this->paxfname .' '. $this->paxlname];
+                }
+                elseif ( $this->roomCount == 2 ){
+                    $this->guestsall = [$this->paxfname .' '. $this->paxlname, $this->paxfname2 .' '. $this->paxlname2];
+                }
+                elseif ( $this->roomCount == 3 ){
+                    $this->guestsall= [$this->paxfname .' '. $this->paxlname, $this->paxfname2 .' '. $this->paxlname2, $this->paxfname3 .' '. $this->paxlname3];
+                }
+                elseif ( $this->roomCount == 4 ){
+                    $this->guestsall = [$this->paxfname .' '. $this->paxlname, $this->paxfname2 .' '. $this->paxlname2, $this->paxfname3 .' '. $this->paxlname3, $this->paxfname4 .' '. $this->paxlname4];
+                }
+            
+
+            $guests = implode(',', $this->guestsall ?? []);
+            
             $childages = implode(',', $this->childsage ?? []);
 
             $offset = str_replace('UTC', '', $this->utc); // '+3'
@@ -486,8 +502,8 @@ class BookingForm extends Component
                     'book_token' => $this->token,
                 ],
                 [
-                    'title' => $this->paxfname,
-                    'title2' => $this->paxlname,
+                    'title' => $guests,
+                    'title2' => '',
                     'hotel_id' => $this->hotelid,
                     'room_id' => $this->roomid,
                     'phone' => $this->phone,
