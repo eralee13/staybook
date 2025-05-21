@@ -2,35 +2,35 @@
 
 namespace App\Console\Commands;
 
-use App\Http\Controllers\API\V1\Tourmind\HotelDetailController;
 use Illuminate\Console\Command;
-use Illuminate\Http\Client\Request;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Api\V1\Emerging\EmergingRegionController;
 
-class UpdateHotelDetail extends Command
+class EmergingHotelList extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'app:tm-hotel-detail';
+    protected $signature = 'app:emerging-hotel-list';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Tourmind HotelDetailController';
+    protected $description = 'Command description';
 
     /**
      * Execute the console command.
      */
     public function handle()
     {
-        $controller = app(HotelDetailController::class);
+        $controller = app(EmergingHotelController::class);
 
         $request = new Request();
-        $controller->fetchHotelDetail($request); // Передаём в метод
+        $controller->fetchHotelStatic($request); // Передаём в метод
         $this->info('Список отелей и комнаты обновлён.');
     }
 }
