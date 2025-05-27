@@ -1,14 +1,13 @@
-@extends('layouts.head')
+@extends('layouts.master')
 
-@section('title', 'Забронировать')
+@section('title', 'Отмена бронирования')
 
 @section('content')
-
 
     <div class="page">
         <div class="container">
             <div class="row">
-                <div class="col-lg-6 col-md-12">
+                <div class="col-lg-12 col-md-12">
                     @if(isset($calc->errors))
                         @foreach ($calc->errors as $error)
                             <div class="alert alert-danger">
@@ -17,11 +16,9 @@
                             </div>
                         @endforeach
                     @else
-                        <h1 data-aos="fade-up" data-aos-duration="2000">Отмена брони</h1>
-                        <p>
-                           Штраф за отмену составляет: {{ $calc->penaltyAmount }} {{ $request->currency }}
-                        </p>
-                        <form action="{{ route('res_cancel') }}">
+                        <h1>Отмена заказа</h1>
+                        <p>Штраф за отмену составляет: {{ $calc->penaltyAmount }} {{ $request->currency }}</p>
+                        <form action="{{ route('cancel_confirm_exely') }}">
                             <div class="form-group">
                                 <label for="">Номер брони</label>
                                 <input type="text" value="{{ $request->number }}" name="number">
@@ -34,6 +31,5 @@
             </div>
         </div>
     </div>
-
 
 @endsection

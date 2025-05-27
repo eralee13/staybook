@@ -16,24 +16,25 @@
                             </div>
                         @endforeach
                     @else
-                        <h1 data-aos="fade-up" data-aos-duration="2000">Ваша бронь отменена</h1>
-                        <h2>{{ $cancel->booking->status }}</h2>
+                        <h1>{{ $cancel->booking->status }}</h1>
                         @php
                             $cancel_date = \Carbon\Carbon::createFromDate($cancel->booking->createdDateTime)->format('d.m.Y H:i');
-                            $hotel = \App\Models\Hotel::where('exely_id', $cancel->booking->propertyId)->first();
+                            $hotel = \App\Models\Hotel::where('exely_id', $cancel->booking->propertyId)->get()->first();
                             $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
                         @endphp
                         <ul>
                             <li>Номер брони: {{ $cancel->booking->number }}</li>
-{{--                            <li>Дата отмены: {{ $cancel_date }}</li>--}}
+                            {{--                            <li>Дата отмены: {{ $cancel_date }}</li>--}}
                             <li>
                                 @if($cancel->booking->cancellationPolicy->freeCancellationPossible == true)
-                                    <td>Бесплатная отмена действует до ({{ $cancel->booking->cancellationPolicy->freeCancellationDeadlineLocal }}). Размер
+                                    <td>Бесплатная отмена действует до
+                                        ({{ $cancel->booking->cancellationPolicy->freeCancellationDeadlineLocal }}).
+                                        Размер
                                         штрафа: {{ $cancel->booking->cancellationPolicy->penaltyAmount }} {{ $cancel->booking->currencyCode }}</td>
                                 @else
                                     <td>Возможность бесплатной отмены отсутствует. Размер штрафа
                                         составляет: {{ $cancel->booking->cancellationPolicy->penaltyAmount }} {{ $cancel->booking->currencyCode }}</td>
-                                @endif
+                            @endif
                             <li>Отель: {{ $cancel->booking->propertyId }}</li>
                             @foreach($cancel->booking->roomStays as $room)
                                 @php
@@ -51,6 +52,5 @@
             </div>
         </div>
     </div>
-
 
 @endsection

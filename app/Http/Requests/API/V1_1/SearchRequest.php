@@ -32,12 +32,14 @@ class SearchRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'hotel_ids' => 'required|array',
-            'check_in' => 'required|date|date_format:Y-m-d',
-            'check_out' => 'required|date|date_format:Y-m-d|after_or_equal:arrivalDate',
-            'adults' => 'required|integer|min:1',
-            'children_ages' => 'array',
-            'residency' => 'required|string',
+            'hotel_ids'                      => 'required|array',
+            'residency'                      => 'required|string|size:2',
+            'guests_groups'                  => 'required|array|min:1',
+            'guests_groups.*.adults'         => 'required|integer|min:1',
+            'guests_groups.*.children_ages'  => 'array',
+            'guests_groups.*.children_ages.*'=> 'integer|min:0',
+            'check_in'                       => 'required|date',
+            'check_out'                      => 'required|date|after:check_in',
         ];
     }
 }

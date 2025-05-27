@@ -25,13 +25,22 @@
                             @if($order->booking != null)
                                 {{--                                @dd($order->booking)--}}
                                 @php
-                                    $hotel = \App\Models\Hotel::where('exely_id', $order->booking->propertyId)->first();
+                                    $hotel = \App\Models\Hotel::where('exely_id', $order->booking->propertyId)->get()->first();
                                     $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
                                     $cancelPossible = $order->booking->cancellationPolicy;
                                     if($cancelPossible->freeCancellationPossible == true) {
                                         $cancelLocal = \Carbon\Carbon::createFromDate($cancelPossible->freeCancellationDeadlineLocal)->format('d.m.Y H:i');
                                         $cancel_utc = \Carbon\Carbon::createFromDate($cancelPossible->freeCancellationDeadlineLocal)->format('P');
                                     }
+
+                                    $utc   = \Carbon\Carbon::parse($cancelPossible->freeCancellationDeadlineUtc);
+                                    $local = \Carbon\Carbon::parse($cancelPossible->freeCancellationDeadlineLocal . 'Z');
+
+    // сколько часов между ними (signed)
+    $hours = $utc->diffInHours($local, false);
+
+    // формат UTC±HH:00
+    $offset = sprintf('UTC%+03d:00', $hours);
                                 @endphp
                                 <h1>Подтверждение заказа</h1>
                                 <table>
@@ -46,10 +55,12 @@
                                     <tr>
                                         <td>Правило отмены:</td>
                                         @if($cancelPossible->freeCancellationPossible == true)
-                                            <td>Бесплатная отмена действует до {{ $cancelLocal }} (UTC {{ $cancel_utc }}). Размер
+                                            <td>Бесплатная отмена действует до {{ $cancelLocal }} ({{ $offset }}).
+                                                Размер
                                                 штрафа: {{ $cancelPossible->penaltyAmount }} {{ $order->booking->currencyCode }}</td>
                                         @else
-                                            <td>Возможность бесплатной отмены отсутствует. Размер штрафа: {{ $cancelPossible->penaltyAmount }} {{ $order->booking->currencyCode }}</td>
+                                            <td>Возможность бесплатной отмены отсутствует. Размер
+                                                штрафа: {{ $cancelPossible->penaltyAmount }} {{ $order->booking->currencyCode }}</td>
                                         @endif
                                     </tr>
 
@@ -87,7 +98,12 @@
                                         </tr>
                                         <tr>
                                             <td>Кол-во детей:</td>
-                                            <td>{{ implode(',', $room->guestCount->childAges) }}</td>
+                                            <td>
+                                                @if (request()->filled('childAges'))
+                                                    {{ count($room->guestCount->childAges) }}
+                                                @else
+                                                    0
+                                                @endif</td>
                                             {{--                                    <td>{{ implode(',', explode($order->booking->roomStays[0]->guestCount->childAges)) }}</td>--}}
                                             {{--                                    <td>{{ count($order->booking->roomStays[0]->guestCount->guestCount->childAges) }}</td>--}}
                                         </tr>
@@ -98,12 +114,12 @@
                                     @endforeach
                                     <tr>
                                         <td>Комментарий:</td>
-                                        <td>{{ $order->booking->bookingComments[0] }}</td>
+                                        <td>{{ $order->booking->customer->comment }}</td>
                                     </tr>
                                 </table>
 
                                 <div class="btn-wrap">
-                                    <form action="{{ route('res_bookings') }}" method="get">
+                                    <form action="{{ route('book_reserve_exely') }}" method="get">
                                         <input type="hidden" name="propertyId"
                                                value="{{ $order->booking->propertyId }}">
                                         <input type="hidden" name="total"
@@ -132,14 +148,16 @@
                                                value="{{ json_encode($order->booking->roomStays[0]->roomType->placements) }}">
                                         <input type="hidden" name="adultCount"
                                                value="{{ $order->booking->roomStays[0]->guestCount->adultCount }}">
-                                        <input type="hidden" name="childAges[]"
-                                               value="{{ implode(',', $order->booking->roomStays[0]->guestCount->childAges) }}">
+                                        @if (request()->filled('childAges'))
+                                            <input type="hidden" name="childAges[]"
+                                                   value="{{ implode(',', $order->booking->roomStays[0]->guestCount->childAges) }}">
+                                        @endif
                                         <input type="hidden" name="createBookingToken"
                                                value="{{ $order->booking->createBookingToken }}">
                                         <input type="hidden" name="checkSum"
                                                value="{{ $order->booking->roomStays[0]->checksum }}">
                                         <input type="hidden" name="comment"
-                                               value="{{ $order->booking->bookingComments[0] }}">
+                                               value="{{ $order->booking->customer->comment }}">
                                         <input type="hidden" name="phone"
                                                value="{{ $order->booking->customer->contacts->phones[0]->phoneNumber }}">
                                         <input type="hidden" name="email"
@@ -151,12 +169,12 @@
                                 <div class="alert alert-warning">Уважаемый посетитель! Данные по бронированию были
                                     изменены.
                                     Мы можем вам предложить альтернативный вариант либо вы можете заново выполнить
-                                    <a href="{{ route('properties') }}">поиск проживания</a></div>
+                                    <a href="{{ route('index') }}">поиск проживания</a></div>
                                 <table>
                                     <tr>
                                         <td>Отель:</td>
                                         @php
-                                            $hotel = \App\Models\Hotel::where('exely_id', $order->alternativeBooking->propertyId)->first();
+                                            $hotel = \App\Models\Hotel::where('exely_id', $order->alternativeBooking->propertyId)->get()->first();
                                             $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
                                         @endphp
                                         <td>{{ $hotel->title }}</td>
@@ -172,13 +190,24 @@
                                                 $cancelLocal = \Carbon\Carbon::createFromDate($cancelPossible->freeCancellationDeadlineLocal)->format('d.m.Y H:i');
                                                 $cancel_utc = \Carbon\Carbon::createFromDate($cancelPossible->freeCancellationDeadlineLocal)->format('P');
                                             }
+
+                                            $utc   = \Carbon\Carbon::parse($cancelPossible->freeCancellationDeadlineUtc);
+                                    $local = \Carbon\Carbon::parse($cancelPossible->freeCancellationDeadlineLocal . 'Z');
+
+                                    // сколько часов между ними (signed)
+                                    $hours = $utc->diffInHours($local, false);
+
+                                    // формат UTC±HH:00
+                                    $offset = sprintf('UTC%+03d:00', $hours);
                                         @endphp
                                         <td>Правило отмены:</td>
                                         @if($cancelPossible->freeCancellationPossible == true)
-                                            <td>Бесплатная отмена действует до {{ $cancelLocal }} (UTC {{ $cancel_utc }}). Размер
+                                            <td>Бесплатная отмена действует до {{ $cancelLocal }} ({{ $offset }}).
+                                                Размер
                                                 штрафа: {{ $cancelPossible->penaltyAmount }} {{ $order->alternativeBooking->currencyCode }}</td>
                                         @else
-                                            <td>Возможность бесплатной отмены отсутствует. Размер штрафа: {{ $cancelPossible->penaltyAmount }} {{ $order->alternativeBooking->currencyCode }}</td>
+                                            <td>Возможность бесплатной отмены отсутствует. Размер
+                                                штрафа: {{ $cancelPossible->penaltyAmount }} {{ $order->alternativeBooking->currencyCode }}</td>
                                         @endif
                                     </tr>
                                     @foreach($order->alternativeBooking->roomStays as $room)
@@ -202,7 +231,13 @@
                                         <tr>
                                             <td>Кол-во детей:</td>
                                             {{--                                        {{ implode(',', $room->guestCount->childAges) }}--}}
-                                            <td>{{ count($room->guestCount->childAges) }}</td>
+                                            <td>
+                                                @if (request()->filled('childAges'))
+                                                    {{ count($room->guestCount->childAges) }}
+                                                @else
+                                                    0
+                                                @endif
+                                            </td>
                                         </tr>
                                         <tr>
                                             <td>Тип комнаты:</td>
@@ -221,11 +256,11 @@
                                     @endforeach
                                     <tr>
                                         <td>Комментарий:</td>
-                                        <td>{{ $order->alternativeBooking->bookingComments[0] }}</td>
+                                        <td>{{ $order->alternativeBooking->customer->comment }}</td>
                                     </tr>
                                 </table>
                                 <div class="btn-wrap">
-                                    <form action="{{ route('res_bookings') }}" method="get">
+                                    <form action="{{ route('book_reserve_exely') }}" method="get">
                                         <input type="hidden" name="propertyId"
                                                value="{{ $order->alternativeBooking->propertyId }}">
                                         <input type="hidden" name="total"
@@ -255,14 +290,16 @@
                                                value="{{ json_encode($order->alternativeBooking->roomStays[0]->roomType->placements) }}">
                                         <input type="hidden" name="adultCount"
                                                value="{{ $order->alternativeBooking->roomStays[0]->guestCount->adultCount }}">
-                                        <input type="hidden" name="childAges[]"
-                                               value="{{ implode(',',  $order->alternativeBooking->roomStays[0]->guestCount->childAges)  }}">
+                                        @if (request()->filled('childAges'))
+                                            <input type="hidden" name="childAges[]"
+                                                   value="{{ implode(',',  $order->alternativeBooking->roomStays[0]->guestCount->childAges)  }}">
+                                        @endif
                                         <input type="hidden" name="createBookingToken"
                                                value="{{ $order->alternativeBooking->createBookingToken }}">
                                         <input type="hidden" name="checkSum"
                                                value="{{ $order->alternativeBooking->roomStays[0]->checksum }}">
                                         <input type="hidden" name="comment"
-                                               value="{{ $order->alternativeBooking->bookingComments[0] }}">
+                                               value="{{ $order->alternativeBooking->customer->comment }}">
                                         <input type="hidden" name="phone"
                                                value="{{ $order->alternativeBooking->customer->contacts->phones[0]->phoneNumber }}">
                                         <input type="hidden" name="email"
