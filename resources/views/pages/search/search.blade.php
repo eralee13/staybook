@@ -353,21 +353,7 @@
                                             <div class="row">
                                                 <div class="col-md-5 order-xl-1 order-lg-1 order-1">
                                                     <div class="img-wrap">
-                                                        <div class="row">
-                                                            <div class="col-md-6">
-                                                                <div class="main">
-                                                                    <img src="{{ Storage::url($hotel->image) }}" alt="">
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-md-6">
-                                                                <div class="primary">
-                                                                    <img src="{{ Storage::url($hotel->image) }}" alt="">
-                                                                </div>
-                                                                <div class="primary">
-                                                                    <img src="{{ Storage::url($hotel->image) }}" alt="">
-                                                                </div>
-                                                            </div>
-                                                        </div>
+                                                        <img src="{{ Storage::url($hotel->image ?? '') }}" alt="">
                                                     </div>
                                                 </div>
                                                 <div class="col-md-5 order-xl-2 order-lg-2 order-3">
@@ -457,6 +443,7 @@
                             @foreach($hotels as $hotel)
                                 @php
                                     $items = \App\Models\Amenity::where('hotel_id', $hotel->id)->get()->first();
+                                    $images = \App\Models\Image::where('hotel_id', $hotel->id)->get();
                                     $amenities = explode(',', $items->services);
                                     $items  = array_slice($amenities, 0, 8);
                                     $iconMap = [
@@ -492,24 +479,26 @@
                                     <div class="row">
                                         <div class="col-md-5 order-xl-1 order-lg-1 order-1">
                                             <div class="img-wrap">
-                                                <div class="row">
-                                                    <div class="col-md-6">
-                                                        <div class="main">
-                                                            <img src="{{ Storage::url($hotel->image ?? '') }}"
-                                                                 alt="">
+                                                @if($images->isNotEmpty())
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="main">
+                                                                <img src="{{ Storage::url($hotel->image) }}"
+                                                                     alt="">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            @foreach($images as $file)
+                                                                <div class="primary">
+                                                                    <img src="{{ Storage::url($file->image) }}"
+                                                                         alt="">
+                                                                </div>
+                                                            @endforeach
                                                         </div>
                                                     </div>
-                                                    <div class="col-md-6">
-                                                        <div class="primary">
-                                                            <img src="{{ Storage::url($hotel->image ?? '') }}"
-                                                                 alt="">
-                                                        </div>
-                                                        <div class="primary">
-                                                            <img src="{{ Storage::url($hotel->image ?? '') }}"
-                                                                 alt="">
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                @else
+                                                    <img src="{{ Storage::url($hotel->image) }}" alt="">
+                                                @endif
                                             </div>
                                         </div>
                                         <div class="col-md-5 order-xl-2 order-lg-2 order-3">

@@ -12,9 +12,8 @@ class Hotel extends Model
 {
     use Translatable;
     use SoftDeletes;
-    //use QueryCacheable;
-
-    //protected $cacheFor = 0;
+    use QueryCacheable;
+    protected $cacheFor = 0;
 
     protected $hidden = [
         'created_at',
@@ -87,7 +86,6 @@ class Hotel extends Model
     {
         return $this->hasMany(Meal::class);
     }
-
 
     public function city()
     {

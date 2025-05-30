@@ -20,11 +20,21 @@ class SearchController extends Controller
         $tomorrow = Carbon::tomorrow()->format('Y-m-d');
 
         $hotelQuery = Hotel::with(['rates' => function ($q) use ($request) {
-            if ($request->filled('adult')) {
-                $q->where('availability', '>=', $request->adult);
+
+            $totalAdults = 0;
+            $totalChildren = 0;
+            foreach ($request->rooms as $room) {
+                // приводим к int на всякий случай
+                $totalAdults   += (int) $room['adults'];
+                // в childAges хранится по одному элементу на каждого ребёнка
+                $totalChildren += count($room['childAges']);
             }
-            if ($request->filled('child')) {
-                $q->where('child', '>=', $request->child);
+
+            if ($request->filled('rooms')) {
+                $q->where('availability', '>=', $totalAdults);
+            }
+            if ($request->filled('rooms')) {
+                $q->where('child', '>=', $totalChildren);
             }
             if ($request->filled('meal_id')) {
                 $q->where('meal_id', $request->meal_id);
@@ -45,6 +55,36 @@ class SearchController extends Controller
                 });
             }
         }]);
+
+        if ($request->has('rooms') && is_array($request->rooms)) {
+            foreach ($request->rooms as $room) {
+                // Сколько взрослых
+                $adults = isset($room['adults'])
+                    ? (int) $room['adults']
+                    : 0;
+
+                // Сколько детей (по количеству полей children[])
+                $childrenCount = isset($room['children']) && is_array($room['children'])
+                    ? count($room['children'])
+                    : 0;
+
+                // Для каждой комнаты добавляем условие: у отеля
+                // должен быть связанный Rate, удовлетворяющий требованиям
+                $hotelQuery->whereHas('rates', function ($q) use ($adults, $childrenCount) {
+                    // Минимум столько взрослых
+                    $q->where('adult', '>=', $adults)
+                        // И хотя бы одна свободная единица
+                        ->where('availability', '>=', 1);
+
+                    // Если есть дети — проверяем, что для этого тарифа
+                    // разрешены дети и хватает места
+                    if ($childrenCount > 0) {
+                        $q->where('children_allowed', true)
+                            ->where('child', '>=', $childrenCount);
+                    }
+                });
+            }
+        }
 
         if ($request->filled('city')) {
             $hotelQuery->where('city', $request->city);
@@ -149,7 +189,7 @@ class SearchController extends Controller
 
     public function hotel($code, Request $request)
     {
-        $hotel = Hotel::cacheFor(now()->addHours(24))->where('code', $code)->first();
+        $hotel = Hotel::cacheFor(now()->addHours(2))->where('code', $code)->first();
         $arrival = Carbon::createFromDate($request->arrivalDate);
         $departure = Carbon::createFromDate($request->departureDate);
         $count_day = $arrival->diffInDays($departure);

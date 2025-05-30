@@ -18,11 +18,11 @@ class PageController extends Controller
 {
     public function index()
     {
-        $hotels = Hotel::where('tourmind_id', null)->get();
-        $cities = City::where('country_id', null)->orderBy('title', 'asc')->get();
+        $hotels = Hotel::cacheFor(now()->addHours(2))->where('tourmind_id', null)->get();
+        $cities = City::cacheFor(now()->addHours(2))->where('country_id', null)->orderBy('title', 'asc')->get();
         $tomorrow = Carbon::tomorrow()->format('Y-m-d');
         $now = Carbon::now();
-        if ($now->hour > 0 && $now->hour < 23) {
+        if ($now->hour > 3 && $now->hour < 4) {
 
             //exely static data
             $response = Http::withHeaders(['x-api-key' => config('services.exely.key'), 'accept' => 'application/json'])->get(config('services.exely.base_url') . 'content/v1/properties');
@@ -291,13 +291,13 @@ class PageController extends Controller
 
     public function about(Request $request)
     {
-        $page = Page::cacheFor(now()->addHours(24))->where('id', 4)->first();
+        $page = Page::cacheFor(now()->addHours(6))->where('id', 4)->first();
         return view('pages.about', compact('page', 'request'));
     }
 
     public function contactspage()
     {
-        $page = Page::cacheFor(now()->addHours(24))->where('id', 5)->first();;
+        $page = Page::cacheFor(now()->addHours(6))->where('id', 5)->first();;
         $contacts = Contact::get();
         return view('pages.contacts', compact('page', 'contacts'));
     }
