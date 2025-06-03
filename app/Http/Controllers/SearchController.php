@@ -15,37 +15,47 @@ class SearchController extends Controller
 {
     public function search(Request $request)
     {
-        // 1. Локальная часть: города + дата + отели с фильтрами
-        $cities = City::whereNull('country_id')->orderBy('title')->get();
+        // 1. Собираем города и дату «завтра» для формы
+        $cities   = City::whereNull('country_id')->orderBy('title')->get();
         $tomorrow = Carbon::tomorrow()->format('Y-m-d');
 
-        $hotelQuery = Hotel::with(['rates' => function ($q) use ($request) {
+        // 2. Извлекаем массив комнат и сразу считаем общее число взрослых и массив возрастов детей
+        $rooms = $request->input('rooms', []); // если нет — пустой массив
 
-            $totalAdults = 0;
-            $totalChildren = 0;
-            foreach ($request->rooms as $room) {
-                // приводим к int на всякий случай
-                $totalAdults   += (int) $room['adults'];
-                // в childAges хранится по одному элементу на каждого ребёнка
-                $totalChildren += count($room['childAges']);
+        $totalAdults    = 0;
+        $allChildAges   = [];
+        foreach ($rooms as $room) {
+            // Взрослые
+            $totalAdults += (int) ($room['adults'] ?? 0);
+
+            // Возрасты детей (если есть) собираем в единый массив
+            if (!empty($room['childAges']) && is_array($room['childAges'])) {
+                foreach ($room['childAges'] as $age) {
+                    $allChildAges[] = (int) $age;
+                }
             }
+        }
 
+        // 3. Строим локальный запрос отелей с фильтрацией по тарифам
+        $hotelQuery = Hotel::with(['rates' => function ($q) use ($request, $totalAdults) {
+            // Фильтруем тарифы: проверяем, что есть места для всех взрослых и детей
             if ($request->filled('rooms')) {
                 $q->where('availability', '>=', $totalAdults);
             }
-            if ($request->filled('rooms')) {
-                $q->where('child', '>=', $totalChildren);
-            }
+
+            // Если задан meal_id — фильтруем по питанию
             if ($request->filled('meal_id')) {
                 $q->where('meal_id', $request->meal_id);
             }
+
+            // Фильтрация по датам: исключаем тарифы, у которых уже зарезервированы подходящие даты
             if ($request->filled('start_d') && $request->filled('end_d')) {
                 $start = $request->start_d;
-                $end = $request->end_d;
+                $end   = $request->end_d;
                 $q->whereDoesntHave('bookings', function ($b) use ($start, $end) {
                     $b->where('status', 'reserved')
                         ->where(function ($qb) use ($start, $end) {
-                            $qb->whereBetween('arrivalDate', [$start, $end])
+                            $qb->whereBetween('arrivalDate',   [$start, $end])
                                 ->orWhereBetween('departureDate', [$start, $end])
                                 ->orWhere(function ($qbb) use ($start, $end) {
                                     $qbb->where('arrivalDate', '<=', $start)
@@ -56,63 +66,35 @@ class SearchController extends Controller
             }
         }]);
 
-        if ($request->has('rooms') && is_array($request->rooms)) {
-            foreach ($request->rooms as $room) {
-                // Сколько взрослых
-                $adults = isset($room['adults'])
-                    ? (int) $room['adults']
-                    : 0;
-
-                // Сколько детей (по количеству полей children[])
-                $childrenCount = isset($room['children']) && is_array($room['children'])
-                    ? count($room['children'])
-                    : 0;
-
-                // Для каждой комнаты добавляем условие: у отеля
-                // должен быть связанный Rate, удовлетворяющий требованиям
-                $hotelQuery->whereHas('rates', function ($q) use ($adults, $childrenCount) {
-                    // Минимум столько взрослых
-                    $q->where('adult', '>=', $adults)
-                        // И хотя бы одна свободная единица
-                        ->where('availability', '>=', 1);
-
-                    // Если есть дети — проверяем, что для этого тарифа
-                    // разрешены дети и хватает места
-                    if ($childrenCount > 0) {
-                        $q->where('children_allowed', true)
-                            ->where('child', '>=', $childrenCount);
-                    }
-                });
-            }
-        }
-
+        // Фильтруем по городу и рейтингу
         if ($request->filled('city')) {
             $hotelQuery->where('city', $request->city);
         }
         if ($request->filled('rating')) {
             $hotelQuery->where('rating', '>=', $request->rating);
         }
+
+        // Сортировка по рейтингу
         if ($request->sort === 'highest_rating') {
             $hotelQuery->orderBy('rating', 'desc');
         } elseif ($request->sort === 'lowest_rating') {
             $hotelQuery->orderBy('rating', 'asc');
         }
 
-        // Собираем отели и сразу отфильтровываем тех, у кого нет хоть одного тарифа
+        // Выполняем запрос и получаем коллекцию отелей вместе с уже подгруженными тарифами
         $localHotels = $hotelQuery->get();
-        //$localHotels = $hotelQuery->get()->filter(fn($h) => $h->rates->isNotEmpty());
 
-        // Дополнительно сортируем по цене, если нужно
+        // Дополнительная сортировка по цене (если задана)
         if ($request->sort === 'lowest_price') {
             $localHotels = $localHotels->sortBy(fn($h) => $h->rates->min('price'))->values();
         } elseif ($request->sort === 'highest_price') {
             $localHotels = $localHotels->sortByDesc(fn($h) => $h->rates->max('price'))->values();
         }
 
-        // 2. Собираем exely_id для API
+        // 4. Берём exely_id из отелей для запроса к API
         $propertyIds = $localHotels
             ->pluck('exely_id')
-            ->filter()              // убираем null/пустые
+            ->filter()                    // убираем null/пустые
             ->map(fn($id) => (string)$id)
             ->unique()
             ->values()
@@ -121,17 +103,12 @@ class SearchController extends Controller
         $results = null;
         if (!empty($propertyIds)) {
             try {
-                $child_array = array_filter([
-                    $request->age1,
-                    $request->age2,
-                    $request->age3,
-                ], fn($a) => $a !== null);
-
+                // Формируем полезную нагрузку (payload) для Exely API
                 $payload = [
-                    'propertyIds' => $propertyIds,
-                    'adults' => $request->adult,
-                    'childAges' => $child_array,
-                    'arrivalDate' => $request->arrivalDate,
+                    'propertyIds'   => $propertyIds,
+                    'adults'        => $totalAdults,
+                    'childAges'     => $allChildAges,
+                    'arrivalDate'   => $request->arrivalDate,
                     'departureDate' => $request->departureDate,
                 ];
 
@@ -157,7 +134,7 @@ class SearchController extends Controller
             }
         }
 
-        // 3. «Пришиваем» к каждому отелю результаты API по exely_id
+        // 5. Привязываем полученные от API «roomStays» к локальным моделям отелей (по exely_id)
         if ($results && property_exists($results, 'propertyRoomStayResponses')) {
             $apiMap = collect($results->propertyRoomStayResponses)
                 ->keyBy(fn($item) => (string)$item->propertyId);
@@ -170,22 +147,22 @@ class SearchController extends Controller
             });
         }
 
-        // 4. Связанные отели
+        // 6. Связанные отели (пример жестко закодированных ID — при желании адаптируйте)
         $related = Hotel::whereNull('tourmind_id')
             ->whereIn('id', [14, 15])
             ->get();
 
-        // 5. Отдаём одну вьюшку с объединёнными данными
+        // 7. Возвращаем вьюшку с объединёнными данными
         return view('pages.search.search', [
-            'hotels' => $localHotels,
-            'cities' => $cities,
+            'hotels'   => $localHotels,
+            'cities'   => $cities,
             'tomorrow' => $tomorrow,
-            'request' => $request,
-            'results' => $results,
-            'related' => $related,
+            'request'  => $request,
+            'results'  => $results,
+            'related'  => $related,
         ]);
-
     }
+
 
     public function hotel($code, Request $request)
     {
@@ -242,8 +219,14 @@ class SearchController extends Controller
     //exely
     public function hotel_exely(Request $request)
     {
-        //dd($request->all());
-        $childs = explode(',', $request->childAges);
+        $childs = [];
+        if (!empty($request['childAges']) && is_array($request['childAges'])) {
+            foreach ($request['childAges'] as $age) {
+                // Приводим к int/строке на всякий случай
+                $childs[] = trim((string) $age);
+            }
+        }
+
         if (in_array('', $childs, true)) {
             $response = Http::withHeaders(['x-api-key' => config('services.exely.key'), 'accept' => 'application/json'])
                 ->get(config('services.exely.base_url') . 'search/v1/properties/' . $request->propertyId . '/room-stays?arrivalDate=' . $request->arrivalDate . '&departureDate=' . $request->departureDate . '&adults=' . $request->adultCount . '&includeExtraStays=false&includeExtraServices=false');

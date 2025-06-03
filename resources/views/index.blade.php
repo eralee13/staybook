@@ -65,24 +65,27 @@
                                         <div class="p-4">
                                             <div class="flex justify-between items-center mb-4">
                                                 <h3 class="text-lg font-medium">Гости и номера</h3>
-                                                <a href="javascript:void(0)"
-                                                   id="panel-close"
-                                                   class="text-gray-500 hover:text-gray-700 text-xl">&times;</a>
+                                                <div class="close-btn">
+                                                    <a href="javascript:void(0)"
+                                                       id="panel-close"
+                                                       class="text-gray-500 hover:text-gray-700 text-xl">&times;</a>
+                                                </div>
                                             </div>
 
                                             {{-- Кнопка добавить комнату --}}
-                                            <a href="javascript:void(0)"
-                                               id="add-room"
-                                               class="inline-block text-blue-600 hover:underline text-sm mb-4">
-                                                + Добавить номер
-                                            </a>
+                                            <div class="add-btn">
+                                                <a href="javascript:void(0)"
+                                                   id="add-room"
+                                                   class="inline-block text-blue-600 hover:underline text-sm mb-4">
+                                                    + Добавить номер
+                                                </a>
+                                            </div>
 
                                             {{-- Сюда будут рендериться комнаты --}}
                                             <div id="rooms-container" class="space-y-4"></div>
 
                                             <div class="mt-4 text-right">
-                                                <button id="panel-apply"
-                                                        class="bg-blue-600 hover:bg-blue-700 text-white rounded-md px-4 py-2 text-sm">
+                                                <button id="panel-apply"class="more">
                                                     Готово
                                                 </button>
                                             </div>
@@ -91,15 +94,23 @@
 
                                     {{-- Шаблон одной комнаты --}}
                                     <template id="room-template">
-                                        <div class="guest-room bg-white border border-gray-200 rounded-md p-4 relative"
+                                        <div class="guest-room"
                                              data-index="__INDEX__">
-                                            <h4 class="flex justify-between items-center text-sm font-medium mb-3">
-                                                <span class="room-number">__NUM__</span> номер
-                                                <a href="javascript:void(0)"
-                                                   class="remove-room text-red-500 hover:text-red-700 text-xs ml-2">
-                                                    Удалить
-                                                </a>
-                                            </h4>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <h4 class="flex justify-between items-center text-sm font-medium mb-3">
+                                                        <span class="room-number">__NUM__</span> номер
+                                                    </h4>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="remove-btn">
+                                                        <a href="javascript:void(0)"
+                                                           class="remove-room text-red-500 hover:text-red-700 text-xs ml-2">
+                                                            Удалить
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
 
                                             {{-- скрытое поле для взрослых --}}
                                             <input type="hidden"
@@ -123,25 +134,30 @@
                                             {{-- дропдаун --}}
                                             <div class="guest-dropdown hidden absolute z-20 mt-1 w-full bg-white border border-gray-200
                 rounded-md shadow-lg p-4">
-                                                <div class="flex items-center">
-                                                    <button class="dec-adult">−</button>
-                                                    <span class="count-adult mx-3 w-5 text-center text-sm">1</span>
-                                                    <button class="inc-adult">+</button>
-                                                </div>
-
-                                                <div class="flex justify-between items-center mb-4">
-                                                    <span class="text-sm">Дети</span>
-                                                    <div class="flex items-center">
-                                                        <button class="dec-child">−</button>
-                                                        <span class="count-child mx-3 w-5 text-center text-sm">0</span>
-                                                        <button class="inc-child">+</button>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <span class="text-sm">Кол-во взрослых</span>
+                                                        <div class="flex items-center">
+                                                            <button class="dec-adult">−</button>
+                                                            <span class="count-adult mx-3 w-5 text-center text-sm">1</span>
+                                                            <button class="inc-adult">+</button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="flex justify-between items-center mb-4">
+                                                            <span class="text-sm">Количество детей</span>
+                                                            <div class="flex items-center">
+                                                                <button class="dec-child">−</button>
+                                                                <span class="count-child mx-3 w-5 text-center text-sm">0</span>
+                                                                <button class="inc-child">+</button>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 <div class="children-ages space-y-2 mb-4"></div>
                                                 <div class="text-right">
                                                     <button class="apply-guests inline-block bg-blue-600 hover:bg-blue-700 text-white
-                       rounded-md px-4 py-2 text-sm">
-                                                        Применить
+                       rounded-md px-4 py-2 text-sm">Применить
                                                     </button>
                                                 </div>
                                             </div>
@@ -150,21 +166,22 @@
 
                                     <script>
                                         document.addEventListener('DOMContentLoaded', () => {
-                                            const MAX_ROOMS      = 4;
-                                            const summaryBtn     = document.getElementById('rooms-summary');
-                                            const overlay        = document.getElementById('rooms-panel-overlay');
-                                            const panel          = document.getElementById('rooms-panel');
-                                            const closeBtn       = document.getElementById('panel-close');
-                                            const applyBtn       = document.getElementById('panel-apply');
-                                            const addRoomBtn     = document.getElementById('add-room');
+                                            const MAX_ROOMS = 4;
+                                            const summaryBtn = document.getElementById('rooms-summary');
+                                            const overlay = document.getElementById('rooms-panel-overlay');
+                                            const panel = document.getElementById('rooms-panel');
+                                            const closeBtn = document.getElementById('panel-close');
+                                            const applyBtn = document.getElementById('panel-apply');
+                                            const addRoomBtn = document.getElementById('add-room');
                                             const roomsContainer = document.getElementById('rooms-container');
-                                            const tpl            = document.getElementById('room-template').innerHTML;
-                                            let nextIndex        = 0;
+                                            const tpl = document.getElementById('room-template').innerHTML;
+                                            let nextIndex = 0;
 
                                             function openPanel() {
                                                 overlay.classList.remove('hidden');
                                                 panel.classList.add('open');
                                             }
+
                                             function closePanel() {
                                                 panel.classList.remove('open');
                                                 overlay.classList.add('hidden');
@@ -172,11 +189,11 @@
 
                                             function updateGlobalSummary() {
                                                 const rooms = roomsContainer.querySelectorAll('.guest-room');
-                                                const roomCount   = rooms.length;
-                                                let adultsTotal   = 0;
+                                                const roomCount = rooms.length;
+                                                let adultsTotal = 0;
                                                 let childrenTotal = 0;
                                                 rooms.forEach(r => {
-                                                    adultsTotal   += +r.querySelector('.count-adult').textContent;
+                                                    adultsTotal += +r.querySelector('.count-adult').textContent;
                                                     childrenTotal += +r.querySelector('.count-child').textContent;
                                                 });
                                                 summaryBtn.textContent =
@@ -212,21 +229,33 @@
                                             function updateRoomSummary(room) {
                                                 const aCount = +room.querySelector('.count-adult').textContent;
                                                 const cCount = +room.querySelector('.count-child').textContent;
-                                                const parts = [`${aCount} ${aCount===1?'взрослый':'взрослых'}`];
-                                                if (cCount) parts.push(`${cCount} ${cCount===1?'ребёнок':'детей'}`);
+                                                const parts = [`${aCount} ${aCount === 1 ? 'взрослый' : 'взрослых'}`];
+                                                if (cCount) parts.push(`${cCount} ${cCount === 1 ? 'ребёнок' : 'детей'}`);
                                                 room.querySelector('.summary-text').textContent = parts.join(', ');
                                                 room.querySelector('.input-adults').value = aCount;
                                                 updateGlobalSummary();
                                             }
 
                                             // Открытие/закрытие
-                                            summaryBtn.addEventListener('click', e => { e.preventDefault(); openPanel(); });
-                                            closeBtn  .addEventListener('click', e => { e.preventDefault(); closePanel(); });
-                                            applyBtn  .addEventListener('click', e => { e.preventDefault(); closePanel(); });
-                                            overlay   .addEventListener('click',     closePanel);
+                                            summaryBtn.addEventListener('click', e => {
+                                                e.preventDefault();
+                                                openPanel();
+                                            });
+                                            closeBtn.addEventListener('click', e => {
+                                                e.preventDefault();
+                                                closePanel();
+                                            });
+                                            applyBtn.addEventListener('click', e => {
+                                                e.preventDefault();
+                                                closePanel();
+                                            });
+                                            overlay.addEventListener('click', closePanel);
 
                                             // Добавить комнату
-                                            addRoomBtn.addEventListener('click', e => { e.preventDefault(); addRoom(); });
+                                            addRoomBtn.addEventListener('click', e => {
+                                                e.preventDefault();
+                                                addRoom();
+                                            });
 
                                             // Делегируем клики по документу
                                             document.addEventListener('click', e => {
@@ -240,10 +269,15 @@
                                                 const room = e.target.closest('.guest-room');
 
                                                 if (e.target.closest('.remove-room')) {
-                                                    e.preventDefault(); room.remove(); reindexRooms(); return;
+                                                    e.preventDefault();
+                                                    room.remove();
+                                                    reindexRooms();
+                                                    return;
                                                 }
                                                 if (e.target.closest('.guest-summary')) {
-                                                    e.preventDefault(); room.querySelector('.guest-dropdown').classList.toggle('hidden'); return;
+                                                    e.preventDefault();
+                                                    room.querySelector('.guest-dropdown').classList.toggle('hidden');
+                                                    return;
                                                 }
                                                 if (e.target.closest('.dec-adult')) {
                                                     e.preventDefault();
@@ -266,7 +300,8 @@
                                                     // убираем последний селект
                                                     const wrap = room.querySelector('.children-ages');
                                                     if (wrap.lastElementChild) wrap.removeChild(wrap.lastElementChild);
-                                                    reindexRooms(); updateRoomSummary(room);
+                                                    reindexRooms();
+                                                    updateRoomSummary(room);
                                                     return;
                                                 }
                                                 if (e.target.closest('.inc-child')) {
@@ -276,15 +311,16 @@
                                                         cnt.textContent = +cnt.textContent + 1;
                                                         // создаём select для возраста
                                                         const wrap = room.querySelector('.children-ages');
-                                                        const div  = document.createElement('div');
+                                                        const div = document.createElement('div');
                                                         div.className = 'flex items-center';
                                                         div.innerHTML = `<span class="mr-2 text-sm">Возраст</span>`;
                                                         const sel = document.createElement('select');
                                                         sel.className = 'border border-gray-300 rounded-md px-2 py-1 text-sm';
-                                                        for (let a=0; a<=18; a++) sel.insertAdjacentHTML('beforeend', `<option value="${a}">${a}</option>`);
+                                                        for (let a = 0; a <= 18; a++) sel.insertAdjacentHTML('beforeend', `<option value="${a}">${a}</option>`);
                                                         div.appendChild(sel);
                                                         wrap.appendChild(div);
-                                                        reindexRooms(); updateRoomSummary(room);
+                                                        reindexRooms();
+                                                        updateRoomSummary(room);
                                                     }
                                                     return;
                                                 }
@@ -301,218 +337,6 @@
                                             addRoom();
                                         });
                                     </script>
-
-                                    <style>
-                                        /* Оверлей */
-                                        #rooms-panel-overlay {
-                                            position: fixed;
-                                            inset: 0;
-                                            background: rgba(0, 0, 0, 0.5);
-                                            z-index: 40;
-                                            display: none;
-                                        }
-
-                                        #rooms-panel-overlay.open {
-                                            display: block;
-                                        }
-
-                                        #rooms-container svg{
-                                            max-width: 20px;
-                                        }
-
-
-                                        /* Панель снизу */
-                                        #rooms-panel {
-                                            position: fixed;
-                                            bottom: 0;
-                                            left: 0;
-                                            width: 100%;
-                                            max-height: 80vh;
-                                            background: #ffffff;
-                                            border-top: 1px solid #e5e7eb;
-                                            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
-                                            border-radius: 0.75rem 0.75rem 0 0;
-                                            transform: translateY(100%);
-                                            transition: transform 0.3s ease-in-out;
-                                            overflow-y: auto;
-                                            z-index: 50;
-                                        }
-
-                                        #rooms-panel.open {
-                                            transform: translateY(0);
-                                        }
-
-                                        /* Сводка по комнатам */
-                                        #rooms-summary {
-                                            display: inline-flex;
-                                            align-items: center;
-                                            padding: 0.5rem 1rem;
-                                            border: 1px solid #d1d5db;
-                                            border-radius: 0.375rem;
-                                            background: #ffffff;
-                                            font-size: 0.875rem;
-                                            color: #1f2937;
-                                            cursor: pointer;
-                                            user-select: none;
-                                        }
-
-                                        #rooms-summary.opacity-50 {
-                                            opacity: .5;
-                                            pointer-events: none;
-                                        }
-
-                                        #rooms-summary:hover {
-                                            border-color: #3b82f6;
-                                            color: #1e40af;
-                                        }
-
-                                        /* Одна комната в списке */
-                                        .guest-room {
-                                            background: #ffffff;
-                                            border: 1px solid #e5e7eb;
-                                            border-radius: 0.5rem;
-                                            padding: 1rem;
-                                            position: relative;
-                                        }
-
-                                        .guest-room .remove-room {
-                                            font-size: 0.75rem;
-                                            color: #ef4444;
-                                            cursor: pointer;
-                                        }
-
-                                        .guest-room .remove-room:hover {
-                                            color: #b91c1c;
-                                        }
-
-                                        /* Сводка по одной комнате */
-                                        .guest-summary {
-                                            display: flex;
-                                            justify-content: space-between;
-                                            align-items: center;
-                                            padding: 0.5rem 1rem;
-                                            border: 1px solid #d1d5db;
-                                            border-radius: 0.375rem;
-                                            background: #ffffff;
-                                            font-size: 0.875rem;
-                                            color: #1f2937;
-                                            cursor: pointer;
-                                        }
-
-                                        .guest-summary:hover {
-                                            border-color: #3b82f6;
-                                        }
-
-                                        .guest-dropdown {
-                                            position: absolute;
-                                            top: 100%;
-                                            left: 0;
-                                            width: 100%;
-                                            background: #ffffff;
-                                            border: 1px solid #e5e7eb;
-                                            border-radius: 0.5rem;
-                                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-                                            margin-top: 0.5rem;
-                                            padding: 1rem;
-                                            z-index: 60;
-                                        }
-
-                                        .guest-dropdown.open {
-                                            display: block;
-                                        }
-
-                                        /* Кнопки «−» и «+» */
-                                        .dec-adult, .inc-adult, .dec-child, .inc-child {
-                                            width: 1.5rem;
-                                            height: 1.5rem;
-                                            border: 1px solid #d1d5db;
-                                            border-radius: 9999px;
-                                            display: inline-flex;
-                                            align-items: center;
-                                            justify-content: center;
-                                            font-size: 1rem;
-                                            color: #1f2937;
-                                            cursor: pointer;
-                                            user-select: none;
-                                        }
-
-                                        .dec-adult:hover, .inc-adult:hover,
-                                        .dec-child:hover, .inc-child:hover {
-                                            border-color: #3b82f6;
-                                            color: #3b82f6;
-                                        }
-
-                                        /* Счётчики */
-                                        .count-adult, .count-child {
-                                            width: 1.25rem;
-                                            text-align: center;
-                                            font-size: 0.875rem;
-                                            color: #1f2937;
-                                        }
-
-                                        /* Селект возраста */
-                                        .children-ages select {
-                                            border: 1px solid #d1d5db;
-                                            border-radius: 0.375rem;
-                                            padding: 0.25rem 0.5rem;
-                                            font-size: 0.875rem;
-                                            color: #1f2937;
-                                        }
-
-                                        /* Кнопка «Готово» */
-                                        .apply-guests {
-                                            display: inline-block;
-                                            padding: 0.5rem 1rem;
-                                            border-radius: 0.375rem;
-                                            background: #3b82f6;
-                                            color: #ffffff;
-                                            font-size: 0.875rem;
-                                            cursor: pointer;
-                                            user-select: none;
-                                        }
-
-                                        .apply-guests:hover {
-                                            background: #2563eb;
-                                        }
-
-                                        /* Гарантируем видимость кнопок −/+ */
-                                        .dec-adult,
-                                        .inc-adult,
-                                        .dec-child,
-                                        .inc-child {
-                                            display: inline-flex !important;
-                                            align-items: center;
-                                            justify-content: center;
-                                            width: 1.5rem;
-                                            height: 1.5rem;
-                                            border: 1px solid #d1d5db;        /* серый контур */
-                                            border-radius: 0.375rem;           /* rounded-md */
-                                            background-color: #ffffff;         /* белый фон */
-                                            color: #374151;                    /* тёмно-серый текст */
-                                            font-size: 1rem;                   /* чтобы минус/плюс были читаемы */
-                                            line-height: 1;
-                                            cursor: pointer;
-                                        }
-
-                                        /* При наведении подчёркиваем рамку и цвет текста */
-                                        .dec-adult:hover,
-                                        .inc-adult:hover,
-                                        .dec-child:hover,
-                                        .inc-child:hover {
-                                            border-color: #3b82f6;             /* blue-500 */
-                                            color: #3b82f6;
-                                        }
-
-                                        /* Уберём любое «display: none» или «opacity: 0» */
-                                        .dec-adult,
-                                        .inc-adult,
-                                        .dec-child,
-                                        .inc-child {
-                                            opacity: 1 !important;
-                                            visibility: visible !important;
-                                        }
-                                    </style>
-
 
                                 </div>
 

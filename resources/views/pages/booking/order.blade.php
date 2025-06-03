@@ -28,9 +28,24 @@
                         {{-- <input type="hidden" name="roomCount" value="{{ $request->roomCount }}">--}}
                         {{-- <input type="hidden" name="roomCode" value="{{ $request->roomCode }}">--}}
                         {{-- <input type="hidden" name="placementCode" value="{{ $request->placementCode }}">--}}
-                        <input type="hidden" name="adult" value="{{ $request->adult }}">
-                        <input type="hidden" name="child" value="{{ $request->child }}">
-                        <input type="hidden" name="childAges[]" value="{{ implode($request->childAges) }}">
+                        @if(!empty($request->rooms) && is_array($request->rooms))
+                            @foreach($request->rooms as $i => $room)
+                                <input
+                                        type="hidden"
+                                        name="rooms[{{ $i }}][adults]"
+                                        value="{{ $room['adults'] }}"
+                                >
+                                @if(!empty($room['childAges']) && is_array($room['childAges']))
+                                    @foreach($room['childAges'] as $j => $age)
+                                        <input
+                                                type="hidden"
+                                                name="rooms[{{ $i }}][childAges][{{ $j }}]"
+                                                value="{{ $age }}"
+                                        >
+                                    @endforeach
+                                @endif
+                            @endforeach
+                        @endif
                         <input type="hidden" name="cancellation_id" value="{{ $request->cancellation_id }}">
                         <input type="hidden" name="cancelDate" value="{{ $request->cancelDate }}">
                         <input type="hidden" name="cancelPrice" value="{{ $request->cancelPrice }}">

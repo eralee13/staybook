@@ -189,7 +189,7 @@
                                                                     }
                                                                 }
                                                                 //общая сумма
-                                                                if($request->adult >= 2){
+                                                                if($request->adultCount >= 2){
                                                                     $sum = ($rate->price2 + $price_child) * $request->adult * $nights;
                                                                 } else {
                                                                     $sum = ($rate->price + $price_child) * $request->adult * $nights;

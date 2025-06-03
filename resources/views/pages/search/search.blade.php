@@ -385,23 +385,35 @@
                                                                        value="{{ $request->arrivalDate }}">
                                                                 <input type="hidden" name="departureDate"
                                                                        value="{{ $request->departureDate }}">
+
                                                                 <input type="hidden" name="adultCount"
                                                                        value="{{ $room->guestCount->adultCount }}">
+                                                                @php
+                                                                    $array_child = [];
+                                                                @endphp
+                                                                @foreach($room->guestCount->childAges as $child)
+                                                                    @php
+                                                                        $array_child[] = $child
+                                                                    @endphp
+                                                                @endforeach
+                                                                <input type="hidden" name="childAges[]" value="{{ implode(', ', $array_child) }}">
                                                                 <input type="hidden" name="ratePlanId"
                                                                        value="{{ $room->ratePlan->id }}">
                                                                 <input type="hidden" name="roomTypeId"
                                                                        value="{{ $room->roomType->id }}">
-                                                                <input type="hidden" name="roomType"
-                                                                       value="{{ $room->roomType->placements[0]->kind }}">
-                                                                <input type="hidden" name="roomCount"
-                                                                       value="{{ $room->roomType->placements[0]->count }}">
-                                                                <input type="hidden" name="roomCode"
-                                                                       value="{{ $room->roomType->placements[0]->code }}">
-                                                                <input type="hidden" name="placementCode"
-                                                                       value="{{ $room->roomType->placements[0]->code }}">
-                                                                <input type="hidden" name="guestCount"
-                                                                       value="{{ $room->guestCount->adultCount }}">
-                                                                {{-- <input type="hidden" name="childAges[]" value="{{ $room->guestCount->childAges }}">--}}
+                                                                @foreach($room->roomType->placements as $type)
+                                                                    <input type="hidden" name="roomType"
+                                                                           value="{{ $type->kind }}">
+                                                                    <input type="hidden" name="roomCount"
+                                                                           value="{{ $type->count }}">
+                                                                    <input type="hidden" name="roomCode"
+                                                                           value="{{ $type->code }}">
+                                                                    <input type="hidden" name="minAge"
+                                                                           value="{{ $type->minAge }}">
+                                                                    <input type="hidden" name="maxAge"
+                                                                           value="{{ $type->maxAge }}">
+                                                                @endforeach
+
                                                                 <input type="hidden" name="checkSum"
                                                                        value="{{ $room->checksum }}">
                                                                 @foreach($room->includedServices as $serv)
@@ -440,6 +452,7 @@
                                 @endif
                             @endif
                         @else
+                            <!-- local hotels-->
                             @foreach($hotels as $hotel)
                                 @php
                                     $items = \App\Models\Amenity::where('hotel_id', $hotel->id)->get()->first();
@@ -528,17 +541,65 @@
                                                                value="{{ $request->arrivalDate }}">
                                                         <input type="hidden" name="departureDate"
                                                                value="{{ $request->departureDate }}">
-                                                        <input type="hidden" name="adult"
-                                                               value="{{ $request->adult }}">
-                                                        <input type="hidden" name="child"
-                                                               value="{{ $request->child }}">
-                                                        @if($request->childAges)
-                                                            <input type="hidden" name="childAges[]"
-                                                                   value="{{ implode(',', $request->childAges) }}">
-                                                        @else
-                                                            <input type="hidden" name="childAges[]"
-                                                                   value="">
-                                                        @endif
+                                                        @php
+                                                            $totalAdults   = 0;
+                                                            $totalChildren = 0;
+                                                            if (!empty($request->rooms) && is_array($request->rooms)) {
+                                                                foreach ($request->rooms as $room) {
+                                                                    // Добавляем взрослых
+                                                                    $totalAdults += (int) ($room['adults'] ?? 0);
+
+                                                                    // Считаем детей в этой комнате
+                                                                    $totalChildren += isset($room['childAges']) && is_array($room['childAges'])
+                                                                                      ? count($room['childAges'])
+                                                                                      : 0;
+                                                                }
+                                                            }
+
+                                                            // Вычисляем количество ночей
+                                                $arr    = Carbon::parse($request->arrivalDate);
+                                                $dep    = Carbon::parse($request->departureDate);
+                                                $nights = $arr->diffInDays($dep);
+                                                $totalPrice = 0;
+                                                // Получаем самый дешевый тариф по отелю (например, для всех комнат одинаковый)
+                                                $rate = \App\Models\Rate::where('hotel_id', $hotel->id)
+                                                         ->orderBy('price', 'asc')
+                                                         ->first();
+
+                                                if ($rate) {
+                                                    $сhildAges = [];
+
+                                                        $price_child = 0;
+
+                                                        if (!empty($request->rooms) && is_array($request->rooms)) {
+                                                            foreach ($request->rooms as $room) {
+                                                                // Если в этой комнате задан массив childAges — перебираем и добавляем
+                                                                if (!empty($room['childAges']) && is_array($room['childAges'])) {
+                                                                    foreach ($room['childAges'] as $age) {
+                                                                        $childAges[] = $age;
+                                                                        $age = (int) $age;
+                                                                        if ($age >= $rate->free_children_age) {
+                                                                            $price_child += $rate->child_extra_fee;
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+
+
+                                                        // Вычисляем стоимость для этой комнаты:
+                                                        // если взрослых >= 2, используем price2, иначе – price
+                                                        if ($totalAdults >= 2) {
+                                                            $price = ($rate->price2 + $price_child) * 1 * $nights;
+                                                        } else {
+                                                            $price = ($rate->price + $price_child) * 1 * $nights;
+                                                        }
+                                                }
+                                                        @endphp
+                                                        <input type="hidden" name="adult" value="{{ $totalAdults }}">
+                                                        <input type="hidden" name="child" value="{{ $totalChildren }}">
+                                                        <input type="hidden" name="childAges[]"
+                                                               value="{{ implode(', ', $childAges) }}">
                                                         <input type="hidden" name="meal_id"
                                                                value="{{ $request->meal_id }}">
                                                         <button class="more">Показать все номера</button>
@@ -548,30 +609,7 @@
                                         </div>
 
                                         <div class="col-md-2 order-xl-3 order-lg-3 order-2">
-                                            @php
-                                                $arr = \Carbon\Carbon::parse($request->arrivalDate);
-                                                    $dep = \Carbon\Carbon::parse($request->departureDate);
-                                                    $nights = $arr->diffInDays($dep);
-                                                    $rate = \App\Models\Rate::where('hotel_id', $hotel->id)->orderBy('price', 'asc')->first();
-                                                    if($rate != null){
-                                                        $price_child = 0;
-                                                        if($request->childAges){
-                                                            if (count(array_filter($request->childAges, fn($item) => is_null($item))) === 0) {
-                                                                foreach ($request->childAges as $age){
-                                                                    if($rate->free_children_age <= $age ){
-                                                                        $price_child += $rate->child_extra_fee;
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                        if($request->adult >= 2){
-                                                            $min = ($rate->price2 + $price_child) * $request->adult * $nights;
-                                                        } else {
-                                                            $min = ($rate->price + $price_child) * $request->adult * $nights;
-                                                        }
-                                                    }
-                                            @endphp
-                                            <div class="price">от {{ $min ?? 0 }} $</div>
+                                            <div class="price">от {{ number_format($price, 0, '.', ' ') }} $</div>
                                             <div class="night">ночь</div>
                                         </div>
                                     </div>
