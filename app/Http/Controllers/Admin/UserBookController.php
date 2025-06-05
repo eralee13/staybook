@@ -38,4 +38,85 @@ class UserBookController extends Controller
         return redirect()->route('userbooks.index', compact('books'));
     }
 
+    public function cancelBookTM(Request $request, Book $book)
+    {
+        $user = Auth::id();
+        $message;
+
+        if ( $request->api_type == 'tourmind' ){
+            $res = $this->cancelOrderTm($request, $book);
+            
+            if ( isset($res['Error']['ErrorMessage']) ){
+
+                $message = $res['Error']['ErrorMessage'];
+        
+            }
+             elseif( isset($res['CancelResult']['OrderStatus']) && $res['CancelResult']['OrderStatus'] == 'CANCELLED'){
+
+                $cancelFee = $res['CancelResult']['CancelFee'];
+                $curr = $res['CancelResult']['CurrencyCode'];
+
+                Book::where('id', $book->id)->update(['status' => 'Cancelled']);
+                $message = "is {$res['CancelResult']['OrderStatus']} CancelFee {$cancelFee} {$curr}";
+            }else{
+                $message = $res['Error'];
+            }
+
+        }else{
+
+            // $books = Book::where('user_id', $user)->where('status', 'Reserved')->get();
+            // Book::where('id', $book->id)->update(['status' => 'Cancelled']);
+            // session()->flash('success', 'Booking ' . $request->title . ' is cancelled');
+
+        }
+        session()->flash('success', $message);
+        $books = Book::where('user_id', $user)->orderBy('id', 'desc')->get();
+        return redirect()->route('userbooks.index', compact('books'));
+    }
+
+    public function cancelOrderTm($request, $book){
+
+        // cancel order from tourmind
+        $this->baseUrl = config('app.tm_base_url');
+        // $userId = Auth::id();
+        
+
+       try {
+        
+            $agent = $book->agent_ref_id;
+            $reservId = $book->revervation_id;
+            $token = $book->book_token;
+
+                $payload = [
+                    "AgentRefID" => $agent,
+                    "RequestHeader" => [
+                        "AgentCode" => "tms_test",
+                        "Password" => "tms_test",
+                        "UserName" => "tms_test",
+                        "TransactionID" => $token,
+                        "RequestTime" => now()->format('Y-m-d H:i:s')
+                    ]
+                ];
+            
+                    $response = Http::withHeaders([
+                        'Content-Type' => 'application/json',
+                        'Accept' => 'application/json'
+                    ])->post("{$this->baseUrl}/CancelOrder", $payload);
+            
+            // if ( $response->failed() ) {
+            //     return ['error' => 'CancelOrder Ошибка при запросе к API', 'status' => $response->status()];
+            // }
+
+            $data = $response->json();
+
+            return $data;
+            
+
+        } catch (\Throwable $th) {
+                return ["Error" => "TM CancelOrder Ошибка при запросе к API: " . $th->getMessage()];
+                // throw new \Exception("TM CancelOrder Ошибка при запросе к API: " . $th->getMessage(), 0, $th);
+           }
+        
+    }
 }
+

@@ -55,6 +55,7 @@ class Hotel extends Model
         'exely_id',
         'tourmind_id',
         'timezone',
+        'utc',
         'status'
     ];
 
@@ -96,5 +97,10 @@ class Hotel extends Model
     public function cancellation()
     {
         return $this->hasMany(CancellationRule::class);
+    }
+
+    public function images()
+    {
+        return $this->hasMany(Image::class, 'hotel_id'); // или belongsTo, в зависимости от структуры
     }
 }

@@ -88,13 +88,13 @@
                                                     for (let i = 0; i < childCount; i++) {
                                                         const div = document.createElement('div');
                                                         div.className = 'child-block';
-                                                        div.innerHTML = `
-		  <label>Возраст ребёнка ${i + 1}:</label>
-		  <select name="age${i + 1}" wire:model="childrenage${i + 1}">
-			<option value="">-- возраст --</option>
-			${Array.from({length: 19}, (_, age) => `<option value="${age}">${age}</option>`).join('')}
-		  </select>
-		`;
+                                                                                                        div.innerHTML = `
+                                                        <label>Возраст ребёнка ${i + 1}:</label>
+                                                        <select name="age${i + 1}" wire:model="childrenage${i + 1}">
+                                                            <option value="">-- возраст --</option>
+                                                            ${Array.from({length: 19}, (_, age) => `<option value="${age}">${age}</option>`).join('')}
+                                                        </select>
+                                                        `;
                                                         container.appendChild(div);
                                                     }
                                                 }
@@ -308,7 +308,7 @@
                                 <div>
                                     <div class="row">
                                         <div class="col-md-8">
-                                            <h3>{{ $hotel['localData']['title_en'] ?? '' }} &#9733; {{ $hotel['localData']['rating'] ?? '' }}</h3>
+                                            <h3>{{ $hotel['localData']['title_en'] ?? '' }} &#9733; {{ $hotel['localData']['rating'] ?? '0' }}</h3>
                                             <div class="address">{{ $hotel['localData']['address_en'] ?? ''}}</div>
                                             <a href="{{ route('hotel.rooms', ['hotelId' => $hotel['localData']['id'], 'tmid' => $hotel['HotelCode']]) }}" class="bg-green-500 text-white px-4 py-2 rounded">
                                                 Посмотреть номера

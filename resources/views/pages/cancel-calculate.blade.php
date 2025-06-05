@@ -11,7 +11,7 @@
                 <div class="col-lg-6 col-md-12">
                     <h1 data-aos="fade-up" data-aos-duration="2000">Отмена брони</h1>
                     <p>
-                        Штраф за отмену составляет: {{ $book->cancel_penalty }} {{ $request->currency }}
+                        Штраф за отмену составляет: {{ $book->cancel_penalty }} {{ $book->currency }}
                     </p>
                     <form action="{{ route('cancel_confirm') }}">
                         <div class="form-group">

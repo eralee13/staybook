@@ -3,7 +3,10 @@
 @section('title')
 
     @section('content')
-
+        @if($_GET['api_name'] == 'tourmind')
+            @dump($tmroom)
+        @endif
+        
         @auth
             <div class="page hotel">
                 <div class="container">
@@ -275,6 +278,10 @@
 
                                     </div>
                                 @endforeach
+
+                                @if($_GET['api_name'] == 'tourmind')
+                                    @include('pages.tourmind.rooms', ['tmroom' => $tmroom, 'tmimages' => $tmimages])
+                                @endif
 
                             </div>
                         </div>

@@ -240,11 +240,11 @@ class HotelResults extends Component
                         }
 
                         // Фильтр по отмене (если $this->cancelled == true, оставляем только Refundable == true)
-//                        if ($this->cancelled == true) {
-//                            if (!isset($rateInfo['Refundable']) || $rateInfo['Refundable'] != true) {
-//                                return false;
-//                            }
-//                        }
+                    //    if ($this->cancelled == true) {
+                    //        if (!isset($rateInfo['Refundable']) || $rateInfo['Refundable'] != true) {
+                    //            return false;
+                    //        }
+                    //    }
             
                         // Фильтр по питанию (если $this->food == true, оставляем только MealInfo['MealType'] == "1")
                         if ( !empty($this->meal) ) {
@@ -400,11 +400,6 @@ class HotelResults extends Component
         } catch (\Throwable $th) {
             $this->bookingSuccess = "Ошибка при запросе к API или недоступен Hotel result hotelDetail";
         }
-    }
-
-    public function loadRooms($hotelId)
-    {
-        //$this->rooms = Room::where('hotel_id', $hotelId)->get()->toArray();
     }
 
     public function render()
