@@ -34,6 +34,7 @@ class BookingController extends Controller
 
     public function book_verify(Request $request)
     {
+        //dd($request->all());
         $arrival = Carbon::createFromDate($request->arrivalDate)->format('d.m.Y');
         $departure = Carbon::createFromDate($request->departureDate)->format('d.m.Y');
 

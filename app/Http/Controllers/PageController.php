@@ -18,7 +18,8 @@ class PageController extends Controller
 {
     public function index()
     {
-        $hotels = Hotel::cacheFor(now()->addHours(2))->where('tourmind_id', null)->get();
+        $hotels = Hotel::where('tourmind_id', null)->get();
+        //$hotels = Hotel::cacheFor(now()->addHours(2))->where('tourmind_id', null)->get();
         $cities = City::cacheFor(now()->addHours(2))->where('country_id', null)->orderBy('title', 'asc')->get();
         $tomorrow = Carbon::tomorrow()->format('Y-m-d');
         $now = Carbon::now();
@@ -287,6 +288,12 @@ class PageController extends Controller
             }
         }
         return view('index', compact('hotels', 'cities', 'tomorrow'));
+    }
+
+    public function hotels()
+    {
+        $hotels = Hotel::where('status', 1)->paginate(21);
+        return view('pages.hotels', compact('hotels'));
     }
 
     public function about(Request $request)

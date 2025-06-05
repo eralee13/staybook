@@ -12,8 +12,8 @@ class Hotel extends Model
 {
     use Translatable;
     use SoftDeletes;
-    use QueryCacheable;
-    protected $cacheFor = 0;
+//    use QueryCacheable;
+//    protected $cacheFor = 0;
 
     protected $hidden = [
         'created_at',

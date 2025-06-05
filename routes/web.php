@@ -7,9 +7,6 @@ use App\Http\Controllers\Admin\HotelController;
 use App\Http\Controllers\Admin\ListbookController;
 use App\Http\Controllers\Admin\PDFController;
 use App\Http\Controllers\Admin\UserBookController;
-use App\Http\Controllers\API\Exely\ContentController;
-use App\Http\Controllers\API\Exely\ReservationController;
-use App\Http\Controllers\API\Exely\SearchController;
 use App\Http\Controllers\MainController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
@@ -82,14 +79,14 @@ Route::middleware('set_locale')->group(function () {
 
     Route::get('/', [PageController::class, 'index'])->name('index');
 
-    //search
+    //-----search
     //local
     Route::get('/search', [\App\Http\Controllers\SearchController::class, 'search'])->name('search');
     Route::get('/hotel/{hotel}', [\App\Http\Controllers\SearchController::class, 'hotel'])->name('hotel');
     //exely
     Route::get('/hotelex', [\App\Http\Controllers\SearchController::class, 'hotel_exely'])->name('hotel_exely');
 
-    //booking
+    //-----booking
     //local
     Route::get('/book/order', [\App\Http\Controllers\BookingController::class, 'order'])->name('order');
     Route::get('/book/verify', [\App\Http\Controllers\BookingController::class, 'book_verify'])->name('book_verify');
@@ -104,16 +101,16 @@ Route::middleware('set_locale')->group(function () {
     Route::get('/book/cancel/calculate/ex', [\App\Http\Controllers\BookingController::class, 'cancel_calculate_exely'])->name('cancel_calculate_exely');
     Route::get('/book/cancel/confirm/ex', [\App\Http\Controllers\BookingController::class, 'cancel_confirm_exely'])->name('cancel_confirm_exely');
 
+    Route::get('/hotels', [PageController::class, 'hotels'])->name('hotels');
     Route::get('/about', [PageController::class, 'about'])->name('about');
     Route::get('/contactspage', [PageController::class, 'contactspage'])->name('contactspage');
-
 
 
     //TourMind
     Route::get('/hotel-results', HotelResults::class)->name('hotel.results');
     Route::get('/hotel-rooms', HotelRooms::class)->name('hotel.rooms');
     Route::get('/bookingform', BookingForm::class)->name('bookingform');
-    Route::get('/allhotels', [PageController::class, 'hotels'])->name('hotels');
+    //Route::get('/allhotels', [PageController::class, 'hotels'])->name('hotels');
     //Route::get('/order/{order}', [PageController::class, 'order'])->name('order');
     Route::get('/testsearch', [PageController::class, 'testsearch'])->name('testsearch');
 

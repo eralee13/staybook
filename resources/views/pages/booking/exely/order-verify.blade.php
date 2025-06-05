@@ -1,7 +1,7 @@
 @php use Illuminate\Support\Facades\Http; @endphp
 @extends('layouts.head')
 
-@section('title', 'Забронировать')
+@section('title', 'Подтверждение заказа')
 
 @section('content')
 

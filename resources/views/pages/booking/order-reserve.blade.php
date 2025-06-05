@@ -1,6 +1,6 @@
 @extends('layouts.head')
 
-@section('title', 'Забронировать')
+@section('title', 'Бронь оформлена')
 
 @section('content')
 
@@ -8,11 +8,11 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 col-md-12">
-                    <h1>Поздравляем!</h1>
+                    <h1>@lang('main.congratulations')!</h1>
                     <ul>
-                        <li>Статус: {{ $res->booking->status ?? $book->status }}</li>
-                        <li>Номер брони: {{ $res->booking->number ?? $book->id }}</li>
-                        <li>ID отеля: {{ $res->booking->propertyId ?? $book->hotel_id }}</li>
+                        <li>@lang('main.status'): {{ $res->booking->status ?? $book->status }}</li>
+                        <li>@lang('main.booking_number'): {{ $res->booking->number ?? $book->id }}</li>
+                        <li>ID @lang('main.hotel'): {{ $res->booking->propertyId ?? $book->hotel_id }}</li>
                         @php
                             $hotel = \App\Models\Hotel::where('id', $book->hotel_id)->first();
                             $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
@@ -22,29 +22,26 @@
                             $cancelDate = \Carbon\Carbon::parse($arrival)->subDays($cancel->free_cancellation_days)->format('d.m.Y H:i');
                         @endphp
 
-                        <li>Даты: {{ $arrival }} {{$hotel->checkin}} - {{ $departure }} {{ $hotel->checkout }}
+                        <li>@lang('main.dates'): {{ $arrival }} {{$hotel->checkin}} - {{ $departure }} {{ $hotel->checkout }}
                             (UTC {{ $hotel_utc }})
                         </li>
                         <li>
                             @if($cancel->is_refundable == true)
                                 <td>
                                     @if(now() <= $cancelDate)
-                                        Бесплатная отмена действует до {{ $cancelDate }} (UTC {{ $hotel_utc }}).
+                                        @lang('main.free_cancellation') {{ $cancelDate }} (UTC {{ $hotel_utc }}).
                                     @endif
-                                    Размер
-                                    штрафа: {{ $book->cancel_penalty }} {{ $order->booking->currencyCode ?? '$' }}</td>
+                                        @lang('main.cancellation_amount'): {{ $book->cancel_penalty }} {{ $order->booking->currencyCode ?? '$' }}</td>
                             @else
-                                <td>Возможность бесплатной отмены отсутствует. Размер
-                                    штрафа: {{ $book->cancel_penalty }} {{ $order->booking->currencyCode ?? '$' }}</td>
+                                <td>@lang('main.free_cancellation'). @lang('main.cancellation_amount'): {{ $book->cancel_penalty }} {{ $order->booking->currencyCode ?? '$' }}</td>
                         @endif
                         <li>
-                            Заказчик: {{ $book->title }}
+                            @lang('main.guest'): {{ $book->title }}
                             <ul>
-                                <li>Номер
-                                    телефона: {{ $res->booking->customer->contacts->phones[0]->phoneNumber ?? $book->phone }}</li>
+                                <li>@lang('main.phone'): {{ $res->booking->customer->contacts->phones[0]->phoneNumber ?? $book->phone }}</li>
                                 <li>
                                     Email: {{ $res->booking->customer->contacts->emails[0]->emailAddress ?? $book->email }}</li>
-                                <li>Комментарий: {{ $res->booking->customer->comment ?? $book->email }}</li>
+                                <li>@lang('main.message'): {{ $res->booking->customer->comment ?? $book->email }}</li>
                             </ul>
                         </li>
                     </ul>
@@ -54,32 +51,12 @@
                             <input type="hidden" name="currency" value="{{ $res->booking->currencyCode ?? '$' }}">
                             <input type="hidden" name="cancelTime"
                                    value="{{ $res->booking->cancellationPolicy->freeCancellationDeadlineUtc ?? $cancelDate }}">
-                            <button class="more">Отменить бронь</button>
+                            <button class="more">@lang('main.cancel_booking')</button>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <style>
-        .page #map {
-            margin-top: 20px;
-        }
-
-        .page i {
-            color: darkblue;
-        }
-
-        .page form {
-            margin-top: 50px;
-        }
-
-        .page form button {
-            width: auto;
-            padding: 10px 30px;
-            margin-left: 10px;
-        }
-    </style>
 
 @endsection

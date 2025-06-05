@@ -39,7 +39,6 @@ Route::prefix('base')->middleware(['throttle:api', 'auth:sanctum'])->group(funct
     //Route::get('/getAmenities', [\App\Http\Controllers\API\V1\AmenityController::class, 'index'])->name('getAmenityList');
     //Route::get('/getAmenities/{amenity}', [\App\Http\Controllers\API\V1\AmenityController::class, 'show'])->name('showAmenity');
 
-
     Route::fallback(function () {
         return response()->json(['Not found'], 404);
     });

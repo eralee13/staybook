@@ -42,27 +42,31 @@
                 <div class="col-lg-10 d-xl-block d-lg-block d-none">
                     <div class="wrap">
                         <div class="lang-wrap" id="lang">
-                            <div class="currency">KGS</div>
+                            <div class="currency">USD</div>
                             <div class="lang">
                                 <div class="lang-item">
-                                    <a href="#">Русский <img src="{{route('index')}}/img/ru.svg" alt=""></a>
+                                    @if(app()->getLocale() == 'ru')
+                                        <a href="#">Русский <img src="{{route('index')}}/img/ru.svg" alt=""></a>
+                                    @else
+                                        <a href="#"><img src="{{route('index')}}/img/en.svg" alt=""> English</a>
+                                    @endif
                                 </div>
                             </div>
                             <div class="overwrap" id="over">
                                 <ul class="tabs" id="tabs">
-                                    <li class="current" data-tab="tab-1">Валюта</li>
-                                    <li data-tab="tab-2">Язык</li>
+                                    <li class="current" data-tab="tab-1">@lang('main.currency')</li>
+                                    <li data-tab="tab-2">@lang('main.language')</li>
                                 </ul>
                                 <div class="tab-content current" id="tab-1">
                                     <ul>
-                                        <li>KGS Кыргызский сом</li>
-                                        <li>RUB Российский рубль</li>
+{{--                                        <li>KGS Кыргызский сом</li>--}}
+{{--                                        <li>RUB Российский рубль</li>--}}
                                         <li class="current">USD Американский доллар</li>
                                     </ul>
                                 </div>
                                 <div class="tab-content" id="tab-2">
                                     <ul>
-                                        <li><img src="{{route('index')}}/img/kg.svg" alt=""> Кыргыз тили</li>
+{{--                                        <li><img src="{{route('index')}}/img/kg.svg" alt=""> Кыргыз тили</li>--}}
                                         <li @if(session('locale')=='ru')
                                                 current
                                                 @endif><a href="{{ route('locale', 'ru') }}"><img
@@ -77,27 +81,27 @@
                         </div>
                         <div class="menu-wrap">
                             <ul>
-                                <li><a href="{{route('about')}}">О сервисе</a></li>
-                                <li><a href="{{route('contactspage')}}">Контакты</a></li>
+                                <li><a href="{{route('about')}}">@lang('main.about_service')</a></li>
+                                <li><a href="{{route('contactspage')}}">@lang('main.contacts')</a></li>
                             </ul>
                         </div>
                         <div class="auth">
                             <a href="{{ route('login') }}"><img src="{{route('index')}}/img/user_w.svg" alt="">
-                                Войти</a>
+                                @lang('main.login')</a>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-10 col-md-9 col-8 d-xl-none d-lg-none d-block">
                     <div class="wrap">
                         <div class="auth">
-                            <a href="{{route('login')}}"><img src="{{route('index')}}/img/user_w.svg" alt=""> Войти</a>
+                            <a href="{{route('login')}}"><img src="{{route('index')}}/img/user_w.svg" alt=""> @lang('main.login')</a>
                         </div>
                         <nav>
                             <a href="#" class="toggle-mnu d-xl-none d-lg-none"><span></span></a>
                             <ul>
-                                <li><a href="{{route('about')}}">О сервисе</a></li>
-                                <li><a href="{{route('contactspage')}}">Контакты</a></li>
-                                <li><a href="#"><img src="{{route('index')}}/img/kg.svg" alt=""> Кыргыз тили </a></li>
+                                <li><a href="{{route('about')}}">@lang('main.about_service')</a></li>
+                                <li><a href="{{route('contactspage')}}">@lang('main.contacts')</a></li>
+{{--                                <li><a href="#"><img src="{{route('index')}}/img/kg.svg" alt=""> Кыргыз тили </a></li>--}}
                                 <li @if(session('locale')=='ru')
                                         current
                                         @endif><a href="{{ route('locale', 'ru') }}"><img
@@ -145,41 +149,39 @@
                 <div class="col-lg-3 col-md-4">
                     <div class="footer-item">
                         <ul>
-                            <li>г. Бишкек,
-                                пр.Чынгыза Айтматова 91
-                            </li>
-                            <li><a href="tel:+996 227 225 227">+996 227 225 227</a></li>
-                            <li><a href="https://instagram.com" target="_blank">Instagram</a></li>
-                            <li><a href="https://wa.me/" target="_blank">WhatsApp</a></li>
+                            <li>{{ $contacts->first()->__('address') }}</li>
+                            <li><a href="tel:{{ $contacts->first()->phone }}">{{ $contacts->first()->phone }}</a></li>
+                            <li><a href="{{ $contacts->first()->instagram }}" target="_blank">Instagram</a></li>
+                            <li><a href="https://wa.me/{{ $contacts->first()->whatsapp }}" target="_blank">WhatsApp</a></li>
                         </ul>
                     </div>
                 </div>
                 <div class="col-lg-2 col-md-4">
                     <div class="footer-item">
                         <ul>
-                            <li><a href="{{ route('about') }}">О сервисе</a></li>
-                            <li><a href="{{ route('about') }}">О компании</a></li>
-                            <li><a href="#">Города и страны</a></li>
-                            <li><a href="#">Блог</a></li>
+                            <li><a href="{{ route('about') }}">@lang('main.about_service')</a></li>
+                            <li><a href="{{ route('about') }}">@lang('main.about_company')</a></li>
+                            <li><a href="{{ route('hotels') }}">@lang('main.cities_and_countries')</a></li>
+                            <li><a href="#">@lang('main.blog')</a></li>
                         </ul>
                     </div>
                 </div>
                 <div class="col-lg-2 col-md-4">
                     <div class="footer-item">
                         <ul>
-                            <li><a href="#">Компаниям и сервисам</a></li>
-                            <li><a href="#">Апартаментам</a></li>
-                            <li><a href="#">Отелям и другим объектам</a></li>
-                            <li><a href="#">Туроператорам и турагентам</a></li>
+                            <li><a href="#">@lang('main.companies_services')</a></li>
+                            <li><a href="#">@lang('main.apartments')</a></li>
+                            <li><a href="#">@lang('main.hotels_properties')</a></li>
+                            <li><a href="#">@lang('main.tour_operators')</a></li>
                         </ul>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-4">
                     <div class="footer-item">
                         <ul>
-                            <li><a href="#">Правила и условия бронирования</a></li>
-                            <li><a href="#">Политика конфиденциальности</a></li>
-                            <li><a href="#">Юридическая информация</a></li>
+                            <li><a href="#">@lang('main.booking_terms')</a></li>
+                            <li><a href="#">@lang('main.privacy')</a></li>
+                            <li><a href="#">@lang('main.legal')</a></li>
                         </ul>
                     </div>
                 </div>
@@ -205,8 +207,6 @@
         });
     });
 </script>
-
-@livewireScripts
 
 </body>
 

@@ -15,20 +15,14 @@ class SearchController extends Controller
 {
     public function search(Request $request)
     {
-        // 1. Собираем города и дату «завтра» для формы
         $cities   = City::whereNull('country_id')->orderBy('title')->get();
         $tomorrow = Carbon::tomorrow()->format('Y-m-d');
-
-        // 2. Извлекаем массив комнат и сразу считаем общее число взрослых и массив возрастов детей
         $rooms = $request->input('rooms', []); // если нет — пустой массив
-
         $totalAdults    = 0;
         $allChildAges   = [];
         foreach ($rooms as $room) {
-            // Взрослые
             $totalAdults += (int) ($room['adults'] ?? 0);
 
-            // Возрасты детей (если есть) собираем в единый массив
             if (!empty($room['childAges']) && is_array($room['childAges'])) {
                 foreach ($room['childAges'] as $age) {
                     $allChildAges[] = (int) $age;
@@ -36,7 +30,6 @@ class SearchController extends Controller
             }
         }
 
-        // 3. Строим локальный запрос отелей с фильтрацией по тарифам
         $hotelQuery = Hotel::with(['rates' => function ($q) use ($request, $totalAdults) {
             // Фильтруем тарифы: проверяем, что есть места для всех взрослых и детей
             if ($request->filled('rooms')) {
@@ -166,7 +159,8 @@ class SearchController extends Controller
 
     public function hotel($code, Request $request)
     {
-        $hotel = Hotel::cacheFor(now()->addHours(2))->where('code', $code)->first();
+        $hotel = Hotel::where('code', $code)->first();
+        //$hotel = Hotel::cacheFor(now()->addHours(2))->where('code', $code)->first();
         $arrival = Carbon::createFromDate($request->arrivalDate);
         $departure = Carbon::createFromDate($request->departureDate);
         $count_day = $arrival->diffInDays($departure);

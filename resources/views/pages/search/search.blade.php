@@ -38,77 +38,273 @@
                                     </div>
                                 </div>
                                 <div class="col-lg col-6">
-                                    <div id="count_person">
-                                        <div class="form-group">
-                                            <div class="label guest"><img src="{{route('index')}}/img/user.svg" alt="">
+                                    @php
+                                        // 1) Берём массив комнат из запроса (если нет – пустой массив)
+                                        $roomsData = $request->input('rooms', []);
+
+                                        // 2) Сразу подсчитываем общее кол-во комнат, взрослых и детей
+                                        $roomCount     = count($roomsData);
+                                        $totalAdults   = 0;
+                                        $totalChildren = 0;
+
+                                        foreach ($roomsData as $r) {
+                                            $totalAdults += (int) ($r['adults'] ?? 0);
+                                            $totalChildren += count($r['childAges'] ?? []);
+                                        }
+
+                                        // 3) Готовим JSON для передачи в JS (чтобы JS сразу знал структуру rooms)
+                                        $roomsJson = json_encode($roomsData, JSON_UNESCAPED_UNICODE);
+                                    @endphp
+                                    {{-- Фильтр комнат --}}
+                                    {{-- Общая сводка (клик открывает окно) --}}
+                                    <a href="javascript:void(0)"
+                                       id="rooms-summary">
+                                        Комнат3333: {{ $roomCount }}, Взрослых: {{ $totalAdults }},
+                                        Детей: {{ $totalChildren }}
+                                    </a>
+
+                                    {{-- Полупрозрачный оверлей --}}
+                                    <div id="rooms-panel-overlay"></div>
+
+                                    {{-- Окно снизу --}}
+                                    <div id="rooms-panel">
+                                        <div class="p-4">
+                                            <div class="flex justify-between items-center mb-4">
+                                                <h3 class="text-lg font-medium">Гости и номера</h3>
+                                                <div class="close-btn">
+                                                    <a href="javascript:void(0)"
+                                                       id="panel-close"
+                                                       class="text-gray-500 hover:text-gray-700 text-xl">&times;</a>
+                                                </div>
                                             </div>
-                                            <input type="text" value="Кол-во гостей">
-                                            <div id="count-wrap" class="count-wrap">
-                                                <!-- Взрослые -->
-                                                <div class="counter count-item">
-                                                    <label>Взрослые:</label>
-                                                    <a class="minus" onclick="changeCount('adult', -1)">-</a>
-                                                    <span id="adult-count">{{ $request->adult ?? 1 }}</span>
-                                                    <a class="plus" onclick="changeCount('adult', 1)">+</a>
-                                                    <input type="hidden" name="adult" id="adult"
-                                                           value="{{ $request->adult ?? 1 }}">
-                                                </div>
 
-                                                <!-- Дети -->
-                                                <div class="counter count-item">
-                                                    <label>Дети:</label>
-                                                    <a class="minus" onclick="changeCount('child', -1)">-</a>
-                                                    <span id="child-count">{{ $request->child ?? 0 }}</span>
-                                                    <a class="plus" onclick="changeCount('child', 1)">+</a>
-                                                    <input type="hidden" name="childAges[]" id="child">
-                                                </div>
+                                            {{-- Кнопка добавить комнату --}}
+                                            <div class="add-btn">
+                                                <a href="javascript:void(0)"
+                                                   id="add-room"
+                                                   class="inline-block text-blue-600 hover:underline text-sm mb-4">
+                                                    + @lang('main.add_room')
+                                                </a>
+                                            </div>
 
-                                                <!-- Возраст детей -->
-                                                <div id="children-ages"></div>
+                                            {{-- Сюда будут рендериться комнаты --}}
+                                            <div id="rooms-container" class="space-y-4"></div>
 
-                                                <script>
-                                                    let adultCount = 0;
-                                                    let childCount = 0;
-                                                    const maxAdults = 8;
-                                                    const maxChildren = 3;
-
-                                                    function changeCount(type, delta) {
-                                                        if (type === 'adult') {
-                                                            adultCount = Math.max(1, Math.min(maxAdults, adultCount + delta));
-                                                            document.getElementById('adult-count').innerText = adultCount;
-                                                            document.getElementById('adult').value = adultCount;
-                                                        } else if (type === 'child') {
-                                                            const newCount = childCount + delta;
-                                                            if (newCount >= 0 && newCount <= maxChildren) {
-                                                                childCount = newCount;
-                                                                document.getElementById('child-count').innerText = childCount;
-                                                                document.getElementById('child').value = childCount;
-                                                                renderChildAgeSelectors();
-                                                            }
-                                                        }
-                                                    }
-
-                                                    function renderChildAgeSelectors() {
-                                                        const container = document.getElementById('children-ages');
-                                                        container.innerHTML = '';
-
-                                                        for (let i = 0; i < childCount; i++) {
-                                                            const div = document.createElement('div');
-                                                            div.className = 'child-block';
-                                                            div.innerHTML = `
-		  <label>Возраст ребёнка ${i + 1}:</label>
-		  <select name="age${i + 1}">
-			<option value="">-- возраст --</option>
-			${Array.from({length: 19}, (_, age) => `<option value="${age}">${age}</option>`).join('')}
-		  </select>
-		`;
-                                                            container.appendChild(div);
-                                                        }
-                                                    }
-                                                </script>
+                                            <div class="mt-4 text-right">
+                                                <button id="panel-apply" class="more">
+                                                    @lang('main.ready')
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
+
+                                    {{-- Шаблон одной комнаты --}}
+                                    <template id="room-template">
+                                        <div class="guest-room"
+                                             data-index="__INDEX__">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <h4 class="flex justify-between items-center text-sm font-medium mb-3">
+                                                        <span class="room-number">__NUM__</span> @lang('main.room')
+                                                    </h4>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="remove-btn">
+                                                        <a href="javascript:void(0)"
+                                                           class="remove-room text-red-500 hover:text-red-700 text-xs ml-2">
+                                                            @lang('main.delete')
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {{-- скрытое поле для взрослых --}}
+                                            <input type="hidden"
+                                                   name="rooms[__INDEX__][adults]"
+                                                   value="1"
+                                                   class="input-adults">
+
+                                            {{-- сводка по комнате --}}
+                                            <a href="javascript:void(0)"
+                                               class="guest-summary flex justify-between items-center w-full border border-gray-300
+              rounded-md px-4 py-2 bg-white text-sm hover:border-blue-500">
+                                                <span class="summary-text">1 @lang('main.adult')</span>
+                                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor"
+                                                     viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                          stroke-width="2"
+                                                          d="M19 9l-7 7-7-7"/>
+                                                </svg>
+                                            </a>
+
+                                            {{-- дропдаун --}}
+                                            <div class="guest-dropdown hidden absolute z-20 mt-1 w-full bg-white border border-gray-200
+                rounded-md shadow-lg p-4">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <span class="text-sm">@lang('main.count_adult')</span>
+                                                        <div class="flex items-center">
+                                                            <button class="dec-adult">−</button>
+                                                            <span class="count-adult mx-3 w-5 text-center text-sm">1</span>
+                                                            <button class="inc-adult">+</button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="flex justify-between items-center mb-4">
+                                                            <span class="text-sm">@lang('main.count_child')</span>
+                                                            <div class="flex items-center">
+                                                                <button class="dec-child">−</button>
+                                                                <span class="count-child mx-3 w-5 text-center text-sm">0</span>
+                                                                <button class="inc-child">+</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="children-ages space-y-2 mb-4"></div>
+                                                <div class="text-right">
+                                                    <button class="apply-guests inline-block bg-blue-600 hover:bg-blue-700 text-white
+                       rounded-md px-4 py-2 text-sm">@lang('main.apply')
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <script>
+                                        document.addEventListener('DOMContentLoaded', () => {
+                                            const MAX_ROOMS = 4;
+                                            const summaryBtn = document.getElementById('rooms-summary');
+                                            const overlay = document.getElementById('rooms-panel-overlay');
+                                            const panel = document.getElementById('rooms-panel');
+                                            const closeBtn = document.getElementById('panel-close');
+                                            const applyBtn = document.getElementById('panel-apply');
+                                            const addRoomBtn = document.getElementById('add-room');
+                                            const roomsContainer = document.getElementById('rooms-container');
+                                            const tpl = document.getElementById('room-template').innerHTML;
+                                            let nextIndex = 0;
+
+                                            // Создадим JS-массив из PHP
+                                            const initialRooms = {!! $roomsJson !!} || [];
+
+                                            function openPanel() {
+                                                overlay.classList.remove('hidden');
+                                                panel.classList.add('open');
+                                            }
+
+                                            function closePanel() {
+                                                panel.classList.remove('open');
+                                                overlay.classList.add('hidden');
+                                            }
+
+
+                                            function updateGlobalSummary() {
+                                                const rooms = roomsContainer.querySelectorAll('.guest-room');
+                                                const roomCount = rooms.length;
+                                                let adultsTotal = 0;
+                                                let childrenTotal = 0;
+                                                rooms.forEach(r => {
+                                                    adultsTotal += +r.querySelector('.count-adult').textContent;
+                                                    childrenTotal += +r.querySelector('.count-child').textContent;
+                                                });
+                                                summaryBtn.textContent =
+                                                    `Комнат: ${roomCount}, Взрослых: ${adultsTotal}, Детей: ${childrenTotal}`;
+                                                summaryBtn.classList.toggle('opacity-50', roomCount >= MAX_ROOMS);
+                                                summaryBtn.classList.toggle('pointer-events-none', roomCount >= MAX_ROOMS);
+                                            }
+
+                                            function reindexRooms() {
+                                                roomsContainer.querySelectorAll('.guest-room').forEach((r, i) => {
+                                                    r.dataset.index = i;
+                                                    r.querySelector('.room-number').textContent = i + 1;
+                                                    r.querySelector('.input-adults').name = `rooms[${i}][adults]`;
+                                                    r.querySelectorAll('.children-ages select').forEach((sel, ci) => {
+                                                        sel.name = `rooms[${i}][childAges][${ci}]`;
+                                                    });
+                                                });
+                                                updateGlobalSummary();
+                                            }
+
+                                            function addRoom() {
+                                                if (roomsContainer.children.length >= MAX_ROOMS) return;
+                                                const idx = nextIndex++;
+                                                const num = roomsContainer.children.length + 1;
+                                                roomsContainer.insertAdjacentHTML(
+                                                    'beforeend',
+                                                    tpl.replace(/__INDEX__/g, idx).replace(/__NUM__/g, num)
+                                                );
+                                                reindexRooms();
+                                            }
+
+                                            function updateRoomSummary(room) { /* … */
+                                            }
+
+                                            summaryBtn.addEventListener('click', e => { /* … */
+                                            });
+                                            closeBtn.addEventListener('click', e => { /* … */
+                                            });
+                                            applyBtn.addEventListener('click', e => { /* … */
+                                            });
+                                            overlay.addEventListener('click', closePanel);
+                                            addRoomBtn.addEventListener('click', e => { /* … */
+                                            });
+
+                                            document.addEventListener('click', e => { /* … весь делегат … */
+                                            });
+
+                                            // === Инициалиазация ===
+                                            if (initialRooms.length > 0) {
+                                                initialRooms.forEach((roomData, idx) => {
+                                                    // 1) Рендерим HTML для комнаты из шаблона
+                                                    const idxPlaceholder = idx;
+                                                    const roomHtml = tpl
+                                                        .replace(/__INDEX__/g, idxPlaceholder)
+                                                        .replace(/__NUM__/g, idx + 1);
+
+                                                    roomsContainer.insertAdjacentHTML('beforeend', roomHtml);
+
+                                                    // 2) Проставляем значения “взрослых” и “детей” в эту комнату
+                                                    const newRoom = roomsContainer.querySelector(`.guest-room[data-index="${idxPlaceholder}"]`);
+                                                    const adults = parseInt(roomData.adults) || 1;
+                                                    newRoom.querySelector('.count-adult').textContent = adults;
+
+                                                    const childAgesArr = Array.isArray(roomData.childAges) ? roomData.childAges : [];
+                                                    newRoom.querySelector('.count-child').textContent = childAgesArr.length;
+                                                    const agesContainer = newRoom.querySelector('.children-ages');
+                                                    agesContainer.innerHTML = '';
+
+                                                    childAgesArr.forEach((age, cidx) => {
+                                                        const div = document.createElement('div');
+                                                        div.className = 'flex items-center';
+                                                        div.innerHTML = `<span class="mr-2 text-sm">Возраст</span>`;
+                                                        const sel = document.createElement('select');
+                                                        sel.className = 'border border-gray-300 rounded-md px-2 py-1 text-sm';
+                                                        sel.name = `rooms[${idxPlaceholder}][childAges][${cidx}]`;
+
+                                                        for (let a = 0; a <= 18; a++) {
+                                                            const opt = document.createElement('option');
+                                                            opt.value = a;
+                                                            opt.textContent = a;
+                                                            if (parseInt(age) === a) opt.selected = true;
+                                                            sel.appendChild(opt);
+                                                        }
+                                                        div.appendChild(sel);
+                                                        agesContainer.appendChild(div);
+                                                    });
+
+                                                    updateRoomSummary(newRoom);
+                                                });
+
+                                                reindexRooms();
+
+                                            } else {
+                                                addRoom();
+                                            }
+
+                                            // Обновим глобальную сводку (на всякий случай)
+                                            updateGlobalSummary();
+                                        });
+                                    </script>
+
 
                                 </div>
                                 <div class="col-lg col-6 extra">
@@ -116,14 +312,14 @@
                                         <div id="filter">
                                             <div class="label filter"><img src="{{route('index')}}/img/setting.svg"
                                                                            alt="">
-                                                Фильтры
+                                                @lang('main.filters')
                                             </div>
                                             <div class="filter-wrap" id="filter-wrap">
                                                 <div class="closebtn" id="closebtn"><img
                                                             src="{{route('index')}}/img/close.svg" alt=""></div>
-                                                <h5>Фильтры</h5>
+                                                <h5>@lang('main.filters')</h5>
                                                 <div class="form-group">
-                                                    <div class="name">Рейтинг</div>
+                                                    <div class="name">@lang('main.rating')</div>
                                                     <div class="row justify-content-center">
                                                         <div class="col-lg col-md-4">
                                                             <div class="item">
@@ -218,32 +414,32 @@
                                                         <div class="col-lg-3">
                                                             <div class="apart-item">
                                                                 <img src="{{route('index')}}/img/hotelb.svg" alt="">
-                                                                <h6>Отели</h6>
+                                                                <h6>@lang('main.hotels')</h6>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <div class="line"></div>
-                                                <div class="name">Прибытие</div>
+                                                <div class="name">@lang('main.arrival')</div>
                                                 <div class="form-group" id="income">
                                                     <div class="row">
                                                         <div class="col-md-6 col-6">
                                                             <div class="itemm">
                                                                 <input type="checkbox" value="early_in">
-                                                                <label for="">Ранний заезд</label>
+                                                                <label for="">@lang('main.early_in')</label>
                                                             </div>
                                                         </div>
                                                         <div class="col-md-6 col-6">
                                                             <div class="itemm">
                                                                 <input type="checkbox" value="late_out">
-                                                                <label for="">Поздний выезд</label>
+                                                                <label for="">@lang('main.late_out')</label>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <div class="line"></div>
                                                 <div class="form-group" id="meal">
-                                                    <div class="name">Виды питания</div>
+                                                    <div class="name">@lang('main.meal_plans')</div>
                                                     <div class="row">
                                                         <div class="col-lg col-md-4 col-4">
                                                             <div class="itemmm @if($request->meal_id == 1) active @endif">
@@ -282,7 +478,7 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <button class="more">Найти</button>
+                                                <button class="more">@lang('main.find')</button>
                                             </div>
                                         </div>
                                     </div>
@@ -290,7 +486,7 @@
                                 <div class="col-lg col-12">
                                     <div class="form-group">
                                         <button class="more"><img src="{{ route('index') }}/img/search.svg" alt="">
-                                            Найти
+                                            @lang('main.find')
                                         </button>
                                     </div>
                                 </div>
@@ -396,7 +592,8 @@
                                                                         $array_child[] = $child
                                                                     @endphp
                                                                 @endforeach
-                                                                <input type="hidden" name="childAges[]" value="{{ implode(', ', $array_child) }}">
+                                                                <input type="hidden" name="childAges[]"
+                                                                       value="{{ implode(', ', $array_child) }}">
                                                                 <input type="hidden" name="ratePlanId"
                                                                        value="{{ $room->ratePlan->id }}">
                                                                 <input type="hidden" name="roomTypeId"
@@ -432,7 +629,7 @@
                                                                        value="{{ $room->fullPlacementsName }}">
                                                                 <input type="hidden" name="price"
                                                                        value="{{ $room->total->priceBeforeTax }}">
-                                                                <button class="more">Выбрать номера</button>
+                                                                <button class="more">@lang('main.show_all_rooms')</button>
                                                             </form>
                                                         </div>
                                                     </div>
@@ -440,15 +637,14 @@
 
                                                 <div class="col-md-2 order-xl-3 order-lg-3 order-2">
                                                     <div class="price">
-                                                        от {{ $room->total->priceBeforeTax }} {{ $room->currencyCode }}</div>
-                                                    <div class="night">ночь</div>
+                                                        @lang('main.from') {{ $room->total->priceBeforeTax }} {{ $room->currencyCode }}</div>
+                                                    <div class="night">@lang('main.night')</div>
                                                 </div>
                                             </div>
                                         </div>
                                     @endforeach
                                 @else
-                                    <div class="alert alert-danger">Поиск не дал результатов. Пожалуйста <a
-                                                href="{{ route('properties') }}">попробуйте снова</a></div>
+                                    <div class="alert alert-danger">@lang('main.search_not_found') <a href="{{ route('index') }}">@lang('main.try_again')</a></div>
                                 @endif
                             @endif
                         @else
@@ -488,6 +684,23 @@
                                         'Минеральная вода' => 'water.svg',
                                     ];
                                 @endphp
+                                @php
+                                    // Если в GET-параметрах нет childAges — будет пустой массив
+                                    $childAges = $request->input('childAges', []);
+
+                                    // Если пришла строка вида "1, 9", разбираем её в массив ['1', '9']
+                                    if (is_string($childAges)) {
+                                        $childAges = array_filter(
+                                            array_map('trim', explode(',', $childAges)),
+                                            fn($v) => $v !== ''
+                                        );
+                                    }
+
+                                    // Убедимся, что теперь $childAges — именно массив (например [] или ['1','9'])
+                                    if (! is_array($childAges)) {
+                                        $childAges = [];
+                                    }
+                                @endphp
                                 <div class="search-item">
                                     <div class="row">
                                         <div class="col-md-5 order-xl-1 order-lg-1 order-1">
@@ -515,7 +728,7 @@
                                             </div>
                                         </div>
                                         <div class="col-md-5 order-xl-2 order-lg-2 order-3">
-                                            <h4>{{ $hotel->title }}</h4>
+                                            <h4>{{ $hotel->__('title') }}</h4>
                                             <div class="amenities">
                                                 @foreach($items as $amenity)
                                                     @php
@@ -586,7 +799,6 @@
                                                             }
                                                         }
 
-
                                                         // Вычисляем стоимость для этой комнаты:
                                                         // если взрослых >= 2, используем price2, иначе – price
                                                         if ($totalAdults >= 2) {
@@ -602,15 +814,17 @@
                                                                value="{{ implode(', ', $childAges) }}">
                                                         <input type="hidden" name="meal_id"
                                                                value="{{ $request->meal_id }}">
-                                                        <button class="more">Показать все номера</button>
+                                                        <button class="more">@lang('main.show_all_rooms')</button>
                                                     </form>
                                                 </div>
                                             </div>
                                         </div>
 
                                         <div class="col-md-2 order-xl-3 order-lg-3 order-2">
-                                            <div class="price">от {{ number_format($price, 0, '.', ' ') }} $</div>
-                                            <div class="night">ночь</div>
+                                            <div class="price">@lang('main.from') {{ number_format($price, 0, '.', ' ') }}
+                                                $
+                                            </div>
+                                            <div class="night">@lang('main.night')</div>
                                         </div>
                                     </div>
                                 </div>

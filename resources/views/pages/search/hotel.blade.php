@@ -14,13 +14,13 @@
                                  data-autoplay="30000">
                                 <img loading="lazy" src="{{ Storage::url($hotel->image)}}" alt="">
                             </div>
-                            <h3>{{ $hotel->title }}</h3>
+                            <h3>{{ $hotel->__('title') }}</h3>
                             <div class="address"><img src="{{ route('index') }}/img/marker_in.svg"
-                                                      alt=""> {{ $hotel->address }}</div>
-                            <h4>Описание</h4>
-                            {!! $hotel->description !!}
+                                                      alt=""> {{ $hotel->__('address') }}</div>
+                            <h4>@lang('main.description')</h4>
+                            {!! $hotel->__('description') !!}
                             <div class="amenities">
-                                <h4>Услуги и удобства</h4>
+                                <h4>@lang('main.amenities')</h4>
                                 <div class="amenities-item">
                                     <img src="{{ route('index') }}/img/icons/area.svg" alt="">
                                     <div class="name">24 кв. м</div>
@@ -95,7 +95,7 @@
                                 </div>
                             </div>
                             <div class="maps">
-                                <h4>Расположение</h4>
+                                <h4>@lang('main.location')</h4>
                                 <script src="https://maps.api.2gis.ru/2.0/loader.js"></script>
                                 <div id="map" style="width: 100%; height: 500px;"></div>
                                 <script>
@@ -113,7 +113,7 @@
                                     });
                                 </script>
                                 <div class="address"><img src="{{ route('index') }}/img/marker_in.svg"
-                                                          alt=""> {{ $hotel->address }}</div>
+                                                          alt=""> {{ $hotel->__('address') }}</div>
                             </div>
 
 
@@ -122,7 +122,7 @@
                     <div class="row">
                         <div class="col-md-12">
                             <div class="tariffs availabity">
-                                <h4>Доступные варианты</h4>
+                                <h4>@lang('main.available')</h4>
                                 @foreach($rooms as $room)
                                     @php
                                         $image = \App\Models\Image::where('room_id', $room->id)->orderBy('id', 'desc')->first();
@@ -137,7 +137,7 @@
                                                     <img src="{{ route('index') }}/img/noimage.png" alt=""
                                                          width="100px">
                                                 @endif
-                                                <h5>{{ $room->title }}</h5>
+                                                <h5>{{ $room->__('title') }}</h5>
                                                 {{--                                            <div class="bed">2 отдельные кровати</div>--}}
                                                 <div class="amenities">
                                                     <div class="amenities-item">
@@ -169,7 +169,7 @@
                                                     @foreach($rates as $rate)
                                                         <div class="tariffs-item">
                                                             @isset($rate)
-                                                                <h5>{{ $rate->title }}</h5>
+                                                                <h5>{{ $rate->__('title') }}</h5>
                                                             @endisset
                                                             @php
                                                                 $arrival = \Carbon\Carbon::createFromDate($request->arrivalDate)->format('d.m.Y H:i');
@@ -194,28 +194,28 @@
                                                                 } else {
                                                                     $sum = ($rate->price + $price_child) * $request->adult * $nights;
                                                                 }
-                                                                @endphp
+                                                            @endphp
                                                             <div class="item bed">
                                                                 <div class="name">{{ $rate->bed_type }}</div>
                                                             </div>
                                                             <div class="item meal">
-                                                                <div class="name">{{ $rate->meal->title }}</div>
+                                                                <div class="name">{{ $rate->meal->__('title') }}</div>
                                                             </div>
                                                             <div class="item cancel">
-                                                                <div class="name">Правила отмены:
+                                                                <div class="name">@lang('main.cancellation_policy'):
                                                                     @if($cancel->is_refundable == 1)
-                                                                        @if(now() <= $cancelDate)
-                                                                            Бесплатная отмена действует
-                                                                            до {{ $cancelDate }} UTC +06:00.
+                                                                        @if(now()->lte($cancelDate))
+                                                                            @lang('main.free_cancellation') {{ $cancelDate }}
+                                                                            UTC +06:00.
                                                                         @endif
-                                                                        Сумма аннуляции:
+                                                                        @lang('main.cancellation_amount'):
                                                                         @if($cancel->penalty_type === 'fixed')
                                                                             ${{ $cancel->penalty_amount }}
                                                                         @else
                                                                             ${{ ($sum * $cancel->penalty_amount) / 100 }}
                                                                         @endif
                                                                     @else
-                                                                        Сумма аннуляции:
+                                                                        @lang('main.cancellation_amount'):
                                                                         @if($cancel->penalty_type === 'fixed')
                                                                             ${{ $cancel->penalty_amount }}
                                                                         @else
@@ -225,7 +225,7 @@
                                                                 </div>
                                                             </div>
                                                             <div class="item price">${{ $sum }}</div>
-                                                            <div class="nds">Все налоги включены</div>
+                                                            {{--                                                            <div class="nds">Все налоги включены</div>--}}
                                                             {{--                                                        <div class="night">за ночь для 1 гостя</div>--}}
                                                             <div class="btn-wrap">
                                                                 <form action="{{ route('order', $rate->id) }}">
@@ -263,7 +263,7 @@
                                                                     <input type="hidden" name="price"
                                                                            value="{{ $sum }}">
                                                                     {{--                                                                <input type="hidden" name="currency" value="{{ $room->currencyCode }}">--}}
-                                                                    <button class="more">Забронировать</button>
+                                                                    <button class="more">@lang('main.book')</button>
                                                                 </form>
                                                             </div>
                                                         </div>

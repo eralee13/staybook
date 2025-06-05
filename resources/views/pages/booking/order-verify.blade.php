@@ -1,7 +1,7 @@
 @php use Illuminate\Support\Facades\Http; @endphp
 @extends('layouts.head')
 
-@section('title', 'Забронировать')
+@section('title', 'Подтверждение заказа')
 
 @section('content')
 
@@ -18,63 +18,59 @@
                         $rate = \App\Models\Rate::where('id', $request->rate_id)->firstOrFail();
                         $cancelPossible = \App\Models\CancellationRule::where('id', $rate->cancellation_rule_id)->firstOrFail();
                     @endphp
-                    <h1>Подтверждение заказа</h1>
+                    <h1>@lang('main.order_confirmation')</h1>
                     <table>
                         <tr>
-                            <td>Отель:</td>
-                            <td>{{ $hotel->title }}</td>
+                            <td>@lang('main.hotel'):</td>
+                            <td>{{ $hotel->__('title') }}</td>
                         </tr>
                         <tr>
-                            <td>Тип комнаты:</td>
-                            <td>{{ $room->title }}</td>
+                            <td>@lang('main.room'):</td>
+                            <td>{{ $room->__('title') }}</td>
                         </tr>
                         <tr>
-                            <td>Тариф:</td>
-                            <td>{{ $rate->title }}</td>
+                            <td>@lang('main.rate'):</td>
+                            <td>{{ $rate->__('title') }}</td>
                         </tr>
                         <tr>
-                            <td>Кол-во взрослых:</td>
+                            <td>@lang('main.count_adult'):</td>
                             <td>{{ $room->guestCount->adultCount ?? $request->adult }}</td>
                         </tr>
                         <tr>
-                            <td>Кол-во детей:</td>
-                            <td>{{ $request->child }}</td>
-                            {{--                                    <td>{{ implode(',', explode($order->booking->roomStays[0]->guestCount->childAges)) }}</td>--}}
-                            {{--                                    <td>{{ count($order->booking->roomStays[0]->guestCount->guestCount->childAges) }}</td>--}}
+                            <td>@lang('main.count_child'):</td>
+                            <td>{{ $request->child ?? 0 }}</td>
                         </tr>
                         <tr>
-                            <td>Даты:</td>
+                            <td>@lang('main.dates'):</td>
                             <td>{{ $arrival }} {{ $hotel->checkin }} - {{ $departure }} {{ $hotel->checkout }}
                                 (UTC {{ $hotel_utc }})
                             </td>
                         </tr>
                         <tr>
-                            <td>Стоимость:</td>
+                            <td>@lang('main.price'):</td>
                             <td>{{ $order->booking->total->priceBeforeTax ?? $request->price }} {{ $order->booking->currencyCode ?? '$' }}</td>
                         </tr>
                         <tr>
-                            <td>Правило отмены:</td>
+                            <td>@lang('main.cancellation_policy'):</td>
                             @if($cancelPossible->is_refundable == true)
                                 <td>
-                                    @if(now() <= $request->cancelDate)
-                                        Бесплатная отмена действует до {{ $request->cancelDate }} (UTC {{ $hotel_utc }}
+                                    @if(now()->lte($request->cancelDate))
+                                       @lang('main.free_cancellation') {{ $request->cancelDate }} (UTC {{ $hotel_utc }}
                                         ).
                                     @endif
-                                    Размер
-                                    штрафа: {{ $request->cancelPrice }} {{ $order->booking->currencyCode ?? '$' }}</td>
+                                    @lang('main.cancellation_amount'): {{ $request->cancelPrice }} {{ $order->booking->currencyCode ?? '$' }}</td>
                             @else
-                                <td>Возможность бесплатной отмены отсутствует. Размер
-                                    штрафа: {{ $cancelPossible->penaltyAmount ?? $request->cancelPrice }} {{ $order->booking->currencyCode ?? '$' }}</td>
+                                <td>@lang('main.cancellation_is_not_avaialble'). @lang('main.cancellation_amount'): {{ $cancelPossible->penaltyAmount ?? $request->cancelPrice }} {{ $order->booking->currencyCode ?? '$' }}</td>
                             @endif
                         </tr>
                         <tr>
-                            <td>ФИО:</td>
+                            <td>@lang('main.full_name'):</td>
                             <td>
                                 <div class="name">{{ $request->name }}</div>
                             </td>
                         </tr>
                         <tr>
-                            <td>Номер телефона:</td>
+                            <td>@lang('main.phone'):</td>
                             <td>
                                 <div class="name">{{ $request->phone }}</div>
                             </td>
@@ -86,7 +82,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td>Комментарий:</td>
+                            <td>@lang('main.message'):</td>
                             <td>{{ $order->booking->bookingComments[0] ?? $request->comment }}</td>
                         </tr>
                     </table>
@@ -119,9 +115,9 @@
                             {{--                                   value="{{ json_encode($order->booking->roomStays[0]->roomType->placements) ?? '' }}">--}}
                             <input type="hidden" name="adultCount"
                                    value="{{ $order->booking->roomStays[0]->guestCount->adultCount ?? $request->adult }}">
-                            <input type="hidden" name="child" value="{{ $request->child }}">
-                                                        <input type="hidden" name="childAges[]"
-                                                               value="{{ implode($request->childAges) }}">
+                            <input type="hidden" name="childAges[]"
+                                   value="{{ implode(', ', $request->childAges ?? []) }}">
+
                             {{--                            <input type="hidden" name="createBookingToken"--}}
                             {{--                                   value="{{ $order->booking->createBookingToken ?? '' }}">--}}
                             {{--                            <input type="hidden" name="checkSum"--}}
@@ -132,7 +128,7 @@
                                    value="{{ $order->booking->customer->contacts->phones[0]->phoneNumber ?? $request->phone  }}">
                             <input type="hidden" name="email"
                                    value="{{ $order->booking->customer->contacts->emails[0]->emailAddress?? $request->email }}">
-                            <button class="more">Подтвердить</button>
+                            <button class="more">@lang('main.confirm')</button>
                         </form>
                     </div>
                 </div>

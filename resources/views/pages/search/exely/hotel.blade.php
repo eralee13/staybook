@@ -50,10 +50,10 @@
                             <h3>{{ $hotel->title }}</h3>
                             <div class="address"><img src="{{ route('index') }}/img/marker_in.svg"
                                                       alt=""> {{ $hotel->address }}</div>
-                            <h4>Описание</h4>
-                            {!! $hotel->description !!}
+                            <h4>@lang('main.description')</h4>
+                            {!! $hotel->__('description') !!}
                             <div class="amenities">
-                                <h4>Услуги и удобства</h4>
+                                <h4>@lang('main.amenities')</h4>
                                 @foreach($amenities as $amenity)
                                     @php
                                         $iconFile = 'check.svg';
@@ -71,7 +71,7 @@
                                 @endforeach
                             </div>
                             <div class="maps">
-                                <h4>Расположение</h4>
+                                <h4>@lang('main.location')</h4>
                                 <script src="https://maps.api.2gis.ru/2.0/loader.js"></script>
                                 <div id="map" style="width: 100%; height: 500px;"></div>
                                 <script>
@@ -89,14 +89,14 @@
                                     });
                                 </script>
                                 <div class="address"><img src="{{ route('index') }}/img/marker_in.svg"
-                                                          alt=""> {{ $hotel->address }}</div>
+                                                          alt=""> {{ $hotel->__('address') }}</div>
                             </div>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-12">
                             <div class="tariffs availabity">
-                                <h4>Доступные варианты</h4>
+                                <h4>@lang('main.available')</h4>
                                 <div class="row" style="margin-top: 30px">
                                     <div class="col-md-3">
                                         <div class="room">
@@ -106,7 +106,7 @@
                                                 <img src="{{ route('index') }}/img/noimage.png" alt=""
                                                      width="100px">
                                             @endif
-                                            <h5>{{ $room->title }}</h5>
+                                            <h5>{{ $room->__('title') }}</h5>
                                             <div class="amenities">
                                                 <div class="amenities-item">
                                                     <img src="{{ route('index') }}/img/icons/area.svg" alt="">
@@ -153,29 +153,27 @@
                                                             <h5>{{ $room->fullPlacementsName }}</h5>
                                                         @endisset
                                                         <div class="dates">
-                                                            Время заезда: {{ $arrival }} UTC {{ $hotel_utc }}
+                                                            @lang('main.check-in'): {{ $arrival }} UTC {{ $hotel_utc }}
                                                         </div>
                                                         <div class="dates">
-                                                            Время выезда: {{ $departure }} UTC {{ $hotel_utc }}
+                                                            @lang('main.check-out'): {{ $departure }} UTC {{ $hotel_utc }}
                                                         </div>
                                                         <br>
                                                         <div class="item meal">
                                                             <div class="name">{{ $room->mealPlanCode }}</div>
                                                         </div>
                                                         <div class="item cancel">
-                                                            <div class="name">Правила отмены:
+                                                            <div class="name">@lang('main.cancellation_rule'):
                                                                 @if($room->cancellationPolicy->freeCancellationPossible == true)
-                                                                    Бесплатная отмена действует до {{ $cancelDate }}
-                                                                    ({{ $offset }}). Размер
-                                                                    штрафа: {{ $room->cancellationPolicy->penaltyAmount }} {{ $room->currencyCode }}
+                                                                    @lang('main.free_cancellation') {{ $cancelDate }}
+                                                                    ({{ $offset }}). @lang('main.cancellation_amount'): {{ $room->cancellationPolicy->penaltyAmount }} {{ $room->currencyCode }}
                                                                 @else
-                                                                    Размер
-                                                                    штрафа: {{ $room->cancellationPolicy->penaltyAmount }} {{ $room->currencyCode }}
+                                                                    @lang('main.cancellation_amount'): {{ $room->cancellationPolicy->penaltyAmount }} {{ $room->currencyCode }}
                                                                 @endif
                                                             </div>
                                                         </div>
                                                         <div class="item price">{{ $room->total->priceBeforeTax }} {{ $room->currencyCode }}</div>
-                                                        <div class="nds">Все налоги включены</div>
+{{--                                                        <div class="nds">Все налоги включены</div>--}}
                                                         <div class="btn-wrap">
                                                             <form action="{{ route('order_exely', $room->roomType->id) }}">
                                                                 <input type="hidden" name="propertyId"
@@ -241,7 +239,7 @@
                                                                        value="{{ $room->total->priceBeforeTax }}">
                                                                 <input type="hidden" name="currency"
                                                                        value="{{ $room->currencyCode }}">
-                                                                <button class="more">Забронировать</button>
+                                                                <button class="more">@lang('main.book')</button>
                                                             </form>
                                                         </div>
                                                     </div>
