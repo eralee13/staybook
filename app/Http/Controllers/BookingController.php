@@ -437,8 +437,6 @@ class BookingController extends Controller
             // Проверка на успешность
             if ($response->successful()) {
                 $res = $response->object();
-
-
                 if (!isset($res->errors)) {
                     if (request()->filled('childAges')) {
                         Book::create([
@@ -463,7 +461,7 @@ class BookingController extends Controller
                             'user_id' => Auth::id() ?? 1,
                         ]);
                     } else {
-                        Book::create([
+                        $book = Book::create([
                             'hotel_id' => $request->get('propertyId'),
                             'room_id' => $request->get('roomTypeId'),
                             'arrivalDate' => $request->get('arrivalDate'),
@@ -483,6 +481,7 @@ class BookingController extends Controller
                             'book_token' => $res->booking->number,
                             'user_id' => Auth::id() ?? 1,
                         ]);
+                        Log::warning('Бронь создана: ' . $book->id);
                     }
                 }
                 return view('pages.booking.exely.order-reserve', compact('res'));
@@ -534,6 +533,7 @@ class BookingController extends Controller
                 $book->where('book_token', $request->number)->update([
                     'status' => "Cancelled"
                 ]);
+                Log::warning('Отмена брони: ' . $book->id);
 
                 return view('pages.booking.exely.cancel-confirm', compact('cancel'));
             }

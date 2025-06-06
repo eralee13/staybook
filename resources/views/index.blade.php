@@ -48,7 +48,7 @@
                                     {{-- Общая сводка (клик открывает окно) --}}
                                     <a href="javascript:void(0)"
                                        id="rooms-summary">
-                                        @lang('main.room'): 1, @lang('main.adult'): 1, @lang('main.child'): 0
+                                        {{__('main.room')}}: 1, {{__('main.adult')}}: 1, {{__('main.child')}}: 0
                                     </a>
 
                                     {{-- Полупрозрачный оверлей --}}
@@ -226,8 +226,8 @@
                                             function updateRoomSummary(room) {
                                                 const aCount = +room.querySelector('.count-adult').textContent;
                                                 const cCount = +room.querySelector('.count-child').textContent;
-                                                const parts = [`${aCount} ${aCount === 1 ? 'взрослый' : 'взрослых'}`];
-                                                if (cCount) parts.push(`${cCount} ${cCount === 1 ? 'ребёнок' : 'детей'}`);
+                                                const parts = [`${aCount} ${aCount === 1 ? '{{__('main.adult')}}' : '{{__('main.adult')}}'}`];
+                                                if (cCount) parts.push(`${cCount} ${cCount === 1 ? '{{__('main.child')}}' : '{{__('main.child')}}'}`);
                                                 room.querySelector('.summary-text').textContent = parts.join(', ');
                                                 room.querySelector('.input-adults').value = aCount;
                                                 updateGlobalSummary();
@@ -310,7 +310,7 @@
                                                         const wrap = room.querySelector('.children-ages');
                                                         const div = document.createElement('div');
                                                         div.className = 'flex items-center';
-                                                        div.innerHTML = `<span class="mr-2 text-sm">Возраст</span>`;
+                                                        div.innerHTML = `<span class="mr-2 text-sm">@lang('main.age')</span>`;
                                                         const sel = document.createElement('select');
                                                         sel.className = 'border border-gray-300 rounded-md px-2 py-1 text-sm';
                                                         for (let a = 0; a <= 18; a++) sel.insertAdjacentHTML('beforeend', `<option value="${a}">${a}</option>`);

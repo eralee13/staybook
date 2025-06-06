@@ -84,4 +84,12 @@ return [
     'legal' => 'Legal Information',
     'check-in' => 'Check-in',
     'check-out' => 'Check-out',
+    'complete' => 'Unable to complete booking',
+    'please_try_again' => 'Please try again',
+    'error' => 'Error',
+    'invalid_request' => 'An invalid request was sent to the server',
+    'request_resulted' => 'The request resulted in an error',
+    'failed_api' => 'Failed to contact the API server',
+    'age' => 'Age',
+
 ];

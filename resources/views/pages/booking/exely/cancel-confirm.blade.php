@@ -23,28 +23,26 @@
                             $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
                         @endphp
                         <ul>
-                            <li>Номер брони: {{ $cancel->booking->number }}</li>
+                            <li>@lang('main.booking_number'): {{ $cancel->booking->number }}</li>
                             {{--                            <li>Дата отмены: {{ $cancel_date }}</li>--}}
                             <li>
                                 @if($cancel->booking->cancellationPolicy->freeCancellationPossible == true)
-                                    <td>Бесплатная отмена действует до
+                                    <td>@lang('main.free_cancellation')
                                         ({{ $cancel->booking->cancellationPolicy->freeCancellationDeadlineLocal }}).
-                                        Размер
-                                        штрафа: {{ $cancel->booking->cancellationPolicy->penaltyAmount }} {{ $cancel->booking->currencyCode }}</td>
+                                        @lang('main.cancellation_amount'): {{ $cancel->booking->cancellationPolicy->penaltyAmount }} {{ $cancel->booking->currencyCode }}</td>
                                 @else
-                                    <td>Возможность бесплатной отмены отсутствует. Размер штрафа
-                                        составляет: {{ $cancel->booking->cancellationPolicy->penaltyAmount }} {{ $cancel->booking->currencyCode }}</td>
+                                    <td>@lang('main.free_cancellation'). @lang('main.cancellation_amount'): {{ $cancel->booking->cancellationPolicy->penaltyAmount }} {{ $cancel->booking->currencyCode }}</td>
                             @endif
-                            <li>Отель: {{ $cancel->booking->propertyId }}</li>
+                            <li>@lang('main.hotel'): {{ $cancel->booking->propertyId }}</li>
                             @foreach($cancel->booking->roomStays as $room)
                                 @php
                                     $arrival = \Carbon\Carbon::createFromDate($room->stayDates->arrivalDateTime)->format('d.m.Y H:i');
                                     $departure = \Carbon\Carbon::createFromDate($room->stayDates->departureDateTime)->format('d.m.Y H:i');
                                 @endphp
-                                <li>Дата заеда/выезда: {{ $arrival }} - {{ $departure }} (UTC {{ $hotel_utc }})</li>
-                                <li>Тариф: {{ $room->ratePlan->name }}</li>
-                                <li>Тип комнаты: {{ $room->roomType->name }}</li>
-                                <li>Кол-во гостей: {{ $room->guestCount->adultCount }}</li>
+                                <li>@lang('main.check-in/check-out'): {{ $arrival }} - {{ $departure }} (UTC {{ $hotel_utc }})</li>
+                                <li>@lang('main.room'): {{ $room->roomType->name }}</li>
+                                <li>@lang('main.rate'): {{ $room->ratePlan->name }}</li>
+                                <li>@lang('main.guest'): {{ $room->guestCount->adultCount }}</li>
                             @endforeach
                         </ul>
                     @endif

@@ -8,11 +8,11 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-12">
-                    <h1>Ошибка {{ $response->status() }}</h1>
-                    <h4>Отправлен неверный запрос к серверу</h4>
-                    <h4>Запрос завершился ошибкой: {{ $response->status() }}</h4>
+                    <h1>@lang('main.error') {{ $response->status() }}</h1>
+                    <h4>@lang('main.invalid_request')</h4>
+                    <h4>@lang('main.request_resulted'): {{ $response->status() }}</h4>
                     <div class="btn-wrap">
-                        <a href="{{ route('index') }}">Попробуйте снова</a>
+                        <a href="{{ route('index') }}">@lang('main.please_try_again')</a>
                     </div>
                 </div>
             </div>

@@ -8,10 +8,9 @@
     <div class="container">
         <div class="col-md-12">
             <div class="text-wrap">
-                <h1>{{ __('main.error_title') }}</h1>
-                <h4>@lang('main.error_not')</h4>
+                <h1>@lang('main.error') 404</h1>
                 <div class="btn-wrap">
-                    <a href="{{ route('index') }}">@lang('main.error_back')</a>
+                    <a href="{{ route('index') }}">@lang('main.please_try_again')</a>
                 </div>
             </div>
         </div>
