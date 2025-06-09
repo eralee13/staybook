@@ -23,22 +23,27 @@
                                 <li>Номер брони: {{ $res->booking->number }}</li>
                                 <li>ID отеля: {{ $res->booking->propertyId }}</li>
                                 @php
-                                    $hotel = \App\Models\Hotel::where('exely_id', $res->booking->propertyId)->first();
+                                    $hotel = \App\Models\Hotel::where('exely_id', $res->booking->propertyId)->get()->first();
                                     $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
                                     $cancel_time = \Carbon\Carbon::createFromDate($res->booking->cancellationPolicy->freeCancellationDeadlineLocal)->format('d.m.Y H:i');
                                     $cancel_utc = \Carbon\Carbon::createFromDate($res->booking->cancellationPolicy->freeCancellationDeadlineLocal)->format('P');
                                     $arrival = \Carbon\Carbon::createFromDate($res->booking->roomStays[0]->stayDates->arrivalDateTime)->format('d.m.Y H:i');
                                     $departure = \Carbon\Carbon::createFromDate($res->booking->roomStays[0]->stayDates->departureDateTime)->format('d.m.Y H:i');
+                                    $utc   = \Carbon\Carbon::parse($res->booking->cancellationPolicy->freeCancellationDeadlineUtc);
+                                    $local = \Carbon\Carbon::parse($res->booking->cancellationPolicy->freeCancellationDeadlineLocal . 'Z');
+                                    $hours = $utc->diffInHours($local, false);
+                                    $offset = sprintf('UTC%+03d:00', $hours);
                                 @endphp
 
                                 <li>Даты: {{ $arrival }} - {{ $departure }} (UTC {{ $hotel_utc }})
                                 </li>
                                 <li>
                                     @if($res->booking->cancellationPolicy->freeCancellationPossible == true)
-                                        Бесплатная отмена действует до: {{ $cancel_time }} (UTC {{ $cancel_utc }}) Размер
+                                        Бесплатная отмена действует до: {{ $cancel_time }} ({{ $offset }}) Размер
                                         штрафа: {{ $res->booking->cancellationPolicy->penaltyAmount }} {{ $res->booking->currencyCode }}</li>
                                 @else
-                                    Возможность бесплатной отмены отсутствует. Размер штрафа: {{ $res->booking->cancellationPolicy->penaltyAmount }} {{ $res->booking->currencyCode }}
+                                    Возможность бесплатной отмены отсутствует. Размер
+                                    штрафа: {{ $res->booking->cancellationPolicy->penaltyAmount }} {{ $res->booking->currencyCode }}
                                 @endif
                                 <li>
                                     Заказчик: {{ $res->booking->customer->firstName }} {{ $res->booking->customer->lastName }}
@@ -51,7 +56,7 @@
                                 </li>
                             </ul>
                             <div class="bnt-wrap">
-                                <form action="{{ route('res_calculate') }}">
+                                <form action="{{ route('cancel_calculate_exely') }}">
                                     <input type="hidden" name="number" value="{{ $res->booking->number }}">
                                     <input type="hidden" name="currency" value="{{ $res->booking->currencyCode }}">
                                     @if($res->booking->cancellation == null)

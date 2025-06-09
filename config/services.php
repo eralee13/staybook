@@ -31,4 +31,9 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'exely' => [
+        'key'      => env('EXELY_API_KEY'),
+        'base_url' => env('EXELY_BASE_URL'),
+    ],
+
 ];

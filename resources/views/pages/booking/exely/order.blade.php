@@ -9,37 +9,33 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-12">
-                    <h3><a href="search.html"><img src="{{ route('index') }}/img/icons/arrow-left.svg" alt=""></a> Подтвердите и оплатите
+                    <h3><a href="search.html"><img src="{{ route('index') }}/img/icons/arrow-left.svg" alt=""></a>
+                        Подтвердите и оплатите
                     </h3>
                 </div>
             </div>
             <div class="row">
                 <div class="col-lg-8 col-md-12 order-xl-1 order-lg-1 order-2">
                     <h5>Ваша поездка</h5>
-                    <form action="{{ route('res_bookings_verify') }}">
+                    <form action="{{ route('book_verify_exely') }}">
                         <input type="hidden" name="propertyId" value="{{ $request->propertyId }}">
                         <input type="hidden" name="arrivalDate" value="{{ $request->arrivalDate }}">
                         <input type="hidden" name="departureDate" value="{{ $request->departureDate }}">
                         <input type="hidden" name="ratePlanId" value="{{ $request->ratePlanId }}">
                         <input type="hidden" name="roomTypeId" value="{{ $request->roomTypeId }}">
-                        {{-- <input type="hidden" name="roomType" value="{{ $request->roomType }}">--}}
-                        {{-- <input type="hidden" name="roomCount" value="{{ $request->roomCount }}">--}}
-                        {{-- <input type="hidden" name="roomCode" value="{{ $request->roomCode }}">--}}
-                        {{-- <input type="hidden" name="placementCode" value="{{ $request->placementCode }}">--}}
                         <input type="hidden" name="adultCount" value="{{ $request->adultCount }}">
                         <input type="hidden" name="placements" value="{{ $request->placements }}">
-                        <input type="hidden" name="childAges[]" value="{{ implode(',', $childs) }}">
+                        @if (request()->filled('childAges'))
+                            <input type="hidden" name="childAges[]" value="{{ implode(',', $childs) }}">
+                        @endif
                         <input type="hidden" name="checkSum" value="{{ $request->checkSum }}">
                         <input type="hidden" name="servicesId" value="{{ $request->servicesId }}">
-                        <input type="hidden" name="freeCancellation" value="{{ $request->freeCancellation }}">
-                        <input type="hidden" name="freeCancellationLocal" value="{{ $request->freeCancellationLocal }}">
-                        <input type="hidden" name="penaltyAmount" value="{{ $request->penaltyAmount }}">
-
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <div class="label">ФИО</div>
-                                    <input type="text" name="name" placeholder="Асанов А.А." value="{{ Auth::user()->name }}" required>
+                                    <input type="text" name="name" placeholder="Асанов А.А."
+                                           value="{{ Auth::user()->name }}" required>
                                 </div>
                             </div>
                             <div class="col-md-3">
@@ -51,14 +47,19 @@
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <label for="">Кол-во детей</label>
-                                    <input type="text" value="{{ count($childs) }}" readonly>
+                                    @if (request()->filled('childAges'))
+                                        <input type="text" value="{{ count($childs) }}" readonly>
+                                    @else
+                                        <input type="text" value="0" readonly>
+                                    @endif
                                 </div>
                             </div>
 
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="">Номер телефона</label>
-                                    <input type="text" name="phone" id="phone" value="{{ Auth::user()->phone }}" required>
+                                    <input type="text" name="phone" id="phone" value="{{ Auth::user()->phone }}"
+                                           required>
                                     <div id="output"></div>
                                 </div>
                             </div>
@@ -81,12 +82,13 @@
                             <div class="col-md-12">
                                 <h5>Варианты оплаты</h5>
                                 <div class="method-item current">
-                                    <div class="name">Оплатить сейчас {{ $request->price }} {{ $request->currency }}</div>
+                                    <div class="name">Оплатить
+                                        сейчас {{ $request->price }} {{ $request->currency ?? '$' }}</div>
                                 </div>
-{{--                                <div class="method-item">--}}
-{{--                                    <div class="name">Оплатите часть сейчас, а остаток внесите позже--}}
-{{--                                        36,000 сом к оплате сегодня, 36,000 сом — 01 мар. 2025 г.</div>--}}
-{{--                                </div>--}}
+                                {{--                                <div class="method-item">--}}
+                                {{--                                    <div class="name">Оплатите часть сейчас, а остаток внесите позже--}}
+                                {{--                                        36,000 сом к оплате сегодня, 36,000 сом — 01 мар. 2025 г.</div>--}}
+                                {{--                                </div>--}}
                             </div>
                         </div>
                         <div class="row">
@@ -127,31 +129,28 @@
                         <div class="descr">Нажимая кнопку ниже, я принимаю условия (Правила дома, установленные
                             хозяином, Основные правила для гостей, Правила StayBook в отношении повторного бронирования
                             и возврата средств, Условия частичной предоплаты) и соглашаюсь, что StayBook может списать
-                            средства с моего способа оплаты, если ответственность за ущерб лежит на мне.</div>
+                            средства с моего способа оплаты, если ответственность за ущерб лежит на мне.
+                        </div>
                         <div class="btn-wrap">
                             <button class="more" id="saveBtn">Подтвердить и оплатить</button>
                         </div>
                     </form>
                 </div>
                 <div class="col-lg-4 col-md-12 order-xl-2 order-lg-2 order-1">
-                    @php
-                        $hotel = Hotel::where('exely_id', $request->propertyId)->first();
-                        $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
-                        $cancel_utc = \Carbon\Carbon::createFromDate($request->cancelUtc)->format('P');
-                    @endphp
                     <div class="sidebar">
                         <div class="row">
                             <div class="col-md-4">
                                 <img src="{{ Storage::url($hotel->image) }}" alt="">
                             </div>
                             <div class="col-md-8">
-                                <h4>{{ $request->hotel }}</h4>
-                                <h5>{{ $request->categoryName }}</h5>
                                 <div class="descr">Отель: {{ $hotel->title }}</div>
-                                <div class="date">Время заезда/выезда: {{ $arrival }} - {{ $departure }} (UTC {{ $hotel_utc }})</div>
+                                <div class="descr">{{ $request->categoryName }}</div>
+                                <div class="date">Время заезда/выезда: {{ $arrival }} {{ $hotel->checkin }}
+                                    - {{ $departure }} {{ $hotel->checkout }} (UTC {{ $hotel_utc }})
+                                </div>
                                 <div class="cancel">Правила отмены:
                                     @if($request->cancelPossible == true)
-                                     Бесплатная отмена действует до {{ $request->cancelDate }} (UTC {{ $cancel_utc }}). Размер штрафа: {{ $request->cancelPrice }} {{ $request->currency }}
+                                        Бесплатная отмена действует до {{ $request->cancelDate }} ({{ $offset }}). Размер штрафа: {{ $request->cancelPrice }} {{ $request->currency }}
                                     @else
                                         Возможность бесплатной отмены отсутствует. Размер
                                         штрафа: {{ $request->cancelPrice }} {{ $request->currency }}
@@ -159,18 +158,7 @@
                                 </div>
                             </div>
                         </div>
-{{--                        <div class="line"></div>--}}
-{{--                        <h5>Детализация цены</h5>--}}
-{{--                        <div class="row">--}}
-{{--                            <div class="col-md-8">--}}
-{{--                                <div class="price-item">--}}
-{{--                                    <div class="name">36,000 {{ $request->currency }} * 2 ночи</div>--}}
-{{--                                </div>--}}
-{{--                            </div>--}}
-{{--                            <div class="col-md-4">--}}
-{{--                                <div class="price">{{ $request->price }} {{ $request->currency }}</div>--}}
-{{--                            </div>--}}
-{{--                        </div>--}}
+
                         <div class="line"></div>
                         <div class="row mt">
                             <div class="col-md-8">
@@ -187,7 +175,7 @@
     </div>
 
     <style>
-        #phone{
+        #phone {
             padding-left: 50px;
         }
     </style>

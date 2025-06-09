@@ -35,4 +35,14 @@ class MainController extends Controller
         return redirect()->route('contactspage');
     }
 
+    public function book_mail(Request $request)
+    {
+        $params = $request->all();
+        Book::create($params);
+        //Mail::to('info@silkwaytravel.kg')->cc($request->email)->bcc($hotel->email)->send(new BookMail($request));
+        //Mail::to('info@timdjol.com')->cc($request->email)->send(new BookMail($request));
+        session()->flash('success', 'Booking ' . $request->title . ' is created');
+        return redirect()->route('index');
+    }
+
 }

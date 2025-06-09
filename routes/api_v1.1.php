@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('')->group(function(){
     //Route::post('/register', [\App\Http\Controllers\API\V1\AuthController::class, 'register'])->name('register');
-    Route::post('/login', [\App\Http\Controllers\API\V1\AuthController::class, 'login'])->name('login');
+    Route::post('/auth', [\App\Http\Controllers\API\V1\AuthController::class, 'login'])->name('login');
 });
 
 Route::prefix('')->middleware(['throttle:api', 'auth:sanctum'])->group(function () {

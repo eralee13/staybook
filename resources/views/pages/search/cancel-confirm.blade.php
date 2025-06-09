@@ -10,9 +10,9 @@
                 <div class="col-lg-12 col-md-12">
 
                         @if($book->api_type == 'tourmind')
-                            @include('pages.tourmind.cancel')
+                            @include('pages.search.tourmind.cancel')
                         @else
-                            @include('pages.exely.cancel')
+                            @include('pages.search.exely.cancel')
                         @endif
                 </div>
             </div>

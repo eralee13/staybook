@@ -33,6 +33,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('locale/{locale}', 'App\Http\Controllers\MainController@changeLocale')->name('locale');
 Route::get('/logout', 'App\Http\Controllers\ProfileController@logout')->name('get-logout');
 
+Scramble::registerJsonSpecificationRoute(path: 'docs/v1.0.json', api: 'v1.0');
+Scramble::registerJsonSpecificationRoute(path: 'docs/v1.1.json', api: 'v1.1');
+
 Route::middleware('set_locale')->group(function () {
     Route::group(["prefix" => "auth"], function () {
         Route::resource("hotels", "App\Http\Controllers\Admin\HotelController");
@@ -77,54 +80,45 @@ Route::middleware('set_locale')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     require __DIR__ . '/auth.php';
 
-    Scramble::registerJsonSpecificationRoute(path: 'docs/v1.0.json', api: 'v1.0');
-    Scramble::registerJsonSpecificationRoute(path: 'docs/v1.1.json', api: 'v1.1');
-
     Route::get('/', [PageController::class, 'index'])->name('index');
-    Route::get('/search', [PageController::class, 'search'])->name('search');
-    Route::get('/hotel/{hotel}', [PageController::class, 'hotel'])->name('hotel');
-    Route::get('/book/verify', [PageController::class, 'book_verify'])->name('book_verify');
-    Route::get('/book/reserve', [PageController::class, 'book_reserve'])->name('book_reserve');
-    Route::get('/book/cancel/calculate', [PageController::class, 'cancel_calculate'])->name('cancel_calculate');
-    Route::get('/book/cancel/confirm', [PageController::class, 'cancel_confirm'])->name('cancel_confirm');
+
+    //search
+    //local
+    Route::get('/search', [\App\Http\Controllers\SearchController::class, 'search'])->name('search');
+    Route::get('/hotel/{hotel}', [\App\Http\Controllers\SearchController::class, 'hotel'])->name('hotel');
+    //exely
+    Route::get('/hotelex', [\App\Http\Controllers\SearchController::class, 'hotel_exely'])->name('hotel_exely');
+
+    //booking
+    //local
+    Route::get('/book/order', [\App\Http\Controllers\BookingController::class, 'order'])->name('order');
+    Route::get('/book/verify', [\App\Http\Controllers\BookingController::class, 'book_verify'])->name('book_verify');
+    Route::get('/book/reserve', [\App\Http\Controllers\BookingController::class, 'book_reserve'])->name('book_reserve');
+    Route::get('/book/cancel/calculate', [\App\Http\Controllers\BookingController::class, 'cancel_calculate'])->name('cancel_calculate');
+    Route::get('/book/cancel/confirm', [\App\Http\Controllers\BookingController::class, 'cancel_confirm'])->name('cancel_confirm');
+
+    //exely
+    Route::get('/book/order/ex', [\App\Http\Controllers\BookingController::class, 'order_exely'])->name('order_exely');
+    Route::get('/book/verify/ex', [\App\Http\Controllers\BookingController::class, 'book_verify_exely'])->name('book_verify_exely');
+    Route::get('/book/reserve/ex', [\App\Http\Controllers\BookingController::class, 'book_reserve_exely'])->name('book_reserve_exely');
+    Route::get('/book/cancel/calculate/ex', [\App\Http\Controllers\BookingController::class, 'cancel_calculate_exely'])->name('cancel_calculate_exely');
+    Route::get('/book/cancel/confirm/ex', [\App\Http\Controllers\BookingController::class, 'cancel_confirm_exely'])->name('cancel_confirm_exely');
 
     Route::get('/about', [PageController::class, 'about'])->name('about');
     Route::get('/contactspage', [PageController::class, 'contactspage'])->name('contactspage');
 
-    //Exely API
-    Route::get('/v1/properties', [ContentController::class, 'properties'])->name('properties');
-    //Route::gmpet('/v1/properties/{property}', [ContentController::class, 'property'])->name('property');
-    //Route::get('/v1/meals', [ContentController::class, 'meals'])->name('meals');
-    //Route::get('/v1/roomtypes', [ContentController::class, 'roomtypes'])->name('roomtypes');
-    //Route::get('/v1/amenities', [ContentController::class, 'amenities'])->name('amenities');
-    //Route::get('/v1/extrarules', [ContentController::class, 'extrarules'])->name('extrarules');
 
-    //Search API
-    Route::get('/v1/search_property', [SearchController::class, 'search_property'])->name('search_property');
-    Route::get('/v1/search_roomstays', [SearchController::class, 'search_roomstays'])->name('search_roomstays');
-    //Route::get('/v1/search_services', [SearchController::class, 'search_services'])->name('search_services');
-    //Route::get('/v1/search_extrastays', [SearchController::class, 'search_extrastays'])->name('search_extrastays');
-
-    //Reservation API
-    Route::get('/orderexely/{order}', [ReservationController::class, 'orderexely'])->name('orderexely');
-    Route::get('/v1/bookings/verify', [ReservationController::class, 'res_verify_bookings'])->name('res_bookings_verify');
-    Route::get('/v1/bookings', [ReservationController::class, 'res_bookings'])->name('res_bookings');
-    //Route::get('/v1/booking', [ReservationController::class, 'res_booking'])->name('res_booking');
-    //Route::get('/v1/booking/modify', [ReservationController::class, 'res_modify'])->name('res_modify');
-    //Route::get('/v1/booking/verify', [ReservationController::class, 'res_verify'])->name('res_verify');
-    Route::get('/v1/booking/calculate', [ReservationController::class, 'res_calculate'])->name('res_calculate');
-    Route::get('/v1/booking/cancel', [ReservationController::class, 'res_cancel'])->name('res_cancel');
 
     //TourMind
     Route::get('/hotel-results', HotelResults::class)->name('hotel.results');
     Route::get('/hotel-rooms', HotelRooms::class)->name('hotel.rooms');
     Route::get('/bookingform', BookingForm::class)->name('bookingform');
     Route::get('/allhotels', [PageController::class, 'hotels'])->name('hotels');
-    Route::get('/order/{order}', [PageController::class, 'order'])->name('order');
+    //Route::get('/order/{order}', [PageController::class, 'order'])->name('order');
     Route::get('/testsearch', [PageController::class, 'testsearch'])->name('testsearch');
 
     //email
     Route::post('contact_mail', [MainController::class, 'contact_mail'])->name('contact_mail');
-    Route::post('book_mail', [PageController::class, 'book_mail'])->name('book_mail');
+    Route::post('book_mail', [MainController::class, 'book_mail'])->name('book_mail');
 });
 
