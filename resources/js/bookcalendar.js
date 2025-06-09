@@ -43,12 +43,11 @@ document.addEventListener('DOMContentLoaded', function () {
             const event = info.event;
         
             if (event.backgroundColor == '#39bb43') {
-                
                 let selectedDate = dayjs(event.startStr).format('DD.MM.YYYY');
-        
+
                 $('#modalRateId').val(event.extendedProps.rate_id);
                 $('#modalRoomId').val(event.extendedProps.room_id);
-                
+
                 $('#createBookingModal').modal('show');
 
                     // Инициализация daterangepicker
@@ -172,7 +171,7 @@ document.addEventListener('DOMContentLoaded', function () {
             calendar.gotoDate(selectedDate);
         }
 
-        fetch(`/bookcalendar/events?hotel_id=${selectedHotel}&start=${selectedStart}&end=${selectedEnd}`)
+        fetch(`http://127.0.0.1:8000/auth/bookcalendar/events?hotel_id=${selectedHotel}&start=${selectedStart}&end=${selectedEnd}`)
             .then(res => res.json())
             .then(data => {
                 // console.log(data);
@@ -195,7 +194,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const roomId = $('#modalRoomId').val();
         const hotelId = $('#hotel_id').val();
 
-        fetch('/bookcalendar/create', {
+        fetch('http://127.0.0.1:8000/auth/bookcalendar/create', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

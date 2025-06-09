@@ -40,6 +40,14 @@ Route::middleware('set_locale')->group(function () {
         //Route::resource("payments", "App\Http\Controllers\Admin\PaymentController");
         //Route::resource("listbooks", "App\Http\Controllers\Admin\ListbookController");
         Route::resource("bookings", "App\Http\Controllers\Admin\BookingController");
+        Route::prefix('bookcalendar')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\BookingCalendar::class, 'index'])->name('bookcalendar.index');
+            Route::get('/events', [\App\Http\Controllers\Admin\BookingCalendar::class, 'getEvents'])->name('bookcalendar.events');
+            Route::post('/create', [\App\Http\Controllers\Admin\BookingCalendar::class, 'store'])->name('bookcalendar.store');
+            Route::put('/{id}', [\App\Http\Controllers\Admin\BookingCalendar::class, 'update'])->name('bookcalendar.update');
+            Route::delete('/{id}', [\App\Http\Controllers\Admin\BookingCalendar::class, 'destroy'])->name('bookcalendar.delete');
+        });
+
         Route::resource("prices", "App\Http\Controllers\Admin\PriceController");
         Route::resource("rooms", "App\Http\Controllers\Admin\RoomController");
         Route::resource("rates", "App\Http\Controllers\Admin\RateController");

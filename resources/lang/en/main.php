@@ -91,5 +91,18 @@ return [
     'request_resulted' => 'The request resulted in an error',
     'failed_api' => 'Failed to contact the API server',
     'age' => 'Age',
+    'auth_continue' => 'To continue, please log in',
+    'or' => 'or',
+    'signup' => 'sign up',
+    'welcome' => 'Welcome to StayBook',
+    'password' => 'Password',
+    'show_password' => 'Show password',
+    'agree_with' => 'By clicking the button below, you agree to',
+    'privacy_policy' => 'the privacy policy',
+    'processing_data' => 'and to the processing of data',
+    'login_system' => 'Log in to the system',
+    '' => '',
+    '' => '',
+    '' => '',
 
 ];

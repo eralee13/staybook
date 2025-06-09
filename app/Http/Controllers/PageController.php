@@ -24,9 +24,13 @@ class PageController extends Controller
         $tomorrow = Carbon::tomorrow()->format('Y-m-d');
         $now = Carbon::now();
         if ($now->hour > 3 && $now->hour < 4) {
-
+            set_time_limit(300);
             //exely static data
-            $response = Http::withHeaders(['x-api-key' => config('services.exely.key'), 'accept' => 'application/json'])->get(config('services.exely.base_url') . 'content/v1/properties');
+            $response = Http::timeout(300)
+                ->connectTimeout(5)
+                ->retry(5)
+                ->withHeaders(['x-api-key' => config('services.exely.key'), 'accept' => 'application/json'])
+                ->get(config('services.exely.base_url') . 'content/v1/properties');
             $properties = $response->object();
             if ($properties->properties != null) {
                 foreach ($properties->properties as $hotel) {

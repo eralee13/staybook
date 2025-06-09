@@ -2,15 +2,14 @@
     <div class="container">
         <div class="row">
             <div class="col-md-6">
-                <h2>Чтобы продолжить,
-                    пожалуйста, авторизуйтесь!</h2>
+                <h2>@lang('main.auth_continue')!</h2>
                 <img src="img/logo_auth.svg" alt="">
             </div>
             <div class="col-md-6">
                 <div class="login-wrap">
-                    <h4>Войдите или <a href="{{ route('register') }}">зарегистрируйтесь</a></h4>
+                    <h4>@lang('main.login') @lang('main.or') <a href="{{ route('register') }}">@lang('main.signup')</a></h4>
                     <div class="line"></div>
-                    <h5>Добро пожаловать в StayBook</h5>
+                    <h5>@lang('main.welcome')</h5>
                     <form action="{{ route('login') }}" method="post">
                         <div class="form-group">
                             @error ('email')
@@ -22,9 +21,9 @@
                         </div>
                         <div class="form-group">
                             @error ('password')
-                            <div class="alert alert-danger">password</div>
+                            <div class="alert alert-danger">@lang('main.password')</div>
                             @enderror
-                            <div class="label">Пароль</div>
+                            <div class="label">@lang('main.password')</div>
                             <input type="password" name="password" id="password" autocomplete="current-password"
                                    value="{{ old('password', isset($user) ? $user->password : null) }}">
                             <div class="checkbox">
@@ -52,12 +51,11 @@
                             </style>
                         </div>
                         <div class="line"></div>
-                        <div class="descr">Нажимая кнопку ниже, вы соглашаетесь с <a href="#">политикой
-                                конфиденциальности</a> и с обработкой данных
+                        <div class="descr">@lang('main.agree_with') <a href="#">@lang('main.privacy_policy')</a> @lang('main.processing_data')
                         </div>
                         @csrf
                         <div class="btn-wrap">
-                            <button class="more">Войти в систему</button>
+                            <button class="more">@lang('main.login_system')</button>
                         </div>
                     </form>
                 </div>
