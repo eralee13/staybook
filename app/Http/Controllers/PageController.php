@@ -8,6 +8,7 @@ use App\Models\Page;
 use App\Models\Rate;
 use App\Models\Room;
 use App\Models\Hotel;
+use App\Services\FXService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -20,7 +21,8 @@ class PageController extends Controller
     {
         $hotels = Hotel::where('tourmind_id', null)->get();
         //$hotels = Hotel::cacheFor(now()->addHours(2))->where('tourmind_id', null)->get();
-        $cities = City::cacheFor(now()->addHours(2))->where('country_id', null)->orderBy('title', 'asc')->get();
+        $cities = City::where('country_code', null)->orderBy('title', 'asc')->get();
+        //$cities = City::cacheFor(now()->addHours(2))->where('country_id', null)->orderBy('title', 'asc')->get();
         $tomorrow = Carbon::tomorrow()->format('Y-m-d');
         $now = Carbon::now();
         if ($now->hour > 3 && $now->hour < 4) {
@@ -47,7 +49,7 @@ class PageController extends Controller
                                 'description' => $property->description,
                                 'description_en' => $property->description,
                                 //'image' => $filename,
-                                'rating' => $property->stars,
+                                'rating' => $property->stars ?? null,
                                 'city' => $property->contactInfo->address->cityName,
                                 'address' => $property->contactInfo->address->addressLine,
                                 'address_en' => $property->contactInfo->address->addressLine,
@@ -66,21 +68,24 @@ class PageController extends Controller
                         );
                     } else {
                         // hotel image
-                        $url = $property->images[0]->url ?? '';
-                        $imageContents = file_get_contents($url);
-                        if (!$imageContents) {
-                            return response()->json(['error' => 'Не удалось загрузить изображение'], 400);
+                        if(!empty($property->images)){
+                            $url = $property->images[0]->url;
+                            $imageContents = file_get_contents($url) ?? '';
+                            if (!$imageContents) {
+                                return response()->json(['error' => 'Не удалось загрузить изображение'], 400);
+                            }
+                            $filename = 'hotels/' . Str::uuid() . '.jpg';
+                            Storage::disk('public')->put($filename, $imageContents);
                         }
-                        $filename = 'hotels/' . Str::uuid() . '.jpg';
-                        Storage::disk('public')->put($filename, $imageContents);
+
                         Hotel::create([
                             'title' => $property->name,
                             'title_en' => $property->name,
                             'code' => Str::slug($property->name),
                             'description' => $property->description,
                             'description_en' => $property->description,
-                            'image' => $filename,
-                            'rating' => $property->stars,
+                            'image' => $filename ?? null,
+                            'rating' => $property->stars ?? null,
                             'city' => $property->contactInfo->address->cityName,
                             'address' => $property->contactInfo->address->addressLine,
                             'address_en' => $property->contactInfo->address->addressLine,
@@ -196,96 +201,96 @@ class PageController extends Controller
                     }
 
                     //rate
-//                    if ($property->ratePlans != null) {
-//                        foreach ($property->ratePlans as $rate) {
-//                            $exely_rate = Room::where('exely_id', $room->id)->first();
-//                            if ($exely_rate != null) {
-//                                $exely_rate->update([
-//                                    'title' => $rate->name,
-//                                    'title_en' => $rate->name,
-//                                    'hotel_id' => $property->id,
-//                                    'exely_id' => $rate->id,
-//                                    'room_id' => $room->id,
-//                                    'desc_en' => $rate->description,
-//                                    'currency' => $rate->currency,
-//                                    'price' => $rate->price ?? 1,
-//                                    'cancellation_rule_id' => $rate->cancellationRuleId,
-//                                    'bed_type' => $room->name,
-//                                    'children_allowed' => $rate->isStayWithChildrenOnly,
-//                                    'availability' => 1,
-//                                    'free_children_age' => 1,
-//                                    'child_extra_fee' => 10,
-//                                ]);
-//                            } else {
-//                                Rate::create([
-//                                    'title' => $rate->name,
-//                                    'title_en' => $rate->name,
-//                                    'hotel_id' => $property->id,
-//                                    'exely_id' => $rate->id,
-//                                    'room_id' => $room->id,
-//                                    'desc_en' => $rate->description,
-//                                    'currency' => $rate->currency,
-//                                    'price' => $rate->price ?? 1,
-//                                    'cancellation_rule_id' => $rate->cancellationRuleId,
-//                                    'bed_type' => $room->name,
-//                                    'children_allowed' => $rate->isStayWithChildrenOnly,
-//                                    'availability' => 1,
-//                                    'free_children_age' => 1,
-//                                    'child_extra_fee' => 10,
-//                                ]);
-//                            }
-//                        }
-//                    }
+                    if ($property->ratePlans != null) {
+                        foreach ($property->ratePlans as $rate) {
+                            $exely_rate = Room::where('exely_id', $room->id)->first();
+                            if ($exely_rate != null) {
+                                $exely_rate->update([
+                                    'title' => $rate->name,
+                                    'title_en' => $rate->name,
+                                    'hotel_id' => $property->id,
+                                    'exely_id' => $rate->id,
+                                    'room_id' => $room->id,
+                                    'desc_en' => $rate->description,
+                                    'currency' => $rate->currency,
+                                    'price' => $rate->price ?? 1,
+                                    'cancellation_rule_id' => $rate->cancellationRuleId,
+                                    'bed_type' => $room->name,
+                                    'children_allowed' => $rate->isStayWithChildrenOnly,
+                                    'availability' => 1,
+                                    'free_children_age' => 1,
+                                    'child_extra_fee' => 10,
+                                ]);
+                            } else {
+                                Rate::create([
+                                    'title' => $rate->name,
+                                    'title_en' => $rate->name,
+                                    'hotel_id' => $property->id,
+                                    'exely_id' => $rate->id,
+                                    'room_id' => $room->id,
+                                    'desc_en' => $rate->description,
+                                    'currency' => $rate->currency,
+                                    'price' => $rate->price ?? 1,
+                                    'cancellation_rule_id' => $rate->cancellationRuleId,
+                                    'bed_type' => $room->name,
+                                    'children_allowed' => $rate->isStayWithChildrenOnly,
+                                    'availability' => 1,
+                                    'free_children_age' => 1,
+                                    'child_extra_fee' => 10,
+                                ]);
+                            }
+                        }
+                    }
 
-//                    //amenity
-//                    if ($property->roomTypes != null) {
-//                        foreach ($property->roomTypes as $amenity) {
-//                            // room image
-//                            $url_room = $room->images[0]->url ?? null;
-//                            if ($url_room != null) {
-//                                $imageRoomContents = file_get_contents($url_room);
-//                                if (!$imageRoomContents) {
-//                                    return response()->json(['error' => 'Не удалось загрузить изображение'], 400);
-//                                }
-//                                $file_room = 'rooms/' . Str::uuid();
-//                                Storage::disk('public')->put($file_room, $imageRoomContents);
-//                            } else {
-//                                $file_room = 'images/no-image.png';
-//                            }
-//
-//                            $exely_room = Room::where('exely_id', $room->id)->first();
-//
-//                            if ($exely_room != null) {
-//                                $exely_room->update([
-//                                    'title' => $room->name,
-//                                    'title_en' => $room->name,
-//                                    'code' => Str::slug($room->name),
-//                                    'description' => $room->description,
-//                                    'description_en' => $room->description,
-//                                    'area' => $room->size->value,
-//                                    'image' => 'no-image.png',
-//                                    'hotel_id' => $property->id,
-//                                    'exely_id' => $room->id,
-//                                    'category_id' => $room->categoryName,
-//                                    'status' => 1,
-//                                ]);
-//                            } else {
-//                                Room::create([
-//                                    'title' => $room->name,
-//                                    'title_en' => $room->name,
-//                                    'code' => Str::slug($room->name),
-//                                    'description' => $room->description,
-//                                    'description_en' => $room->description,
-//                                    'area' => $room->size->value,
-//                                    'image' => 'no-image.png',
-//                                    'hotel_id' => $property->id,
-//                                    'exely_id' => $room->id,
-//                                    'category_id' => $room->categoryName,
-//                                    'status' => 1,
-//                                ]);
-//                            }
-//                        }
-//                    }
+                    //amenity
+                    if ($property->roomTypes != null) {
+                        foreach ($property->roomTypes as $amenity) {
+                            // room image
+                            $url_room = $room->images[0]->url ?? null;
+                            if ($url_room != null) {
+                                $imageRoomContents = file_get_contents($url_room);
+                                if (!$imageRoomContents) {
+                                    return response()->json(['error' => 'Не удалось загрузить изображение'], 400);
+                                }
+                                $file_room = 'rooms/' . Str::uuid();
+                                Storage::disk('public')->put($file_room, $imageRoomContents);
+                            } else {
+                                $file_room = 'images/no-image.png';
+                            }
+
+                            $exely_room = Room::where('exely_id', $room->id)->first();
+
+                            if ($exely_room != null) {
+                                $exely_room->update([
+                                    'title' => $room->name,
+                                    'title_en' => $room->name,
+                                    'code' => Str::slug($room->name),
+                                    'description' => $room->description,
+                                    'description_en' => $room->description,
+                                    'area' => $room->size->value,
+                                    'image' => 'no-image.png',
+                                    'hotel_id' => $property->id,
+                                    'exely_id' => $room->id,
+                                    'category_id' => $room->categoryName,
+                                    'status' => 1,
+                                ]);
+                            } else {
+                                Room::create([
+                                    'title' => $room->name,
+                                    'title_en' => $room->name,
+                                    'code' => Str::slug($room->name),
+                                    'description' => $room->description,
+                                    'description_en' => $room->description,
+                                    'area' => $room->size->value,
+                                    'image' => 'no-image.png',
+                                    'hotel_id' => $property->id,
+                                    'exely_id' => $room->id,
+                                    'category_id' => $room->categoryName,
+                                    'status' => 1,
+                                ]);
+                            }
+                        }
+                    }
 
 
                 }

@@ -13,8 +13,10 @@ use App\Http\Controllers\ProfileController;
 use App\Livewire\BookingForm;
 use App\Livewire\HotelResults;
 use App\Livewire\HotelRooms;
+use App\Livewire\HotelWizard;
 use Dedoc\Scramble\Scramble;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Session;
 
 /*
 |--------------------------------------------------------------------------
@@ -78,6 +80,8 @@ Route::middleware('set_locale')->group(function () {
         Route::get('/userbooks', [UserBookController::class, 'index'])->name('userbooks.index');
         Route::get('/userbooks/show/{book}', [UserBookController::class, 'showBook'])->name('userbooks.show');
         Route::post('/userbooks/cancel/{book}', [UserBookController::class, 'cancelBook'])->name('userbooks.cancel');
+
+        Route::get('/items/create', HotelWizard::class)->name('hotel.create');
     });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -86,6 +90,15 @@ Route::middleware('set_locale')->group(function () {
     require __DIR__ . '/auth.php';
 
     Route::get('/', [PageController::class, 'index'])->name('index');
+
+    Route::get('currency/switch/{currency}', function ($currency) {
+        $allowed = ['USD','KGS','RUB'];
+        $currency = strtoupper($currency);
+        if (in_array($currency, $allowed, true)) {
+            Session::put('currency', $currency);
+        }
+        return back();
+    })->name('currency.switch');
 
     //-----search
     //local

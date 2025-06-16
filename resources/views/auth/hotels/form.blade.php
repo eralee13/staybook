@@ -429,6 +429,7 @@
 
                             <div class="col-md-6">
                                 <div class="form-group">
+                                    <label for="">Изображения</label>
                                     <input type="file" name="images[]" multiple="true">
                                 </div>
                             </div>

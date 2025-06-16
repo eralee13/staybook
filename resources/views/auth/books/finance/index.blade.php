@@ -104,6 +104,8 @@
                             @endforeach
                             </tbody>
                         </table>
+
+                        {{ $books->links('pagination::bootstrap-4') }}
                     @else
                         <h2 style="text-align: center">@lang('admin.bookings_not_found')</h2>
                     @endif

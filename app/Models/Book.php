@@ -32,10 +32,10 @@ class Book extends Model
         'cancellation_id',
         'cancel_penalty',
         'rate_id',
-        'tag',
         'status',
         'user_id',
         'api_type',
+        'tag',
     ];
 
     protected $hidden = [

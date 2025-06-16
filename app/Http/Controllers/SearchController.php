@@ -209,33 +209,61 @@ class SearchController extends Controller
         }
     }
 
-
     //exely
     public function hotel_exely(Request $request)
     {
-        $childs = [];
-        if (!empty($request['childAges']) && is_array($request['childAges'])) {
-            foreach ($request['childAges'] as $age) {
-                // Приводим к int/строке на всякий случай
-                $childs[] = trim((string) $age);
-            }
+        // 1) Нормализуем входные данные childAges (строка "2, 7" → ['2','7'])
+        $childAgesInput = $request->input('childAges', []);
+        $childs = explode(',', implode(',', $childAgesInput));
+
+
+
+        // 2) Базовый URL
+        $baseUrl = rtrim(config('services.exely.base_url'), '/')
+            . "/search/v1/properties/{$request->propertyId}/room-stays";
+
+        // 3) Параметры без childAges
+        $params = [
+            'arrivalDate'          => $request->arrivalDate,
+            'departureDate'        => $request->departureDate,
+            'adults'               => $request->adultCount,
+            'includeExtraStays'    => 'false',
+            'includeExtraServices' => 'false',
+        ];
+
+        // 4) Собираем строку запроса вручную
+        $queryString = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+        foreach ($childs as $age) {
+            $queryString .= '&childAges=' . urlencode($age);
         }
 
-        if (in_array('', $childs, true)) {
-            $response = Http::withHeaders(['x-api-key' => config('services.exely.key'), 'accept' => 'application/json'])
-                ->get(config('services.exely.base_url') . 'search/v1/properties/' . $request->propertyId . '/room-stays?arrivalDate=' . $request->arrivalDate . '&departureDate=' . $request->departureDate . '&adults=' . $request->adultCount . '&includeExtraStays=false&includeExtraServices=false');
-        } else {
-            foreach ($childs as $child) {
-                $items[] = '&childAges=' . $child;
-            }
-            $response = Http::withHeaders(['x-api-key' => config('services.exely.key'), 'accept' => 'application/json'])
-                ->get(config('services.exely.base_url') . 'search/v1/properties/' . $request->propertyId . '/room-stays?arrivalDate=' . $request->arrivalDate . '&departureDate=' . $request->departureDate . '&adults=' . $request->adultCount . implode($items) . '&includeExtraStays=false&includeExtraServices=false');
-        }
-        //dd($response->object());
-        $rooms = $response->object()->roomStays;
-        $rooms = collect($rooms)->sortBy('total')->values()->all();
 
-        return view('pages.search.exely.hotel', compact('rooms', 'request'));
+
+        // 5) Полный URL
+        $url = $baseUrl . '?' . $queryString;
+
+        // 6) ВЫВЕДЕМ URL для отладки и остановим выполнение
+        //dd($url);
+
+        // ================================
+        // Когда убедитесь, что URL правильный,
+        // удалите строку dd($url) и раскомментируйте запрос:
+        //
+         $response = Http::withHeaders([
+                 'x-api-key' => config('services.exely.key'),
+                 'accept'    => 'application/json',
+             ])
+             ->get($url);
+
+
+
+         $rooms = collect($response->object()->roomStays)
+             ->sortBy('total')
+             ->values()
+             ->all();
+
+         return view('pages.search.exely.hotel', compact('rooms','request'));
     }
+
 
 }

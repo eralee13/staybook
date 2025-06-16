@@ -224,7 +224,8 @@
                                                                     @endif
                                                                 </div>
                                                             </div>
-                                                            <div class="item price">${{ $sum }}</div>
+                                                            <div class="item price">
+                                                                ${{ round($sum * config('services.main.coef')/100 + $sum, 0) }}</div>
                                                             {{--                                                            <div class="nds">Все налоги включены</div>--}}
                                                             {{--                                                        <div class="night">за ночь для 1 гостя</div>--}}
                                                             <div class="btn-wrap">
@@ -261,7 +262,7 @@
                                                                     <input type="hidden" name="cancelPrice"
                                                                            value="{{ $cancel->penalty_amount }}">
                                                                     <input type="hidden" name="price"
-                                                                           value="{{ $sum }}">
+                                                                           value="{{ round($sum * config('services.main.coef')/100 + $sum, 0) }}">
                                                                     {{--                                                                <input type="hidden" name="currency" value="{{ $room->currencyCode }}">--}}
                                                                     <button class="more">@lang('main.book')</button>
                                                                 </form>

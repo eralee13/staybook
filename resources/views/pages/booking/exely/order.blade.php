@@ -18,7 +18,11 @@
                 <div class="col-lg-8 col-md-12 order-xl-1 order-lg-1 order-2">
                     <h5>@lang('main.trip')</h5>
                     <form action="{{ route('book_verify_exely') }}">
+                        @php
+                            $hotel = Hotel::where('exely_id', $request->propertyId)->first();
+                        @endphp
                         <input type="hidden" name="propertyId" value="{{ $request->propertyId }}">
+                        <input type="hidden" name="hotel_id" value="{{ $hotel->id}}">
                         <input type="hidden" name="arrivalDate" value="{{ $request->arrivalDate }}">
                         <input type="hidden" name="departureDate" value="{{ $request->departureDate }}">
                         <input type="hidden" name="ratePlanId" value="{{ $request->ratePlanId }}">
@@ -143,7 +147,11 @@
                     <div class="sidebar">
                         <div class="row">
                             <div class="col-md-4">
-                                <img src="{{ Storage::url($hotel->image) }}" alt="">
+                                @if($hotel->image)
+                                    <img src="{{ Storage::url($hotel->image) }}" alt="">
+                                @else
+                                    <img src="{{ route('index')}}/img/noimage.png" alt="">
+                                @endif
                             </div>
                             <div class="col-md-8">
                                 <div class="descr">@lang('main.hotel') {{ $hotel->title }}</div>

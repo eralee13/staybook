@@ -2,6 +2,7 @@
 
 namespace App\View\Components;
 
+use App\ViewComposers\CurrencyComposer;
 use Illuminate\View\Component;
 use Illuminate\View\View;
 

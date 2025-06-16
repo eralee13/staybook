@@ -31,6 +31,27 @@
     <div class="loader"></div>
 </div>
 
+{{--<div class="currency-switcher">--}}
+{{--    <form>--}}
+{{--        <select onchange="window.location.href='{{ route('currency.switch','') }}/'+this.value;">--}}
+{{--            @foreach(['USD','KGS','RUB'] as $ccy)--}}
+{{--                <option value="{{ $ccy }}" @if($fxBase === $ccy) selected @endif>--}}
+{{--                    {{ $ccy }}--}}
+{{--                </option>--}}
+{{--            @endforeach--}}
+{{--        </select>--}}
+{{--    </form>--}}
+{{--</div>--}}
+
+{{--<div class="currency-widget">--}}
+{{--    <p>Базовая валюта: <strong>{{ $fxBase }}</strong></p>--}}
+{{--    <ul>--}}
+{{--        <li>USD = {{ $fxRates['usd'] }} {{ $fxBase }}</li>--}}
+{{--        <li>KGS = {{ $fxRates['kgs'] }} {{ $fxBase }}</li>--}}
+{{--        <li>RUB = {{ $fxRates['rub'] }} {{ $fxBase }}</li>--}}
+{{--    </ul>--}}
+{{--</div>--}}
+
 <header class="is_country">
     <div class="container-fluid">
         <div class="row">

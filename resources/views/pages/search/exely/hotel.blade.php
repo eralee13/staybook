@@ -35,7 +35,7 @@
                                     'Фен' => 'dry.svg',
                                     'Постельное бельё' => 'bed_sheets.svg',
                                     'Халат' => 'robe.svg',
-                                    'Шкаф' => 'close.svg',
+                                    'Шкаф' => 'closet.svg',
                                     'Телефон' => 'phone_hotel.svg',
                                     'Отопление' => 'heating.svg',
                                     'Письменный стол' => 'table.svg',
@@ -43,9 +43,17 @@
                                 ];
                             @endphp
                             <h1>{{ $hotel->city }}</h1>
-                            <div class="fotorama" data-allowfullscreen="true" data-nav="thumbs" data-loop="true"
-                                 data-autoplay="30000">
-                                <img loading="lazy" src="{{ Storage::url($hotel->image)}}" alt="">
+                            <div class="row">
+                                <div class="col-md-7">
+                                    <div class="fotorama" data-allowfullscreen="true" data-nav="thumbs" data-loop="true"
+                                         data-autoplay="30000">
+                                        @if($hotel->image)
+                                            <img loading="lazy" src="{{ Storage::url($hotel->image) }}" alt="">
+                                        @else
+                                            <img loading="lazy" src="{{ route('index')}}/img/noimage.png" alt="">
+                                        @endif
+                                    </div>
+                                </div>
                             </div>
                             <h3>{{ $hotel->title }}</h3>
                             <div class="address"><img src="{{ route('index') }}/img/marker_in.svg"
@@ -163,7 +171,7 @@
                                                             <div class="name">{{ $room->mealPlanCode }}</div>
                                                         </div>
                                                         <div class="item cancel">
-                                                            <div class="name">@lang('main.cancellation_rule'):
+                                                            <div class="name">@lang('main.cancellation_policy'):
                                                                 @if($room->cancellationPolicy->freeCancellationPossible == true)
                                                                     @lang('main.free_cancellation') {{ $cancelDate }}
                                                                     ({{ $offset }}). @lang('main.cancellation_amount'): {{ $room->cancellationPolicy->penaltyAmount }} {{ $room->currencyCode }}

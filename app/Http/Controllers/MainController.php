@@ -9,6 +9,7 @@ use App\Models\Contact;
 use App\Models\Meal;
 use App\Models\Hotel;
 use App\Models\Room;
+use App\Services\FXService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Mail;

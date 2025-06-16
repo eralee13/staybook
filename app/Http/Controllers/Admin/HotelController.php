@@ -11,6 +11,7 @@ use App\Models\City;
 use App\Models\Hotel;
 use App\Models\Image;
 use Barryvdh\DomPDF\Facade\Pdf;
+use DateTimeZone;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -50,8 +51,9 @@ class HotelController extends Controller
      */
     public function create()
     {
-
-        return view('auth.hotels.form');
+        $cities = City::where('country_id', null)->get();
+        $timezones = DateTimeZone::listIdentifiers();
+        return view('auth.hotels.form', compact('cities', 'timezones'));
     }
 
     /**
@@ -224,21 +226,26 @@ class HotelController extends Controller
     public function destroy(Hotel $hotel)
     {
         $hotel->delete();
-        Storage::delete($hotel->image);
+        if($hotel->image){
+            Storage::delete($hotel->image);
+        }
+        $images = Image::where('hotel_id', $hotel->id)->get();
+        if($images->isNotEmpty()){
+            foreach ($images as $image) {
+                Storage::delete($image->image);
+            }
+            DB::table('images')->where('hotel_id', $hotel->id)->delete();
+        }
         //$bill = Bill::where('hotel_id', $hotel->id)->firstOrFail();
         //Storage::delete($bill->agreement);
         //Storage::delete($bill->cancellations);
-        $images = Image::where('hotel_id', $hotel->id)->get();
-        foreach ($images as $image) {
-            Storage::delete($image->image);
-        }
-        DB::table('images')->where('hotel_id', $hotel->id)->delete();
+
         DB::table('bills')->where('hotel_id', $hotel->id)->delete();
         DB::table('rooms')->where('hotel_id', $hotel->id)->delete();
         DB::table('rates')->where('hotel_id', $hotel->id)->delete();
         DB::table('amenities')->where('hotel_id', $hotel->id)->delete();
         DB::table('payments')->where('hotel_id', $hotel->id)->delete();
-        Mail::to('info@timmedia.store')->send(new HotelDeleteMail($hotel));
+        //Mail::to('info@timmedia.store')->send(new HotelDeleteMail($hotel));
         session()->flash('success', 'Property ' . $hotel->title . ' deleted');
         return redirect()->route('hotels.index');
     }

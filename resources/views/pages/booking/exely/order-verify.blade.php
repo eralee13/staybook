@@ -56,7 +56,7 @@
                                                 @lang('main.cancellation_amount')
                                                 : {{ $cancelPossible->penaltyAmount }} {{ $order->booking->currencyCode }}</td>
                                         @else
-                                            <td>@lang('main.free_cancellation'). @lang('main.cancellation_amount')
+                                            <td>@lang('main.cancellation_amount')
                                                 : {{ $cancelPossible->penaltyAmount }} {{ $order->booking->currencyCode }}</td>
                                         @endif
                                     </tr>
@@ -93,6 +93,7 @@
                                             <td>@lang('main.count_adult'):</td>
                                             <td>{{ $room->guestCount->adultCount }}</td>
                                         </tr>
+                                    @dd($room)
                                         <tr>
                                             <td>@lang('main.count_child'):</td>
                                             <td>
@@ -119,6 +120,7 @@
                                     <form action="{{ route('book_reserve_exely') }}" method="get">
                                         <input type="hidden" name="propertyId"
                                                value="{{ $order->booking->propertyId }}">
+                                        <input type="hidden" name="hotel_id" value="{{ $request->hotel_id }}">
                                         <input type="hidden" name="total"
                                                value="{{ $order->booking->total->priceBeforeTax }}">
                                         <input type="hidden" name="cancellation"

@@ -59,7 +59,7 @@
                                     {{-- Общая сводка (клик открывает окно) --}}
                                     <a href="javascript:void(0)"
                                        id="rooms-summary">
-                                        Комнат3333: {{ $roomCount }}, Взрослых: {{ $totalAdults }},
+                                        Комнат: {{ $roomCount }}, Взрослых: {{ $totalAdults }},
                                         Детей: {{ $totalChildren }}
                                     </a>
 
@@ -516,6 +516,7 @@
                                             $hotel = \App\Models\Hotel::where('exely_id', $room->propertyId)->get()->first();
                                             $roomf = \App\Models\Room::where('hotel_id', $hotel->exely_id)->get()->first();
                                             $amenities = explode(',', $roomf->amenities);
+                                            $items  = array_slice($amenities, 0, 8);
                                             $iconMap = [
                                                 'wi-fi'             => 'wifi.svg',
                                                 'интернет'          => 'wifi.svg',
@@ -538,7 +539,8 @@
                                                 'Фен' => 'dry.svg',
                                                 'Постельное бельё' => 'bed_sheets.svg',
                                                 'Халат' => 'robe.svg',
-                                                'Шкаф' => 'close.svg',
+                                                'Шкаф' => 'closet.svg',
+                                                'шкаф для одежды' => 'closet.svg',
                                                 'Телефон' => 'phone_hotel.svg',
                                                 'Отопление' => 'heating.svg',
                                                 'Письменный стол' => 'table.svg',
@@ -549,13 +551,17 @@
                                             <div class="row">
                                                 <div class="col-md-5 order-xl-1 order-lg-1 order-1">
                                                     <div class="img-wrap">
-                                                        <img src="{{ Storage::url($hotel->image ?? '') }}" alt="">
+                                                        @if($hotel->image)
+                                                            <img src="{{ Storage::url($hotel->image) }}" alt="">
+                                                        @else
+                                                            <img src="{{ route('index')}}/img/noimage.png" alt="">
+                                                        @endif
                                                     </div>
                                                 </div>
                                                 <div class="col-md-5 order-xl-2 order-lg-2 order-3">
                                                     <h4>{{ $hotel->title }}</h4>
                                                     <div class="amenities">
-                                                        @foreach($amenities as $amenity)
+                                                        @foreach($items as $amenity)
                                                             @php
                                                                 $iconFile = 'check.svg';
                                                                 foreach ($iconMap as $keyword => $filename) {
@@ -628,7 +634,7 @@
                                                                 <input type="hidden" name="title"
                                                                        value="{{ $room->fullPlacementsName }}">
                                                                 <input type="hidden" name="price"
-                                                                       value="{{ $room->total->priceBeforeTax }}">
+                                                                       value="{{ round($room->total->priceBeforeTax * config('services.main.coef')/100 + $room->total->priceBeforeTax, 0) }}">
                                                                 <button class="more">@lang('main.show_all_rooms')</button>
                                                             </form>
                                                         </div>
@@ -637,7 +643,7 @@
 
                                                 <div class="col-md-2 order-xl-3 order-lg-3 order-2">
                                                     <div class="price">
-                                                        @lang('main.from') {{ $room->total->priceBeforeTax }} {{ $room->currencyCode }}</div>
+                                                        @lang('main.from') {{ round($room->total->priceBeforeTax * config('services.main.coef')/100 + $room->total->priceBeforeTax, 0) }} {{ $room->currencyCode }}</div>
                                                     <div class="night">@lang('main.night')</div>
                                                 </div>
                                             </div>
@@ -677,7 +683,8 @@
                                         'Фен' => 'dry.svg',
                                         'Постельное бельё' => 'bed_sheets.svg',
                                         'Халат' => 'robe.svg',
-                                        'Шкаф' => 'close.svg',
+                                        'Шкаф' => 'closet.svg',
+                                        'шкаф для одежды' => 'closet.svg',
                                         'Телефон' => 'phone_hotel.svg',
                                         'Отопление' => 'heating.svg',
                                         'Письменный стол' => 'table.svg',
@@ -821,8 +828,20 @@
                                         </div>
 
                                         <div class="col-md-2 order-xl-3 order-lg-3 order-2">
-                                            <div class="price">@lang('main.from') {{ number_format($price, 0, '.', ' ') }}
-                                                $
+                                            @php
+                                                // 1) Исходная цена с коэффициентом
+                                                $basePrice = round($price * config('services.main.coef')/100 + $price);
+                                                // 2) Курс для выбранной валюты (например, ['usd'=>1,'rub'=>…,'kgs'=>…])
+                                                //    ключи fxRates – в нижнем регистре
+                                                $rateKey = strtolower($fxBase);
+                                                $currencyRate = $fxRates[$rateKey] ?? 1;
+                                                // 3) Переводим в выбранную валюту
+                                                $converted = round($basePrice * $currencyRate);
+                                                $symbols = ['USD' => '$', 'RUB' => '₽', 'KGS' => 'сом'];
+                                                $symbol = $symbols[$fxBase] ?? $fxBase;
+                                            @endphp
+                                            <div class="price">@lang('main.from') {{ number_format($converted, 0, '.', ' ') }}
+                                                {{ $symbol }}
                                             </div>
                                             <div class="night">@lang('main.night')</div>
                                         </div>

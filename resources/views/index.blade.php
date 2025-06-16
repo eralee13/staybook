@@ -545,13 +545,19 @@
                         <div class="col-lg-4 col-md-6">
                             <div class="places-item">
                                     <span class="img-wrap">
-                                        <img src="{{ Storage::url($hotel->image) }}" alt="">
+                                        @if($hotel->image)
+                                            <img src="{{ Storage::url($hotel->image) }}" alt="">
+                                        @else
+                                            <img src="{{ route('index')}}/img/noimage.png" alt="">
+                                        @endif
                                     </span>
                                 <div class="text-wrap">
                                     <div class="address">{{ $hotel->city }}</div>
                                     <h5>{{ $hotel->title }}</h5>
-                                    <div class="rating"><img src="{{ route('index') }}/img/star.svg"
-                                                             alt=""> {{ $hotel->rating }}</div>
+                                    @if($hotel->rating)
+                                        <div class="rating"><img src="{{ route('index') }}/img/star.svg"
+                                                                 alt=""> {{ $hotel->rating }}</div>
+                                    @endif
                                 </div>
                             </div>
                         </div>

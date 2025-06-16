@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Services\CurrencyConversion;
+use App\ViewComposers\CurrencyComposer;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -32,6 +33,11 @@ class ViewServiceProvider extends ServiceProvider
         View::composer(['layouts.booking', 'hotels'], 'App\ViewComposers\HotelsComposer');
         View::composer(['layouts.booking', 'rooms'], 'App\ViewComposers\RoomsComposer');
         View::composer(['layouts.booking', 'contacts'], 'App\ViewComposers\ContactsComposer');
+
+        View::composer(
+            '*',
+            CurrencyComposer::class
+        );
 
     }
 }

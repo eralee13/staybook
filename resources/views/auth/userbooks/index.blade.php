@@ -10,24 +10,6 @@
                 <div class="col-md-12">
                     @if($books->isNotEmpty())
                         <h1>@lang('admin.my_bookings')</h1>
-{{--                        <ul class="tabs">--}}
-{{--                            <li class="current">Все</li>--}}
-{{--                            <li>Будущие</li>--}}
-{{--                            <li>Активные</li>--}}
-{{--                            <li>Завершенные</li>--}}
-{{--                            <li>Отмененные</li>--}}
-{{--                        </ul>--}}
-
-                        {{--                            <tr>--}}
-                        {{--                                <th>#</th>--}}
-                        {{--                                <th>@lang('admin.booking')</th>--}}
-                        {{--                                <th>@lang('admin.guests')</th>--}}
-                        {{--                                <th>@lang('admin.plans')</th>--}}
-                        {{--                                <th>@lang('admin.dates_of_stay')</th>--}}
-                        {{--                                <th>@lang('admin.price')</th>--}}
-                        {{--                                <th>@lang('admin.status')</th>--}}
-                        {{--                                <th>@lang('admin.action')</th>--}}
-                        {{--                            </tr>--}}
                         @foreach($books as $book)
                             <table>
                                 <tbody>
@@ -38,7 +20,11 @@
                                     </td>
                                     <td>
                                         <div class="title">Статус:</div>
-                                        <div class="value" style="color: green">{{ $book->status }}</div>
+                                        @if($book->status == 'Reserved')
+                                            <div class="value" style="color: green">{{ $book->status }}</div>
+                                        @else
+                                            <div class="value" style="color: red">{{ $book->status }}</div>
+                                        @endif
                                     </td>
                                     <td>
                                         <div class="title">Гость:</div>
@@ -51,14 +37,10 @@
                                     <td>
                                         <div class="title">Кол-во гостей:</div>
                                         <div class="value">{{ $book->adult }} взрос.</div>
-                                        {{--                                        <div class="count">{{ $book->count }} @lang('admin.adult')</div>--}}
-                                        {{--                                        @if($book->countc > 0)--}}
-                                        {{--                                            <div class="count">{{ $book->countc }} @lang('admin.child')</div>--}}
-                                        {{--                                        @endif--}}
                                     </td>
                                     <td>
                                         <div class="title">К оплате</div>
-                                        <div class="value">{{ $book->sum }} $</div>
+                                        <div class="value">{{ $book->sum }} {{ $book->currency ?? '$' }}</div>
                                     </td>
                                     <td>
                                         <div class="title">Дата создания:</div>
@@ -86,35 +68,48 @@
                                     </td>
                                     <td>
                                         <div class="title">Город</div>
-                                        <div class="value">Бишкек</div>
+                                        <div class="value">{{ $hotel->city }}</div>
                                     </td>
                                     <td>
-                                        <div class="title">Бесплатная отмена до</div>
-                                        <div class="value">10.04.2025</div>
-                                    </td>
-                                    <td>
-                                        <form action="{{ route('userbooks.cancel', $book) }}" method="post">
-                                            <ul>
-                                                <a href="{{ route('userbooks.show', $book)}}"><img src="{{ route('index') }}/img/icons/eye.svg" alt=""></a>
-                                                @csrf
-                                                @if($book->status == 'Reserved')
-                                                    <button class="btn delete"
-                                                            onclick="return confirm('Do you want to cancel this?');"><i
-                                                                class="fa-solid fa-xmark"></i></button>
-                                                @endif
-                                            </ul>
-                                        </form>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        @endforeach
+                                        <div class="title">Правило аннуляции</div>
+                                        @php
+                                            $cancel = \App\Models\CancellationRule::where('id', $book->cancellation_id)->first();
+                                        @endphp
+                                        @if($cancel)
+                                            @if($cancel->is_refundable == true)
+                                                <div class="value">@lang('main.cancellation_amount')
+                                                    : {{ $book->cancel_penalty }} {{ $book->currency ?? '$' }}</td>
+                </div>
+                @else
+                    <div class="value">@lang('main.cancellation_is_not_avaialble'). @lang('main.cancellation_amount')
+                        : {{ $book->cancel_penalty }} {{ $book->currency ?? '$' }}</div>
+                    @endif
+                    @endif
+                    </td>
+                    <td>
+                        <form action="{{ route('userbooks.cancel', $book) }}" method="post">
+                            <ul>
+                                <a href="{{ route('userbooks.show', $book)}}"><img
+                                            src="{{ route('index') }}/img/icons/eye.svg" alt=""></a>
+                                @csrf
+                                @if($book->status == 'Reserved')
+                                    <button class="btn delete"
+                                            onclick="return confirm('Do you want to cancel this?');"><i
+                                                class="fa-solid fa-xmark"></i></button>
+                                @endif
+                            </ul>
+                        </form>
+                    </td>
+                    </tr>
+                    </tbody>
+                    </table>
+                    @endforeach
                     @else
                         <h2 style="text-align: center">@lang('admin.bookings_not_found')</h2>
                     @endif
-                </div>
             </div>
         </div>
+    </div>
     </div>
     <style>
         ul.tabs {

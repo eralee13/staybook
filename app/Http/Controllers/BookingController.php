@@ -2,22 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\BookCancelMail;
+use App\Mail\BookMail;
 use App\Models\Book;
-use App\Models\City;
-use App\Models\Contact;
-use App\Models\Page;
-use App\Models\Rate;
-use App\Models\Room;
 use App\Models\Hotel;
 use Carbon\Carbon;
-use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
 
 class BookingController extends Controller
 {
@@ -67,8 +62,11 @@ class BookingController extends Controller
             'status' => 'Reserved',
             'book_token' => $res->booking->number ?? $str,
             'user_id' => Auth::id() ?? '1',
+            'tag' => 'local'
         ];
         $book = Book::create($data);
+        //Mail::to('myrzabekova@silkwaytravel.kg')->send(new BookMail($book));
+        Log::warning('Бронь создана: ' . $book->id);
 
         return view('pages.booking.order-reserve', compact('book'));
     }
@@ -439,7 +437,7 @@ class BookingController extends Controller
                 $res = $response->object();
                 if (!isset($res->errors)) {
                     if (request()->filled('childAges')) {
-                        Book::create([
+                        $book = Book::create([
                             'hotel_id' => $request->get('propertyId'),
                             'room_id' => $request->get('roomTypeId'),
                             'arrivalDate' => $request->get('arrivalDate'),
@@ -459,10 +457,13 @@ class BookingController extends Controller
                             'status' => 'Reserved',
                             'book_token' => $res->booking->number,
                             'user_id' => Auth::id() ?? 1,
+                            'tag' => 'exely'
                         ]);
+                        //Mail::to('myrzabekova@silkwaytravel.kg')->send(new BookMail($book));
+                        Log::warning('Бронь создана: ' . $book->id);
                     } else {
                         $book = Book::create([
-                            'hotel_id' => $request->get('propertyId'),
+                            'hotel_id' => $request->get('hotel_id'),
                             'room_id' => $request->get('roomTypeId'),
                             'arrivalDate' => $request->get('arrivalDate'),
                             'departureDate' => $request->get('departureDate'),
@@ -480,7 +481,9 @@ class BookingController extends Controller
                             'status' => 'Reserved',
                             'book_token' => $res->booking->number,
                             'user_id' => Auth::id() ?? 1,
+                            'tag' => 'exely'
                         ]);
+                        //Mail::to('myrzabekova@silkwaytravel.kg')->send(new BookMail($book));
                         Log::warning('Бронь создана: ' . $book->id);
                     }
                 }
@@ -530,10 +533,12 @@ class BookingController extends Controller
 
             if ($response->successful()) {
                 $cancel = $response->object();
+                $book = Book::where('book_token', $request->number)->first();
                 $book->where('book_token', $request->number)->update([
                     'status' => "Cancelled"
                 ]);
                 Log::warning('Отмена брони: ' . $book->id);
+                Mail::to('myrzabekova@silkwaytravel.kg')->send(new BookCancelMail($book));
 
                 return view('pages.booking.exely.cancel-confirm', compact('cancel'));
             }

@@ -61,12 +61,17 @@
                             <div class="dashboard-item">
                                 @php
                                     $hotel = \App\Models\Hotel::where('id', $book->hotel_id)->first();
-                                    $room = \App\Models\Room::where('id', $book->room_id)->first();
+                                    $room = \App\Models\Room::where('id', $book->room_id)->orWhere('exely_id', $book->room_id)->first();
                                     $img = \App\Models\Image::where('room_id', $room->id)->first();
                                     $rate = \App\Models\Rate::where('id', $book->rate_id)->first();
                                 @endphp
-                                <div class="img"><img src="{{ Storage::url($img->image) }}"></div>
+                                @if(!empty($img->image))
+                                    <div class="img"><img src="{{ Storage::url($img->image) }}"></div>
+                                @else
+                                    <div class="img"><img src="{{ route('index') }}/img/noimage.png" alt=""></div>
+                                @endif
                             </div>
+                            
                         </div>
                         <div class="col-md-4">
                             <div class="dashboard-item">
@@ -75,8 +80,10 @@
                                     {{ $hotel->title }}
                                     <div class="name" style="margin-top: 20px">@lang('admin.room')</div>
                                     {{ $room->title }} <br>
-                                    <div class="name" style="margin-top: 20px">Тариф</div>
-                                    {{ $rate->title }} <br>
+                                    @if(!empty($rate))
+                                        <div class="name" style="margin-top: 20px">Тариф</div>
+                                        {{ $rate->title ?? '' }} <br>
+                                    @endif
                                 </div>
                             </div>
                         </div>

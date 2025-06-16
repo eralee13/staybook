@@ -177,16 +177,18 @@ class RoomController extends Controller
     public function destroy(Room $room)
     {
         $room->delete();
-        Storage::delete($room->image);
-        Rate::where('room_id', $room->id)->get();
-        Accommodation::where('room_id', $room->id)->get();
-        $images = Image::where('room_id', $room->id)->get();
-        foreach ($images as $image){
-            Storage::delete($image->image);
+        if($room->image){
+            Storage::delete($room->image);
         }
-        DB::table('images')->where('room_id', $room->id)->delete();
+        Rate::where('room_id', $room->id)->get();
+        $images = Image::where('room_id', $room->id)->get();
+        if($images->isNotEmpty()){
+            foreach ($images as $image){
+                Storage::delete($image->image);
+            }
+            DB::table('images')->where('room_id', $room->id)->delete();
+        }
         //Mail::to('info@timmedia.store')->send(new RoomDeleteMail($room));
-
         session()->flash('success', 'Room ' . $room->title . ' deleted');
         return redirect()->route('rooms.index');
     }
