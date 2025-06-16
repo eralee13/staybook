@@ -374,75 +374,75 @@ class BookingForm extends Component
                 "RequestTime" => now()->format('Y-m-d H:i:s')
             ];
 
-        // Основные параметры запроса (без заголовков и PaxRooms)
-        $mainParams = [
-            "AgentRefID" => $agentid,
-            "CheckIn" => $this->checkin,
-            "CheckOut" => $this->checkout,
-            "HotelCode" => $this->tmid,
-            "RateCode" => $this->ratecode,
-            "SpecialRequest" => $this->specdesc,
-            "CurrencyCode" => $this->currency, // CNY
-            "TotalPrice" => $this->totalPrice,
-        ];
-        // "Nationality" => $citizen,
-
-        // PaxRooms (информация о размещении гостей)
-        $paxRooms = [
-                [
-                    "Adults" => $this->adults,
-                    "RoomCount" => $this->roomCount,
-                ]
+            // Основные параметры запроса (без заголовков и PaxRooms)
+            $mainParams = [
+                "AgentRefID" => $agentid,
+                "CheckIn" => $this->checkin,
+                "CheckOut" => $this->checkout,
+                "HotelCode" => $this->tmid,
+                "RateCode" => $this->ratecode,
+                "SpecialRequest" => $this->specdesc,
+                "CurrencyCode" => $this->currency, // CNY
+                "TotalPrice" => $this->totalPrice,
             ];
+            // "Nationality" => $citizen,
 
-            if ( !empty($this->filters['child']) && !empty($this->filters['childrenage'] ) ) {
-                $paxRooms[0]["Children"] = (int) $this->filters['child'];
-                $paxRooms[0]["ChildrenAges"] = $this->childsage;
-            }
-        
-            $paxList = [];
-
-            for ($i = 0; $i < $this->roomCount; $i++) {
-                $j = $i + 1;
-
-                if($j > 1){
-
-                    $paxList[] = [
-                        "FirstName" => $this->{'paxfname' . $j},
-                        "LastName" => $this->{'paxlname' . $j},
-                        "Type" => "ADU",
+                // PaxRooms (информация о размещении гостей)
+                $paxRooms = [
+                        [
+                            "Adults" => $this->adults,
+                            "RoomCount" => $this->roomCount,
+                        ]
                     ];
-                        
-                }else{
-                    $paxList[] = [
-                        "FirstName" => $this->paxfname,
-                        "LastName" => $this->paxlname,
-                        "Type" => "ADU",
-                    ];
-                }
+
+                    if ( !empty($this->filters['child']) && !empty($this->filters['childrenage'] ) ) {
+                        $paxRooms[0]["Children"] = (int) $this->filters['child'];
+                        $paxRooms[0]["ChildrenAges"] = $this->childsage;
+                    }
                 
-            }
+                    $paxList = [];
 
-            $paxRooms[0]["PaxNames"] = $paxList;
+                    for ($i = 0; $i < $this->roomCount; $i++) {
+                        $j = $i + 1;
 
-        $ContactInfo = [
-                "Email" => $this->user->email,
-                "FirstName" => $this->user->name,
-                "LastName" => $this->user->lastname,
-                "PhoneNo" => $this->user->phone
-        ];
+                        if($j > 1){
 
-        // Объединение всех частей в один массив
-        $payload = array_merge($mainParams, [
-            "PaxRooms" => $paxRooms,  // Убеждаемся, что PaxRooms — это массив массивов
-            "RequestHeader" => $requestHeader,  // Просто вставляем массив RequestHeader
-            "ContactInfo" => $ContactInfo
-        ]);
+                            $paxList[] = [
+                                "FirstName" => $this->{'paxfname' . $j},
+                                "LastName" => $this->{'paxlname' . $j},
+                                "Type" => "ADU",
+                            ];
+                                
+                        }else{
+                            $paxList[] = [
+                                "FirstName" => $this->paxfname,
+                                "LastName" => $this->paxlname,
+                                "Type" => "ADU",
+                            ];
+                        }
+                        
+                    }
 
-            // dd($payload);
-            // die;
-        // local create order
+                    $paxRooms[0]["PaxNames"] = $paxList;
 
+                $ContactInfo = [
+                        "Email" => $this->user->email,
+                        "FirstName" => $this->user->name,
+                        "LastName" => $this->user->lastname,
+                        "PhoneNo" => $this->user->phone
+                ];
+
+                    // Объединение всех частей в один массив
+                    $payload = array_merge($mainParams, [
+                        "PaxRooms" => $paxRooms,  // Убеждаемся, что PaxRooms — это массив массивов
+                        "RequestHeader" => $requestHeader,  // Просто вставляем массив RequestHeader
+                        "ContactInfo" => $ContactInfo
+                    ]);
+
+        // dd($payload);
+        // die;
+
+            // local create order
             $existbook = Book::where('book_token', $this->token)->first();
 
             if ( $existbook ){

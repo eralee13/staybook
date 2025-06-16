@@ -162,7 +162,7 @@ class HotelStaticList
         } while ($pageIndex <= $pageCount); // Пока не загрузим все страницы
     
         // return ['message' => 'Данные обновлены', 'count' => count($hotels)];
-        return $data;
+        // return $data;
     }
     
 
