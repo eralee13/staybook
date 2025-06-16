@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\City;
 use App\Models\Room;
 use App\Models\Hotel;
+use App\Models\Image;
+use App\Models\Meal;
 use Carbon\Carbon;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Request;
@@ -101,6 +103,44 @@ class SearchController extends Controller
             ->all();
 
         $results = null;
+
+        // ***** Start Tourmind api *****
+        $hotelService = new \App\Services\Tourmind\HotelServices();
+        $tmhotels = $hotelService->tmGetHotels($request);
+        // dd($tmhotels['Hotels']);
+        
+        if ( isset($tmhotels['Hotels']) ){
+            
+            $filteredHotels = array_filter($tmhotels['Hotels'], function ($hotel) {
+                return isset($hotel['localData']['id']);
+            });
+            $hotels['hotels'] = array_map(function ($hotel) {
+                $rate = $hotel['RoomTypes'][0]['RateInfos'][0];
+                $price = $rate['TotalPrice'] ?? 0;
+                $totalPrice = number_format( (($price * 8) / 100) + $price , 2, '.', '');
+
+                return [
+                    'apiName' => 'TM',
+                    'apiHotelId' => $hotel['HotelCode'],
+                    'hid' => $hotel['localData']['id'] ?? '',
+                    'code' => $hotel['localData']['code'] ?? '',
+                    'title' => $hotel['localData']['title'] ?? '',
+                    'title_en' => $hotel['localData']['title_en'] ?? '',
+                    'rating' => $hotel['localData']['rating'] ?? '',
+                    'city' => $hotel['localData']['city'] ?? '',
+                    'amenities' => $hotel['localData']['amenity']['services'] ?? '',
+                    'images' => $hotel['localData']['images'] ?? [],
+                    'price' => $rate['TotalPrice'] ?? 0,
+                    'totalPrice' => $totalPrice ?? 0,
+                    'currency' => $rate['CurrencyCode'] ?? 0,
+                ];
+            }, $filteredHotels);
+
+            $results = json_decode(json_encode($hotels));
+            // dd($results->hotels);
+        }
+        // ***** end Tourmind api *****
+
         if (!empty($propertyIds)) {
             try {
                 // Формируем полезную нагрузку (payload) для Exely API
@@ -242,6 +282,35 @@ class SearchController extends Controller
         $rooms = collect($rooms)->sortBy('total')->values()->all();
 
         return view('pages.search.exely.hotel', compact('rooms', 'request'));
+
+
+
+
     }
 
+    // tourmind
+    public function hotel_tm($hid, Request $request)
+    {
+        $hotel = Hotel::where('id', $hid)->with(['amenity'])->first();
+        $room = Room::where('hotel_id', $hid)->where('tourmind_id', $hotel->tourmind_id)->get(['amenities'])->first();
+        $amenities = explode(',', $room->amenities ?? '');
+        $roomAmenity = array_slice($amenities, 0, 8);
+        $meals = Meal::pluck('title', 'id');
+        $arrival = Carbon::createFromDate($request->arrivalDate);
+        $departure = Carbon::createFromDate($request->departureDate);
+        
+            $hotelService = new \App\Services\Tourmind\HotelServices();
+            $tmroom = $hotelService->getOneDetail($request, $hotel->id);
+            $tmimages = Image::where('hotel_id', $hotel->id)->where('caption', 'Room')->get('image');
+
+            $city = City::where('title', $hotel->city)->first(['country_code']);
+
+            if (!$hotel->utc && $city && ($utc = $hotelService->getUtcOffsetByCountryCode($city->country_code))) {
+                $hotel->utc = $utc;
+                $hotel->save();
+            }
+
+
+        return view('pages.search.tourmind.hotel', compact('hotel', 'arrival', 'departure', 'request', 'roomAmenity', 'tmroom', 'tmimages', 'meals'));
+    }
 }

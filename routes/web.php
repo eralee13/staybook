@@ -108,12 +108,20 @@ Route::middleware('set_locale')->group(function () {
     Route::get('/contactspage', [PageController::class, 'contactspage'])->name('contactspage');
 
 
-
-    //TourMind
+    // TourMind
+    Route::get('/hoteltm/{hid}', [\App\Http\Controllers\SearchController::class, 'hotel_tm'])->name('hotel_tm');
+    Route::get('/book/order/tm', [\App\Http\Controllers\BookingTmController::class, 'order_tm'])->name('order_tm');
+    Route::get('/book/verify/tm', [\App\Http\Controllers\BookingTmController::class, 'book_verify_tm'])->name('book_verify_tm');
+    Route::get('/book/reserve/tm', [\App\Http\Controllers\BookingTmController::class, 'book_reserve_tm'])->name('book_reserve_tm');
+    Route::get('/book/cancel/tm', [\App\Http\Controllers\BookingTmController::class, 'cancel_calculate_tm'])->name('cancel_calculate_tm');
+    Route::get('/book/cancel/confirm/tm', [\App\Http\Controllers\BookingTmController::class, 'cancel_confirm_tm'])->name('cancel_confirm_tm');
+    
     Route::get('/hotel-results', HotelResults::class)->name('hotel.results');
     Route::get('/hotel-rooms', HotelRooms::class)->name('hotel.rooms');
     Route::get('/bookingform', BookingForm::class)->name('bookingform');
+
     Route::get('/allhotels', [PageController::class, 'hotels'])->name('hotels');
+
     //Route::get('/order/{order}', [PageController::class, 'order'])->name('order');
     Route::get('/testsearch', [PageController::class, 'testsearch'])->name('testsearch');
 

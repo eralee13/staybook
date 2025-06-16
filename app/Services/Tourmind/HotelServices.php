@@ -34,11 +34,12 @@ class HotelServices
         $this->tm_agent_code = config('app.tm_agent_code');
         $this->tm_user_name = config('app.tm_user_name');
         $this->tm_password = config('app.tm_password');
+
     }
 
     public function tmGetHotels(Request $request){
+
         // tourmind get data hotels
-        
         // get local hotels filtereble
         $query = Hotel::where('city', $request->city);
         $query->where('tourmind_id', '!=', '');
@@ -244,18 +245,38 @@ class HotelServices
                 "IsDailyPrice" => false,
                 //"Nationality" => $this->citizen ?? "EN",
             ];
+            
+            // 2. Извлекаем массив комнат и сразу считаем общее число взрослых и массив возрастов детей
+            $rooms = $request->input('rooms', []); // если нет — пустой массив
+            $totalAdults    = 0;
+            $allChildAges   = [];
+            $childs = 0;
+            $roomCount=0;
+            foreach ($rooms as $room) {
+                $roomCount++;
+                // Взрослые
+                $totalAdults += (int) ($room['adults'] ?? 0);
+
+                // Возрасты детей (если есть) собираем в единый массив
+                if (!empty($room['childAges']) && is_array($room['childAges'])) {
+                    foreach ($room['childAges'] as $age) {
+                        $allChildAges[] = (int) $age;
+                        $childs++;
+                    }
+                }
+            }
 
             // PaxRooms (информация о размещении гостей)
             $paxRooms = [
                     [
-                        "Adults" => (int)$request->adult,
-                        "RoomCount" => (int)$this->roomCount,
+                        "Adults" => (int)$totalAdults,
+                        "RoomCount" => (int)$roomCount,
                     ]
                 ];
                 
-                if ( !empty($request->child) && !empty($request->childAges ) ) {
-                    $paxRooms[0]["Children"] = (int) $request->child;
-                    $paxRooms[0]["ChildrenAges"] = array_values(array_map('intval', $request->childAges));
+                if ( !empty($childs) && !empty($allChildAges ) ) {
+                    $paxRooms[0]["Children"] = (int) $childs;
+                    $paxRooms[0]["ChildrenAges"] = array_values(array_map('intval', $allChildAges));
                 }
                 
 
@@ -264,6 +285,7 @@ class HotelServices
                 "PaxRooms" => $paxRooms,  // Убеждаемся, что PaxRooms — это массив массивов
                 "RequestHeader" => $requestHeader  // Просто вставляем массив RequestHeader
             ]);
+            // dd($payload);
 
         try {
             $response = Http::withHeaders([
@@ -280,7 +302,7 @@ class HotelServices
                 // $this->bookingSuccess = $response['Error']['ErrorMessage'];
                 session()->flash('error', $response['Error']['ErrorMessage']);
             }
-            // dd($payload);
+            
             // dd($response->json());
             // $this->bookingSuccess .= print_r($payload, 1);
 
@@ -334,6 +356,7 @@ class HotelServices
                 "PaxRooms" => $paxRooms,  // Убеждаемся, что PaxRooms — это массив массивов
                 "RequestHeader" => $requestHeader  // Просто вставляем массив RequestHeader
             ]);
+            // dd($payload);
 
         try {
             $response = Http::withHeaders([
@@ -350,7 +373,7 @@ class HotelServices
                 // $this->bookingSuccess = $response['Error']['ErrorMessage'];
                 session()->flash('error', $response['Error']['ErrorMessage']);
             }
-            // dd($payload);
+            
             // dd($response);
             // $this->bookingSuccess .= print_r($payload, 1);
 
@@ -426,20 +449,23 @@ class HotelServices
     public function createOrder(Request $request){
 
         $check = $this->checkRoomRate($request);
-        if ( isset($check->RoomTypes[0]->RateInfos[0]->TotalPrice) ){
-            $mrate = $check->RoomTypes[0]->RateInfos[0];
+        // dd($check);
+        if ( isset($check->Hotels[0]->RoomTypes[0]->RateInfos[0]->CancelPolicyInfos[0]->Amount) ){
+            $mrate = $check->Hotels[0]->RoomTypes[0]->RateInfos[0];
             $this->price = $mrate->TotalPrice;
             $this->currency = $mrate->CurrencyCode ?? 'CNY';
             $this->mealid = $mrate->MealInfo->MealType ?? '1';
             $this->rateName = $mrate->Name ?? '';
-            $this->penaltyPrice = $mrate->CancelPolicyInfos[0]->Amount ?? 0;
+            $this->penaltyPrice = number_format(($mrate->CancelPolicyInfos[0]->Amount * 0.08) + $mrate->CancelPolicyInfos[0]->Amount, 2, '.', '') ?? 0;
             $this->endDate = $mrate->CancelPolicyInfos[0]->From ?? null;
             $this->bedTypeDesc = $mrate->BedTypeDesc ?? '';
         }else{
+            // dd($check);
+            $mrate = $check->Hotels[0]->RoomTypes[0]->RateInfos[0];
             $this->price = $request->price;
             $this->currency = $request->currency ?? 'CNY';
             $this->mealid = $request->mealid ?? '1';
-            $this->penaltyPrice = $request->cancelPrice ?? 0;
+            $this->penaltyPrice = number_format(($mrate->TotalPrice * 0.08) + $mrate->TotalPrice, 2, '.', '') ?? 0;
             $this->endDate = $request->cancelDate ?? null;
             $this->rateName = $request->rate_name ?? '';
             $this->bedTypeDesc = $request->rate_name ?? '';
@@ -508,15 +534,15 @@ class HotelServices
                         if($j > 1){
 
                             $paxList[] = [
-                                "FirstName" => "djeki",
-                                "LastName" => "chan",
+                                "FirstName" => $request->{'paxfname' . $j},
+                                "LastName" => $request->{'paxlname' . $j},
                                 "Type" => "ADU",
                             ];
                                 
                         }else{
                             $paxList[] = [
-                                "FirstName" => "djeki",
-                                "LastName" => "chan",
+                                "FirstName" => $request->paxfname,
+                                "LastName" => $request->paxlname,
                                 "Type" => "ADU",
                             ];
                         }
@@ -541,14 +567,14 @@ class HotelServices
                     ]);
 
         
-        // dd($payload);
-        // die;
-        // local create order
+            // dd($payload);
+            // die;
+            // local create order
 
         $existbook = Book::where('book_token', $this->token)->first();
 
         if ( $existbook ){
-            return "Этот бронь уже существует!";
+            return ['Success' => 'Этот бронь уже существует!'];
         }
 
 
@@ -571,23 +597,19 @@ class HotelServices
                 
             }
 
-                if ( $this->roomCount == 1){
-                    $this->guestsall = [$this->paxfname .' '. $this->paxlname];
-                }
-                elseif ( $this->roomCount == 2 ){
-                    $this->guestsall = [$this->paxfname .' '. $this->paxlname, $this->paxfname2 .' '. $this->paxlname2];
-                }
-                elseif ( $this->roomCount == 3 ){
-                    $this->guestsall= [$this->paxfname .' '. $this->paxlname, $this->paxfname2 .' '. $this->paxlname2, $this->paxfname3 .' '. $this->paxlname3];
-                }
-                elseif ( $this->roomCount == 4 ){
-                    $this->guestsall = [$this->paxfname .' '. $this->paxlname, $this->paxfname2 .' '. $this->paxlname2, $this->paxfname3 .' '. $this->paxlname3, $this->paxfname4 .' '. $this->paxlname4];
+                for ($i = 1; $i <= $request->roomCount; $i++) {
+                    $fname = $request->input('paxfname' . ($i > 1 ? $i : ''));
+                    $lname = $request->input('paxlname' . ($i > 1 ? $i : ''));
+                    
+                    if ($fname || $lname) {
+                        $this->guestsall[] = trim("$fname $lname");
+                    }
                 }
             
 
                     $guests = implode(',', $this->guestsall ?? []);
                     
-                    $childages = implode(',', $request->childAges ?? []);
+                    $childAges = implode(',', $request->childAges ?? []);
 
                     // $offset = str_replace('UTC', '', $this->utc); // '+3'
 
@@ -620,6 +642,23 @@ class HotelServices
                     );
 
                     $ruleid = $rule->id ?? null;
+                }else{
+                    
+                    $rule = CancellationRule::create(
+                        [   
+                            "title" => 'Безвозвратный тариф',
+                            // "title_en" => 'Free cancellation until the specified date',
+                            "is_refundable" => 0,
+                            "free_cancellation_days" => 0,
+                            "penalty_type" => 'fixed',  
+                            "penalty_amount" => $this->penaltyPrice ?? 0,
+                            "end_date" => null,
+                            "description" => '',
+                            "hotel_id" => $request->hotel_id,
+                        ]
+                    );
+
+                    $ruleid = $rule->id ?? null;
                 }
 
                     $title; $titlen;
@@ -631,7 +670,8 @@ class HotelServices
                         $titlen = 'Tariff with breakfast';
                     }
 
-                    $totalPrice = (($this->price * 12) / 100) + $this->price;
+                    $totalPrice = number_format(($this->price * 0.08) + $this->price,2 ,'.', '');
+                    
                     $rate = Rate::UpdateOrCreate(
                         [
                             'rate_code' => $request->rate_code,
@@ -641,7 +681,7 @@ class HotelServices
                         [
                             'title' => $title ?? '',
                             'title_en' => $titlen ?? '',
-                            'desc_en' => $this->rateName,
+                            'desc_en' => null,
                             'bed_type' => $this->bedTypeDesc,
                             'meal_id' => $this->mealid,
                             'allotment' => null,
@@ -660,40 +700,41 @@ class HotelServices
                         ]
                     );
 
-                        $book = Book::firstOrCreate(
-                            [
-                                'book_token' => $this->token,
-                            ],
-                            [
-                                'title' => $guests,
-                                'title2' => '',
-                                'hotel_id' => $request->hotel_id,
-                                'room_id' => $room->id ?? null,
-                                'rate_id' => $rate->id ?? null,
-                                'phone' => $request->phone,
-                                'email' => $request->email,
-                                'comment' => $request->comment,
-                                'adult' => $request->adult,
-                                'child' => $request->child,
-                                'childages' => $childages ?? '',
-                                'price' => $this->price,
-                                'sum' => $request->sum,
-                                'utc' => $request->utc,
-                                'cancel_penalty' => $this->penaltyPrice,
-                                'currency' => $this->currency,
-                                'cancel_date' => $utcdatetime,
-                                'arrivalDate' => $request->arrivalDate,
-                                'departureDate' => $request->departureDate,
-                                'status' => 'Pending',
-                                'user_id' => $userId,
-                                'api_type' => 'tourmind',
-                                'agent_ref' => $agentid,
-                            ]
-                        );
+                    $book = Book::firstOrCreate(
+                        [
+                            'book_token' => $this->token,
+                        ],
+                        [
+                            'title' => $guests,
+                            'title2' => '',
+                            'hotel_id' => $request->hotel_id,
+                            'room_id' => $room->id ?? null,
+                            'rate_id' => $rate->id ?? null,
+                            'phone' => $request->phone,
+                            'email' => $request->email,
+                            'comment' => $request->comment,
+                            'adult' => $request->adult,
+                            'child' => $request->child,
+                            'childages' => $childAges ?? '',
+                            'price' => $this->price,
+                            'sum' => $totalPrice,
+                            'utc' => $request->utc,
+                            'cancellation_id' => $ruleid,
+                            'cancel_penalty' => $this->penaltyPrice,
+                            'currency' => $this->currency,
+                            'cancel_date' => $utcdatetime,
+                            'arrivalDate' => $request->arrivalDate,
+                            'departureDate' => $request->departureDate,
+                            'status' => 'Pending',
+                            'user_id' => $userId,
+                            'api_type' => 'tourmind',
+                            'agent_ref' => $agentid,
+                        ]
+                    );
 
-                        if ( !isset($book->id) ){
-                            return "Ошибка заказ не создан на стейбук! Попробуйте через несколько секунд!";
-                        }
+                    if ( !isset($book->id) ){
+                        return ['Error' => true, 'ErrorMessage' => 'Ошибка при создании брони! Пожалуйста, попробуйте позже!'];
+                    }
 
 
             // tourmind create order
@@ -707,7 +748,8 @@ class HotelServices
                 Log::channel('tourmind')->error('521 CreateOrder - ', $payload);
                 Log::channel('tourmind')->error('522 CreateOrder - ', $response);
     
-                return "522 Book order Ошибка при запросе к API Tourmind! Попробуйте через несколько секунд!";
+                // return "522 Book order Ошибка при запросе к API Tourmind! Попробуйте через несколько секунд!";
+                return ['Error' => true, 'ErrorMessage' => 'Ошибка при создании брони! Пожалуйста, попробуйте позже!'];
             }
     
     
@@ -724,19 +766,16 @@ class HotelServices
                         // 'rezervation_id' => $order['OrderInfo']['ReservationID']
                     ]);
                     
-                $book = Book::where('book_token', $this->token)->first();
-
-                    $this->orderCreated = true;
+                
                     // return "Бронирование успешно создано!"; // Статус - {$order['OrderInfo']['OrderStatus']}";
-                    return $book;
+                    return ['Success' => "{$order['OrderInfo']['OrderStatus']}"];
 
                 // session()->flash('success', "Бронирование успешно создано! Статус - {$order['OrderInfo']['OrderStatus']}");
                 // return redirect()->route('booking.success');
-                
     
             }else{
     
-                return $order['Error']['ErrorMessage'];
+                return ['Error' => true, 'ErrorMessage' => $order['Error']['ErrorMessage']];
     
             }
 

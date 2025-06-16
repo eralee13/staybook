@@ -3,7 +3,7 @@
 @section('title')
 
     @section('content')
-        @if($_GET['api_name'] == 'tourmind')
+        @if($_GET['api_name'] == 'TM')
             @dump($tmroom)
         @endif
         
@@ -24,78 +24,7 @@
                             {!! $hotel->description !!}
                             <div class="amenities">
                                 <h4>Услуги и удобства</h4>
-                                <div class="amenities-item">
-                                    <img src="{{ route('index') }}/img/icons/area.svg" alt="">
-                                    <div class="name">24 кв. м</div>
-                                </div>
-                                <div class="amenities-item">
-                                    <img src="{{ route('index') }}/img/icons/bath.svg" alt="">
-                                    <div class="name">Собственная ванная комната</div>
-                                </div>
-                                <div class="amenities-item">
-                                    <img src="{{ route('index') }}/img/icons/sauna.svg" alt="">
-                                    <div class="name">Сауна</div>
-                                </div>
-                                <div class="amenities-item">
-                                    <img src="{{ route('index') }}/img/icons/safe.svg" alt="">
-                                    <div class="name">Сейф</div>
-                                </div>
-                                <div class="amenities-item">
-                                    <img src="{{ route('index') }}/img/icons/minibar.svg" alt="">
-                                    <div class="name">Минибар</div>
-                                </div>
-                                <div class="amenities-item">
-                                    <img src="{{ route('index') }}/img/icons/wifi.svg" alt="">
-                                    <div class="name">Высокоскоростной доступ в Интернет</div>
-                                </div>
-                                <div class="amenities-item">
-                                    <img src="{{ route('index') }}/img/icons/cond.svg" alt="">
-                                    <div class="name">Кондиционер</div>
-                                </div>
-                                <div class="amenities-item">
-                                    <img src="{{ route('index') }}/img/icons/toilet.svg" alt="">
-                                    <div class="name">Туалетные принадлежности</div>
-                                </div>
-                                <div class="amenities-item">
-                                    <img src="{{ route('index') }}/img/icons/shower.svg" alt="">
-                                    <div class="name">Душ</div>
-                                </div>
-                                <div class="amenities-item">
-                                    <img src="{{ route('index') }}/img/icons/sound.svg" alt="">
-                                    <div class="name">Звукоизоляция</div>
-                                </div>
-                                <div class="amenities-item">
-                                    <img src="{{ route('index') }}/img/icons/iron.svg" alt="">
-                                    <div class="name">Гладильные принадлежности</div>
-                                </div>
-                                <div class="amenities-item">
-                                    <img src="{{ route('index') }}/img/icons/dry.svg" alt="">
-                                    <div class="name">Фен</div>
-                                </div>
-                                <div class="amenities-item">
-                                    <img src="{{ route('index') }}/img/icons/bed_sheets.svg" alt="">
-                                    <div class="name">Постельное бельё</div>
-                                </div>
-                                <div class="amenities-item">
-                                    <img src="{{ route('index') }}/img/icons/robe.svg" alt="">
-                                    <div class="name">Халат</div>
-                                </div>
-                                <div class="amenities-item">
-                                    <img src="{{ route('index') }}/img/icons/closet.svg" alt="">
-                                    <div class="name">Шкаф</div>
-                                </div>
-                                <div class="amenities-item">
-                                    <img src="{{ route('index') }}/img/icons/phone_hotel.svg" alt="">
-                                    <div class="name">Телефон</div>
-                                </div>
-                                <div class="amenities-item">
-                                    <img src="{{ route('index') }}/img/icons/heating.svg" alt="">
-                                    <div class="name">Отопление</div>
-                                </div>
-                                <div class="amenities-item">
-                                    <img src="{{ route('index') }}/img/icons/table.svg" alt="">
-                                    <div class="name">Письменный стол</div>
-                                </div>
+                                
                             </div>
                             <div class="maps">
                                 <h4>Расположение</h4>
@@ -279,7 +208,7 @@
                                     </div>
                                 @endforeach
 
-                                @if($_GET['api_name'] == 'tourmind')
+                                @if($_GET['api_name'] == 'TM')
                                     @include('pages.tourmind.rooms', ['tmroom' => $tmroom, 'tmimages' => $tmimages])
                                 @endif
 

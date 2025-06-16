@@ -21,7 +21,7 @@ class Book extends Model
         'comment',
         'adult',
         'child',
-        'childAges',
+        'childages',
         'price',
         'sum',
         'arrivalDate',

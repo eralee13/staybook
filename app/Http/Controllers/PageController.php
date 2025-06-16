@@ -425,7 +425,7 @@ class PageController extends Controller
             return $room->rates->isNotEmpty();
         });
 
-        if ($_GET['api_name'] == 'tourmind') {
+        if ($_GET['api_name'] == 'TM') {
             $hotelService = new \App\Services\Tourmind\HotelServices();
             $tmroom = $hotelService->getOneDetail($request, $hotel->id);
             $tmimages = Image::where('hotel_id', $hotel->id)->where('caption', 'Room')->get('image');
@@ -436,172 +436,12 @@ class PageController extends Controller
         if ($hotel->exely_id != null) {
             return view('pages.hotel', compact('hotel', 'arrival', 'departure', 'adult', 'count_day', 'request', 'rooms'));
         } 
-        elseif ($_GET['api_name'] == 'tourmind') {
+        elseif ($_GET['api_name'] == 'TM') {
             return view('pages.hotel', compact('hotel', 'arrival', 'departure', 'adult', 'count_day', 'request', 'rooms', 'tmroom', 'tmimages'));
         } else {
             return view('pages.hotel', compact('hotel', 'arrival', 'departure', 'adult', 'count_day', 'request', 'rooms'));
         }
 
-    }
-
-    public function order(Request $request)
-    {
-        //dd($request->all());
-        $arrival = Carbon::createFromDate($request->arrivalDate)->format('d.m.Y');
-        $departure = Carbon::createFromDate($request->departureDate)->format('d.m.Y');
-
-        return view('pages.order', compact('request', 'arrival', 'departure'));
-    }
-
-    public function book_verify(Request $request)
-    {
-        $arrival = Carbon::createFromDate($request->arrivalDate)->format('d.m.Y');
-        $departure = Carbon::createFromDate($request->departureDate)->format('d.m.Y');
-
-        if ($request->api_name == 'tourmind') {
-
-            $hotel = Hotel::find($request->hotel_id);
-            $token = '';
-            do {
-                $token = Str::random(40);
-            } while (Book::where('book_token', $token)->exists());
-            
-            return view('pages.order-verify', compact('request', 'arrival', 'departure', 'hotel', 'token'));
-        }else{
-            return view('pages.order-verify', compact('request', 'arrival', 'departure'));
-        }
-
-    }
-
-    public function book_reserve(Request $request)
-    {
-        if($request->api_name == 'tourmind') {
-            // $hotel = Hotel::find($request->hotel_id);
-            $hotelService = new \App\Services\Tourmind\HotelServices();
-            $book = $hotelService->createOrder($request);
-            $message = '';
-
-            if ( is_object($book) ) {
-                // session()->flash('Success', 'Бронирование успешно создано!');
-                $message = 'Бронирование успешно создано!';
-            }elseif( $book == 'Этот бронь уже существует!') {
-                // session()->flash('Error', $book);
-                $message = 'Этот бронь уже существует!';
-                $book = Book::where('hotel_id', $request->hotel_id)->first();
-            }else {
-                // session()->flash('Error', 'Ошибка при создании бронирования!');
-                $message = 'Ошибка при создании бронирования!';
-            }
-            return view('pages.order-reserve', compact('book', 'request', 'message'));
-
-        } else {
-          
-            $date = date('Ymd'); // текущая дата: 20250507
-            $part1 = random_int(100000, 999999); // 6-значное число
-            $part2 = random_int(1000000000, 9999999999); // 10-значное число
-            $str = "{$date}-{$part1}-{$part2}";
-            $data = [
-                'hotel_id' => $request->get('propertyId'),
-                'room_id' => $request->get('roomTypeId'),
-                'rate_id' => $request->get('ratePlanId'),
-                'cancellation_id' => $request->get('cancellation_id'),
-                'cancel_penalty' => $request->get('cancelPrice'),
-                'arrivalDate' => $request->get('arrivalDate'),
-                'departureDate' => $request->get('departureDate'),
-                'currency' => $res->booking->currencyCode ?? '$',
-                'title' => $request->get('firstName'),
-                'phone' => $request->get('phone'),
-                'email' => $request->get('email'),
-                'comment' => $request->get('comment'),
-                'adult' => $request->get('adultCount'),
-                'child' => $request->get('child'),
-                'childAges' => implode(',', $request->get('childAges')),
-                'sum' => $request->get('total'),
-                'status' => 'Reserved',
-                'book_token' => $res->booking->number ?? $str,
-                'user_id' => Auth::id() ?? '1',
-            ];
-            $book = Book::create($data);
-
-            return view('pages.order-reserve', compact('book'));
-        }
-    }
-
-    public function cancel_calculate(Request $request)
-    {
-        $book = Book::where('book_token', $request->number)->firstOrFail();
-        return view('pages.cancel-calculate', compact('book', 'request'));
-    }
-
-    public function cancel_confirm(Request $request, Book $book)
-    {
-        $book = Book::where('book_token', $request->number)->firstOrFail();
-        $api_type = $book->api_type ?? '';
-        $userId = $book->user_id ?? Auth::id();
-        
-        if ($api_type == 'tourmind') {
-            
-            $hotelService = new \App\Services\Tourmind\HotelServices();
-            $cancel = $hotelService->cancelOrder($request, $book);
-            $cancelRule = CancellationRule::where('hotel_id', $book->hotel_id)->first();
-            $cancelFee = 0;
-            $curr = '';
-            $message = ' ';
-            $status = '';
-
-            $userInfo = [
-                'user_id' => $userId,
-                'book_id' => $book->id,
-            ];
-            
-            
-           if ( isset($cancel['Error']['ErrorMessage']) ){
-
-                $message = $cancel['Error']['ErrorMessage'];
-                Log::channel('tourmind')->info('Cancel Order User ID - ', $userInfo);
-                Log::channel('tourmind')->info('Cancel Order - ', $cancel);
-        
-            } elseif( isset($cancel['CancelResult']['OrderStatus']) && $cancel['CancelResult']['OrderStatus'] == 'CANCELLED'){
-
-                $cancelFee = $cancel['CancelResult']['CancelFee'];
-                $curr = $cancel['CancelResult']['CurrencyCode'];
-
-                Book::where('book_token', $request->number)->update(['status' => 'Cancelled', 'cancel_penalty' => $cancelFee, 'currency' => $curr]);
-                $status = 'Cancelled';
-                
-                $rate = Rate::where('id', $book->rate_id)->get('cancellation_rule_id')->first(); 
-                if ($rate->cancellation_rule_id){
-                    CancellationRule::where('id', $rate->cancellation_rule_id)->update(['penalty_amount' => $cancelFee]);
-                }
-                
-
-                Log::channel('tourmind')->info('Cancel Order User ID - ', $userInfo);
-                Log::channel('tourmind')->info('Cancel Order - ', $cancel);
-
-                $message = "Ваша бронь отменена";
-
-            }else{
-                $message = $cancel['Error'];
-                Log::channel('tourmind')->info('Cancel Order User ID - ', $userInfo);
-                Log::channel('tourmind')->info('Cancel Order - ', $cancel);
-            }
-            
-            return view('pages.cancel-confirm', compact('book', 'request', 'message', 'cancelRule', 'status'));
-
-        } elseif ($api_type == 'exely') {
-
-            // Для Exely
-            $book->where('book_token', $request->number)->update([
-                'status' => "Cancelled"
-            ]);
-           
-            return view('pages.cancel-confirm', compact('book', 'request'));
-        }else{
-            // Для других API
-            return view('pages.cancel-confirm', compact('book', 'request'));
-        }
-
-        
     }
 
     public function about(Request $request)
