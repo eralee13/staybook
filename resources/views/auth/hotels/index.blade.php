@@ -23,7 +23,7 @@
                 </div>
                 <div class="col-md-3">
                     <div class="add">
-                        <a href="{{ route('hotel.create') }}" class="more">Воспользовать помощником</a>
+                        <a href="{{ route('hotel.create') }}" class="more">Воспользоваться помощником</a>
                     </div>
                 </div>
             </div>

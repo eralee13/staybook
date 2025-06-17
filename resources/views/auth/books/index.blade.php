@@ -3,8 +3,6 @@
 @vite(['resources/css/app.css', 'resources/js/bookcalendar.js'])
 {{-- @livewireStyles --}}
 
-
-
 <!-- Bootstrap CSS -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -22,9 +20,9 @@
                     <div class="row">
                         <div class="col-6">
                             <div class="form-group">
-                                <label for="">Отели</label><br>
+                                <label for="">Выберите отель</label><br>
                                 <select name="hotel_id" id="hotel_id" class="form-control" style="width: 200px">
-                                    <option value="14">Все отели</option>
+                                    <option value="14">Все @lang('main.hotels')</option>
                                     @foreach ($hotelslist as $hotel)
                                         <option value="{{ $hotel->id }}">{{ $hotel->title }}</option>
                                     @endforeach
@@ -34,9 +32,8 @@
                         </div>
                         <div class="col-6">
                             <div class="form-group">
-                                <label for="">Дата</label><br>
-                                <input type="text" id="daterange" class="da" autocomplete="off"
-                                       placeholder="Выберите дату" style="width: auto">
+                                <label for="">Даты</label><br>
+                                <input type="text" id="daterange" class="da" autocomplete="off" placeholder="Выберите дату" style="width: auto">
                                 {{-- <button type="submit" class="btn btn-primary more" style="margin-left: 10px;">@lang('main.search')</button> --}}
                             </div>
                         </div>
@@ -53,12 +50,10 @@
                         $locale = app()->getLocale(); // 'ru', 'en', и т.д.
                     @endphp
 
-                    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
-                            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
-                            crossorigin="anonymous"></script>
+                    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 
                     <script>
-                        $(function () {
+                        $(function() {
                             const locale = "{{ $locale }}";
 
                             // локализация для разных языков
@@ -71,7 +66,6 @@
                                     cancelLabel: 'Отмена',
                                     fromLabel: 'С',
                                     toLabel: 'По',
-                                    customRangeLabel: 'Свой',
                                     weekLabel: 'Н',
                                     customRangeLabel: 'Выбрать вручную',
                                     daysOfWeek: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
@@ -81,7 +75,6 @@
 
                                 }
                             };
-
                             $('#daterange').daterangepicker({
                                 autoUpdateInput: true,
                                 autoApply: true,
@@ -90,61 +83,61 @@
                                 locale: localeSettings[locale] || localeSettings['en'],
                             });
                         });
-
-
                     </script>
                 </form>
             </div>
             <div style="width: 30%"></div>
             <div class="status" style="display: flex; align-items: center; margin-right: 20px;">
                 <span class="status-label" style="display: flex; align-items: center;">
-                    <div class="status-color"
-                         style="background-color: #d95d5d; width: 15px; height: 15px; margin-right: 5px;"></div>
+                    <div class="status-color" style="background-color: #d95d5d; width: 15px; height: 15px; margin-right: 5px;"></div>
                     Забронирован
                 </span>
             </div>
             <div class="status" style="display: flex; align-items: center; margin-right: 20px;">
                 <span class="status-label" style="display: flex; align-items: center;">
-                    <div class="status-color"
-                         style="background-color: #39bb43; width: 15px; height: 15px; margin-right: 5px;"></div>
+                    <div class="status-color" style="background-color: #39bb43; width: 15px; height: 15px; margin-right: 5px;"></div>
                     Свободен
                 </span>
             </div>
             <div class="status" style="display: flex; align-items: center;">
                 <span class="status-label" style="display: flex; align-items: center;">
-                    <div class="status-color"
-                         style="background-color: #e19d22; width: 15px; height: 15px; margin-right: 5px;"></div>
+                    <div class="status-color" style="background-color: #e19d22; width: 15px; height: 15px; margin-right: 5px;"></div>
                     Отменен
                 </span>
             </div>
         </div>
 
+
         <div id="calendar"></div>
     </div>
     <!-- Modal -->
-    <div class="modal fade" id="createBookingModal" tabindex="-1" aria-labelledby="createBookingLabel"
-         aria-hidden="true">
+    <div class="modal fade" id="createBookingModal" tabindex="-1" aria-labelledby="createBookingLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Создание брони</h5>
+                    <h5 class="modal-title">
+                        Создание брони для отеля <span id="modalHotelName" style="font-weight: bold;"></span>
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="createBookingForm">
+                    <form id="createBookingForm" action="{{ route('bookcalendar.create') }}" method="post">
+                        <input type="hidden" name="hotel_id" id="modalHotelId">
                         <input type="hidden" name="rate_id" id="modalRateId">
                         <input type="hidden" name="room_id" id="modalRoomId">
                         @csrf
-
-                        <div class="mb-3">
+                        <div class="form-group">
                             <label for="modalDateRange" class="form-label">Диапазон дат</label>
-                            <input type="text" class="form-control" id="modalDateRange" name="daterange" required>
+                            <input type="text" id="date" class="date" required="">
+                            <input type="hidden" id="arrivalDate" name="arrivalDate"
+                                   value="{{ now() }}">
+                            <input type="hidden" id="departureDate" name="departureDate"
+                                   value="{{ now()->addDay() }}">
                         </div>
 
-                        <div class="mb-3">
+                        <div class="form-group">
                             <label for="modalAllotment" class="form-label">Квота</label>
-                            <input type="number" class="form-control" id="modalAllotment" name="allotment" min="1"
-                                   value="1" required>
+                            <input type="number" class="form-control" id="modalAllotment" name="allotment" value="1" required>
                         </div>
 
                         <button type="submit" class="btn btn-primary">Создать</button>
@@ -157,31 +150,34 @@
 @endsection
 
 <style>
-    #calendar {
+    #calendar{
         background-color: #fff;
         padding: 30px;
     }
-
     .fc-datagrid-cell-main {
         white-space: pre-line;
     }
-
     .fc-datagrid-cell-main b {
         margin-bottom: 5px;
         display: inline-block;
     }
-
-    .fc-h-event .fc-event-main-frame {
+    .fc-h-event .fc-event-main-frame{
         flex-direction: column
     }
-
-    .fc-event-main {
+    .fc-event-main{
         padding: 5px;
     }
-
-    .fc-datagrid-cell-main {
+    .fc-datagrid-cell-main{
         display: inline-block;
     }
+    .fc-event-title,
+    .fc-event-main {
+        display: block !important;
+        text-align: center;
+        font-size: 14px;
+        font-weight: bold;
+    }
+
 </style>
 
 <script>

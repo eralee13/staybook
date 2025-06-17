@@ -538,7 +538,7 @@ class BookingController extends Controller
                     'status' => "Cancelled"
                 ]);
                 Log::warning('Отмена брони: ' . $book->id);
-                Mail::to('myrzabekova@silkwaytravel.kg')->send(new BookCancelMail($book));
+                //Mail::to('myrzabekova@silkwaytravel.kg')->send(new BookCancelMail($book));
 
                 return view('pages.booking.exely.cancel-confirm', compact('cancel'));
             }

@@ -78,38 +78,56 @@
                                         @if($cancel)
                                             @if($cancel->is_refundable == true)
                                                 <div class="value">@lang('main.cancellation_amount')
-                                                    : {{ $book->cancel_penalty }} {{ $book->currency ?? '$' }}</td>
-                </div>
-                @else
-                    <div class="value">@lang('main.cancellation_is_not_avaialble'). @lang('main.cancellation_amount')
-                        : {{ $book->cancel_penalty }} {{ $book->currency ?? '$' }}</div>
-                    @endif
-                    @endif
-                    </td>
-                    <td>
-                        <form action="{{ route('userbooks.cancel', $book) }}" method="post">
-                            <ul>
-                                <a href="{{ route('userbooks.show', $book)}}"><img
-                                            src="{{ route('index') }}/img/icons/eye.svg" alt=""></a>
-                                @csrf
-                                @if($book->status == 'Reserved')
-                                    <button class="btn delete"
-                                            onclick="return confirm('Do you want to cancel this?');"><i
-                                                class="fa-solid fa-xmark"></i></button>
-                                @endif
-                            </ul>
-                        </form>
-                    </td>
-                    </tr>
-                    </tbody>
-                    </table>
-                    @endforeach
+                                                    : {{ $book->cancel_penalty }} {{ $book->currency ?? '$' }}
+                                                </div>
+                                            @else
+                                                <div class="value">@lang('main.cancellation_is_not_avaialble')
+                                                    . @lang('main.cancellation_amount')
+                                                    : {{ $book->cancel_penalty }} {{ $book->currency ?? '$' }}</div>
+                                            @endif
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($book->api_type == 'local')
+                                            <form action="{{ route('userbooks.cancel_calculate', $book) }}"
+                                                  method="post">
+                                                <ul>
+                                                    <a href="{{ route('userbooks.show', $book)}}"><img
+                                                                src="{{ route('index') }}/img/icons/eye.svg" alt=""></a>
+                                                    @csrf
+                                                    @if($book->status == 'Reserved')
+                                                        <button class="btn delete"
+                                                                onclick="return confirm('Do you want to cancel this?');">
+                                                            <i class="fa-solid fa-xmark"></i></button>
+                                                    @endif
+                                                </ul>
+                                            </form>
+                                        @else
+                                            <form action="{{ route('userbooks.cancel_calculate_exely', $book) }}"
+                                                  method="post">
+                                                <ul>
+                                                    <a href="{{ route('userbooks.show', $book)}}"><img
+                                                                src="{{ route('index') }}/img/icons/eye.svg" alt=""></a>
+                                                    @csrf
+                                                    @if($book->status == 'Reserved')
+                                                        <button class="btn delete"
+                                                                onclick="return confirm('Do you want to cancel this?');">
+                                                            <i class="fa-solid fa-xmark"></i></button>
+                                                    @endif
+                                                </ul>
+                                            </form>
+                                        @endif
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        @endforeach
                     @else
                         <h2 style="text-align: center">@lang('admin.bookings_not_found')</h2>
                     @endif
+                </div>
             </div>
         </div>
-    </div>
     </div>
     <style>
         ul.tabs {

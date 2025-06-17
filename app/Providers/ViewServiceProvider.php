@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App\Services\CurrencyConversion;
 use App\ViewComposers\CurrencyComposer;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;

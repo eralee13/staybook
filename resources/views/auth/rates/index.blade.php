@@ -29,10 +29,10 @@
                             @foreach($rates as $rate)
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
-                                    <td>{{ $rate->__('title') }}</td>
-                                    <td>{{ $rate->room->title }}</td>
-                                    <td>{{ $rate->meal->code }}</td>
-                                    <td>{{ $rate->cancellationRule->title }}</td>
+                                    <td>{{ $rate->__('title') ?? '' }}</td>
+                                    <td>{{ $rate->room->title ?? '' }}</td>
+                                    <td>{{ $rate->meal->code ?? '' }}</td>
+                                    <td>{{ $rate->cancellationRule->title ?? '' }}</td>
                                     <td>
                                         <form action="{{ route('rates.destroy', $rate) }}" method="post">
                                             <ul>

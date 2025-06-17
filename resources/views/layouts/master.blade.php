@@ -26,9 +26,9 @@
 </head>
 
 <body>
-<div id="preloader">
-    <div class="loader"></div>
-</div>
+{{--<div id="preloader">--}}
+{{--    <div class="loader"></div>--}}
+{{--</div>--}}
 
 
 
