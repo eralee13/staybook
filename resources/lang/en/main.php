@@ -103,6 +103,5 @@ return [
     'login_system' => 'Log in to the system',
     '' => '',
     '' => '',
-    '' => '',
 
 ];

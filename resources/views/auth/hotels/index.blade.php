@@ -15,15 +15,15 @@
                     </form>
 
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <div class="add">
                         <a href="{{ route('hotels.create') }}" class="more"><i class="fa-regular fa-plus"></i>
                             @lang('admin.add_hotel')</a>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <div class="add">
-                        <a href="{{ route('hotel.create') }}" class="more">Воспользоваться помощником</a>
+                        <a href="{{ route('hotel.create') }}" class="more add">Воспользоваться помощником</a>
                     </div>
                 </div>
             </div>

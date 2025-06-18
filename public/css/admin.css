@@ -210,21 +210,7 @@ ul.btns li a:hover{
     background-color: var(--blue);
     color: #fff;
 }
-body{
-    font-family: "Fira Sans", sans-serif;
-}
-h1, h2, b, strong{
-    font-family: "Fira Sans", sans-serif;
-    font-weight: 700;
-}
-h3, h4{
-    font-family: "Fira Sans", sans-serif;
-    font-weight: 600;
-}
-h5{
-    font-family: "Fira Sans", sans-serif;
-    font-weight: 500;
-}
+
 header .logo img{
     max-width: 140px;
 }
@@ -304,4 +290,28 @@ nav ul li.active{
 nav ul li a{
     text-decoration: none;
     color: #000;
+}
+.admin #calendar table td{
+    padding: 0;
+}
+.fc .fc-timeline-slot-cushion{
+    text-decoration: none;
+    color: #000;
+}
+.tabs ul li{
+    display: inline-block;
+    margin-right: 10px;
+}
+.tabs ul li a{
+    padding: 10px 30px;
+    background-color: #fff;
+    border-radius: 5px;
+    color: #333;
+    text-decoration: none;
+    font-size: 14px;
+    transition: all .3s ease;
+}
+.tabs ul li.current a{
+    background-color: var(--blue);
+    color: #fff;
 }

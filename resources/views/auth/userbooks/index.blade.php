@@ -7,7 +7,10 @@
     <div class="page admin bookings">
         <div class="container">
             <div class="row">
-                <div class="col-md-12">
+                <div class="col-md-3">
+                    @include('auth.layouts.sidebar')
+                </div>
+                <div class="col-md-9">
                     @if($books->isNotEmpty())
                         <h1>@lang('admin.my_bookings')</h1>
                         @foreach($books as $book)
@@ -18,6 +21,12 @@
                                         <div class="title">Заказ:</div>
                                         <div class="value"># {{ $book->id }}</div>
                                     </td>
+                                    @if($book->api_type == 'exely')
+                                        <td>
+                                            <div class="title"># заказа Exelly</div>
+                                            <div class="value">{{ $book->book_token }}</div>
+                                        </td>
+                                    @endif
                                     <td>
                                         <div class="title">Статус:</div>
                                         @if($book->status == 'Reserved')
@@ -70,12 +79,12 @@
                                         <div class="title">Город</div>
                                         <div class="value">{{ $hotel->city }}</div>
                                     </td>
-                                    <td>
-                                        <div class="title">Правило аннуляции</div>
-                                        @php
-                                            $cancel = \App\Models\CancellationRule::where('id', $book->cancellation_id)->first();
-                                        @endphp
-                                        @if($cancel)
+                                    @php
+                                        $cancel = \App\Models\CancellationRule::where('id', $book->cancellation_id)->first();
+                                    @endphp
+                                    @if($cancel)
+                                        <td>
+                                            <div class="title">Правило аннуляции</div>
                                             @if($cancel->is_refundable == true)
                                                 <div class="value">@lang('main.cancellation_amount')
                                                     : {{ $book->cancel_penalty }} {{ $book->currency ?? '$' }}
@@ -85,8 +94,10 @@
                                                     . @lang('main.cancellation_amount')
                                                     : {{ $book->cancel_penalty }} {{ $book->currency ?? '$' }}</div>
                                             @endif
-                                        @endif
-                                    </td>
+                                        </td>
+                                    @else
+                                        <td></td>
+                                    @endif
                                     <td>
                                         @if($book->api_type == 'local')
                                             <form action="{{ route('userbooks.cancel_calculate', $book) }}"
@@ -130,16 +141,6 @@
         </div>
     </div>
     <style>
-        ul.tabs {
-            padding-left: 0;
-            text-align: left;
-        }
-
-        ul.tabs li.current {
-            background-color: #0a58ca;
-            color: #fff;
-        }
-
         table {
             border-radius: 10px;
             overflow: hidden;
@@ -160,12 +161,12 @@
         }
 
         .title {
-            font-size: 14px;
+            font-size: 12px;
             opacity: .6;
         }
 
         .value {
-            font-size: 20px;
+            font-size: 14px;
         }
     </style>
 

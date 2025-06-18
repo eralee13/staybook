@@ -3,7 +3,7 @@
 @section('title', __('admin.rates_and_availability'))
 
 <meta name="csrf-token" content="{{ csrf_token() }}">
-@vite(['resources/css/app.css', 'resources/js/bookcalendar.js'])
+@vite(['resources/css/app.css', 'resources/js/bookcalendarprice.js'])
 {{-- @livewireStyles --}}
 
 <!-- Bootstrap CSS -->
@@ -104,6 +104,12 @@
                     Есть квоты
                 </span>
             </div>
+{{--            <div class="status" style="display: flex; align-items: center;">--}}
+{{--                <span class="status-label" style="display: flex; align-items: center;">--}}
+{{--                    <div class="status-color" style="background-color: #e19d22; width: 15px; height: 15px; margin-right: 5px;"></div>--}}
+{{--                    Отменен--}}
+{{--                </span>--}}
+{{--            </div>--}}
         </div>
 
 
@@ -143,8 +149,8 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="modalAllotment" class="form-label">Квота</label>
-                            <input type="number" class="form-control" id="modalAllotment" name="allotment" value="1" required>
+                            <label for="modalAllotment" class="form-label">Стоимость</label>
+                            <input type="number" class="form-control" id="modalAllotment" name="price" value="1" required>
                         </div>
 
                         <button type="submit" class="more">Создать</button>

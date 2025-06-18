@@ -8,6 +8,7 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/js/app.js',
                 'resources/js/bookcalendar.js',  // ← add this
+                'resources/js/bookcalendarprice.js',  // ← add this
             ],
             refresh: true,
         }),

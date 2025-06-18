@@ -29,11 +29,15 @@
             <li @routeactive(
             'allbills.index')><a href="{{route('allbills.index')}}"><img src="{{ route('index') }}/img/icons/file.svg" alt=""> Все счета</a></li>
             @endhasrole
-            @hasrole('B2B')
+{{--            @hasrole('B2B')--}}
+{{--            <li @routeactive('userbook*')>--}}
+{{--        <a href="{{ route('userbooks.index')}}"><i class="fa-regular fa-money-bill"></i> @lang('admin.my_bookings')</a>--}}
+{{--        </li>--}}
+{{--            @endhasrole--}}
             <li @routeactive('userbook*')>
-        <a href="{{ route('userbooks.index')}}"><i class="fa-regular fa-money-bill"></i> @lang('admin.my_bookings')</a>
-        </li>
-            @endhasrole
+            <a href="{{ route('userbooks.index')}}"><i class="fa-regular fa-money-bill"></i> @lang('admin.my_bookings')</a>
+            </li>
+
         <li><a href="{{ route('logout') }}">Выйти из системы</a></li>
     </ul>
 </div>

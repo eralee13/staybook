@@ -1,4 +1,15 @@
 {
+  "_tippy-BHH8rdGj.css": {
+    "file": "assets/tippy-BHH8rdGj.css",
+    "src": "_tippy-BHH8rdGj.css"
+  },
+  "_tippy-CA5Yw4iR.js": {
+    "file": "assets/tippy-CA5Yw4iR.js",
+    "name": "tippy",
+    "css": [
+      "assets/tippy-BHH8rdGj.css"
+    ]
+  },
   "resources/css/app.css": {
     "file": "assets/app-C6G_3qQV.css",
     "src": "resources/css/app.css",
@@ -11,12 +22,21 @@
     "isEntry": true
   },
   "resources/js/bookcalendar.js": {
-    "file": "assets/bookcalendar-T8AZSVj_.js",
+    "file": "assets/bookcalendar-BH4Td7fv.js",
     "name": "bookcalendar",
     "src": "resources/js/bookcalendar.js",
     "isEntry": true,
-    "css": [
-      "assets/bookcalendar-BHH8rdGj.css"
+    "imports": [
+      "_tippy-CA5Yw4iR.js"
+    ]
+  },
+  "resources/js/bookcalendarprice.js": {
+    "file": "assets/bookcalendarprice-BXeMY3ZU.js",
+    "name": "bookcalendarprice",
+    "src": "resources/js/bookcalendarprice.js",
+    "isEntry": true,
+    "imports": [
+      "_tippy-CA5Yw4iR.js"
     ]
   }
 }

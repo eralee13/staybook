@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', function () {
             selectedEnd = parts[1].trim().split('.').reverse().join('-');
         }
 
-        fetch(`/auth/bookcalendar/books/events?hotel_id=${selectedHotel}&start=${selectedStart}&end=${selectedEnd}`)
+        fetch(`/auth/bookcalendarprice/books/events?hotel_id=${selectedHotel}&start=${selectedStart}&end=${selectedEnd}`)
             .then(res => res.json())
             .then(data => {
                 calendar.removeAllEventSources();
@@ -189,7 +189,7 @@ document.addEventListener('DOMContentLoaded', function () {
             allotment: $('#modalAllotment').val()
         };
 
-        fetch('/auth/bookcalendar/books/create', {
+        fetch('/auth/bookcalendarprice/books/create', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

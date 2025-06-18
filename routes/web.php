@@ -3,7 +3,7 @@
 use App\Http\Controllers\Admin\AllBillsController;
 use App\Http\Controllers\Admin\AllBookingController;
 use App\Http\Controllers\Admin\BookingCalendarController;
-use App\Http\Controllers\Admin\BookingController;
+use App\Http\Controllers\Admin\BookingCalendarPriceController;
 use App\Http\Controllers\Admin\HotelController;
 use App\Http\Controllers\Admin\ListbookController;
 use App\Http\Controllers\Admin\PDFController;
@@ -40,18 +40,19 @@ Route::middleware('set_locale')->group(function () {
     Route::group(["prefix" => "auth"], function () {
         Route::resource("hotels", "App\Http\Controllers\Admin\HotelController");
         Route::resource("amenities", "App\Http\Controllers\Admin\AmenityController");
-        //Route::resource("payments", "App\Http\Controllers\Admin\PaymentController");
-        //Route::resource("listbooks", "App\Http\Controllers\Admin\ListbookController");
-        //Route::resource("bookings", "App\Http\Controllers\Admin\BookingController");
         Route::prefix('bookcalendar')->group(function () {
             Route::get('/books', [BookingCalendarController::class, 'index'])->name('bookcalendar.index');
             Route::get('/books/events', [BookingCalendarController::class, 'getEvents'])->name('bookcalendar.events');
             Route::post('/books/create', [BookingCalendarController::class, 'store'])->name('bookcalendar.create');
-            Route::put('/books/update/{id}', [BookingCalendarController::class, 'update'])->name('bookcalendar.update');
-            Route::delete('/books/delete/{id}', [BookingCalendarController::class, 'destroy'])->name('bookcalendar.delete');
         });
 
-        Route::resource("prices", "App\Http\Controllers\Admin\PriceController");
+        Route::prefix('bookcalendarprice')->group(function () {
+            Route::get('/books', [BookingCalendarPriceController::class, 'index'])->name('bookcalendarprice.index');
+            Route::get('/books/events', [BookingCalendarPriceController::class, 'getEvents'])->name('bookcalendarprice.events');
+            Route::post('/books/create', [BookingCalendarPriceController::class, 'store'])->name('bookcalendarprice.create');
+        });
+
+        //Route::resource("prices", "App\Http\Controllers\Admin\PriceController");
         Route::resource("rooms", "App\Http\Controllers\Admin\RoomController");
         Route::resource("rates", "App\Http\Controllers\Admin\RateController");
         Route::resource("meals", "App\Http\Controllers\Admin\MealController");
@@ -76,7 +77,7 @@ Route::middleware('set_locale')->group(function () {
         Route::get('/allbooks/excel', [AllBookingController::class, 'exportExcel'])->name('excel-books');
 
         Route::get('generate-pdf/{id}', [PDFController::class, 'generatePDF'])->name('pdf');
-        Route::post('/books/store', [BookingController::class, 'store'])->name('listbooks.store');
+        //Route::post('/books/store', [BookingController::class, 'store'])->name('listbooks.store');
         Route::get('/items/create', HotelWizard::class)->name('hotel.create');
 
         Route::get('/userbooks', [UserBookController::class, 'index'])->name('userbooks.index');
@@ -86,8 +87,6 @@ Route::middleware('set_locale')->group(function () {
         //exely
         Route::post('/userbooks/cancel_exely/{book}', [UserBookController::class, 'cancel_calculate_exely'])->name('userbooks.cancel_calculate_exely');
         Route::get('/userbooks/cancel_confirm', [UserBookController::class, 'cancel_confirm_exely'])->name('userbooks.cancel_confirm_exely');
-
-
     });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
