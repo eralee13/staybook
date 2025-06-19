@@ -318,4 +318,46 @@ class PageController extends Controller
         return view('pages.contacts', compact('page', 'contacts'));
     }
 
+    public function companies()
+    {
+        $page = Page::cacheFor(now()->addHours(6))->where('id', 7)->first();
+        return view('pages.page', compact('page'));
+    }
+
+    public function apartments()
+    {
+        $page = Page::cacheFor(now()->addHours(6))->where('id', 8)->first();
+        return view('pages.page', compact('page'));
+    }
+
+    public function objects()
+    {
+        $page = Page::cacheFor(now()->addHours(6))->where('id', 9)->first();
+        return view('pages.page', compact('page'));
+    }
+
+    public function aboutus()
+    {
+        $page = Page::cacheFor(now()->addHours(6))->where('id', 10)->first();
+        return view('pages.page', compact('page'));
+    }
+
+    public function rules()
+    {
+        $page = Page::cacheFor(now()->addHours(6))->where('id', 11)->first();
+        return view('pages.page', compact('page'));
+    }
+
+    public function privacy()
+    {
+        $page = Page::cacheFor(now()->addHours(6))->where('id', 12)->first();
+        return view('pages.page', compact('page'));
+    }
+
+    public function legal()
+    {
+        $page = Page::cacheFor(now()->addHours(6))->where('id', 13)->first();
+        return view('pages.page', compact('page'));
+    }
+
 }

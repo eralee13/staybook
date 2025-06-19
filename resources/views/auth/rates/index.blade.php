@@ -1,16 +1,16 @@
 @extends('auth.layouts.master')
 
-@section('title', __('admin.plans_and_rules'))
+@section('title', __('admin.plans'))
 
 @section('content')
 
     <div class="page admin">
         <div class="container">
             <div class="row">
-                <div class="col-md-2">
+                <div class="col-md-3">
                     @include('auth.layouts.sidebar')
                 </div>
-                <div class="col-md-10">
+                <div class="col-md-9">
                     @include('auth.layouts.subroom')
                     <h1>@lang('admin.plans')</h1>
                     @if($rates->isNotEmpty())
@@ -21,7 +21,6 @@
                                 <th>@lang('admin.title')</th>
                                 <th>@lang('admin.room')</th>
                                 <th>@lang('admin.food')</th>
-                                <th>@lang('admin.cancellations')</th>
                                 <th>@lang('admin.action')</th>
                             </tr>
                             </thead>
@@ -32,7 +31,6 @@
                                     <td>{{ $rate->__('title') ?? '' }}</td>
                                     <td>{{ $rate->room->title ?? '' }}</td>
                                     <td>{{ $rate->meal->code ?? '' }}</td>
-                                    <td>{{ $rate->cancellationRule->title ?? '' }}</td>
                                     <td>
                                         <form action="{{ route('rates.destroy', $rate) }}" method="post">
                                             <ul>

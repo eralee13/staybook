@@ -170,8 +170,8 @@
                     <div class="footer-item">
                         <ul>
                             <li><a href="{{ route('about') }}">@lang('main.about_service')</a></li>
-                            <li><a href="{{ route('about') }}">@lang('main.about_company')</a></li>
-                            <li><a href="#">@lang('main.cities_and_countries')</a></li>
+                            <li><a href="{{ route('aboutus') }}">@lang('main.about_company')</a></li>
+                            <li><a href="{{ route('hotels') }}">@lang('main.cities_and_countries')</a></li>
                             <li><a href="#">@lang('main.blog')</a></li>
                         </ul>
                     </div>
@@ -179,19 +179,19 @@
                 <div class="col-lg-2 col-md-4">
                     <div class="footer-item">
                         <ul>
-                            <li><a href="#">@lang('main.companies_services')</a></li>
-                            <li><a href="#">@lang('main.apartments')</a></li>
-                            <li><a href="#">@lang('main.hotels_properties')</a></li>
-                            <li><a href="#">@lang('main.tour_operators')</a></li>
+                            <li><a href="{{ route('companies') }}">@lang('main.companies_services')</a></li>
+                            <li><a href="{{ route('apartments') }}">@lang('main.apartments')</a></li>
+                            <li><a href="{{ route('objects') }}">@lang('main.hotels_properties')</a></li>
+                            <li><a href="{{ route('objects') }}">@lang('main.tour_operators')</a></li>
                         </ul>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-4">
                     <div class="footer-item">
                         <ul>
-                            <li><a href="#">@lang('main.booking_terms')</a></li>
-                            <li><a href="#">@lang('main.privacy')</a></li>
-                            <li><a href="#">@lang('main.legal')</a></li>
+                            <li><a href="{{ route('rules') }}">@lang('main.booking_terms')</a></li>
+                            <li><a href="{{ route('privacy') }}">@lang('main.privacy')</a></li>
+                            <li><a href="{{ route('legal') }}">@lang('main.legal')</a></li>
                         </ul>
                     </div>
                 </div>

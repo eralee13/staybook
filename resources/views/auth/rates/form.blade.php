@@ -143,6 +143,22 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
+                                    @include('auth.layouts.error', ['fieldname' => 'price3'])
+                                    <label for="">Стоимость за 3 взрослого</label>
+                                    <input type="number" name="price3" value="{{ old('price3', isset($rate) ?
+                                $rate->price3 : null) }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @include('auth.layouts.error', ['fieldname' => 'price4'])
+                                    <label for="">Стоимость за 4 взрослого</label>
+                                    <input type="number" name="price4" value="{{ old('price4', isset($rate) ?
+                                $rate->price4 : null) }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'adult'])
                                     <label for="">Кол-во взрослых</label>
                                     <input type="number" name="adult" value="{{ old('adult', isset($rate) ?
@@ -186,27 +202,29 @@
                                 $rate->child_extra_fee : null) }}">
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    @include('auth.layouts.error', ['fieldname' => 'child_extra_fee'])
-                                    <label for="">Политика отмены</label>
-                                    <select name="cancellation_rule_id">
-                                        @isset($rate)
-                                            <option value="{{ $rate->cancellation_rule_id }}"
-                                                    selected>{{ $rate->cancellationRule->title }}</option>
-                                        @else
-                                            <option>@lang('admin.choose')</option>
-                                        @endisset
-                                        @foreach($cancellations as $cancel)
-                                            @isset($rate)
-                                                @if($rate->cancellation_rule_id != $cancel->id)
-                                                    <option value="{{ $cancel->id }}">{{ $cancel->title }}</option>
-                                                @endif
-                                            @else
-                                                <option value="{{ $cancel->id }}">{{ $cancel->title }}</option>
-                                            @endisset
-                                        @endforeach
-                                    </select>
+
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h4>Ограничения бронирования</h4>
+                                <label for="">Вы можете открыть или закрыть продажи тарифа в определённое время. Отсчёт
+                                    идёт от 00:00 (начала суток) предполагаемого дня заезда.
+                                </label>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        @include('auth.layouts.error', ['fieldname' => 'open_time'])
+                                        <label for="">Продажи будут открыты за (дней)</label>
+                                        <input type="text" name="open_time">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        @include('auth.layouts.error', ['fieldname' => 'close_time'])
+                                        <label for="">Продажи будут закрыты за (дней)</label>
+                                        <input type="text" name="close_time">
+                                    </div>
                                 </div>
                             </div>
                         </div>

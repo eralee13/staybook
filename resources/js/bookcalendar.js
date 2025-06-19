@@ -98,7 +98,17 @@ document.addEventListener('DOMContentLoaded', function () {
             const color = event.backgroundColor || event._def?.ui?.backgroundColor;
             const title = event.title;
 
-            if (event.extendedProps.description && color === '#d95d5d') {
+            if (event.extendedProps.description && color === '#d95d5d' && event.extendedProps.open_time) {
+                const open = event.extendedProps.open_time ?? '—';
+                const close = event.extendedProps.close_time ?? '—';
+
+                const priceText = event.title;
+                const content = `
+                <div style="padding: 4px 8px; font-size: 14px;">
+                    <strong>Цена:</strong> ${priceText}<br>
+                    <strong>Открытие:</strong> ${open}<br>
+                    <strong>Закрытие:</strong> ${close}
+                </div>`;
                 tippy(el, {
                     content: `
                         <div style="padding: 4px 8px; font-size: 14px;">

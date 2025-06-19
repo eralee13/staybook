@@ -6,6 +6,7 @@
 {{--    @endphp--}}
     <ul>
         @can('edit-hotel')
+            <li @routeactive('dashboard*') class="hotel-list"><a href="{{route('dashboard')}}"><img src="{{ route('index') }}/img/icons/home.svg" alt=""> Консоль</a></li>
                 <li @routeactive(
                 'hotel*') class="hotel-list"><a href="{{route('hotels.index')}}"><img src="{{ route('index') }}/img/icons/home.svg" alt=""> @lang('admin.hotels')</a></li>
                 <li @routeactive(

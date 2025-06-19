@@ -61,9 +61,28 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
+                                <div class="form-group">
+                                    @include('auth.layouts.error', ['fieldname' => 'penalty_type'])
+                                    <label for="">Выберите тариф</label>
+                                    <select name="rate_id" id="">
+                                        @isset($cancellation)
+                                            <option @if($cancellation->rate_id)
+                                                        selected>
+                                                {{ $cancellation->rate->title }}</option>
+                                        @else
+                                            <option>@lang('admin.choose')</option>
+                                        @endif
+                                        @endisset
+                                        @foreach($rates as $rate)
+                                            <option value="{{ $rate->id }}">{{ $rate->title }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
                                 @include('auth.layouts.error', ['fieldname' => '>free_cancellation_days'])
                                 <div class="form-group">
-                                    <label for="">Количество дней до заезда для бесплатной отмены</label>
+                                    <label for="">Количество дней до заезда</label>
                                     <input type="number" name="free_cancellation_days" value="{{ old('free_cancellation_days', isset($cancellation) ?
                                     $cancellation->free_cancellation_days :
                              null) }}">
@@ -85,6 +104,7 @@
                                         @endisset
                                         <option value="fixed">Фиксированная сумма</option>
                                         <option value="percent">Процент от стоимости</option>
+                                        <option value="night">Ночи</option>
                                     </select>
                                 </div>
                             </div>

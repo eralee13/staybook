@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AllBillsController;
 use App\Http\Controllers\Admin\AllBookingController;
 use App\Http\Controllers\Admin\BookingCalendarController;
 use App\Http\Controllers\Admin\BookingCalendarPriceController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\HotelController;
 use App\Http\Controllers\Admin\ListbookController;
 use App\Http\Controllers\Admin\PDFController;
@@ -79,6 +80,7 @@ Route::middleware('set_locale')->group(function () {
         Route::get('generate-pdf/{id}', [PDFController::class, 'generatePDF'])->name('pdf');
         //Route::post('/books/store', [BookingController::class, 'store'])->name('listbooks.store');
         Route::get('/items/create', HotelWizard::class)->name('hotel.create');
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         Route::get('/userbooks', [UserBookController::class, 'index'])->name('userbooks.index');
         Route::get('/userbooks/show/{book}', [UserBookController::class, 'showBook'])->name('userbooks.show');
@@ -127,10 +129,17 @@ Route::middleware('set_locale')->group(function () {
     Route::get('/book/cancel/calculate/ex', [\App\Http\Controllers\BookingController::class, 'cancel_calculate_exely'])->name('cancel_calculate_exely');
     Route::get('/book/cancel/confirm/ex', [\App\Http\Controllers\BookingController::class, 'cancel_confirm_exely'])->name('cancel_confirm_exely');
 
+    //pages
     Route::get('/hotels', [PageController::class, 'hotels'])->name('hotels');
     Route::get('/about', [PageController::class, 'about'])->name('about');
     Route::get('/contactspage', [PageController::class, 'contactspage'])->name('contactspage');
-
+    Route::get('/companies', [PageController::class, 'companies'])->name('companies');
+    Route::get('/apartments', [PageController::class, 'apartments'])->name('apartments');
+    Route::get('/objects', [PageController::class, 'objects'])->name('objects');
+    Route::get('/aboutus', [PageController::class, 'aboutus'])->name('aboutus');
+    Route::get('/rules', [PageController::class, 'rules'])->name('rules');
+    Route::get('/privacy', [PageController::class, 'privacy'])->name('privacy');
+    Route::get('/legal', [PageController::class, 'legal'])->name('legal');
 
     //TourMind
     Route::get('/hotel-results', HotelResults::class)->name('hotel.results');

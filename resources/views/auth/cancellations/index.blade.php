@@ -7,10 +7,10 @@
     <div class="page admin">
         <div class="container">
             <div class="row">
-                <div class="col-md-2">
+                <div class="col-md-3">
                     @include('auth.layouts.sidebar')
                 </div>
-                <div class="col-md-10">
+                <div class="col-md-9">
                     @include('auth.layouts.subroom')
                     <div class="row align-items-center aic">
                         <div class="col-md-7">
@@ -32,6 +32,7 @@
                                 <th>@lang('admin.title')</th>
                                 <th>Тип штрафа</th>
                                 <th>Размер штрафа</th>
+                                <th>Тариф</th>
                                 <th>@lang('admin.action')</th>
                             </tr>
                             </thead>
@@ -42,6 +43,7 @@
                                     <td>{{ $cancellation->title }}</td>
                                     <td>{{ $cancellation->penalty_type }}</td>
                                     <td>{{ $cancellation->penalty_amount }}</td>
+                                    <td>{{ $cancellation->rate->title }}</td>
                                     <td>
                                         <form action="{{ route('cancellations.destroy', $cancellation) }}" method="post">
                                             <ul>

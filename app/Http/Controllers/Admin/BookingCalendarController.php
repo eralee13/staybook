@@ -285,6 +285,8 @@ class BookingCalendarController extends Controller
                             'extendedProps' => [
                                 'room_id' => $room->id,
                                 'rate_id' => $rate->id,
+                                'open_time' => $rate->open_time,
+                                'close_time' => $rate->close_time,
                             ]
                         ];
                     }
@@ -334,6 +336,30 @@ class BookingCalendarController extends Controller
                     'message' => 'Недостаточно квоты на выбранные даты.'
                 ]);
             }
+
+            $now = now()->setTimezone('Asia/Bishkek');
+            $checkinDate = Carbon::parse($validated['start'])->startOfDay();
+
+            if ($rate->booking_open_time) {
+                $openAt = Carbon::parse($checkinDate->format('Y-m-d') . ' ' . $rate->booking_open_time);
+                if ($now->lt($openAt)) {
+                    return response()->json([
+                        'error' => true,
+                        'message' => 'Бронирование ещё не открыто для этого тарифа.'
+                    ]);
+                }
+            }
+
+            if ($rate->booking_close_time) {
+                $closeAt = Carbon::parse($checkinDate->format('Y-m-d') . ' ' . $rate->booking_close_time);
+                if ($now->gt($closeAt)) {
+                    return response()->json([
+                        'error' => true,
+                        'message' => 'Бронирование закрыто для этого тарифа.'
+                    ]);
+                }
+            }
+
 
             // ✅ Шаг 4: Генерация уникального токена брони
             do {
