@@ -21,8 +21,7 @@ class PageController extends Controller
     {
         $hotels = Hotel::where('tourmind_id', null)->get();
         //$hotels = Hotel::cacheFor(now()->addHours(2))->where('tourmind_id', null)->get();
-        $cities = City::where('country_code', null)->orderBy('title', 'asc')->get();
-        //$cities = City::cacheFor(now()->addHours(2))->where('country_id', null)->orderBy('title', 'asc')->get();
+        $cities = City::orderBy('title', 'asc')->get();
         $tomorrow = Carbon::tomorrow()->format('Y-m-d');
         $now = Carbon::now();
         if ($now->hour > 3 && $now->hour < 4) {

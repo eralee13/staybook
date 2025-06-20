@@ -173,7 +173,7 @@
                                                         @php
                                                             $arrival = \Carbon\Carbon::createFromDate($request->arrivalDate)->format('d.m.Y H:i');
                                                             $departure = \Carbon\Carbon::createFromDate($request->departureDate)->format('d.m.Y H:i');
-                                                            $cancel = \App\Models\CancellationRule::where('id', $rate->cancellation_rule_id)->firstOrFail();
+                                                            $cancel = \App\Models\CancellationRule::where('rate_id', $rate->id)->firstOrFail();
                                                             $cancelDate = \Carbon\Carbon::parse($request->arrivalDate)->subDays($cancel->free_cancellation_days)->format('d.m.Y H:i');
                                                             //кол-во дней
                                                             $arr = \Carbon\Carbon::parse($request->arrivalDate);

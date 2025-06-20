@@ -8,6 +8,7 @@
 
 @section('content')
 
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
     <div class="page admin">
         <div class="container">
             <div class="row">
@@ -118,7 +119,7 @@
                                 <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'city'])
                                     <label for="">Укажите город</label>
-                                    <select name="city" id="">
+                                    <select name="city" id="cityhot">
                                         @isset($hotel)
                                             <option value="{{ $hotel->city }}"
                                                     selected>{{ $hotel->city }}</option>
@@ -138,11 +139,23 @@
                                 </div>
                             </div>
 
+                            <style>
+                                .select2-container--default .select2-selection--single {
+                                    height: 50px;
+                                    line-height: 50px;
+                                    display: block;
+                                }
+
+                                .select2-container--default .select2-selection--single .select2-selection__rendered {
+                                    line-height: 50px;
+                                }
+                            </style>
+
                             <div class="col-md-6">
                                 <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'timezone'])
                                     <label for="">Часовой пояс</label>
-                                    <select name="timezone" id="">
+                                    <select name="timezone" id="timezone">
                                         @isset($hotel)
                                             <option value="{{ $hotel->timezone }}"
                                                     selected>{{ $hotel->timezone }}</option>
@@ -224,58 +237,6 @@
                                 </div>
                             </div>
 
-                            {{--                            <div class="col-md-6">--}}
-                            {{--                                <div class="form-group">--}}
-                            {{--                                    @include('auth.layouts.error', ['fieldname' => 'early_in'])--}}
-                            {{--                                    <label for="early_in">@lang('admin.early_checkin')</label>--}}
-                            {{--                                    <select name="early_in" id="early_in">--}}
-                            {{--                                        @isset($hotel)--}}
-                            {{--                                            <option @if($hotel->early_in)--}}
-                            {{--                                                        selected>--}}
-                            {{--                                                {{ $hotel->early_in }}</option>--}}
-                            {{--                                        @else--}}
-                            {{--                                            <option>Choose</option>--}}
-                            {{--                                        @endif--}}
-                            {{--                                        @endisset--}}
-                            {{--                                        <option value="06:00">06:00</option>--}}
-                            {{--                                        <option value="07:00">07:00</option>--}}
-                            {{--                                        <option value="08:00">08:00</option>--}}
-                            {{--                                        <option value="09:00">09:00</option>--}}
-                            {{--                                        <option value="10:00">10:00</option>--}}
-                            {{--                                        <option value="11:00">11:00</option>--}}
-                            {{--                                        <option value="12:00">12:00</option>--}}
-                            {{--                                        <option value="13:00">13:00</option>--}}
-                            {{--                                    </select>--}}
-                            {{--                                </div>--}}
-                            {{--                            </div>--}}
-
-                            {{--                            <div class="col-md-6">--}}
-                            {{--                                <div class="form-group">--}}
-                            {{--                                    @include('auth.layouts.error', ['fieldname' => 'early_out'])--}}
-                            {{--                                    <label for="early_out">@lang('admin.late_checkout')</label>--}}
-                            {{--                                    <select name="early_out" id="early_out">--}}
-                            {{--                                        @isset($hotel)--}}
-                            {{--                                            <option @if($hotel->early_out)--}}
-                            {{--                                                        selected>--}}
-                            {{--                                                {{ $hotel->early_out }}</option>--}}
-                            {{--                                        @else--}}
-                            {{--                                            <option>Choose</option>--}}
-                            {{--                                        @endif--}}
-                            {{--                                        @endisset--}}
-                            {{--                                        <option value="15:00">15:00</option>--}}
-                            {{--                                        <option value="16:00">16:00</option>--}}
-                            {{--                                        <option value="17:00">17:00</option>--}}
-                            {{--                                        <option value="18:00">18:00</option>--}}
-                            {{--                                        <option value="19:00">19:00</option>--}}
-                            {{--                                        <option value="20:00">20:00</option>--}}
-                            {{--                                        <option value="21:00">21:00</option>--}}
-                            {{--                                        <option value="22:00">22:00</option>--}}
-                            {{--                                        <option value="23:00">23:00</option>--}}
-                            {{--                                    </select>--}}
-                            {{--                                </div>--}}
-                            {{--                            </div>--}}
-
-
                             <div class="col-md-6">
                                 <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'rating'])
@@ -346,8 +307,13 @@
                                 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
                                 <script>
-                                    var lat = {{ old('lat', isset($hotel) ? $hotel->lat : 42.8746) }};  // Если нет данных, по умолчанию Москва
-                                    var lng = {{ old('lng', isset($hotel) ? $hotel->lng : 74.6120) }};
+                                    @isset($hotel)
+                                    var lat = {{ old('lat', $hotel->lat) }};
+                                    var lng = {{ old('lng', $hotel->lng) }};
+                                    @else
+                                    var lat = 42.8746;
+                                    var lng = 74.585902;
+                                    @endisset
 
                                     var map = L.map('map').setView([lat, lng], 15);
 

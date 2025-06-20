@@ -221,13 +221,12 @@
 
 <script src="{{ route('index') }}/js/scripts.min.js"></script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/js/standalone/selectize.min.js"
-        integrity="sha256-+C0A5Ilqmu4QcSPxrlGpaZxJ04VjsRjKu+G82kl5UJk=" crossorigin="anonymous"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
-    $(document).ready(function () {
-        $('#city').selectize({
-            sortField: 'text'
+    $(document).ready(function() {
+        $('#city').select2({
+            placeholder: "Выберите город",
+            allowClear: true
         });
     });
 </script>

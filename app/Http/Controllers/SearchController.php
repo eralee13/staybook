@@ -15,17 +15,17 @@ class SearchController extends Controller
 {
     public function search(Request $request)
     {
-        $cities   = City::whereNull('country_id')->orderBy('title')->get();
+        $cities = City::whereNull('country_id')->orderBy('title')->get();
         $tomorrow = Carbon::tomorrow()->format('Y-m-d');
         $rooms = $request->input('rooms', []); // если нет — пустой массив
-        $totalAdults    = 0;
-        $allChildAges   = [];
+        $totalAdults = 0;
+        $allChildAges = [];
         foreach ($rooms as $room) {
-            $totalAdults += (int) ($room['adults'] ?? 0);
+            $totalAdults += (int)($room['adults'] ?? 0);
 
             if (!empty($room['childAges']) && is_array($room['childAges'])) {
                 foreach ($room['childAges'] as $age) {
-                    $allChildAges[] = (int) $age;
+                    $allChildAges[] = (int)$age;
                 }
             }
         }
@@ -44,11 +44,11 @@ class SearchController extends Controller
             // Фильтрация по датам: исключаем тарифы, у которых уже зарезервированы подходящие даты
             if ($request->filled('start_d') && $request->filled('end_d')) {
                 $start = $request->start_d;
-                $end   = $request->end_d;
+                $end = $request->end_d;
                 $q->whereDoesntHave('bookings', function ($b) use ($start, $end) {
                     $b->where('status', 'reserved')
                         ->where(function ($qb) use ($start, $end) {
-                            $qb->whereBetween('arrivalDate',   [$start, $end])
+                            $qb->whereBetween('arrivalDate', [$start, $end])
                                 ->orWhereBetween('departureDate', [$start, $end])
                                 ->orWhere(function ($qbb) use ($start, $end) {
                                     $qbb->where('arrivalDate', '<=', $start)
@@ -77,6 +77,7 @@ class SearchController extends Controller
         // Выполняем запрос и получаем коллекцию отелей вместе с уже подгруженными тарифами
         $localHotels = $hotelQuery->get();
 
+
         // Дополнительная сортировка по цене (если задана)
         if ($request->sort === 'lowest_price') {
             $localHotels = $localHotels->sortBy(fn($h) => $h->rates->min('price'))->values();
@@ -98,10 +99,10 @@ class SearchController extends Controller
             try {
                 // Формируем полезную нагрузку (payload) для Exely API
                 $payload = [
-                    'propertyIds'   => $propertyIds,
-                    'adults'        => $totalAdults,
-                    'childAges'     => $allChildAges,
-                    'arrivalDate'   => $request->arrivalDate,
+                    'propertyIds' => $propertyIds,
+                    'adults' => $totalAdults,
+                    'childAges' => $allChildAges,
+                    'arrivalDate' => $request->arrivalDate,
                     'departureDate' => $request->departureDate,
                 ];
 
@@ -140,20 +141,26 @@ class SearchController extends Controller
             });
         }
 
-        // 6. Связанные отели (пример жестко закодированных ID — при желании адаптируйте)
-        $related = Hotel::whereNull('tourmind_id')
-            ->whereIn('id', [14, 15])
-            ->get();
+        if ($localHotels->isEmpty()) {
+            return view('pages.search.search', [
+                'hotels'   => [],
+                'cities'   => $cities,
+                'tomorrow' => $tomorrow,
+                'request'  => $request,
+                'results'  => $results,
+                'error'    => 'По вашему запросу отели не найдены.',
+            ]);
+        } else {
+            // 7. Возвращаем вьюшку с объединёнными данными
+            return view('pages.search.search', [
+                'hotels' => $localHotels,
+                'cities' => $cities,
+                'tomorrow' => $tomorrow,
+                'request' => $request,
+                'results' => $results,
+            ]);
+        }
 
-        // 7. Возвращаем вьюшку с объединёнными данными
-        return view('pages.search.search', [
-            'hotels'   => $localHotels,
-            'cities'   => $cities,
-            'tomorrow' => $tomorrow,
-            'request'  => $request,
-            'results'  => $results,
-            'related'  => $related,
-        ]);
     }
 
 
@@ -212,58 +219,68 @@ class SearchController extends Controller
     //exely
     public function hotel_exely(Request $request)
     {
-        // 1) Нормализуем входные данные childAges (строка "2, 7" → ['2','7'])
-        $childAgesInput = $request->input('childAges', []);
-        $childs = explode(',', implode(',', $childAgesInput));
+        // ✅ Валидация входных параметров
+        $request->validate([
+            'propertyId' => 'required|string',
+            'arrivalDate' => 'required|date',
+            'departureDate' => 'required|date|after:arrivalDate',
+            'adultCount' => 'required|integer|min:1',
+            'childAges' => 'nullable|array',
+        ]);
 
+        // ✅ Очистка массива childAges от пустых значений
+        $childAgesInput = (array)$request->input('childAges', []);
+        $childs = array_filter($childAgesInput, fn($age) => trim($age) !== '');
+        $childs = array_map('intval', $childs); // безопасное преобразование в числа
 
-
-        // 2) Базовый URL
-        $baseUrl = rtrim(config('services.exely.base_url'), '/')
-            . "/search/v1/properties/{$request->propertyId}/room-stays";
-
-        // 3) Параметры без childAges
+        // ✅ Параметры запроса
         $params = [
-            'arrivalDate'          => $request->arrivalDate,
-            'departureDate'        => $request->departureDate,
-            'adults'               => $request->adultCount,
-            'includeExtraStays'    => 'false',
+            'arrivalDate' => $request->arrivalDate,
+            'departureDate' => $request->departureDate,
+            'adults' => $request->adultCount,
+            'includeExtraStays' => 'false',
             'includeExtraServices' => 'false',
         ];
 
-        // 4) Собираем строку запроса вручную
         $queryString = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
         foreach ($childs as $age) {
             $queryString .= '&childAges=' . urlencode($age);
         }
 
+        // ✅ Финальный URL
+        $url = rtrim(config('services.exely.base_url'), '/') . "/search/v1/properties/{$request->propertyId}/room-stays?" . $queryString;
 
+        // ✅ Выполняем запрос
+        $response = Http::withHeaders([
+            'x-api-key' => config('services.exely.key'),
+            'accept' => 'application/json',
+        ])->get($url);
 
-        // 5) Полный URL
-        $url = $baseUrl . '?' . $queryString;
+        // ✅ Лог ответа
+        Log::debug('📥 Ответ Exely:', [
+            'url' => $url,
+            'status' => $response->status(),
+            'body' => $response->body(),
+        ]);
 
-        // 6) ВЫВЕДЕМ URL для отладки и остановим выполнение
-        //dd($url);
+        // ✅ Безопасное получение roomStays
+        $data = json_decode($response->body());
 
-        // ================================
-        // Когда убедитесь, что URL правильный,
-        // удалите строку dd($url) и раскомментируйте запрос:
-        //
-         $response = Http::withHeaders([
-                 'x-api-key' => config('services.exely.key'),
-                 'accept'    => 'application/json',
-             ])
-             ->get($url);
+        if (!isset($data->roomStays) || !is_array($data->roomStays)) {
+            Log::warning('Exely: Нет roomStays в ответе', ['response' => $data]);
+            return view('pages.search.exely.hotel', [
+                'rooms' => [],
+                'request' => $request,
+            ]);
+        }
 
+        // ✅ Сортировка по цене
+        $rooms = collect($data->roomStays)
+            ->sortBy('total.priceBeforeTax')
+            ->values()
+            ->all();
 
-
-         $rooms = collect($response->object()->roomStays)
-             ->sortBy('total')
-             ->values()
-             ->all();
-
-         return view('pages.search.exely.hotel', compact('rooms','request'));
+        return view('pages.search.exely.hotel', compact('rooms', 'request'));
     }
-
 
 }

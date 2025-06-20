@@ -18,7 +18,7 @@
                             $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
                             $arrival = \Carbon\Carbon::createFromDate($book->arrivalDate)->format('d.m.Y');
                             $departure = \Carbon\Carbon::createFromDate($book->departureDate)->format('d.m.Y');
-                            $cancel = \App\Models\CancellationRule::where('id', $book->cancellation_id)->firstOrFail();
+                            $cancel = \App\Models\CancellationRule::where('rate_id', $book->cancellation_id)->firstOrFail();
                             $cancelDate = \Carbon\Carbon::parse($arrival)->subDays($cancel->free_cancellation_days)->format('d.m.Y H:i');
                         @endphp
 

@@ -67,7 +67,7 @@
                                     <select name="rate_id" id="">
                                         @isset($cancellation)
                                             <option @if($cancellation->rate_id)
-                                                        selected>
+                                                        selected value="{{ $cancellation->rate_id }}">
                                                 {{ $cancellation->rate->title }}</option>
                                         @else
                                             <option>@lang('admin.choose')</option>
@@ -112,7 +112,7 @@
                             <div class="col-md-6">
                                 @include('auth.layouts.error', ['fieldname' => 'penalty_amount'])
                                 <div class="form-group">
-                                    <label for="">Размер штрафа</label>
+                                    <label for="">Сумма размера штрафа</label>
                                     <input type="number" name="penalty_amount" value="{{ old('penalty_amount', isset($cancellation) ?
                                     $cancellation->penalty_amount : null) }}">
                                 </div>

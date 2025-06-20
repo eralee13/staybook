@@ -6,6 +6,18 @@
 @section('content')
 
     @auth
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+        <style>
+            .select2-container--default .select2-selection--single{
+                height: 50px;
+                line-height: 50px;
+                display: block;
+            }
+            .select2-container--default .select2-selection--single .select2-selection__rendered{
+                line-height: 50px;
+            }
+        </style>
         <div class="main-filter" style="padding-bottom: 40px">
             <div class="container">
                 <div class="row">
@@ -17,7 +29,7 @@
                                         <div class="label stay"><img src="{{ route('index') }}/img/marker_out.svg"
                                                                      alt="">
                                         </div>
-                                        <select name="city" id="address" required>
+                                        <select name="city" id="city" required>
                                             <option value="{{ $request->city }}">{{ $request->city }}</option>
                                             @foreach($cities as $city)
                                                 <option value="{{ $city->title }}">{{ $city->title }}</option>
@@ -501,7 +513,15 @@
             <div class="container">
                 <div class="row">
                     <div class="col-md-12">
-                        @if($results != null)
+                        @if(isset($error))
+                            <div class="alert alert-danger">
+                                {{ $error }}
+                            </div>
+                            <div class="btn-wrap">
+                                <a href="{{ route('index') }}" class="more">Попробуйте снова</a>
+                            </div>
+                        @endif
+                    @if($results != null)
                             @if(isset($results->errors))
                                 @foreach ($results->errors as $error)
                                     <div class="alert alert-danger">

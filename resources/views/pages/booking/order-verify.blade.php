@@ -16,7 +16,7 @@
                         $departure = \Carbon\Carbon::createFromDate($request->departureDate)->format('d.m.Y');
                         $room = \App\Models\Room::where('id', $request->room_id)->firstOrFail();
                         $rate = \App\Models\Rate::where('id', $request->rate_id)->firstOrFail();
-                        $cancelPossible = \App\Models\CancellationRule::where('id', $rate->cancellation_rule_id)->firstOrFail();
+                        $cancelPossible = \App\Models\CancellationRule::where('rate_id', $rate->id)->firstOrFail();
                     @endphp
                     <h1>@lang('main.order_confirmation')</h1>
                     <table>

@@ -43,7 +43,7 @@
                                     <td>{{ $cancellation->title }}</td>
                                     <td>{{ $cancellation->penalty_type }}</td>
                                     <td>{{ $cancellation->penalty_amount }}</td>
-                                    <td>{{ $cancellation->rate->title }}</td>
+                                    <td>{{ $cancellation->rate->title ?? '' }}</td>
                                     <td>
                                         <form action="{{ route('cancellations.destroy', $cancellation) }}" method="post">
                                             <ul>

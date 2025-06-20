@@ -166,7 +166,7 @@
                         $hotel = Hotel::where('exely_id', $request->propertyId)->orWhere('id', $request->propertyId)->first();
                         $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
                         $cancel_utc = \Carbon\Carbon::createFromDate($request->cancelDate)->format('P');
-                        $cancel = \App\Models\CancellationRule::where('id', $request->cancellation_id)->firstOrFail();
+                        $cancel = \App\Models\CancellationRule::where('rate_id', $request->cancellation_id)->firstOrFail();
                         $room = \App\Models\Room::where('id', $request->room_id)->firstOrFail();
                         $rate = \App\Models\Rate::where('id', $request->rate_id)->firstOrFail();
                     @endphp

@@ -89,10 +89,11 @@ class UserBookController extends Controller
                     'status' => "Cancelled"
                 ]);
                 Log::warning('Отмена брони: ' . $book->id);
-                //Mail::to('myrzabekova@silkwaytravel.kg')->send(new BookCancelMail($book));
-                $books = Book::all();
-
-                return view('pages.booking.exely.cancel-confirm', compact('cancel'));
+                Mail::to('myrzabekova@silkwaytravel.kg')->send(new BookCancelMail($book));
+                return view('auth.userbooks.cancel-confirm-exely', compact('cancel'));
+            } else {
+                Log::warning('Запрос завершился ошибкой: ' . $response->status());
+                return view('errors.400', compact('response'));
             }
 
         } catch (RequestException $e) {

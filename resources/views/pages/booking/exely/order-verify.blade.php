@@ -93,7 +93,6 @@
                                             <td>@lang('main.count_adult'):</td>
                                             <td>{{ $room->guestCount->adultCount }}</td>
                                         </tr>
-                                    @dd($room)
                                         <tr>
                                             <td>@lang('main.count_child'):</td>
                                             <td>

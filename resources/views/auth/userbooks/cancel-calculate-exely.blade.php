@@ -9,30 +9,25 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-6 col-md-12">
-                    <h1 data-aos="fade-up" data-aos-duration="2000">@lang('main.booking_cancellation')</h1>
-                    @php
-                        $cancel = \App\Models\CancellationRule::where('id', $book->cancellation_id)->first();
-                        $hotel = \App\Models\Hotel::where('id', $book->hotel_id)->first();
-                        $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
-                    @endphp
-                    @if($cancel->is_refundable == true)
-                        <p>
-                            @if(now()->lte($request->cancelTime))
-                                @lang('main.free_cancellation') {{ $request->cancelTime }} (UTC {{ $hotel_utc }}
-                                ).
-                            @endif
-                            @lang('main.cancellation_amount'): {{ $book->cancel_penalty }} {{ $request->currency }}</p>
+                    @if(isset($calc->errors))
+                        @foreach ($calc->errors as $error)
+                            <div class="alert alert-danger">
+                                <h5>{{ $error->code }}</h5>
+                                <p style="margin-bottom: 0">{{ $error->message }}</p>
+                            </div>
+                        @endforeach
                     @else
-                        <p>@lang('main.free_cancellation'). @lang('main.cancellation_amount'): {{ $book->cancel_penalty }} {{ $request->currency }}</p>
+                        <h1>@lang('main.booking_cancellation')</h1>
+                        <p>@lang('main.cancellation_amount'): {{ $calc->penaltyAmount }} {{ $request->currency }}</p>
+                        <form action="{{ route('userbooks.cancel_confirm') }}">
+                            <div class="form-group">
+                                <label for="">@lang('main.booking_number')</label>
+                                <input type="text" value="{{ $book->book_token }}" name="number">
+                            </div>
+                            <input type="hidden" name="amount" value="{{ $calc->penaltyAmount }}">
+                            <button class="more">@lang('main.cancel_booking')</button>
+                        </form>
                     @endif
-                    <form action="{{ route('cancel_confirm_exely') }}">
-                        <div class="form-group">
-                            <label for="">@lang('main.booking_number')</label>
-                            <input type="text" value="{{ $book->book_token }}" name="number">
-                        </div>
-                        <input type="hidden" name="amount" value="{{ $book->cancel_penalty }}">
-                        <button class="more">@lang('main.cancel')</button>
-                    </form>
                 </div>
             </div>
         </div>

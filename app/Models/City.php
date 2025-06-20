@@ -17,7 +17,8 @@ class City extends Model
         'code',
         'exely_id',
         'country_id',
-        'name'
+        'name',
+        'country_code',
     ];
 
     public function hotels()

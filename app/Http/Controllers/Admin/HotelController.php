@@ -7,6 +7,7 @@ use App\Http\Requests\HotelRequest;
 use App\Mail\HotelDeleteMail;
 use App\Mail\HotelMail;
 use App\Mail\HotelUpdateMail;
+use App\Models\Amenity;
 use App\Models\City;
 use App\Models\Hotel;
 use App\Models\Image;
@@ -86,7 +87,7 @@ class HotelController extends Controller
         DB::table('amenities')->insert(
             array(
                 'hotel_id' => $hotel->id,
-                'amenities' => '1',
+                'services' => '1',
             )
         );
         DB::table('payments')->insert(
@@ -106,7 +107,7 @@ class HotelController extends Controller
         Storage::put($pathname, $pdf->output());
 
         // cancellations
-        $pdf2 = PDF::loadView('pdf.cancellations', $data);
+        $pdf2 = PDF::loadView('pdf.rules', $data);
         $pathname2 = 'pdf/rules_' . $hotel->id . '.pdf';
         Storage::put($pathname2, $pdf2->output());
 
@@ -114,7 +115,7 @@ class HotelController extends Controller
             array(
                 'title' => $hotel->title,
                 'agreement' => $pathname,
-                'cancellations' => $pathname2,
+                'rules' => $pathname2,
                 'hotel_id' => $hotel->id,
                 'status' => 1,
                 'created_at' => date('Y-m-d H:s:i'),
@@ -122,7 +123,7 @@ class HotelController extends Controller
             )
         );
 
-        Mail::to('info@timmedia.store')->send(new HotelMail($request));
+        //Mail::to('info@timmedia.store')->send(new HotelMail($request));
 
         session()->flash('success', $request->title . ' added');
         return redirect()->route('hotels.index');
@@ -136,8 +137,9 @@ class HotelController extends Controller
         $users = Auth::user();
         $images = Image::where('hotel_id', $hotel->id)->get();
         $request->session()->put('hotel_id', $hotel->id);
+        $amenity = Amenity::firstOrFail();
         //dd($request->session()->get('hotel_id'));
-        return view('auth.hotels.show', compact('hotel', 'users', 'images'));
+        return view('auth.hotels.show', compact('hotel', 'users', 'images', 'amenity'));
     }
 
     /**

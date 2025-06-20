@@ -211,10 +211,10 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => {
                 if (data.success) {
                     $('#createBookingModal').modal('hide');
-                    showToast('Бронь успешно создана', 'success');
+                    showToast('Квота обновлена', 'success');
                     refetchCalendar(calendar);
                 } else if (data.error) {
-                    showToast(data.message || 'Ошибка при создании брони.', 'danger');
+                    showToast(data.message || 'Ошибка при обновлении квоты', 'danger');
                 }
             })
             .catch(() => {
