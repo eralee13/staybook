@@ -129,10 +129,10 @@
                                         @foreach($cities as $city)
                                             @isset($hotel)
                                                 @if($hotel->city != $city->title)
-                                                    <option value="{{ $city->title }}">{{ $city->title }}</option>
+                                                    <option value="{{ $city->id }}" {{ old('city') == $city->id ? 'selected' : '' }}>{{ $city->title }}</option>
                                                 @endif
                                             @else
-                                                <option value="{{ $city->id }}">{{ $city->title }}</option>
+                                                <option value="{{ $city->id }}" {{ old('city') == $city->id ? 'selected' : '' }}>{{ $city->title }}</option>
                                             @endisset
                                         @endforeach
                                     </select>
