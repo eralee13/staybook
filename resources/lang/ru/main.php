@@ -5,7 +5,7 @@ return [
     'hotels_and_rooms' => 'Отели и номера',
     'transfer' => 'Трансфер',
     'checkout' => 'Заезд',
-    'room' => 'Комната',
+    'room' => 'Номер',
     'adult' => 'Взрос',
     'child' => 'Дет',
     'filters' => 'Фильтры',
