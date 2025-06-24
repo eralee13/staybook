@@ -43,14 +43,13 @@
                         });
                     </script>
 
-
                     <canvas id="roomRateChart" height="100"></canvas>
                     <script>
                         const ctx2 = document.getElementById('roomRateChart').getContext('2d');
                         const chart2 = new Chart(ctx2, {
                             type: 'bar',
                             data: {
-                                labels: ['Комнаты', 'Тарифы'],
+                                labels: ['Номера', 'Тарифы'],
                                 datasets: [{
                                     label: 'Количество',
                                     data: [{{ $roomCount }}, {{ $rateCount }}],
@@ -72,8 +71,6 @@
                             }
                         });
                     </script>
-
-
                 </div>
             </div>
         </div>

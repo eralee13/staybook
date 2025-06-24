@@ -1,6 +1,6 @@
 @extends('layouts.filter_mini')
 
-@section('title', 'Об отеле')
+@section('title', 'Отели')
 
 @section('content')
 
@@ -23,7 +23,7 @@
                                 <h5>{{ $hotel->title }}</h5>
                                 @if($hotel->rating)
                                     <div class="rating"><img src="{{ route('index') }}/img/star.svg"
-                                                         alt=""> {{ $hotel->rating }}</div>
+                                                             alt=""> {{ $hotel->rating }}</div>
                                 @endif
                             </div>
                         </div>

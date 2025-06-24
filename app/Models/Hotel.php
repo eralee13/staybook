@@ -68,9 +68,6 @@ class Hotel extends Model
         return $this->hasMany(Rate::class);
     }
 
-//    public function policy(){
-//        return $this->hasOne(Policy::class);
-//    }
 
     public function amenity()
     {

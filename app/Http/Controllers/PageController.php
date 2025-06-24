@@ -24,11 +24,11 @@ class PageController extends Controller
         $cities = City::orderBy('title', 'asc')->get();
         $tomorrow = Carbon::tomorrow()->format('Y-m-d');
         $now = Carbon::now();
-        if ($now->hour > 3 && $now->hour < 4) {
+        if ($now->hour > 3 && $now->hour < 5) {
             set_time_limit(300);
             //exely static data
             $response = Http::timeout(300)
-                ->connectTimeout(5)
+                ->connectTimeout(15)
                 ->retry(5)
                 ->withHeaders(['x-api-key' => config('services.exely.key'), 'accept' => 'application/json'])
                 ->get(config('services.exely.base_url') . 'content/v1/properties');
@@ -125,7 +125,7 @@ class PageController extends Controller
                             $urlRoom = $room->images[0]->url ?? null;
 
                             if ($urlRoom) {
-                                $response = Http::timeout(5)->get($urlRoom);
+                                $response = Http::timeout(15)->get($urlRoom);
 
                                 if ($response->ok()) {
                                     $imageContents = $response->body();

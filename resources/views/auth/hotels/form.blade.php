@@ -145,7 +145,6 @@
                                     line-height: 50px;
                                     display: block;
                                 }
-
                                 .select2-container--default .select2-selection--single .select2-selection__rendered {
                                     line-height: 50px;
                                 }
@@ -165,10 +164,10 @@
                                         @foreach($timezones as $timezone)
                                             @isset($hotel)
                                                 @if($hotel->timezone != $timezone)
-                                                    <option value="{{ $timezone }}">{{ $timezone }}</option>
+                                                    <option value="{{ $timezone }}" {{ old('timezone') == $timezone ? 'selected' : '' }}>{{ $timezone }}</option>
                                                 @endif
                                             @else
-                                                <option value="{{ $timezone }}">{{ $timezone }}</option>
+                                                <option value="{{ $timezone }}" {{ old('timezone') == $timezone ? 'selected' : '' }}>{{ $timezone }}</option>
                                             @endisset
                                         @endforeach
                                     </select>
@@ -289,15 +288,12 @@
 
                             <div class="col-md-12">
                                 <label for="">@lang('admin.choose')</label>
-
                                 <style>
-                                    /* Фикс для серого экрана: задать размер контейнеру */
                                     #map {
                                         width: 100%;
                                         height: 500px;
                                     }
                                 </style>
-
                                 <!-- Подключение стилей Leaflet -->
                                 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 

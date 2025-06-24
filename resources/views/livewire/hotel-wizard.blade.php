@@ -57,9 +57,17 @@
                                 @error('city')
                                 <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
-                                <label for="city">Город, Страна</label>
-                                <input wire:model.defer="city" type="text"
-                                       class="form-control"/>
+                                <label for="city">Город</label>
+                                @php
+                                    $cities  = \App\Models\City::all();
+                                    $timezones = DateTimeZone::listIdentifiers();
+                                @endphp
+                                <select wire:model.defer="city" id="cityhot">
+                                    <option value="">Выбрать</option>
+                                    @foreach($cities as $city)
+                                        <option value="{{ $city->title }}">{{ $city->title }}</option>
+                                    @endforeach
+                                </select>
                             </div>
 
                             <div class="form-group">
@@ -80,10 +88,20 @@
                         </div>
 
                         <div class="col-md-6">
+                            <div class="form-group">
+                                @error('timezone')
+                                <div class="alert alert-danger">{{ $message }}</div>
+                                @enderror
+                                <label for="city">Часовой пояс</label>
+                                <select wire:model.defer="timezone" id="timezone">
+                                    <option value="">Выбрать</option>
+                                    @foreach($timezones as $timezone)
+                                        <option value="{{ $timezone }}">{{ $timezone }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                             <div class="row">
-
                                 <div class="col-md-6">
-
                                     <div class="form-group">
                                         <label for="lat">Широта</label>
                                         <input wire:model="lat" type="text" class="form-control" id="lat" >
@@ -193,24 +211,50 @@
 
                     <div class="row">
 
-{{--                        <h3>Продолжение отеля</h3>--}}
-
                         <div class="col-md-6">
-
                             <div class="form-group">
                                 @error('description')
                                 <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
                                 <label for="">Описание отеля</label>
-                                <textarea class="form-control" wire:model.defer="description" rows="3"></textarea>
+                                <textarea class="form-control" wire:model.defer="description" id="editor" rows="3"></textarea>
                             </div>
+
+                            <script src="https://cdn.tiny.cloud/1/yxonqgmruy7kchzsv4uizqanbapq2uta96cs0p4y91ov9iod/tinymce/6/tinymce.min.js"
+                                    referrerpolicy="origin"></script>
+                            <script src="https://cdn.ckeditor.com/ckeditor5/35.1.0/classic/ckeditor.js"></script>
+                            <script>
+                                ClassicEditor
+                                    .create(document.querySelector('#editor'))
+                                    .catch(error => {
+                                        console.error(error);
+                                    });
+                                ClassicEditor
+                                    .create(document.querySelector('#editor1'))
+                                    .catch(error => {
+                                        console.error(error);
+                                    });
+                            </script>
 
                             <div class="form-group">
                                 @error('checkin')
                                 <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
                                 <label for="">Время заезда</label>
-                                <input type="time" wire:model.defer="checkin" class="form-control">
+                                <select wire:model.defer="checkin">
+                                    <option value="">Выбрать</option>
+                                    <option value="13:00">13:00</option>
+                                    <option value="14:00">14:00</option>
+                                    <option value="15:00">15:00</option>
+                                    <option value="16:00">16:00</option>
+                                    <option value="17:00">17:00</option>
+                                    <option value="18:00">18:00</option>
+                                    <option value="19:00">19:00</option>
+                                    <option value="20:00">20:00</option>
+                                    <option value="21:00">21:00</option>
+                                    <option value="22:00">22:00</option>
+                                    <option value="23:00">23:00</option>
+                                </select>
                             </div>
 
                             <div class="form-group">
@@ -275,7 +319,27 @@
                                 <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
                                 <label for="">Время выезда</label>
-                                <input type="time" wire:model.defer="checkout" class="form-control">
+                                <select wire:model.defer="checkout">
+                                    <option value="">Выбрать</option>
+                                    <option value="01:00">01:00</option>
+                                    <option value="02:00">02:00</option>
+                                    <option value="03:00">03:00</option>
+                                    <option value="04:00">04:00</option>
+                                    <option value="05:00">05:00</option>
+                                    <option value="06:00">06:00</option>
+                                    <option value="07:00">07:00</option>
+                                    <option value="08:00">08:00</option>
+                                    <option value="09:00">09:00</option>
+                                    <option value="10:00">10:00</option>
+                                    <option value="11:00">11:00</option>
+                                    <option value="12:00">12:00</option>
+                                    <option value="13:00">13:00</option>
+                                    <option value="14:00">14:00</option>
+                                    <option value="15:00">15:00</option>
+                                    <option value="16:00">16:00</option>
+                                    <option value="17:00">17:00</option>
+                                    <option value="18:00">18:00</option>
+                                </select>
                             </div>
 
                             <div class="form-group">
@@ -311,6 +375,17 @@
                                 @enderror
                                 <label for=""class="form-label">@lang('main.phone')</label>
                                 <input type="tel" id="phone" wire:model.defer="phone" class="phone form-control">
+                            </div>
+
+                            <div class="form-group">
+                                @error('phone')
+                                <div class="alert alert-danger">{{ $message }}</div>
+                                @enderror
+                                <label for="" class="form-label">@lang('main.status')</label>
+                                <select wire:model.defer="status">
+                                    <option value="1">Активен</option>
+                                    <option value="0">Отключен</option>
+                                </select>
                             </div>
 
                         </div>
@@ -369,7 +444,7 @@
                                                @keydown.tab.prevent="add"
                                                @keydown.space.prevent="add"
                                                class="border-0 flex-grow-1"
-                                               placeholder="@lang('main.enter_services')"
+                                               placeholder=""
                                                style="min-width: 100px; outline: none;">
                                     </div>
                                     <input type="hidden" :value="JSON.stringify(data)" wire:model.defer="room_services">
@@ -407,7 +482,7 @@
                                                @keydown.tab.prevent="add"
                                                @keydown.space.prevent="add"
                                                class="border-0 flex-grow-1"
-                                               placeholder="@lang('main.enter_services_en')"
+                                               placeholder=""
                                                style="min-width: 100px; outline: none;">
                                     </div>
                                     <input type="hidden" :value="JSON.stringify(data)" wire:model.defer="room_services_en">
@@ -510,6 +585,7 @@
                                         <option>@lang('admin.choose')</option>
                                         <option value="fixed">Фиксированная сумма</option>
                                         <option value="percent">Процент от стоимости</option>
+                                        <option value="nights">Кол-во ночей</option>
                                     </select>
                                 </div>
                             </div>
@@ -803,3 +879,19 @@
         </div>
     </div>
 </div>
+
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#cityhot').select2({
+            placeholder: "Выберите город",
+            allowClear: true
+        });
+        $('#timezone').select2({
+            placeholder: "Выберите часовой пояс",
+            allowClear: true
+        });
+    });
+</script>

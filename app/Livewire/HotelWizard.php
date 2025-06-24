@@ -40,9 +40,14 @@ class HotelWizard extends Component
 
         if ($this->step == 1) {
             return [
-                'title' => 'required|string', 'title_en' => 'required|string', 'type' => 'required|string',
-                'city' => 'required|string', 'address' => 'required|string', 'address_en' => 'required|string',
-                'lat' => 'required|numeric|between:-90,90', 'lng' => 'required|numeric|between:-180,180',
+                'title' => 'required|string',
+                'title_en' => 'required|string',
+                'type' => 'required|string',
+                'city' => 'required|string',
+                'address' => 'required|string',
+                'address_en' => 'required|string',
+                'lat' => 'required|numeric|between:-90,90',
+                'lng' => 'required|numeric|between:-180,180',
             ];
         }
 
@@ -212,7 +217,7 @@ class HotelWizard extends Component
                 }
 
                 $this->hotel_id = $hotel->id;
-                $this->hotelSuccess = 'Отель успешно добавлен! Продолжайте добавлять номера и т.д.';
+                $this->hotelSuccess = 'Отель успешно добавлен! Пожалуйста продолжайте добавлять номера';
                 $this->hotelError = '';
             }
 
