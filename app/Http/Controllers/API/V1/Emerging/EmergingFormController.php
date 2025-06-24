@@ -5,11 +5,14 @@ namespace App\Http\Controllers\API\V1\Emerging;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log; 
+use App\Models\Hotel;
+
 
 class EmergingFormController extends Controller
 {
     public $keyId, $apiKey, $url;
-
+    public $hotelDetail, $hotelLocalData, $hotels;
     public function __construct()
     {
         $this->keyId = (int) config('app.emerging_key_id');
@@ -17,47 +20,159 @@ class EmergingFormController extends Controller
         $this->url = config('app.emerging_api_url');
     }
 
-    public function searchHotels(Request $request)
+    public function EmergingGetHotels(Request $request)
     {
+        // get local hotels by city
+        $query = Hotel::where('city', $request->city);
+        $query->where('emerging_id', '!=', null);
 
-        $response = Http::withBasicAuth($this->keyId, $this->apiKey)
-            ->withHeaders([
-                'Content-Type' => 'application/json',
-            ])
-            ->post($this->url . '/search/hp/', [
-                "checkin" => "2025-10-22",
-                "checkout" => "2025-10-25",
-                "residency" => "gb",
-                "language" => "en",
-                "guests" => [
-                    [
-                    "adults" => 2,
-                    "children" => []
-                    ]
-                ],
-                "timeout" => 30,
-                "hid" => 8086020,
-                "currency" => "EUR"
-            ]);
-
-            return response()->json($response->json());
-
-        // if ( $response->successful() ) {
-
-        //     $res = $response->json();
-
-        //     return response()->json($res);
-
-        // } else {
-
-        //     $res = response()->json([
-        //         'error' => 'Ошибка запроса',
-        //         'status' => $response->status(),
-        //         'details' => $response->json()
-        //     ], $response->status());
-
-        //     // dd($res);
+        if ($request->rating){
+            $query->where('rating', '=', (int)$request->rating);   
+        }
+        // if ($this->early_in){
+        //     $query->where('early_in', $this->early_in);   
         // }
+        // if ($this->early_out){
+        //     $query->where('early_out', '>=', $this->early_out);   
+        // }
+        
+        $query->with(['images', 'amenity']);
+
+        $this->hotelLocalData = $query->get()
+            ->mapWithKeys(fn($hotel) => [$hotel->emerging_id => $hotel])
+            ->toArray();
+
+            // return $this->hotelLocalData;
+
+
+
+        //  get hotels by city from api
+        $this->hotelDetail = $this->searchHotelsByCity($request);
+
+        // dd($this->hotelDetail);
+
+
+        if( isset($this->hotelDetail['data']['hotels']) ){
+
+            // merge array local to api 
+            foreach ($this->hotelDetail['data']['hotels'] as &$hotele) {
+                $hotelCode = $hotele['hid'];
+            
+                if (isset($this->hotelLocalData[$hotelCode])) {
+                    // Объединяем данные
+                    $hotele['localData'] = $this->hotelLocalData[$hotelCode];
+                } else {
+                    // Если нет локальных данных, добавляем null
+                    $hotele['localData'] = null;
+                }
+            }
+            unset($hotele); // Разрываем ссылку, чтобы избежать проблем
+
+            return $this->hotelDetail;
+        }
+
+        // return $this->hotelDetail;
+    }
+
+    public function searchHotelsByCity(Request $request)
+    {
+        $rooms = $request->input('rooms', []); // если нет — пустой массив
+        $adults = 0;
+        $allChildAges = [];
+        $childs = 0;
+        $roomCount=0;
+        $guests = [];
+
+        foreach ($rooms as $room) {
+            $roomCount++;
+            // Взрослые
+            $adults += (int) ($room['adults'] ?? 0);
+            $adultse = (int) ($room['adults'] ?? 0);
+
+            $children = [];
+            if (!empty($room['childAges']) && is_array($room['childAges'])) {
+                foreach ($room['childAges'] as $age) {
+                    $children[] = (int) $age;
+                    $allChildAges[] = (int) $age;
+                    $childs++;
+                }
+            }
+
+            $guests[] = [
+                'adults' => $adultse,
+                'children' => $children,
+            ];
+        }
+
+            $response = Http::withBasicAuth($this->keyId, $this->apiKey)
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                ])
+                ->post($this->url . '/search/serp/region/', [
+                    "checkin" => $request->arrivalDate,
+                    "checkout" => $request->departureDate,
+                    "residency" => "gb",
+                    "language" => "en",
+                    "guests" => $guests,
+                    // "timeout" => 30,
+                    "region_id" => 378,
+                    "currency" => "USD"
+                ]);
+                // dd($response->json());
+            return $response->json();
+                
+    }
+
+    public function searchRates(Request $request)
+    {
+        // dd($request);
+        $rooms = $request->input('rooms', []); // если нет — пустой массив
+        $adults = 0;
+        $allChildAges = [];
+        $childs = 0;
+        $roomCount=0;
+        $guests = [];
+
+        foreach ($rooms as $room) {
+            $roomCount++;
+            // Взрослые
+            $adults += (int) ($room['adults'] ?? 0);
+            $adultse = (int) ($room['adults'] ?? 0);
+
+            $children = [];
+            if (!empty($room['childAges']) && is_array($room['childAges'])) {
+                foreach ($room['childAges'] as $age) {
+                    $children[] = (int) $age;
+                    $allChildAges[] = (int) $age;
+                    $childs++;
+                }
+            }
+
+            $guests[] = [
+                'adults' => $adultse,
+                'children' => $children,
+            ];
+        }
+
+
+
+            $response = Http::withBasicAuth($this->keyId, $this->apiKey)
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                ])
+                ->post($this->url . '/search/hp/', [
+                    "checkin" => $request->arrivalDate,
+                    "checkout" => $request->departureDate,
+                    "residency" => "gb",
+                    "language" => "en",
+                    "guests" => $guests,
+                    "timeout" => 30,
+                    "hid" => (int)$request->apiHotelId,
+                    "currency" => "USD"
+                ]);
+
+            return $response->json();
+
     }
     
     public function startProcess(Request $request)

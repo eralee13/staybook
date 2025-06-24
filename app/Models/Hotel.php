@@ -21,7 +21,6 @@ class Hotel extends Model
         'deleted_at',
         'user_id',
         'exely_id',
-        'tourmind_id',
         'rate_id',
         'top',
         'status',
@@ -54,6 +53,7 @@ class Hotel extends Model
         'user_id',
         'exely_id',
         'tourmind_id',
+        'emerging_id',
         'timezone',
         'utc',
         'status'

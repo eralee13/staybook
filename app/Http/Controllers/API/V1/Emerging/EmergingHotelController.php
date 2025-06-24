@@ -13,6 +13,7 @@ use App\Models\Room;
 use App\Models\Image;
 
 
+
 class EmergingHotelController extends Controller
 {       
     
@@ -61,8 +62,8 @@ class EmergingHotelController extends Controller
         // $url = 'https://partner-feedora.s3.eu-central-1.amazonaws.com/feed/partner_feed_en_v3.jsonl.zst';
 
         // Шаг 1: Скачиваем файл во временное хранилище
-        $zstPath = storage_path('app/hotels.jsonl.zst');
-        $jsonlPath = storage_path('app/hotels.jsonl');
+        $zstPath = storage_path('app\feed_en_v3.json.zst');
+        $jsonlPath = storage_path('app\hotels_en.jsonl');
         $zstdExe = 'D:\OSPanel\tools\zstd\zstd.exe';
 
         // file_put_contents($zstPath, file_get_contents($url));
@@ -87,9 +88,12 @@ class EmergingHotelController extends Controller
         $hotels = [];
         $i = 0;
 
-        while (($line = fgets($handle)) !== false && $i < 2) { // ограничим для примера 10 строками
+        while (($line = fgets($handle)) !== false) { // ограничим для примера 10 строками
+           
             $data = json_decode($line, true);
-            if ($data) {
+
+            if ($data['region']['name'] == 'Amsterdam') {
+                
                 $hotels[] = $data;
 
                 $amenitiesHotel = collect($data['amenity_groups'])
@@ -113,6 +117,9 @@ class EmergingHotelController extends Controller
 
                             $descriptionRoom = collect($descriptionRoom)->implode('\n');
 
+                            $EmergingTools = new EmergingTools();
+                            $utc = $EmergingTools->getUtcOffsetByCountryCode($data['region']['country_code']);
+                            
 
                     $hotel = Hotel::updateOrCreate(
                         ['emerging_id' => $data['hid']],
@@ -125,6 +132,7 @@ class EmergingHotelController extends Controller
                             'address_en' => $data['address'] ?? '',
                             // 'country_code' => $data['region']['country_code'] ?? '',
                             'city' => $data['region']['name'] ?? '',
+                            'utc' => $utc ?? '',
                             'lat' => $data['latitude'] ?? '',
                             'lng' => $data['longitude'] ?? '',
                             'checkin' => $data['check_in_time'] ?? '',
@@ -148,6 +156,8 @@ class EmergingHotelController extends Controller
                     $room = Room::updateOrCreate(
                         ['hotel_id' => $hotel->id],
                         [
+                            'title' => '',
+                            'title_en' => '',
                             'services' => $amenitiesRoom,
                             // 'image' => $localImagePath,
                             'description_en' => $descriptionRoom ?? ''
@@ -155,7 +165,7 @@ class EmergingHotelController extends Controller
                     );
 
 
-                    $images = $data['images'];
+                    $images = $data['images_ext'];
                     $size = '1024x768';
 
                     $this->saveImagesLink($hotel->id, $images, 20, $size);
@@ -179,16 +189,18 @@ class EmergingHotelController extends Controller
         $i=0;
         collect($images)->take($col)->each(function ($url) use (&$i, $hotelId, $size) {
             $i++;
-            $imageUrl = str_replace('{size}', $size, $url);
+            $imageUrl = str_replace('{size}', $size, $url['url']);
 
             if ($i > 1 && !empty($imageUrl)) {
 
                     // Сохраняем изображение локально
                     $localImagePath = $this->saveHotelImage($imageUrl, $hotelId);
 
-                    Image::create([
-                        'hotel_id' => $hotelId,
-                        'image' => $localImagePath
+                    Image::updateOrCreate(
+                        [
+                            'hotel_id' => $hotelId,
+                            'image' => $localImagePath,
+                            'caption' => $url['category_slug'],
                     ]);
                 
             }

@@ -28,12 +28,11 @@ class EmergingRegionController extends Controller
                 'Content-Type' => 'application/json',
             ])
             ->post($this->url . '/hotel/region/dump/', [
-                'inventory' => 'top',   // можно указать 'current' для актуального
-                'language' => 'en',
+                'inventory' => 'all',   // можно указать 'current' для актуального
             ]);
 
         if ( $response->successful() ) {
-
+            set_time_limit(0);
             $res = (object) $response->json();
             echo $res->data['url'];
             // dd( (object) $response->json() );
@@ -56,8 +55,8 @@ class EmergingRegionController extends Controller
         // $url = 'https://partner-feedora.s3.eu-central-1.amazonaws.com/feed/partner_feed_en_v3.jsonl.zst';
 
         // Шаг 1: Скачиваем файл во временное хранилище
-        $zstPath = storage_path('app/hotels.jsonl.zst');
-        $jsonlPath = storage_path('app/regions.jsonl');
+        $zstPath = storage_path('app\region.jsonl.zst');
+        $jsonlPath = storage_path('app\regions.jsonl');
         $zstdExe = 'D:\OSPanel\tools\zstd\zstd.exe';
 
         // file_put_contents($zstPath, file_get_contents($url));
@@ -82,16 +81,19 @@ class EmergingRegionController extends Controller
         $regions = [];
         $i = 0;
 
-        while (($line = fgets($handle)) !== false && $i < 20) { // ограничим для примера 10 строками
+        while (($line = fgets($handle)) !== false) { // ограничим для примера 10 строками
 
             $data = json_decode($line, true);
             $regions = $data;
-                if ($data) {
+                if ( isset($data['country_name']['en']) ) {
 
                     DB::table('cities')->updateOrInsert(
+                    // City::firstOrCreate(
                             [
-                                'name' => $data['country_name']['en'],
+                                'title' => $data['country_name']['en'] ?? '',
+                                'code' => strtolower($data['country_name']['en']),
                                 'country_id' => (int)$data['id'],
+                                'name' => (string)$data['name']['en'],
                                 'country_code' => (string)$data['country_code'],
                             ]
                     );

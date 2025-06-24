@@ -34,7 +34,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 
-Route::prefix('api/v1/')->group(function () {
+Route::prefix('API/V1/')->group(function () {
     // tourmind
     Route::post('TmHotelDetail', [HotelDetailController::class, 'fetchHotelDetail']);
     Route::post('TmCheckRoomRate', [CheckRoomRateController::class, 'fetchCheckRoomRate']);

@@ -26,6 +26,7 @@
                                         <div class="label stay"><img src="{{route('index')}}/img/marker_out.svg" alt="">
                                         </div>
                                         <select name="city" id="city">
+                                            <option value="Amsterdam" selected>Amsterdam</option>
                                             @foreach($cities as $city)
                                                 <option value="{{ $city->title }}">{{ $city->title }}</option>
                                             @endforeach

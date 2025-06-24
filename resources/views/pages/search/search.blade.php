@@ -19,6 +19,7 @@
                                                                      alt="">
                                         </div>
                                         <select name="city" id="address" required>
+                                            <option value="Amsterdam" selected>Amsterdam</option>
                                             <option value="{{ $request->city }}">{{ $request->city }}</option>
                                             @foreach($cities as $city)
                                                 <option value="{{ $city->title }}">{{ $city->title }}</option>
@@ -651,6 +652,32 @@
                                                                 </form>
                                                             </div>
 
+                                                        @elseif( $hotel->apiName == 'ETG' )
+                                                            <div class="btn-wrap">
+                                                                <form action="{{ route('hotel_etg', ["hid" => $hotel->hid]) }}">
+                                                                    <input type="hidden" name="arrivalDate"
+                                                                        value="{{ $request->arrivalDate }}">
+                                                                    <input type="hidden" name="departureDate"
+                                                                        value="{{ $request->departureDate }}">
+
+                                                                    @foreach ($rooms as $i => $room)
+                                                                        <input type="hidden" name="rooms[{{ $i }}][adults]" value="{{ $room['adults'] }}">
+                                                                        
+                                                                        @if (isset($room['childAges']))
+                                                                            @foreach ($room['childAges'] as $a => $age)
+                                                                                <input type="hidden" name="rooms[{{ $i }}][childAges][]" value="{{ $age }}">
+                                                                            @endforeach
+                                                                        @endif
+                                                                    @endforeach
+                                                                    
+                                                                    <input type="hidden" name="city" value="{{ $request->city }}">
+                                                                    <input type="hidden" name="meal_id" value="{{       $request->meal_id }}">
+                                                                    <input type="hidden" name="apiHotelId"
+                                                                        value="{{ $hotel->apiHotelId ?? '' }}">
+                                                    
+                                                                    <button class="more">Показать все номера</button>
+                                                                </form>
+                                                            </div>
                                                         @elseif( $hotel->apiName == 'Exely' )
                                                             {{-- Exely markup --}}
                                                         @endif

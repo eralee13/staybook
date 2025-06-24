@@ -19,16 +19,13 @@ use App\Models\Hotel;
 use App\Models\Image;
 use App\Models\CancellationRule;
 
-class BookingTmController extends Controller
+class BookingEtgController extends Controller
 {
-    // Booking Tourmind Controller
     public function __construct()
     {
-        // $this->tmApiService = $tmApiService;
-        $this->baseUrl = config('app.tm_base_url');
-        $this->tm_agent_code = config('app.tm_agent_code');
-        $this->tm_user_name = config('app.tm_user_name');
-        $this->tm_password = config('app.tm_password');
+        $this->keyId = (int) config('app.emerging_key_id');
+        $this->apiKey = config('app.emerging_api_key');
+        $this->url = config('app.emerging_api_url');
 
         $this->middleware(function ($request, $next) {
             if (!auth()->check()) {
@@ -40,16 +37,16 @@ class BookingTmController extends Controller
 
     }
 
-    public function order_tm(Request $request)
+    public function order_etg(Request $request)
     {
         //dd($request->all());
         $arrival = Carbon::createFromDate($request->arrivalDate)->format('d.m.Y');
         $departure = Carbon::createFromDate($request->departureDate)->format('d.m.Y');
 
-        return view('pages.booking.tourmind.order', compact('request', 'arrival', 'departure'));
+        return view('pages.booking.emerging.order', compact('request', 'arrival', 'departure'));
     }
 
-    public function book_verify_tm(Request $request)
+    public function book_verify_etg(Request $request)
     {
         $arrival = Carbon::createFromDate($request->arrivalDate)->format('d.m.Y');
         $departure = Carbon::createFromDate($request->departureDate)->format('d.m.Y');
@@ -61,11 +58,11 @@ class BookingTmController extends Controller
             $token = Str::random(40);
         } while (Book::where('book_token', $token)->exists());
         
-        return view('pages.booking.tourmind.verify', compact('request', 'arrival', 'departure', 'hotel', 'token'));
+        return view('pages.booking.emerging.verify', compact('request', 'arrival', 'departure', 'hotel', 'token'));
 
     }
 
-    public function book_reserve_tm(Request $request)
+    public function book_reserve_etg(Request $request)
     {
        
             // $hotel = Hotel::find($request->hotel_id);
@@ -96,11 +93,11 @@ class BookingTmController extends Controller
                 $message = 'Ошибка при создании бронирования! Обратитесь в службу поддержки.';
             }
 
-            return view('pages.booking.tourmind.rezerve', compact('book', 'request', 'message'));
+            return view('pages.booking.emerging.rezerve', compact('book', 'request', 'message'));
         
     }
 
-    public function cancel_calculate_tm(Request $request)
+    public function cancel_calculate_etg(Request $request)
     {
         $book = Book::where('book_token', $request->number)->first();
         $hotel = Hotel::where('id', $book->hotel_id)->first();
@@ -109,11 +106,11 @@ class BookingTmController extends Controller
         $room = Room::where('id', $book->room_id)->first();
         $rate = Rate::where('id', $book->rate_id)->first();
 
-        return view('pages.booking.tourmind.cancel', compact(
+        return view('pages.booking.emerging.cancel', compact(
             'book', 'hotel', 'arrival', 'departure', 'room', 'rate', 'request'));
     }
 
-    public function cancel_confirm_tm(Request $request, Book $book)
+    public function cancel_confirm_etg(Request $request, Book $book)
     {
         $book = Book::where('book_token', $request->number)->first();
         $api_type = $book->api_type ?? '';
@@ -144,8 +141,8 @@ class BookingTmController extends Controller
            if ( isset($cancel['Error']['ErrorMessage']) ){
 
                 $message = $cancel['Error']['ErrorMessage'];
-                Log::channel('tourmind')->info('Cancel Order User ID - ', $userInfo);
-                Log::channel('tourmind')->info('Cancel Order - ', $cancel);
+                Log::channel('emerging')->info('Cancel Order User ID - ', $userInfo);
+                Log::channel('emerging')->info('Cancel Order - ', $cancel);
         
             } elseif( isset($cancel['CancelResult']['OrderStatus']) && $cancel['CancelResult']['OrderStatus'] == 'CANCELLED'){
 
@@ -167,18 +164,18 @@ class BookingTmController extends Controller
                     }
                 
 
-                        Log::channel('tourmind')->info('Cancel Order User ID - ', $userInfo);
-                        Log::channel('tourmind')->info('Cancel Order - ', $cancel);
+                        Log::channel('emerging')->info('Cancel Order User ID - ', $userInfo);
+                        Log::channel('emerging')->info('Cancel Order - ', $cancel);
 
                 $message = "Ваша бронь отменена";
 
             }else{
                 $message = $cancel['Error'];
-                Log::channel('tourmind')->info('Cancel Order User ID - ', $userInfo);
-                Log::channel('tourmind')->info('Cancel Order - ', $cancel);
+                Log::channel('emerging')->info('Cancel Order User ID - ', $userInfo);
+                Log::channel('emerging')->info('Cancel Order - ', $cancel);
             }
             
-            return view('pages.booking.tourmind.confirm', compact(
+            return view('pages.booking.emerging.confirm', compact(
                 'book', 'hotel', 'cancel', 'cancelRule', 'arrival', 'departure', 'room', 'rate', 'request', 'message', 'status'));
     }
 }

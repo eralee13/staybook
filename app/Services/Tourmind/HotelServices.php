@@ -450,6 +450,7 @@ class HotelServices
 
         $check = $this->checkRoomRate($request);
         // dd($check);
+        
         if ( isset($check->Hotels[0]->RoomTypes[0]->RateInfos[0]->CancelPolicyInfos[0]->Amount) ){
             $mrate = $check->Hotels[0]->RoomTypes[0]->RateInfos[0];
             $this->price = $mrate->TotalPrice;
@@ -679,8 +680,8 @@ class HotelServices
                             'room_id' => $room->id,
                         ],
                         [
-                            'title' => $title ?? '',
-                            'title_en' => $titlen ?? '',
+                            'title' => $mrate['Name'] ?? '',
+                            'title_en' => $mrate['Name'] ?? '',
                             'desc_en' => null,
                             'bed_type' => $this->bedTypeDesc,
                             'meal_id' => $this->mealid,

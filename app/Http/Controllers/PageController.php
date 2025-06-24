@@ -25,7 +25,7 @@ class PageController extends Controller
     public function index()
     {
         $hotels = Hotel::cacheFor(now()->addHours(2))->where('tourmind_id', null)->get();
-        $cities = City::cacheFor(now()->addHours(2))->where('country_id', null)->orderBy('title', 'asc')->get();
+        $cities = City::orderBy('title', 'asc')->get();
         $tomorrow = Carbon::tomorrow()->format('Y-m-d');
         $now = Carbon::now();
         if ($now->hour > 3 && $now->hour < 4) {
@@ -293,7 +293,7 @@ class PageController extends Controller
             }
         }
         return view('index', compact('hotels', 'cities', 'tomorrow'));
-        return view('index', compact('hotels', 'cities', 'tomorrow'));
+
     }
 
     public function search(Request $request)

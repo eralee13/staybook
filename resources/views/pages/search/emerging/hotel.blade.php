@@ -93,7 +93,7 @@
                                         // Координаты от Laravel-переменных
                                         var lat = {{ $hotel->lat }};
                                         var lng = {{ $hotel->lng }};
-                                        var title = @json($hotel->title_en);
+                                        var title = @json($hotel->title);
 
                                         // Инициализация карты
                                         var map = L.map('map').setView([lat, lng], 14);
@@ -111,6 +111,8 @@
                                     });
                                 </script>
 
+                            </div>
+
 
                         </div>
                     </div>
@@ -119,7 +121,7 @@
                             <div class="tariffs availabity">
                                 <h4>Доступные варианты</h4>
 
-                                @include('pages.search.tourmind.rooms', ['tmroom' => $tmroom, 'tmimages' => $tmimages])
+                                @include('pages.search.emerging.rooms', ['etgroom' => $etgroom, 'tmimages' => $tmimages])
                                 
                             </div>
                         </div>

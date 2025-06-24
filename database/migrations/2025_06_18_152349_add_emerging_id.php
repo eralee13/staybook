@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('hotels', function (Blueprint $table) {
-            $table->integer('tourmind_id')->unique()->nullable();
+            $table->Integer('emerging_id')->unique()->nullable()->after('tourmind_id');
+
         });
     }
 
@@ -22,7 +23,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('hotels', function (Blueprint $table) {
-            $table->dropColumn('tourmind_id');
+            $table->dropColumn('emerging_id');
         });
     }
 };

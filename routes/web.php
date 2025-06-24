@@ -116,6 +116,15 @@ Route::middleware('set_locale')->group(function () {
     Route::get('/book/cancel/tm', [\App\Http\Controllers\BookingTmController::class, 'cancel_calculate_tm'])->name('cancel_calculate_tm');
     Route::get('/book/cancel/confirm/tm', [\App\Http\Controllers\BookingTmController::class, 'cancel_confirm_tm'])->name('cancel_confirm_tm');
     
+    // Emerging
+    Route::get('/hoteletg/{hid}', [\App\Http\Controllers\SearchController::class, 'hotel_etg'])->name('hotel_etg');
+    Route::get('/book/order/etg', [\App\Http\Controllers\BookingEtgController::class, 'order_etg'])->name('order_etg');
+    Route::get('/book/verify/etg', [\App\Http\Controllers\BookingEtgController::class, 'book_verify_etg'])->name('book_verify_etg');
+    Route::get('/book/reserve/etg', [\App\Http\Controllers\BookingEtgController::class, 'book_reserve_etg'])->name('book_reserve_etg');
+    Route::get('/book/cancel/etg', [\App\Http\Controllers\BookingEtgController::class, 'cancel_calculate_etg'])->name('cancel_calculate_etg');
+    Route::get('/book/cancel/confirm/etg', [\App\Http\Controllers\BookingEtgController::class, 'cancel_confirm_etg'])->name('cancel_confirm_etg');
+    
+    
     Route::get('/hotel-results', HotelResults::class)->name('hotel.results');
     Route::get('/hotel-rooms', HotelRooms::class)->name('hotel.rooms');
     Route::get('/bookingform', BookingForm::class)->name('bookingform');

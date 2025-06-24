@@ -104,42 +104,89 @@ class SearchController extends Controller
 
         $results = null;
 
-        // ***** Start Tourmind api *****
-        $hotelService = new \App\Services\Tourmind\HotelServices();
-        $tmhotels = $hotelService->tmGetHotels($request);
-        // dd($tmhotels['Hotels']);
-        
-        if ( isset($tmhotels['Hotels']) ){
+
+        // ######## Emerging API ########
+
+            $emerSearch = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
+            $emerHotels = $emerSearch->EmergingGetHotels($request);
+            // dd($emerHotels['data']['hotels']);
+
+            if( isset($emerHotels['data']['hotels']) ){
+
+                $filteredHotels = array_filter($emerHotels['data']['hotels'], function ($hotel) {
+                    return isset($hotel['localData']['id']);
+                });
+                // dd($filteredHotels);
+                $hotels['hotels'] = array_map(function ($hotel) {
+                    // dd($hotel);
+                    $rate = $hotel['rates'][0];
+                    $price = (float)$rate['payment_options']['payment_types'][0]['amount'] ?? 0;
+                    $totalPrice = number_format( ($price * 0.08) + $price , 2, '.', '');
+
+                    return [
+                        'apiName' => 'ETG',
+                        'apiHotelId' => $hotel['hid'],
+                        'hid' => $hotel['localData']['id'] ?? '',
+                        'code' => $hotel['localData']['code'] ?? '',
+                        'title' => $hotel['localData']['title'] ?? '',
+                        'title_en' => $hotel['localData']['title_en'] ?? '',
+                        'rating' => $hotel['localData']['rating'] ?? '',
+                        'city' => $hotel['localData']['city'] ?? '',
+                        'amenities' => $hotel['localData']['amenity']['services'] ?? '',
+                        'images' => $hotel['localData']['images'] ?? [],
+                        'price' => $price ?? 0,
+                        'totalPrice' => $totalPrice ?? 0,
+                        'currency' => $rate['payment_options']['payment_types'][0]['currency_code'] ?? 0,
+                        'match_hash' => $rate['match_hash'] ?? 0,
+                    ];
+                }, $filteredHotels);
+
+                $results = json_decode(json_encode($hotels));
+            }
             
-            $filteredHotels = array_filter($tmhotels['Hotels'], function ($hotel) {
-                return isset($hotel['localData']['id']);
-            });
-            $hotels['hotels'] = array_map(function ($hotel) {
-                $rate = $hotel['RoomTypes'][0]['RateInfos'][0];
-                $price = $rate['TotalPrice'] ?? 0;
-                $totalPrice = number_format( (($price * 8) / 100) + $price , 2, '.', '');
 
-                return [
-                    'apiName' => 'TM',
-                    'apiHotelId' => $hotel['HotelCode'],
-                    'hid' => $hotel['localData']['id'] ?? '',
-                    'code' => $hotel['localData']['code'] ?? '',
-                    'title' => $hotel['localData']['title'] ?? '',
-                    'title_en' => $hotel['localData']['title_en'] ?? '',
-                    'rating' => $hotel['localData']['rating'] ?? '',
-                    'city' => $hotel['localData']['city'] ?? '',
-                    'amenities' => $hotel['localData']['amenity']['services'] ?? '',
-                    'images' => $hotel['localData']['images'] ?? [],
-                    'price' => $rate['TotalPrice'] ?? 0,
-                    'totalPrice' => $totalPrice ?? 0,
-                    'currency' => $rate['CurrencyCode'] ?? 0,
-                ];
-            }, $filteredHotels);
+        // ######## End Emerging API ########
 
-            $results = json_decode(json_encode($hotels));
-            // dd($results->hotels);
-        }
+
+        // ***** Start Tourmind api *****
+
+        // $hotelService = new \App\Services\Tourmind\HotelServices();
+        // $tmhotels = $hotelService->tmGetHotels($request);
+        // // dd($tmhotels['Hotels']);
+        
+        // if ( isset($tmhotels['Hotels']) ){
+            
+        //     $filteredHotels = array_filter($tmhotels['Hotels'], function ($hotel) {
+        //         return isset($hotel['localData']['id']);
+        //     });
+        //     $hotels['hotels'] = array_map(function ($hotel) {
+        //         $rate = $hotel['RoomTypes'][0]['RateInfos'][0];
+        //         $price = $rate['TotalPrice'] ?? 0;
+        //         $totalPrice = number_format( (($price * 8) / 100) + $price , 2, '.', '');
+
+        //         return [
+        //             'apiName' => 'TM',
+        //             'apiHotelId' => $hotel['HotelCode'],
+        //             'hid' => $hotel['localData']['id'] ?? '',
+        //             'code' => $hotel['localData']['code'] ?? '',
+        //             'title' => $hotel['localData']['title'] ?? '',
+        //             'title_en' => $hotel['localData']['title_en'] ?? '',
+        //             'rating' => $hotel['localData']['rating'] ?? '',
+        //             'city' => $hotel['localData']['city'] ?? '',
+        //             'amenities' => $hotel['localData']['amenity']['services'] ?? '',
+        //             'images' => $hotel['localData']['images'] ?? [],
+        //             'price' => $rate['TotalPrice'] ?? 0,
+        //             'totalPrice' => $totalPrice ?? 0,
+        //             'currency' => $rate['CurrencyCode'] ?? 0,
+        //         ];
+        //     }, $filteredHotels);
+
+        //     $results = json_decode(json_encode($hotels));
+        //     // dd($results->hotels);
+        // }
         // ***** end Tourmind api *****
+
+
 
         if (!empty($propertyIds)) {
             try {
@@ -312,5 +359,32 @@ class SearchController extends Controller
 
 
         return view('pages.search.tourmind.hotel', compact('hotel', 'arrival', 'departure', 'request', 'roomAmenity', 'tmroom', 'tmimages', 'meals'));
+    }
+
+    // Emerging
+    public function hotel_etg($hid, Request $request)
+    {
+        $hotel = Hotel::where('id', $hid)->with(['amenity'])->first();
+        $room = Room::where('hotel_id', $hid)->get(['amenities'])->first();
+        $amenities = explode(',', $room->amenities ?? '');
+        $roomAmenity = array_slice($amenities, 0, 8);
+        $meals = Meal::pluck('title', 'id');
+        $arrival = Carbon::createFromDate($request->arrivalDate);
+        $departure = Carbon::createFromDate($request->departureDate);
+        
+            $emergingSearch = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
+            $etgroom = $emergingSearch->searchRates($request, $hotel->id);
+            // dd($etgroom);
+            $tmimages = Image::where('hotel_id', $hotel->id)->where('caption', 'guest_rooms')->get('image');
+
+            $city = City::where('title', $hotel->city)->first(['country_code']);
+
+            if (!$hotel->utc && $city && ($utc = $hotelService->getUtcOffsetByCountryCode($city->country_code))) {
+                $hotel->utc = $utc;
+                $hotel->save();
+            }
+
+
+        return view('pages.search.emerging.hotel', compact('hotel', 'arrival', 'departure', 'request', 'roomAmenity', 'etgroom', 'tmimages', 'meals'));
     }
 }
