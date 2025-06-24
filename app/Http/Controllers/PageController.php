@@ -4,12 +4,7 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\log;
-use DateTimeZone;
-use DateTime;
-use App\Models\Book;
 use App\Models\City;
 use App\Models\Contact;
 use App\Models\Page;
@@ -17,13 +12,9 @@ use App\Models\Rate;
 use App\Models\Room;
 use App\Models\Hotel;
 use App\Services\FXService;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use App\Models\Image;
-use App\Models\CancellationRule;
 
 class PageController extends Controller
 {
