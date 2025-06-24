@@ -45,7 +45,7 @@ class TmApiService
         ];
     }
 
-    public function saveImagesLink($hotelId, $images, $col)
+    public function saveImagesLink($hotelId, $images, $col = 5)
     {
         $i=0;
         collect($images)->take($col)->each(function ($img) use ($hotelId) {
@@ -56,7 +56,7 @@ class TmApiService
                     // Сохраняем изображение локально
                     $localImagePath = $this->saveHotelImage($imageUrl, $hotelId);
 
-                    Image::create([
+                    Image::updateOrCreate([
                         'hotel_id' => $hotelId,
                         'image' => $localImagePath
                     ]);
@@ -65,13 +65,13 @@ class TmApiService
         });
     }
     
-    public function saveRoomImages(int $hotelId, $images, int $roomId)
+    public function saveRoomImages(int $hotelId, $images, int $roomId, $col = 5)
     {
         // Log::channel('tourmind')->info("saveRoomImages: hotel_id={$hotelId}, room_id={$roomId}");
     
         // Фильтруем только изображения с caption = 'Room'
         $roomImages = collect($images)->filter(function ($img) {
-            return isset($img['caption']) && strtolower($img['caption']) === 'room';
+            return isset($img['caption']) && strtolower($img['caption']) == 'room';
         });
     
         if ($roomImages->isEmpty()) {
@@ -80,7 +80,7 @@ class TmApiService
         }
     
         // Ограничиваем, сколько сохранить — например, до 5
-        $roomImages->take(5)->each(function ($img) use ($hotelId, $roomId) {
+        $roomImages->take($col)->each(function ($img) use ($hotelId, $roomId) {
             $imageUrl = $img['links']['1000px']['href'] ?? null;
             $category = $img['category'] ?? null;
     
@@ -88,7 +88,7 @@ class TmApiService
                 $localImagePath = $this->saveRoomImage($imageUrl, $hotelId);
     
                 if ($localImagePath) {
-                    Image::create([
+                    Image::updateOrCreate([
                         'hotel_id' => $hotelId,
                         'room_id' => $roomId,
                         'category' => $category,
@@ -127,7 +127,7 @@ class TmApiService
                 Storage::put($filePath, $imageContent);
             }
 
-            return "/rooms/tourmind/{$hotelId}/{$fileName}"; // Путь для хранения в БД
+            return "rooms/tourmind/{$hotelId}/{$fileName}"; // Путь для хранения в БД
         } catch (\Exception $e) {
             Log::channel('tourmind')->error("Ошибка загрузки изображения saveRoomImage: " . $e->getMessage());
             return null;
@@ -158,7 +158,7 @@ class TmApiService
                 Storage::put($filePath, $imageContent);
             }
 
-            return "/hotels/tourmind/{$hotelId}/{$fileName}"; // Путь для хранения в БД
+            return "hotels/tourmind/{$hotelId}/{$fileName}"; // Путь для хранения в БД
 
         } catch (\Exception $e) {
             Log::channel('tourmind')->error("Ошибка загрузки изображения saveHotelImage: " . $e->getMessage());

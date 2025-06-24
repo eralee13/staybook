@@ -1,6 +1,56 @@
 @extends('layouts.master')
 
+<<<<<<< HEAD
 @section('title', $hotel->title)
+=======
+@section('title')
+
+    @section('content')
+        @if($_GET['api_name'] == 'TM')
+            @dump($tmroom)
+        @endif
+        
+        @auth
+            <div class="page hotel">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h1>{{ $hotel->city }}</h1>
+                            <div class="fotorama" data-allowfullscreen="true" data-nav="thumbs" data-loop="true"
+                                 data-autoplay="30000">
+                                <img loading="lazy" src="{{ Storage::url($hotel->image)}}" alt="">
+                            </div>
+                            <h3>{{ $hotel->title }}</h3>
+                            <div class="address"><img src="{{ route('index') }}/img/marker_in.svg"
+                                                      alt=""> {{ $hotel->address }}</div>
+                            <h4>Описание</h4>
+                            {!! $hotel->description !!}
+                            <div class="amenities">
+                                <h4>Услуги и удобства</h4>
+                                
+                            </div>
+                            <div class="maps">
+                                <h4>Расположение</h4>
+                                <script src="https://maps.api.2gis.ru/2.0/loader.js"></script>
+                                <div id="map" style="width: 100%; height: 500px;"></div>
+                                <script>
+                                    DG.then(function () {
+                                        var map = DG.map('map', {
+                                            center: [{{ $hotel->lat }}, {{ $hotel->lng }}],
+                                            zoom: 12
+                                        });
+
+                                        DG.marker([{{ $hotel->lat }}, {{ $hotel->lng }}], {scrollWheelZoom: false})
+                                            .addTo(map)
+                                            .bindLabel('{{ $hotel->title }}', {
+                                                static: true
+                                            });
+                                    });
+                                </script>
+                                <div class="address"><img src="{{ route('index') }}/img/marker_in.svg"
+                                                          alt=""> {{ $hotel->address }}</div>
+                            </div>
+>>>>>>> origin/eralast
 
 @section('content')
 
@@ -273,9 +323,17 @@
                                         </div>
                                     </div>
 
+<<<<<<< HEAD
                                 </div>
                             @endforeach
 
+=======
+                                @if($_GET['api_name'] == 'TM')
+                                    @include('pages.tourmind.rooms', ['tmroom' => $tmroom, 'tmimages' => $tmimages])
+                                @endif
+
+                            </div>
+>>>>>>> origin/eralast
                         </div>
                     </div>
                 </div>

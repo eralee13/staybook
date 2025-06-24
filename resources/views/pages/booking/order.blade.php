@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 @php use App\Models\Hotel; @endphp
 @extends('layouts.head')
 
@@ -15,6 +16,9 @@
                 </div>
             </div>
             <div class="row">
+=======
+<div class="row">
+>>>>>>> origin/eralast
                 <div class="col-lg-8 col-md-12 order-xl-1 order-lg-1 order-2">
                     <h5>@lang('main.trip')</h5>
                     <form action="{{ route('book_verify') }}">
@@ -163,12 +167,14 @@
                 </div>
                 <div class="col-lg-4 col-md-12 order-xl-2 order-lg-2 order-1">
                     @php
+                        
                         $hotel = Hotel::where('exely_id', $request->propertyId)->orWhere('id', $request->propertyId)->first();
                         $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
                         $cancel_utc = \Carbon\Carbon::createFromDate($request->cancelDate)->format('P');
                         $cancel = \App\Models\CancellationRule::where('rate_id', $request->cancellation_id)->firstOrFail();
                         $room = \App\Models\Room::where('id', $request->room_id)->firstOrFail();
                         $rate = \App\Models\Rate::where('id', $request->rate_id)->firstOrFail();
+                        
                     @endphp
                     <div class="sidebar">
                         <div class="row">
@@ -221,13 +227,3 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <style>
-        #phone {
-            padding-left: 50px;
-        }
-    </style>
-
-@endsection

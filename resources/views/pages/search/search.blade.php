@@ -4,7 +4,8 @@
 @section('title', 'Поиск')
 
 @section('content')
-
+    @dump($results)
+    @dump($request->query)
     @auth
         <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
@@ -29,7 +30,12 @@
                                         <div class="label stay"><img src="{{ route('index') }}/img/marker_out.svg"
                                                                      alt="">
                                         </div>
+<<<<<<< HEAD
                                         <select name="city" id="city" required>
+=======
+                                        <select name="city" id="address" required>
+                                            <option value="Amsterdam" selected>Amsterdam</option>
+>>>>>>> origin/eralast
                                             <option value="{{ $request->city }}">{{ $request->city }}</option>
                                             @foreach($cities as $city)
                                                 <option value="{{ $city->title }}">{{ $city->title }}</option>
@@ -71,7 +77,11 @@
                                     {{-- Общая сводка (клик открывает окно) --}}
                                     <a href="javascript:void(0)"
                                        id="rooms-summary">
+<<<<<<< HEAD
                                         Комнат: {{ $roomCount }}, Взрослых: {{ $totalAdults }},
+=======
+                                        Комнат3333: {{ $roomCount }}, Взрослых: {{ $totalAdults }},
+>>>>>>> origin/eralast
                                         Детей: {{ $totalChildren }}
                                     </a>
 
@@ -530,8 +540,187 @@
                                     </div>
                                 @endforeach
                             @else
-                                @if($results->roomStays != null)
-                                    @foreach($results->roomStays as $room)
+                                @if( isset($results->hotels))
+                                    @foreach($results->hotels as $hotel)
+                                        @php
+                                            $amenities = explode(',', $hotel->amenities ?? '');
+                                            $amenities = array_slice($amenities, 0, 8);
+                                            $rooms = $request->input('rooms', []); // если нет — пустой массив
+                                            $totalAdults    = 0;
+                                            $allChildAges   = [];
+                                            $roomCount=0;
+                                            $child = 0;
+
+                                            foreach ($rooms as $room) {
+                                                $roomCount++;
+                                                // Взрослые
+                                                $totalAdults += (int) ($room['adults'] ?? 0);
+
+                                                // Возрасты детей (если есть) собираем в единый массив
+                                                if (!empty($room['childAges']) && is_array($room['childAges'])) {
+                                                    foreach ($room['childAges'] as $age) {
+                                                        $allChildAges[] = (int) $age;
+                                                        $child++;
+                                                    }
+                                                }
+                                            }
+
+                                            $iconMap = [
+                                                'wi-fi'             => 'wifi.svg',
+                                                'интернет'          => 'wifi.svg',
+                                                'Доступ в интернет' => 'wifi.svg',
+                                                'чайный набор'      => 'tea.svg',
+                                                'Питание включено'  => 'meal.svg',
+                                                'минеральная вода'  => 'water.svg',
+                                                'сауна'             => 'sauna.svg',
+                                                'сейф'              => 'safe.svg',
+                                                'Двуспальная кровать' => 'bed2.svg',
+                                                'Гладильные принадлежности' => 'iron.svg',
+                                                'Ванная комната' => 'bath.svg',
+                                                'Сауна' => 'sauna.svg',
+                                                'Сейф' => 'safe.svg',
+                                                'Минибар' => 'minibar.svg',
+                                                'Кондиционер' => 'cond.svg',
+                                                'Туалетные принадлежности' => 'toilet.svg',
+                                                'Душ' => 'shower.svg',
+                                                'Звукоизоляция' => 'sound.svg',
+                                                'Фен' => 'dry.svg',
+                                                'Постельное бельё' => 'bed_sheets.svg',
+                                                'Халат' => 'robe.svg',
+                                                'Шкаф' => 'close.svg',
+                                                'Телефон' => 'phone_hotel.svg',
+                                                'Отопление' => 'heating.svg',
+                                                'Письменный стол' => 'table.svg',
+                                                'Минеральная вода' => 'water.svg',
+                                            ];
+                                            
+                                        @endphp
+                                        <div class="search-item">
+                                            <div class="row">
+                                                <div class="col-md-5 order-xl-1 order-lg-1 order-1">
+                                                    <div class="img-wrap">
+                                                        <div class="row">
+                                                            <div class="col-md-6">
+                                                                <div class="main">
+                                                                    @if( isset($hotel->images[0]->image) )
+                                                                        <img src="{{ Storage::url($hotel->images[0]->image) }}" alt="">
+                                                                    @else
+                                                                        <img src="{{ asset('img/no-image.png') }}" alt="">
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="primary">
+                                                                    @if( isset($hotel->images[1]->image) )
+                                                                        <img src="{{ Storage::url($hotel->images[1]->image) }}" alt="">
+                                                                    @else
+                                                                        <img src="{{ asset('img/no-image.png') }}" alt="">
+                                                                    @endif
+                                                                </div>
+                                                                <div class="primary">
+                                                                    @if( isset($hotel->images[2]->image) )
+                                                                        <img src="{{ Storage::url($hotel->images[2]->image) }}" alt="">
+                                                                    @else
+                                                                        <img src="{{ asset('img/no-image.png') }}" alt="">
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-5 order-xl-2 order-lg-2 order-3">
+                                                    <h4>
+                                                        {{ $hotel->title_en }} 
+                                                        &#9733; {{ $hotel->rating }}
+                                                    </h4>
+                                                    <div class="amenities">
+                                                        @foreach($amenities as $amenity)
+                                                            @php
+                                                                $iconFile = 'check.svg';
+                                                                foreach ($iconMap as $keyword => $filename) {
+                                                                    if (mb_stripos($amenity, $keyword) !== false) {
+                                                                        $iconFile = $filename;
+                                                                        break;
+                                                                    }
+                                                                }
+                                                            @endphp
+                                                            <div class="amenities-item">
+                                                                <img src="{{ asset('img/icons/' . $iconFile) }}"
+                                                                     alt="{{ $amenity }}">
+                                                                <div class="name">{{ $amenity }}</div>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                    <div class="btn-wrap">
+                                                        @if( $hotel->apiName == 'TM')
+
+                                                            <div class="btn-wrap">
+                                                                <form action="{{ route('hotel_tm', ["hid" => $hotel->hid]) }}">
+                                                                    <input type="hidden" name="arrivalDate"
+                                                                        value="{{ $request->arrivalDate }}">
+                                                                    <input type="hidden" name="departureDate"
+                                                                        value="{{ $request->departureDate }}">
+                                                                    <input type="hidden" name="adult" value="{{ $totalAdults }}">
+                                                                    <input type="hidden" name="child" value="{{ $child }}">
+                                                                    <input type="hidden" name="roomCount" value="{{ $roomCount }}">
+                                                                    
+                                                                    @if($allChildAges)
+                                                                        @foreach($allChildAges as $age)
+                                                                            <input type="hidden" name="childAges[]"
+                                                                                value="{{ $age }}">
+                                                                        @endforeach
+                                                                    @endif
+                                                                    
+                                                                    <input type="hidden" name="city" value="{{ $request->city }}">
+                                                                    <input type="hidden" name="meal_id" value="{{       $request->meal_id }}">
+                                                                    <input type="hidden" name="api_name"
+                                                                        value="{{ $hotel->apiName ?? '' }}">
+                                                    
+                                                                    <button class="more">Показать все номера</button>
+                                                                </form>
+                                                            </div>
+
+                                                        @elseif( $hotel->apiName == 'ETG' )
+                                                            <div class="btn-wrap">
+                                                                <form action="{{ route('hotel_etg', ["hid" => $hotel->hid]) }}">
+                                                                    <input type="hidden" name="arrivalDate"
+                                                                        value="{{ $request->arrivalDate }}">
+                                                                    <input type="hidden" name="departureDate"
+                                                                        value="{{ $request->departureDate }}">
+
+                                                                    @foreach ($rooms as $i => $room)
+                                                                        <input type="hidden" name="rooms[{{ $i }}][adults]" value="{{ $room['adults'] }}">
+                                                                        
+                                                                        @if (isset($room['childAges']))
+                                                                            @foreach ($room['childAges'] as $a => $age)
+                                                                                <input type="hidden" name="rooms[{{ $i }}][childAges][]" value="{{ $age }}">
+                                                                            @endforeach
+                                                                        @endif
+                                                                    @endforeach
+                                                                    
+                                                                    <input type="hidden" name="city" value="{{ $request->city }}">
+                                                                    <input type="hidden" name="meal_id" value="{{       $request->meal_id }}">
+                                                                    <input type="hidden" name="apiHotelId"
+                                                                        value="{{ $hotel->apiHotelId ?? '' }}">
+                                                    
+                                                                    <button class="more">Показать все номера</button>
+                                                                </form>
+                                                            </div>
+                                                        @elseif( $hotel->apiName == 'Exely' )
+                                                            {{-- Exely markup --}}
+                                                        @endif
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-md-2 order-xl-3 order-lg-3 order-2">
+                                                    <div class="price">от {{$hotel->totalPrice}} {{$hotel->currency}}</div>
+                                                    <div class="night">ночь</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+
+                                    {{-- @foreach($results->roomStays as $room)
                                         @php
                                             $hotel = \App\Models\Hotel::where('exely_id', $room->propertyId)->get()->first();
                                             $roomf = \App\Models\Room::where('hotel_id', $hotel->exely_id)->get()->first();
@@ -644,7 +833,6 @@
                                                                            value="{{ $serv->id }}">
                                                                 @endforeach
 
-                                                                {{-- <input type="hidden" name="servicesQuantity" value="{{  }}">--}}
                                                                 <input type="hidden" name="hotel"
                                                                        value="{{ $room->fullPlacementsName }}">
                                                                 <input type="hidden" name="hotel_id"
@@ -654,7 +842,11 @@
                                                                 <input type="hidden" name="title"
                                                                        value="{{ $room->fullPlacementsName }}">
                                                                 <input type="hidden" name="price"
+<<<<<<< HEAD
                                                                        value="{{ round($room->total->priceBeforeTax * config('services.main.coef')/100 + $room->total->priceBeforeTax, 0) }}">
+=======
+                                                                       value="{{ $room->total->priceBeforeTax }}">
+>>>>>>> origin/eralast
                                                                 <button class="more">@lang('main.show_all_rooms')</button>
                                                             </form>
                                                         </div>
@@ -663,12 +855,16 @@
 
                                                 <div class="col-md-2 order-xl-3 order-lg-3 order-2">
                                                     <div class="price">
+<<<<<<< HEAD
                                                         @lang('main.from') {{ round($room->total->priceBeforeTax * config('services.main.coef')/100 + $room->total->priceBeforeTax, 0) }} {{ $room->currencyCode }}</div>
+=======
+                                                        @lang('main.from') {{ $room->total->priceBeforeTax }} {{ $room->currencyCode }}</div>
+>>>>>>> origin/eralast
                                                     <div class="night">@lang('main.night')</div>
                                                 </div>
                                             </div>
                                         </div>
-                                    @endforeach
+                                    @endforeach --}}
                                 @else
                                     <div class="alert alert-danger">@lang('main.search_not_found') <a href="{{ route('index') }}">@lang('main.try_again')</a></div>
                                 @endif
@@ -848,6 +1044,7 @@
                                         </div>
 
                                         <div class="col-md-2 order-xl-3 order-lg-3 order-2">
+<<<<<<< HEAD
                                             @php
                                                 // 1) Исходная цена с коэффициентом
                                                 $basePrice = round($price * config('services.main.coef')/100 + $price);
@@ -862,6 +1059,10 @@
                                             @endphp
                                             <div class="price">@lang('main.from') {{ number_format($converted, 0, '.', ' ') }}
                                                 {{ $symbol }}
+=======
+                                            <div class="price">@lang('main.from') {{ number_format($price, 0, '.', ' ') }}
+                                                $
+>>>>>>> origin/eralast
                                             </div>
                                             <div class="night">@lang('main.night')</div>
                                         </div>
