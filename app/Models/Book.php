@@ -21,7 +21,7 @@ class Book extends Model
         'comment',
         'adult',
         'child',
-        'childAges',
+        'childages',
         'price',
         'sum',
         'arrivalDate',
@@ -35,6 +35,7 @@ class Book extends Model
         'status',
         'user_id',
         'api_type',
+        'agent_ref',
     ];
 
     protected $hidden = [

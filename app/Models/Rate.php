@@ -28,7 +28,6 @@ class Rate extends Model
         'allotment',
         'currency',
         'total_price',
-        'refundable',
         'adult',
         'child',
         'bed_type',

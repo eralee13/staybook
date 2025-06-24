@@ -30,7 +30,7 @@ class HotelDetail
     }
 
     public function getHotelDetail(){
-
+        
         //$countryCodes = $this->tmApiService->getCountryCodes();
 
         // foreach ($countryCodes as $countryCode) {

@@ -19,7 +19,7 @@ Route::prefix('')->group(function(){
 });
 
 Route::prefix('')->middleware(['throttle:api', 'auth:sanctum'])->group(function () {
-    Route::get('/hotels/', [\App\Http\Controllers\API\V1_1\HotelController::class, 'HotelStatic'])->name('HotelStatic');
+    Route::get('/hotels', [\App\Http\Controllers\API\V1_1\HotelController::class, 'HotelStatic'])->name('HotelStatic');
     Route::get('/meals', [\App\Http\Controllers\API\V1_1\MealController::class, 'meals'])->name('Meals');
 
     Route::post('/search', [\App\Http\Controllers\API\V1_1\SearchController::class, 'search'])->name('search');

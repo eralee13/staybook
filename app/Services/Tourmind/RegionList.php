@@ -47,7 +47,7 @@ class RegionList
             ])->post("{$this->baseUrl}/RegionList", $payload);
     
             if ($response->failed()) {
-                return ['error' => 'RegionList Ошибка при запросе к API', 'status' => $response->status()];
+                return ['error' => 'Services RegionList Ошибка при запросе к API', 'status' => $response->status()];
             }
 
             $data = $response->json();
@@ -56,6 +56,7 @@ class RegionList
             foreach($regions as $region){
 
                 try {
+                    
                     DB::table('cities')->updateOrInsert(
                         ['country_id' => $region['RegionID']], // Условие проверки
                         [
@@ -67,15 +68,10 @@ class RegionList
                     );
                     
                 } catch (Exception $e) {
-                    // Обработка исключения
-                    Log::error('Ошибка: ' . $e->getMessage(), ['exception' => $e]);
 
-                    // Возвращаем JSON с ошибкой
-                    // return response()->json([
-                    //     'error' => true,
-                    //     'message' => 'Произошла ошибка на сервере',
-                    //     'details' => $e->getMessage() // Можно скрыть в продакшене
-                    // ], 500);
+                    // Обработка исключения
+                    Log::error('Ошибка Services Region List: ' . $e->getMessage(), ['exception' => $e]);
+
                 }
             }
 

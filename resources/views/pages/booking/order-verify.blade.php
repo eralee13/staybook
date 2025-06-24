@@ -1,6 +1,14 @@
-@php use Illuminate\Support\Facades\Http; @endphp
-@extends('layouts.head')
+@php
+    $hotel = \App\Models\Hotel::where('id', $request->propertyId)->first();
+    $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
+    $arrival = \Carbon\Carbon::createFromDate($request->arrivalDate)->format('d.m.Y');
+    $departure = \Carbon\Carbon::createFromDate($request->departureDate)->format('d.m.Y');
+    $room = \App\Models\Room::where('id', $request->room_id)->firstOrFail();
+    $rate = \App\Models\Rate::where('id', $request->rate_id)->firstOrFail();
+    $cancelPossible = \App\Models\CancellationRule::where('id', $rate->cancellation_rule_id)->firstOrFail();
+@endphp
 
+<<<<<<< HEAD
 @section('title', 'Подтверждение заказа')
 
 @section('content')
@@ -19,6 +27,9 @@
                         $cancelPossible = \App\Models\CancellationRule::where('rate_id', $rate->id)->firstOrFail();
                     @endphp
                     <h1>@lang('main.order_confirmation')</h1>
+=======
+<h1>Подтверждение заказа</h1>
+>>>>>>> origin/eralast
                     <table>
                         <tr>
                             <td>@lang('main.hotel'):</td>
@@ -131,29 +142,3 @@
                             <button class="more">@lang('main.confirm')</button>
                         </form>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <style>
-        .page #map {
-            margin-top: 20px;
-        }
-
-        .page i {
-            color: darkblue;
-        }
-
-        .page form {
-            margin-top: 50px;
-        }
-
-        .page form button {
-            width: auto;
-            padding: 10px 30px;
-            margin-left: 10px;
-        }
-    </style>
-
-@endsection

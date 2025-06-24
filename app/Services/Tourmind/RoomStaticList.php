@@ -64,28 +64,25 @@ class RoomStaticList
             foreach($types as $type){
 
                 try {
+
                     Room::updateOrCreate(
 
                         [
                             'hotel_id' => (int)$hId,
-                            'type_code' => (int)$type['RoomTypeCode'],
+                            'tourmind_id' => (int)$type['RoomTypeCode'],
                         ],
                         [
                             'title_en' => (string)$type['RoomTypeName'],
-                            'bed' => (string)$type['BedTypeDesc']
+                            'description_en' => (string)$type['BedTypeDesc']
                         ],
                         
                     );
+                    
                 } catch (Exception $e) {
-                    // Обработка исключения
-                    Log::error('Ошибка Room: ' . $e->getMessage(), ['exception' => $e]);
 
-                    // Возвращаем JSON с ошибкой
-                    // return response()->json([
-                    //     'error' => true,
-                    //     'message' => 'Произошла ошибка на сервере',
-                    //     'details' => $e->getMessage() // Можно скрыть в продакшене
-                    // ], 500);
+                    // Обработка исключения
+                    Log::error('Ошибка Services Room static list: ' . $e->getMessage(), ['exception' => $e]);
+
                 }
             }
 

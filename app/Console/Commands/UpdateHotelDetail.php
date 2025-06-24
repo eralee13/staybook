@@ -31,6 +31,6 @@ class UpdateHotelDetail extends Command
 
         $request = new Request();
         $controller->fetchHotelDetail($request); // Передаём в метод
-        $this->info('Список отелей сумма комнаты обновлён.');
+        $this->info('Список отелей и комнаты обновлён.');
     }
 }

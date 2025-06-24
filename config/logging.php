@@ -126,6 +126,13 @@ return [
         'emergency' => [
             'path' => storage_path('logs/laravel.log'),
         ],
+
+        'tourmind' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/Tourmind.log'),
+            'level' => 'debug',
+            'days' => 30, // Хранить логи n дней
+        ],
     ],
 
 ];
