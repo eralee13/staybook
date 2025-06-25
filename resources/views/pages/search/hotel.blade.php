@@ -1,71 +1,23 @@
 @extends('layouts.master')
-
-<<<<<<< HEAD
 @section('title', $hotel->title)
-=======
-@section('title')
-
-    @section('content')
-        @if($_GET['api_name'] == 'TM')
-            @dump($tmroom)
-        @endif
-        
-        @auth
-            <div class="page hotel">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <h1>{{ $hotel->city }}</h1>
-                            <div class="fotorama" data-allowfullscreen="true" data-nav="thumbs" data-loop="true"
-                                 data-autoplay="30000">
-                                <img loading="lazy" src="{{ Storage::url($hotel->image)}}" alt="">
-                            </div>
-                            <h3>{{ $hotel->title }}</h3>
-                            <div class="address"><img src="{{ route('index') }}/img/marker_in.svg"
-                                                      alt=""> {{ $hotel->address }}</div>
-                            <h4>Описание</h4>
-                            {!! $hotel->description !!}
-                            <div class="amenities">
-                                <h4>Услуги и удобства</h4>
-                                
-                            </div>
-                            <div class="maps">
-                                <h4>Расположение</h4>
-                                <script src="https://maps.api.2gis.ru/2.0/loader.js"></script>
-                                <div id="map" style="width: 100%; height: 500px;"></div>
-                                <script>
-                                    DG.then(function () {
-                                        var map = DG.map('map', {
-                                            center: [{{ $hotel->lat }}, {{ $hotel->lng }}],
-                                            zoom: 12
-                                        });
-
-                                        DG.marker([{{ $hotel->lat }}, {{ $hotel->lng }}], {scrollWheelZoom: false})
-                                            .addTo(map)
-                                            .bindLabel('{{ $hotel->title }}', {
-                                                static: true
-                                            });
-                                    });
-                                </script>
-                                <div class="address"><img src="{{ route('index') }}/img/marker_in.svg"
-                                                          alt=""> {{ $hotel->address }}</div>
-                            </div>
->>>>>>> origin/eralast
-
 @section('content')
-
+{{--    @if($_GET['api_name'] == 'TM')--}}
+{{--        @dump($tmroom)--}}
+{{--    @endif--}}
     @auth
         <div class="page hotel">
             <div class="container">
                 <div class="row">
                     <div class="col-md-12">
                         <h1>{{ $hotel->city }}</h1>
-                        <div class="fotorama" data-allowfullscreen="true" data-nav="thumbs" data-loop="true"
+                        <div class="fotorama" data-allowfullscreen="true" data-nav="thumbs"
+                             data-loop="true"
                              data-autoplay="30000">
                             <img loading="lazy" src="{{ Storage::url($hotel->image)}}" alt="">
                         </div>
                         <h3>{{ $hotel->__('title') }}</h3>
-                        <div class="address"><img src="{{ route('index') }}/img/marker_in.svg" alt=""> {{ $hotel->__('address') }}</div>
+                        <div class="address"><img src="{{ route('index') }}/img/marker_in.svg"
+                                                  alt=""> {{ $hotel->__('address') }}</div>
                         <h4>@lang('main.description')</h4>
                         {!! $hotel->__('description') !!}
                         <div class="amenities">
@@ -131,7 +83,8 @@
                                 <div class="name">Шкаф</div>
                             </div>
                             <div class="amenities-item">
-                                <img src="{{ route('index') }}/img/icons/phone_hotel.svg" alt="">
+                                <img src="{{ route('index') }}/img/icons/phone_hotel.svg"
+                                     alt="">
                                 <div class="name">Телефон</div>
                             </div>
                             <div class="amenities-item">
@@ -161,8 +114,9 @@
                                         });
                                 });
                             </script>
-                            <div class="address"><img src="{{ route('index') }}/img/marker_in.svg"
-                                                      alt=""> {{ $hotel->__('address') }}</div>
+                            <div class="address"><img
+                                        src="{{ route('index') }}/img/marker_in.svg"
+                                        alt=""> {{ $hotel->__('address') }}</div>
                         </div>
 
 
@@ -181,32 +135,42 @@
                                     <div class="col-md-3">
                                         <div class="room">
                                             @if ($image)
-                                                <img src="{{ Storage::url($image->image) }}" alt="">
+                                                <img src="{{ Storage::url($image->image) }}"
+                                                     alt="">
                                             @else
-                                                <img src="{{ route('index') }}/img/noimage.png" alt=""
+                                                <img src="{{ route('index') }}/img/noimage.png"
+                                                     alt=""
                                                      width="100px">
                                             @endif
                                             <h5>{{ $room->__('title') }}</h5>
                                             {{--                                            <div class="bed">2 отдельные кровати</div>--}}
                                             <div class="amenities">
                                                 <div class="amenities-item">
-                                                    <img src="{{ route('index') }}/img/icons/area.svg" alt="">
-                                                    <div class="name">{{ $room->area }} кв. м</div>
+                                                    <img src="{{ route('index') }}/img/icons/area.svg"
+                                                         alt="">
+                                                    <div class="name">{{ $room->area }} кв. м
+                                                    </div>
                                                 </div>
                                                 <div class="amenities-item">
-                                                    <img src="{{ route('index') }}/img/icons/bath.svg" alt="">
-                                                    <div class="name">Собственная ванная комната</div>
+                                                    <img src="{{ route('index') }}/img/icons/bath.svg"
+                                                         alt="">
+                                                    <div class="name">Собственная ванная
+                                                        комната
+                                                    </div>
                                                 </div>
                                                 <div class="amenities-item">
-                                                    <img src="{{ route('index') }}/img/icons/sauna.svg" alt="">
+                                                    <img src="{{ route('index') }}/img/icons/sauna.svg"
+                                                         alt="">
                                                     <div class="name">Сауна</div>
                                                 </div>
                                                 <div class="amenities-item">
-                                                    <img src="{{ route('index') }}/img/icons/safe.svg" alt="">
+                                                    <img src="{{ route('index') }}/img/icons/safe.svg"
+                                                         alt="">
                                                     <div class="name">Сейф</div>
                                                 </div>
                                                 <div class="amenities-item">
-                                                    <img src="{{ route('index') }}/img/icons/minibar.svg" alt="">
+                                                    <img src="{{ route('index') }}/img/icons/minibar.svg"
+                                                         alt="">
                                                     <div class="name">Минибар</div>
                                                 </div>
                                             </div>
@@ -251,20 +215,23 @@
                                                             <div class="name">{{ $rate->meal->__('title') }}</div>
                                                         </div>
                                                         <div class="item cancel">
-                                                            <div class="name">@lang('main.cancellation_policy'):
+                                                            <div class="name">@lang('main.cancellation_policy')
+                                                                :
                                                                 @if($cancel->is_refundable == 1)
                                                                     @if(now()->lte($cancelDate))
                                                                         @lang('main.free_cancellation') {{ $cancelDate }}
                                                                         UTC +06:00.
                                                                     @endif
-                                                                    @lang('main.cancellation_amount'):
+                                                                    @lang('main.cancellation_amount')
+                                                                    :
                                                                     @if($cancel->penalty_type === 'fixed')
                                                                         ${{ $cancel->penalty_amount }}
                                                                     @else
                                                                         ${{ ($sum * $cancel->penalty_amount) / 100 }}
                                                                     @endif
                                                                 @else
-                                                                    @lang('main.cancellation_amount'):
+                                                                    @lang('main.cancellation_amount')
+                                                                    :
                                                                     @if($cancel->penalty_type === 'fixed')
                                                                         ${{ $cancel->penalty_amount }}
                                                                     @else
@@ -279,38 +246,53 @@
                                                         {{--                                                        <div class="night">за ночь для 1 гостя</div>--}}
                                                         <div class="btn-wrap">
                                                             <form action="{{ route('order', $rate->id) }}">
-                                                                <input type="hidden" name="propertyId"
+                                                                <input type="hidden"
+                                                                       name="propertyId"
                                                                        value="{{ $hotel->id }}">
-                                                                <input type="hidden" name="arrivalDate"
+                                                                <input type="hidden"
+                                                                       name="arrivalDate"
                                                                        value="{{ $request->arrivalDate }}">
-                                                                <input type="hidden" name="departureDate"
+                                                                <input type="hidden"
+                                                                       name="departureDate"
                                                                        value="{{ $request->departureDate }}">
-                                                                <input type="hidden" name="adult"
+                                                                <input type="hidden"
+                                                                       name="adult"
                                                                        value="{{ $request->adult }}">
-                                                                <input type="hidden" name="child"
+                                                                <input type="hidden"
+                                                                       name="child"
                                                                        value="{{ $request->child }}">
-                                                                <input type="hidden" name="childAges[]"
+                                                                <input type="hidden"
+                                                                       name="childAges[]"
                                                                        value="{{ implode(',', $request->childAges) }}">
-                                                                <input type="hidden" name="room_id"
+                                                                <input type="hidden"
+                                                                       name="room_id"
                                                                        value="{{ $rate->room_id }}">
-                                                                <input type="hidden" name="rate_id"
+                                                                <input type="hidden"
+                                                                       name="rate_id"
                                                                        value="{{ $rate->id }}">
-                                                                <input type="hidden" name="meal_id"
+                                                                <input type="hidden"
+                                                                       name="meal_id"
                                                                        value="{{ $rate->meal_id }}">
-                                                                <input type="hidden" name="cancellation_id"
-                                                                       value="{{ $rate->cancellation_rule_id }}">
+                                                                <input type="hidden"
+                                                                       name="cancellation_id"
+                                                                       value="{{ $cancel->id }}">
                                                                 {{--                                                                <input type="hidden" name="cancelDate" value="{{ $cancelDate }}">--}}
                                                                 {{--                                                                <input type="hidden" name="cancelPrice" value="{{ $room->cancellationPolicy->penaltyAmount  }}">--}}
 
-                                                                <input type="hidden" name="hotel_id"
+                                                                <input type="hidden"
+                                                                       name="hotel_id"
                                                                        value="{{ $hotel->id }}">
-                                                                <input type="hidden" name="title"
+                                                                <input type="hidden"
+                                                                       name="title"
                                                                        value="{{ $rate->title }}">
-                                                                <input type="hidden" name="cancelDate"
+                                                                <input type="hidden"
+                                                                       name="cancelDate"
                                                                        value="{{ $cancelDate }}">
-                                                                <input type="hidden" name="cancelPrice"
+                                                                <input type="hidden"
+                                                                       name="cancelPrice"
                                                                        value="{{ $cancel->penalty_amount }}">
-                                                                <input type="hidden" name="price"
+                                                                <input type="hidden"
+                                                                       name="price"
                                                                        value="{{ round($sum * config('services.main.coef')/100 + $sum, 0) }}">
                                                                 {{--                                                                <input type="hidden" name="currency" value="{{ $room->currencyCode }}">--}}
                                                                 <button class="more">@lang('main.book')</button>
@@ -322,22 +304,18 @@
                                             </div>
                                         </div>
                                     </div>
-
-<<<<<<< HEAD
                                 </div>
                             @endforeach
 
-=======
-                                @if($_GET['api_name'] == 'TM')
-                                    @include('pages.tourmind.rooms', ['tmroom' => $tmroom, 'tmimages' => $tmimages])
-                                @endif
+{{--                            @if($_GET['api_name'] == 'TM')--}}
+{{--                                @include('pages.tourmind.rooms', ['tmroom' => $tmroom, 'tmimages' => $tmimages])--}}
+{{--                            @endif--}}
 
-                            </div>
->>>>>>> origin/eralast
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
         </div>
     @else
         <div class="page auth">
