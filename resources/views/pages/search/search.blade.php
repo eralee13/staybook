@@ -4,8 +4,7 @@
 @section('title', 'Поиск')
 
 @section('content')
-    @dump($results)
-    @dump($request->query)
+
     @auth
         <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
@@ -30,12 +29,7 @@
                                         <div class="label stay"><img src="{{ route('index') }}/img/marker_out.svg"
                                                                      alt="">
                                         </div>
-<<<<<<< HEAD
                                         <select name="city" id="city" required>
-=======
-                                        <select name="city" id="address" required>
-                                            <option value="Amsterdam" selected>Amsterdam</option>
->>>>>>> origin/eralast
                                             <option value="{{ $request->city }}">{{ $request->city }}</option>
                                             @foreach($cities as $city)
                                                 <option value="{{ $city->title }}">{{ $city->title }}</option>
@@ -77,11 +71,7 @@
                                     {{-- Общая сводка (клик открывает окно) --}}
                                     <a href="javascript:void(0)"
                                        id="rooms-summary">
-<<<<<<< HEAD
-                                        Комнат: {{ $roomCount }}, Взрослых: {{ $totalAdults }},
-=======
-                                        Комнат3333: {{ $roomCount }}, Взрослых: {{ $totalAdults }},
->>>>>>> origin/eralast
+                                        Номера: {{ $roomCount }}, Взрослых: {{ $totalAdults }},
                                         Детей: {{ $totalChildren }}
                                     </a>
 
@@ -1044,7 +1034,6 @@
                                         </div>
 
                                         <div class="col-md-2 order-xl-3 order-lg-3 order-2">
-<<<<<<< HEAD
                                             @php
                                                 // 1) Исходная цена с коэффициентом
                                                 $basePrice = round($price * config('services.main.coef')/100 + $price);
@@ -1059,10 +1048,6 @@
                                             @endphp
                                             <div class="price">@lang('main.from') {{ number_format($converted, 0, '.', ' ') }}
                                                 {{ $symbol }}
-=======
-                                            <div class="price">@lang('main.from') {{ number_format($price, 0, '.', ' ') }}
-                                                $
->>>>>>> origin/eralast
                                             </div>
                                             <div class="night">@lang('main.night')</div>
                                         </div>

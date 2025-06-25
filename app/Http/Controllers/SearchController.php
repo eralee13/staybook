@@ -101,43 +101,43 @@ class SearchController extends Controller
 
         // ######## Emerging API ########
 
-            $emerSearch = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
-            $emerHotels = $emerSearch->EmergingGetHotels($request);
-            // dd($emerHotels['data']['hotels']);
-
-            if( isset($emerHotels['data']['hotels']) ){
-
-                $filteredHotels = array_filter($emerHotels['data']['hotels'], function ($hotel) {
-                    return isset($hotel['localData']['id']);
-                });
-                // dd($filteredHotels);
-                $hotels['hotels'] = array_map(function ($hotel) {
-                    // dd($hotel);
-                    $rate = $hotel['rates'][0];
-                    $price = (float)$rate['payment_options']['payment_types'][0]['amount'] ?? 0;
-                    $totalPrice = number_format( ($price * 0.08) + $price , 2, '.', '');
-
-                    return [
-                        'apiName' => 'ETG',
-                        'apiHotelId' => $hotel['hid'],
-                        'hid' => $hotel['localData']['id'] ?? '',
-                        'code' => $hotel['localData']['code'] ?? '',
-                        'title' => $hotel['localData']['title'] ?? '',
-                        'title_en' => $hotel['localData']['title_en'] ?? '',
-                        'rating' => $hotel['localData']['rating'] ?? '',
-                        'city' => $hotel['localData']['city'] ?? '',
-                        'amenities' => $hotel['localData']['amenity']['services'] ?? '',
-                        'images' => $hotel['localData']['images'] ?? [],
-                        'price' => $price ?? 0,
-                        'totalPrice' => $totalPrice ?? 0,
-                        'currency' => $rate['payment_options']['payment_types'][0]['currency_code'] ?? 0,
-                        'match_hash' => $rate['match_hash'] ?? 0,
-                    ];
-                }, $filteredHotels);
-
-                $results = json_decode(json_encode($hotels));
-            }
-            
+//            $emerSearch = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
+//            $emerHotels = $emerSearch->EmergingGetHotels($request);
+//            // dd($emerHotels['data']['hotels']);
+//
+//            if( isset($emerHotels['data']['hotels']) ){
+//
+//                $filteredHotels = array_filter($emerHotels['data']['hotels'], function ($hotel) {
+//                    return isset($hotel['localData']['id']);
+//                });
+//                // dd($filteredHotels);
+//                $hotels['hotels'] = array_map(function ($hotel) {
+//                    // dd($hotel);
+//                    $rate = $hotel['rates'][0];
+//                    $price = (float)$rate['payment_options']['payment_types'][0]['amount'] ?? 0;
+//                    $totalPrice = number_format( ($price * 0.08) + $price , 2, '.', '');
+//
+//                    return [
+//                        'apiName' => 'ETG',
+//                        'apiHotelId' => $hotel['hid'],
+//                        'hid' => $hotel['localData']['id'] ?? '',
+//                        'code' => $hotel['localData']['code'] ?? '',
+//                        'title' => $hotel['localData']['title'] ?? '',
+//                        'title_en' => $hotel['localData']['title_en'] ?? '',
+//                        'rating' => $hotel['localData']['rating'] ?? '',
+//                        'city' => $hotel['localData']['city'] ?? '',
+//                        'amenities' => $hotel['localData']['amenity']['services'] ?? '',
+//                        'images' => $hotel['localData']['images'] ?? [],
+//                        'price' => $price ?? 0,
+//                        'totalPrice' => $totalPrice ?? 0,
+//                        'currency' => $rate['payment_options']['payment_types'][0]['currency_code'] ?? 0,
+//                        'match_hash' => $rate['match_hash'] ?? 0,
+//                    ];
+//                }, $filteredHotels);
+//
+//                $results = json_decode(json_encode($hotels));
+//            }
+//
 
         // ######## End Emerging API ########
 

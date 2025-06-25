@@ -1,14 +1,5 @@
-@php
-    $hotel = \App\Models\Hotel::where('id', $request->propertyId)->first();
-    $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
-    $arrival = \Carbon\Carbon::createFromDate($request->arrivalDate)->format('d.m.Y');
-    $departure = \Carbon\Carbon::createFromDate($request->departureDate)->format('d.m.Y');
-    $room = \App\Models\Room::where('id', $request->room_id)->firstOrFail();
-    $rate = \App\Models\Rate::where('id', $request->rate_id)->firstOrFail();
-    $cancelPossible = \App\Models\CancellationRule::where('id', $rate->cancellation_rule_id)->firstOrFail();
-@endphp
+@extends('layouts.head')
 
-<<<<<<< HEAD
 @section('title', 'Подтверждение заказа')
 
 @section('content')
@@ -27,9 +18,6 @@
                         $cancelPossible = \App\Models\CancellationRule::where('rate_id', $rate->id)->firstOrFail();
                     @endphp
                     <h1>@lang('main.order_confirmation')</h1>
-=======
-<h1>Подтверждение заказа</h1>
->>>>>>> origin/eralast
                     <table>
                         <tr>
                             <td>@lang('main.hotel'):</td>
@@ -66,12 +54,14 @@
                             @if($cancelPossible->is_refundable == true)
                                 <td>
                                     @if(now()->lte($request->cancelDate))
-                                       @lang('main.free_cancellation') {{ $request->cancelDate }} (UTC {{ $hotel_utc }}
+                                        @lang('main.free_cancellation') {{ $request->cancelDate }} (UTC {{ $hotel_utc }}
                                         ).
                                     @endif
-                                    @lang('main.cancellation_amount'): {{ $request->cancelPrice }} {{ $order->booking->currencyCode ?? '$' }}</td>
+                                    @lang('main.cancellation_amount')
+                                    : {{ $request->cancelPrice }} {{ $order->booking->currencyCode ?? '$' }}</td>
                             @else
-                                <td>@lang('main.cancellation_is_not_avaialble'). @lang('main.cancellation_amount'): {{ $cancelPossible->penaltyAmount ?? $request->cancelPrice }} {{ $order->booking->currencyCode ?? '$' }}</td>
+                                <td>@lang('main.cancellation_is_not_avaialble'). @lang('main.cancellation_amount')
+                                    : {{ $cancelPossible->penaltyAmount ?? $request->cancelPrice }} {{ $order->booking->currencyCode ?? '$' }}</td>
                             @endif
                         </tr>
                         <tr>
@@ -142,3 +132,8 @@
                             <button class="more">@lang('main.confirm')</button>
                         </form>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
