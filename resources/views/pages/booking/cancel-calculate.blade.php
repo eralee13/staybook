@@ -8,7 +8,6 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-6 col-md-12">
-<<<<<<< HEAD
                     <h1 data-aos="fade-up" data-aos-duration="2000">@lang('main.booking_cancellation')</h1>
                     @php
                         $cancel = \App\Models\CancellationRule::where('id', $book->cancellation_id)->first();
@@ -25,12 +24,6 @@
                     @else
                         <p>@lang('main.free_cancellation'). @lang('main.cancellation_amount'): {{ $book->cancel_penalty }} {{ $request->currency }}</p>
                     @endif
-=======
-                    <h1 data-aos="fade-up" data-aos-duration="2000">Отмена брони</h1>
-                    <p>
-                        Штраф за отмену составляет: {{ $book->cancel_penalty }} {{ $book->currency }}
-                    </p>
->>>>>>> origin/eralast
                     <form action="{{ route('cancel_confirm') }}">
                         <div class="form-group">
                             <label for="">@lang('main.booking_number')</label>
@@ -43,6 +36,5 @@
             </div>
         </div>
     </div>
-
 
 @endsection
