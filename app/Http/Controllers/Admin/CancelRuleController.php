@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CancellationRuleRequest;
 use App\Models\CancellationRule;
+use App\Models\Rate;
 use Illuminate\Http\Request;
 
 class CancelRuleController extends Controller
@@ -28,7 +29,8 @@ class CancelRuleController extends Controller
     public function create(Request $request)
     {
         $hotel_id = $request->session()->get('hotel_id');
-        return view('auth.cancellations.form', compact('hotel_id'));
+        $rates = Rate::where('hotel_id', $hotel_id)->get();
+        return view('auth.cancellations.form', compact('hotel_id', 'rates'));
     }
 
     /**
@@ -50,7 +52,8 @@ class CancelRuleController extends Controller
     public function edit(CancellationRule $cancellation, Request $request)
     {
         $hotel_id = $request->session()->get('hotel_id');
-        return view('auth.cancellations.form', compact('cancellation', 'hotel_id'));
+        $rates = Rate::where('hotel_id', $hotel_id)->get();
+        return view('auth.cancellations.form', compact('cancellation', 'hotel_id', 'rates'));
     }
 
     /**

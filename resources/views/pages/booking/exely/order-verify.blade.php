@@ -1,7 +1,7 @@
 @php use Illuminate\Support\Facades\Http; @endphp
 @extends('layouts.head')
 
-@section('title', 'Забронировать')
+@section('title', 'Подтверждение заказа')
 
 @section('content')
 
@@ -18,12 +18,11 @@
                         @endforeach
                     @else
                         @if($order == null)
-                            <div class="alert alert-danger">Бронирование не удалось оформить! Пожалуйста <a
-                                        href="{{ route('index') }}">повторите снова</a>!
+                            <div class="alert alert-danger">@lang('main.complete')! <a
+                                        href="{{ route('index') }}">@lang('main.please_try_again')</a>!
                             </div>
                         @else
                             @if($order->booking != null)
-                                {{--                                @dd($order->booking)--}}
                                 @php
                                     $hotel = \App\Models\Hotel::where('exely_id', $order->booking->propertyId)->get()->first();
                                     $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
@@ -35,38 +34,36 @@
 
                                     $utc   = \Carbon\Carbon::parse($cancelPossible->freeCancellationDeadlineUtc);
                                     $local = \Carbon\Carbon::parse($cancelPossible->freeCancellationDeadlineLocal . 'Z');
-
-    // сколько часов между ними (signed)
-    $hours = $utc->diffInHours($local, false);
-
-    // формат UTC±HH:00
-    $offset = sprintf('UTC%+03d:00', $hours);
+                                    // сколько часов между ними (signed)
+                                    $hours = $utc->diffInHours($local, false);
+                                    // формат UTC±HH:00
+                                    $offset = sprintf('UTC%+03d:00', $hours);
                                 @endphp
-                                <h1>Подтверждение заказа</h1>
+                                <h1>@lang('main.order_confirmation')</h1>
                                 <table>
                                     <tr>
-                                        <td>Отель:</td>
-                                        <td>{{ $hotel->title }}</td>
+                                        <td>@lang('main.hotel'):</td>
+                                        <td>{{ $hotel->__('title') }}</td>
                                     </tr>
                                     <tr>
-                                        <td>Стоимость:</td>
+                                        <td>@lang('main.price'):</td>
                                         <td>{{ $order->booking->total->priceBeforeTax }} {{ $order->booking->currencyCode }}</td>
                                     </tr>
                                     <tr>
-                                        <td>Правило отмены:</td>
+                                        <td>@lang('main.cancellation_policy'):</td>
                                         @if($cancelPossible->freeCancellationPossible == true)
-                                            <td>Бесплатная отмена действует до {{ $cancelLocal }} ({{ $offset }}).
-                                                Размер
-                                                штрафа: {{ $cancelPossible->penaltyAmount }} {{ $order->booking->currencyCode }}</td>
+                                            <td>@lang('main.free_cancellation') {{ $cancelLocal }} ({{ $offset }}).
+                                                @lang('main.cancellation_amount')
+                                                : {{ $cancelPossible->penaltyAmount }} {{ $order->booking->currencyCode }}</td>
                                         @else
-                                            <td>Возможность бесплатной отмены отсутствует. Размер
-                                                штрафа: {{ $cancelPossible->penaltyAmount }} {{ $order->booking->currencyCode }}</td>
+                                            <td>@lang('main.cancellation_amount')
+                                                : {{ $cancelPossible->penaltyAmount }} {{ $order->booking->currencyCode }}</td>
                                         @endif
                                     </tr>
 
                                     @foreach($order->booking->roomStays as $room)
                                         <tr>
-                                            <td>ФИО:</td>
+                                            <td>@lang('main.full_name'):</td>
                                             <td>
 
                                                 @foreach($room->guests as $guest)
@@ -75,7 +72,7 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td>Даты:</td>
+                                            <td>@lang('main.dates'):</td>
                                             @php
                                                 $arrival = \Carbon\Carbon::createFromDate($room->stayDates->arrivalDateTime)->format('d.m.Y H:i');
                                                 $departure = \Carbon\Carbon::createFromDate($room->stayDates->departureDateTime)->format('d.m.Y H:i');
@@ -89,15 +86,15 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td>Тариф:</td>
+                                            <td>@lang('main.rate'):</td>
                                             <td>{{ $room->ratePlan->name }}</td>
                                         </tr>
                                         <tr>
-                                            <td>Кол-во взрослых:</td>
+                                            <td>@lang('main.count_adult'):</td>
                                             <td>{{ $room->guestCount->adultCount }}</td>
                                         </tr>
                                         <tr>
-                                            <td>Кол-во детей:</td>
+                                            <td>@lang('main.count_child'):</td>
                                             <td>
                                                 @if (request()->filled('childAges'))
                                                     {{ count($room->guestCount->childAges) }}
@@ -108,12 +105,12 @@
                                             {{--                                    <td>{{ count($order->booking->roomStays[0]->guestCount->guestCount->childAges) }}</td>--}}
                                         </tr>
                                         <tr>
-                                            <td>Тип комнаты:</td>
+                                            <td>@lang('main.room'):</td>
                                             <td>{{ $room->roomType->name }}</td>
                                         </tr>
                                     @endforeach
                                     <tr>
-                                        <td>Комментарий:</td>
+                                        <td>@lang('main.message'):</td>
                                         <td>{{ $order->booking->customer->comment }}</td>
                                     </tr>
                                 </table>
@@ -122,6 +119,7 @@
                                     <form action="{{ route('book_reserve_exely') }}" method="get">
                                         <input type="hidden" name="propertyId"
                                                value="{{ $order->booking->propertyId }}">
+                                        <input type="hidden" name="hotel_id" value="{{ $request->hotel_id }}">
                                         <input type="hidden" name="total"
                                                value="{{ $order->booking->total->priceBeforeTax }}">
                                         <input type="hidden" name="cancellation"
@@ -162,7 +160,7 @@
                                                value="{{ $order->booking->customer->contacts->phones[0]->phoneNumber }}">
                                         <input type="hidden" name="email"
                                                value="{{ $order->booking->customer->contacts->emails[0]->emailAddress }}">
-                                        <button class="more">Подтвердить</button>
+                                        <button class="more">@lang('main.confirm')</button>
                                     </form>
                                 </div>
                             @else
@@ -180,7 +178,7 @@
                                         <td>{{ $hotel->title }}</td>
                                     </tr>
                                     <tr>
-                                        <td>Стоимость:</td>
+                                        <td>@lang('main.price'):</td>
                                         <td>{{ $order->alternativeBooking->total->priceBeforeTax }} {{ $order->alternativeBooking->currencyCode }}</td>
                                     </tr>
                                     <tr>
@@ -200,14 +198,14 @@
                                     // формат UTC±HH:00
                                     $offset = sprintf('UTC%+03d:00', $hours);
                                         @endphp
-                                        <td>Правило отмены:</td>
+                                        <td>@lang('main.cancellation_policy'):</td>
                                         @if($cancelPossible->freeCancellationPossible == true)
-                                            <td>Бесплатная отмена действует до {{ $cancelLocal }} ({{ $offset }}).
-                                                Размер
-                                                штрафа: {{ $cancelPossible->penaltyAmount }} {{ $order->alternativeBooking->currencyCode }}</td>
+                                            <td>@lang('main.free_cancellation') {{ $cancelLocal }} ({{ $offset }}).
+                                                @lang('main.cancellation_amount')
+                                                : {{ $cancelPossible->penaltyAmount }} {{ $order->alternativeBooking->currencyCode }}</td>
                                         @else
-                                            <td>Возможность бесплатной отмены отсутствует. Размер
-                                                штрафа: {{ $cancelPossible->penaltyAmount }} {{ $order->alternativeBooking->currencyCode }}</td>
+                                            <td>@lang('main.free_cancellation'). @lang('main.cancellation_amount')
+                                                : {{ $cancelPossible->penaltyAmount }} {{ $order->alternativeBooking->currencyCode }}</td>
                                         @endif
                                     </tr>
                                     @foreach($order->alternativeBooking->roomStays as $room)
@@ -216,20 +214,20 @@
                                             $departure = \Carbon\Carbon::createFromDate($room->stayDates->departureDateTime)->format('d.m.Y H:i');
                                         @endphp
                                         <tr>
-                                            <td>Тариф:</td>
+                                            <td>@lang('main.rate'):</td>
                                             <td>{{ $room->ratePlan->name }}</td>
                                         </tr>
                                         <tr>
-                                            <td>Даты заезда-выезда:</td>
+                                            <td>@lang('main.check-in/check-out'):</td>
                                             <td>{{ $arrival }} - {{ $departure }} (UTC {{ $hotel_utc }})
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td>Кол-во взрослых:</td>
+                                            <td>@lang('main.count_adult'):</td>
                                             <td>{{ $room->guestCount->adultCount }}</td>
                                         </tr>
                                         <tr>
-                                            <td>Кол-во детей:</td>
+                                            <td>@lang('main.count_child'):</td>
                                             {{--                                        {{ implode(',', $room->guestCount->childAges) }}--}}
                                             <td>
                                                 @if (request()->filled('childAges'))
@@ -240,11 +238,11 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td>Тип комнаты:</td>
+                                            <td>@lang('main.room'):</td>
                                             <td>{{ $room->roomType->name }}</td>
                                         </tr>
                                         <tr>
-                                            <td>ФИО:</td>
+                                            <td>@lang('main.full_name'):</td>
                                             <td>
                                                 <ul>
                                                     @foreach($room->guests as $guest)
@@ -255,7 +253,7 @@
                                         </tr>
                                     @endforeach
                                     <tr>
-                                        <td>Комментарий:</td>
+                                        <td>@lang('main.message'):</td>
                                         <td>{{ $order->alternativeBooking->customer->comment }}</td>
                                     </tr>
                                 </table>
@@ -304,7 +302,7 @@
                                                value="{{ $order->alternativeBooking->customer->contacts->phones[0]->phoneNumber }}">
                                         <input type="hidden" name="email"
                                                value="{{ $order->alternativeBooking->customer->contacts->emails[0]->emailAddress }}">
-                                        <button class="more">Подтвердить</button>
+                                        <button class="more">@lang('main.confirm')</button>
                                     </form>
                                 </div>
                             @endif
@@ -315,25 +313,5 @@
             </div>
         </div>
     </div>
-
-    <style>
-        .page #map {
-            margin-top: 20px;
-        }
-
-        .page i {
-            color: darkblue;
-        }
-
-        .page form {
-            margin-top: 50px;
-        }
-
-        .page form button {
-            width: auto;
-            padding: 10px 30px;
-            margin-left: 10px;
-        }
-    </style>
 
 @endsection

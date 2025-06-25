@@ -42,6 +42,13 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="dashboard-item">
+                                    <div class="name">Город</div>
+                                    <h5>{{ $hotel->city }}
+                                    </h5>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="dashboard-item">
                                     <div class="name">@lang('admin.address')</div>
                                     <div class="address">{{ $hotel->__('address') }}</div>
                                 </div>
@@ -90,19 +97,16 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-12">
+                        <div class="row" style="margin-top: 30px">
+                            <div class="col-md-11">
                                 <div class="dashboard-item">
                                     <div class="name">@lang('admin.amenities')</div>
                                     <h6>{{ $hotel->amenity->services ?? '' }}</h6>
                                 </div>
                             </div>
-{{--                            <div class="col-md-12">--}}
-{{--                                <div class="dashboard-item">--}}
-{{--                                    <div class="name">@lang('admin.payment')</div>--}}
-{{--                                    <h6>{{ $hotel->payment->payments ?? '' }}</h6>--}}
-{{--                                </div>--}}
-{{--                            </div>--}}
+                            <div class="col-md-1">
+                                <a href="{{ route('amenities.edit', $amenity) }}"><img src="{{ route('index') }}/img/icons/edit.svg" alt=""></a>
+                            </div>
                         </div>
                         <div class="row">
                             <div class="col-md-12">

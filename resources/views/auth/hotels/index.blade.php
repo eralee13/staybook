@@ -7,7 +7,7 @@
     <div class="page hotels">
         <div class="container">
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <form>
                         <input type="text" name="search" id="search" placeholder="@lang('admin.search')"
                                class="form-control"
@@ -19,6 +19,11 @@
                     <div class="add">
                         <a href="{{ route('hotels.create') }}" class="more"><i class="fa-regular fa-plus"></i>
                             @lang('admin.add_hotel')</a>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="add">
+                        <a href="{{ route('hotel.create') }}" class="more add">Воспользоваться помощником</a>
                     </div>
                 </div>
             </div>

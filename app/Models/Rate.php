@@ -21,6 +21,8 @@ class Rate extends Model
         'meal_id',
         'price',
         'price2',
+        'price3',
+        'price4',
         'desc_en',
         'rate_code',
         'allotment',
@@ -33,7 +35,9 @@ class Rate extends Model
         'free_children_age',
         'child_extra_fee',
         'availability',
-        'cancellation_rule_id'
+        'cancellation_rule_id',
+        'open_time',
+        'close_time',
     ];
 
     protected $hidden = [

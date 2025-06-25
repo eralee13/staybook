@@ -29,7 +29,6 @@ class RateRequest extends FormRequest
             'meal_id' => 'required',
             'bed_type' => 'required',
             'price' => 'required|numeric',
-            'cancellation_rule_id' => 'required',
             'availability' => 'required',
             'adult' => 'required',
             'free_children_age' => 'required',

@@ -20,7 +20,7 @@ class ListbookController extends Controller
     public function index(Request $request)
     {
         $hotel = $request->session()->get('hotel_id');
-        $books = Book::where('hotel_id', $hotel)->paginate(40);
+        $books = Book::where('hotel_id', $hotel)->where('sum', '!=', 0)->paginate(40);
 
         return view('auth.listbooks.index', compact('books'));
     }

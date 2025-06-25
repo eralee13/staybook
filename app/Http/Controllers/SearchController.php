@@ -17,28 +17,21 @@ class SearchController extends Controller
 {
     public function search(Request $request)
     {
-        // 1. Собираем города и дату «завтра» для формы
-        $cities   = City::whereNull('country_id')->orderBy('title')->get();
+        $cities = City::whereNull('country_id')->orderBy('title')->get();
         $tomorrow = Carbon::tomorrow()->format('Y-m-d');
-
-        // 2. Извлекаем массив комнат и сразу считаем общее число взрослых и массив возрастов детей
         $rooms = $request->input('rooms', []); // если нет — пустой массив
-
-        $totalAdults    = 0;
-        $allChildAges   = [];
+        $totalAdults = 0;
+        $allChildAges = [];
         foreach ($rooms as $room) {
-            // Взрослые
-            $totalAdults += (int) ($room['adults'] ?? 0);
+            $totalAdults += (int)($room['adults'] ?? 0);
 
-            // Возрасты детей (если есть) собираем в единый массив
             if (!empty($room['childAges']) && is_array($room['childAges'])) {
                 foreach ($room['childAges'] as $age) {
-                    $allChildAges[] = (int) $age;
+                    $allChildAges[] = (int)$age;
                 }
             }
         }
 
-        // 3. Строим локальный запрос отелей с фильтрацией по тарифам
         $hotelQuery = Hotel::with(['rates' => function ($q) use ($request, $totalAdults) {
             // Фильтруем тарифы: проверяем, что есть места для всех взрослых и детей
             if ($request->filled('rooms')) {
@@ -53,11 +46,11 @@ class SearchController extends Controller
             // Фильтрация по датам: исключаем тарифы, у которых уже зарезервированы подходящие даты
             if ($request->filled('start_d') && $request->filled('end_d')) {
                 $start = $request->start_d;
-                $end   = $request->end_d;
+                $end = $request->end_d;
                 $q->whereDoesntHave('bookings', function ($b) use ($start, $end) {
                     $b->where('status', 'reserved')
                         ->where(function ($qb) use ($start, $end) {
-                            $qb->whereBetween('arrivalDate',   [$start, $end])
+                            $qb->whereBetween('arrivalDate', [$start, $end])
                                 ->orWhereBetween('departureDate', [$start, $end])
                                 ->orWhere(function ($qbb) use ($start, $end) {
                                     $qbb->where('arrivalDate', '<=', $start)
@@ -86,6 +79,7 @@ class SearchController extends Controller
         // Выполняем запрос и получаем коллекцию отелей вместе с уже подгруженными тарифами
         $localHotels = $hotelQuery->get();
 
+
         // Дополнительная сортировка по цене (если задана)
         if ($request->sort === 'lowest_price') {
             $localHotels = $localHotels->sortBy(fn($h) => $h->rates->min('price'))->values();
@@ -107,43 +101,43 @@ class SearchController extends Controller
 
         // ######## Emerging API ########
 
-            $emerSearch = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
-            $emerHotels = $emerSearch->EmergingGetHotels($request);
-            // dd($emerHotels['data']['hotels']);
-
-            if( isset($emerHotels['data']['hotels']) ){
-
-                $filteredHotels = array_filter($emerHotels['data']['hotels'], function ($hotel) {
-                    return isset($hotel['localData']['id']);
-                });
-                // dd($filteredHotels);
-                $hotels['hotels'] = array_map(function ($hotel) {
-                    // dd($hotel);
-                    $rate = $hotel['rates'][0];
-                    $price = (float)$rate['payment_options']['payment_types'][0]['amount'] ?? 0;
-                    $totalPrice = number_format( ($price * 0.08) + $price , 2, '.', '');
-
-                    return [
-                        'apiName' => 'ETG',
-                        'apiHotelId' => $hotel['hid'],
-                        'hid' => $hotel['localData']['id'] ?? '',
-                        'code' => $hotel['localData']['code'] ?? '',
-                        'title' => $hotel['localData']['title'] ?? '',
-                        'title_en' => $hotel['localData']['title_en'] ?? '',
-                        'rating' => $hotel['localData']['rating'] ?? '',
-                        'city' => $hotel['localData']['city'] ?? '',
-                        'amenities' => $hotel['localData']['amenity']['services'] ?? '',
-                        'images' => $hotel['localData']['images'] ?? [],
-                        'price' => $price ?? 0,
-                        'totalPrice' => $totalPrice ?? 0,
-                        'currency' => $rate['payment_options']['payment_types'][0]['currency_code'] ?? 0,
-                        'match_hash' => $rate['match_hash'] ?? 0,
-                    ];
-                }, $filteredHotels);
-
-                $results = json_decode(json_encode($hotels));
-            }
-            
+//            $emerSearch = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
+//            $emerHotels = $emerSearch->EmergingGetHotels($request);
+//            // dd($emerHotels['data']['hotels']);
+//
+//            if( isset($emerHotels['data']['hotels']) ){
+//
+//                $filteredHotels = array_filter($emerHotels['data']['hotels'], function ($hotel) {
+//                    return isset($hotel['localData']['id']);
+//                });
+//                // dd($filteredHotels);
+//                $hotels['hotels'] = array_map(function ($hotel) {
+//                    // dd($hotel);
+//                    $rate = $hotel['rates'][0];
+//                    $price = (float)$rate['payment_options']['payment_types'][0]['amount'] ?? 0;
+//                    $totalPrice = number_format( ($price * 0.08) + $price , 2, '.', '');
+//
+//                    return [
+//                        'apiName' => 'ETG',
+//                        'apiHotelId' => $hotel['hid'],
+//                        'hid' => $hotel['localData']['id'] ?? '',
+//                        'code' => $hotel['localData']['code'] ?? '',
+//                        'title' => $hotel['localData']['title'] ?? '',
+//                        'title_en' => $hotel['localData']['title_en'] ?? '',
+//                        'rating' => $hotel['localData']['rating'] ?? '',
+//                        'city' => $hotel['localData']['city'] ?? '',
+//                        'amenities' => $hotel['localData']['amenity']['services'] ?? '',
+//                        'images' => $hotel['localData']['images'] ?? [],
+//                        'price' => $price ?? 0,
+//                        'totalPrice' => $totalPrice ?? 0,
+//                        'currency' => $rate['payment_options']['payment_types'][0]['currency_code'] ?? 0,
+//                        'match_hash' => $rate['match_hash'] ?? 0,
+//                    ];
+//                }, $filteredHotels);
+//
+//                $results = json_decode(json_encode($hotels));
+//            }
+//
 
         // ######## End Emerging API ########
 
@@ -192,10 +186,10 @@ class SearchController extends Controller
             try {
                 // Формируем полезную нагрузку (payload) для Exely API
                 $payload = [
-                    'propertyIds'   => $propertyIds,
-                    'adults'        => $totalAdults,
-                    'childAges'     => $allChildAges,
-                    'arrivalDate'   => $request->arrivalDate,
+                    'propertyIds' => $propertyIds,
+                    'adults' => $totalAdults,
+                    'childAges' => $allChildAges,
+                    'arrivalDate' => $request->arrivalDate,
                     'departureDate' => $request->departureDate,
                 ];
 
@@ -234,26 +228,33 @@ class SearchController extends Controller
             });
         }
 
-        // 6. Связанные отели (пример жестко закодированных ID — при желании адаптируйте)
-        $related = Hotel::whereNull('tourmind_id')
-            ->whereIn('id', [14, 15])
-            ->get();
+        if ($localHotels->isEmpty()) {
+            return view('pages.search.search', [
+                'hotels'   => [],
+                'cities'   => $cities,
+                'tomorrow' => $tomorrow,
+                'request'  => $request,
+                'results'  => $results,
+                'error'    => 'По вашему запросу отели не найдены.',
+            ]);
+        } else {
+            // 7. Возвращаем вьюшку с объединёнными данными
+            return view('pages.search.search', [
+                'hotels' => $localHotels,
+                'cities' => $cities,
+                'tomorrow' => $tomorrow,
+                'request' => $request,
+                'results' => $results,
+            ]);
+        }
 
-        // 7. Возвращаем вьюшку с объединёнными данными
-        return view('pages.search.search', [
-            'hotels'   => $localHotels,
-            'cities'   => $cities,
-            'tomorrow' => $tomorrow,
-            'request'  => $request,
-            'results'  => $results,
-            'related'  => $related,
-        ]);
     }
 
 
     public function hotel($code, Request $request)
     {
-        $hotel = Hotel::cacheFor(now()->addHours(2))->where('code', $code)->first();
+        $hotel = Hotel::where('code', $code)->first();
+        //$hotel = Hotel::cacheFor(now()->addHours(2))->where('code', $code)->first();
         $arrival = Carbon::createFromDate($request->arrivalDate);
         $departure = Carbon::createFromDate($request->departureDate);
         $count_day = $arrival->diffInDays($departure);
@@ -302,31 +303,69 @@ class SearchController extends Controller
         }
     }
 
-
     //exely
     public function hotel_exely(Request $request)
     {
-        $childs = [];
-        if (!empty($request['childAges']) && is_array($request['childAges'])) {
-            foreach ($request['childAges'] as $age) {
-                // Приводим к int/строке на всякий случай
-                $childs[] = trim((string) $age);
-            }
+        // ✅ Валидация входных параметров
+        $request->validate([
+            'propertyId' => 'required|string',
+            'arrivalDate' => 'required|date',
+            'departureDate' => 'required|date|after:arrivalDate',
+            'adultCount' => 'required|integer|min:1',
+            'childAges' => 'nullable|array',
+        ]);
+
+        // ✅ Очистка массива childAges от пустых значений
+        $childAgesInput = (array)$request->input('childAges', []);
+        $childs = array_filter($childAgesInput, fn($age) => trim($age) !== '');
+        $childs = array_map('intval', $childs); // безопасное преобразование в числа
+
+        // ✅ Параметры запроса
+        $params = [
+            'arrivalDate' => $request->arrivalDate,
+            'departureDate' => $request->departureDate,
+            'adults' => $request->adultCount,
+            'includeExtraStays' => 'false',
+            'includeExtraServices' => 'false',
+        ];
+
+        $queryString = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+        foreach ($childs as $age) {
+            $queryString .= '&childAges=' . urlencode($age);
         }
 
-        if (in_array('', $childs, true)) {
-            $response = Http::withHeaders(['x-api-key' => config('services.exely.key'), 'accept' => 'application/json'])
-                ->get(config('services.exely.base_url') . 'search/v1/properties/' . $request->propertyId . '/room-stays?arrivalDate=' . $request->arrivalDate . '&departureDate=' . $request->departureDate . '&adults=' . $request->adultCount . '&includeExtraStays=false&includeExtraServices=false');
-        } else {
-            foreach ($childs as $child) {
-                $items[] = '&childAges=' . $child;
-            }
-            $response = Http::withHeaders(['x-api-key' => config('services.exely.key'), 'accept' => 'application/json'])
-                ->get(config('services.exely.base_url') . 'search/v1/properties/' . $request->propertyId . '/room-stays?arrivalDate=' . $request->arrivalDate . '&departureDate=' . $request->departureDate . '&adults=' . $request->adultCount . implode($items) . '&includeExtraStays=false&includeExtraServices=false');
+        // ✅ Финальный URL
+        $url = rtrim(config('services.exely.base_url'), '/') . "/search/v1/properties/{$request->propertyId}/room-stays?" . $queryString;
+
+        // ✅ Выполняем запрос
+        $response = Http::withHeaders([
+            'x-api-key' => config('services.exely.key'),
+            'accept' => 'application/json',
+        ])->get($url);
+
+        // ✅ Лог ответа
+        Log::debug('📥 Ответ Exely:', [
+            'url' => $url,
+            'status' => $response->status(),
+            'body' => $response->body(),
+        ]);
+
+        // ✅ Безопасное получение roomStays
+        $data = json_decode($response->body());
+
+        if (!isset($data->roomStays) || !is_array($data->roomStays)) {
+            Log::warning('Exely: Нет roomStays в ответе', ['response' => $data]);
+            return view('pages.search.exely.hotel', [
+                'rooms' => [],
+                'request' => $request,
+            ]);
         }
-        //dd($response->object());
-        $rooms = $response->object()->roomStays;
-        $rooms = collect($rooms)->sortBy('total')->values()->all();
+
+        // ✅ Сортировка по цене
+        $rooms = collect($data->roomStays)
+            ->sortBy('total.priceBeforeTax')
+            ->values()
+            ->all();
 
         return view('pages.search.exely.hotel', compact('rooms', 'request'));
 

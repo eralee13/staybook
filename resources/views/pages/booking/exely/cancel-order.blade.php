@@ -16,15 +16,15 @@
                             </div>
                         @endforeach
                     @else
-                        <h1>Отмена заказа</h1>
-                        <p>Штраф за отмену составляет: {{ $calc->penaltyAmount }} {{ $request->currency }}</p>
+                        <h1>@lang('main.booking_cancellation')</h1>
+                        <p>@lang('main.cancellation_amount'): {{ $calc->penaltyAmount }} {{ $request->currency }}</p>
                         <form action="{{ route('cancel_confirm_exely') }}">
                             <div class="form-group">
-                                <label for="">Номер брони</label>
+                                <label for="">@lang('main.booking_number')</label>
                                 <input type="text" value="{{ $request->number }}" name="number">
                             </div>
                             <input type="hidden" name="amount" value="{{ $calc->penaltyAmount }}">
-                            <button class="more">Отменить</button>
+                            <button class="more">@lang('main.cancel_booking')</button>
                         </form>
                     @endif
                 </div>

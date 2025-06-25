@@ -2,22 +2,23 @@
 
 use App\Http\Controllers\Admin\AllBillsController;
 use App\Http\Controllers\Admin\AllBookingController;
-use App\Http\Controllers\Admin\BookingController;
+use App\Http\Controllers\Admin\BookingCalendarController;
+use App\Http\Controllers\Admin\BookingCalendarPriceController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\HotelController;
 use App\Http\Controllers\Admin\ListbookController;
 use App\Http\Controllers\Admin\PDFController;
 use App\Http\Controllers\Admin\UserBookController;
-use App\Http\Controllers\API\Exely\ContentController;
-use App\Http\Controllers\API\Exely\ReservationController;
-use App\Http\Controllers\API\Exely\SearchController;
 use App\Http\Controllers\MainController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
 use App\Livewire\BookingForm;
 use App\Livewire\HotelResults;
 use App\Livewire\HotelRooms;
+use App\Livewire\HotelWizard;
 use Dedoc\Scramble\Scramble;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Session;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,10 +41,19 @@ Route::middleware('set_locale')->group(function () {
     Route::group(["prefix" => "auth"], function () {
         Route::resource("hotels", "App\Http\Controllers\Admin\HotelController");
         Route::resource("amenities", "App\Http\Controllers\Admin\AmenityController");
-        //Route::resource("payments", "App\Http\Controllers\Admin\PaymentController");
-        //Route::resource("listbooks", "App\Http\Controllers\Admin\ListbookController");
-        Route::resource("bookings", "App\Http\Controllers\Admin\BookingController");
-        Route::resource("prices", "App\Http\Controllers\Admin\PriceController");
+        Route::prefix('bookcalendar')->group(function () {
+            Route::get('/books', [BookingCalendarController::class, 'index'])->name('bookcalendar.index');
+            Route::get('/books/events', [BookingCalendarController::class, 'getEvents'])->name('bookcalendar.events');
+            Route::post('/books/create', [BookingCalendarController::class, 'store'])->name('bookcalendar.create');
+        });
+
+        Route::prefix('bookcalendarprice')->group(function () {
+            Route::get('/books', [BookingCalendarPriceController::class, 'index'])->name('bookcalendarprice.index');
+            Route::get('/books/events', [BookingCalendarPriceController::class, 'getEvents'])->name('bookcalendarprice.events');
+            Route::post('/books/create', [BookingCalendarPriceController::class, 'store'])->name('bookcalendarprice.create');
+        });
+
+        //Route::resource("prices", "App\Http\Controllers\Admin\PriceController");
         Route::resource("rooms", "App\Http\Controllers\Admin\RoomController");
         Route::resource("rates", "App\Http\Controllers\Admin\RateController");
         Route::resource("meals", "App\Http\Controllers\Admin\MealController");
@@ -68,11 +78,17 @@ Route::middleware('set_locale')->group(function () {
         Route::get('/allbooks/excel', [AllBookingController::class, 'exportExcel'])->name('excel-books');
 
         Route::get('generate-pdf/{id}', [PDFController::class, 'generatePDF'])->name('pdf');
-        Route::post('/books/store', [BookingController::class, 'store'])->name('listbooks.store');
+        //Route::post('/books/store', [BookingController::class, 'store'])->name('listbooks.store');
+        Route::get('/items/create', HotelWizard::class)->name('hotel.create');
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         Route::get('/userbooks', [UserBookController::class, 'index'])->name('userbooks.index');
         Route::get('/userbooks/show/{book}', [UserBookController::class, 'showBook'])->name('userbooks.show');
-        Route::post('/userbooks/cancel/{book}', [UserBookController::class, 'cancelBook'])->name('userbooks.cancel');
+        Route::post('/userbooks/cancel/{book}', [UserBookController::class, 'cancel_calculate'])->name('userbooks.cancel_calculate');
+        Route::post('/userbooks/cancel_confirm', [UserBookController::class, 'cancel_confirm'])->name('userbooks.cancel_confirm');
+        //exely
+        Route::post('/userbooks/cancel_exely/{book}', [UserBookController::class, 'cancel_calculate_exely'])->name('userbooks.cancel_calculate_exely');
+        Route::get('/userbooks/cancel_confirm', [UserBookController::class, 'cancel_confirm_exely'])->name('userbooks.cancel_confirm_exely');
     });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -82,14 +98,23 @@ Route::middleware('set_locale')->group(function () {
 
     Route::get('/', [PageController::class, 'index'])->name('index');
 
-    //search
+    Route::get('currency/switch/{currency}', function ($currency) {
+        $allowed = ['USD','KGS','RUB'];
+        $currency = strtoupper($currency);
+        if (in_array($currency, $allowed, true)) {
+            Session::put('currency', $currency);
+        }
+        return back();
+    })->name('currency.switch');
+
+    //-----search
     //local
     Route::get('/search', [\App\Http\Controllers\SearchController::class, 'search'])->name('search');
     Route::get('/hotel/{hotel}', [\App\Http\Controllers\SearchController::class, 'hotel'])->name('hotel');
     //exely
     Route::get('/hotelex', [\App\Http\Controllers\SearchController::class, 'hotel_exely'])->name('hotel_exely');
 
-    //booking
+    //-----booking
     //local
     Route::get('/book/order', [\App\Http\Controllers\BookingController::class, 'order'])->name('order');
     Route::get('/book/verify', [\App\Http\Controllers\BookingController::class, 'book_verify'])->name('book_verify');
@@ -104,8 +129,23 @@ Route::middleware('set_locale')->group(function () {
     Route::get('/book/cancel/calculate/ex', [\App\Http\Controllers\BookingController::class, 'cancel_calculate_exely'])->name('cancel_calculate_exely');
     Route::get('/book/cancel/confirm/ex', [\App\Http\Controllers\BookingController::class, 'cancel_confirm_exely'])->name('cancel_confirm_exely');
 
+    //pages
+    Route::get('/hotels', [PageController::class, 'hotels'])->name('hotels');
     Route::get('/about', [PageController::class, 'about'])->name('about');
     Route::get('/contactspage', [PageController::class, 'contactspage'])->name('contactspage');
+    Route::get('/companies', [PageController::class, 'companies'])->name('companies');
+    Route::get('/apartments', [PageController::class, 'apartments'])->name('apartments');
+    Route::get('/objects', [PageController::class, 'objects'])->name('objects');
+    Route::get('/aboutus', [PageController::class, 'aboutus'])->name('aboutus');
+    Route::get('/rules', [PageController::class, 'rules'])->name('rules');
+    Route::get('/privacy', [PageController::class, 'privacy'])->name('privacy');
+    Route::get('/legal', [PageController::class, 'legal'])->name('legal');
+
+    //TourMind
+    Route::get('/hotel-results', HotelResults::class)->name('hotel.results');
+    Route::get('/hotel-rooms', HotelRooms::class)->name('hotel.rooms');
+    Route::get('/bookingform', BookingForm::class)->name('bookingform');
+    //Route::get('/allhotels', [PageController::class, 'hotels'])->name('hotels');
 
 
     // TourMind
@@ -124,14 +164,7 @@ Route::middleware('set_locale')->group(function () {
     Route::get('/book/cancel/etg', [\App\Http\Controllers\BookingEtgController::class, 'cancel_calculate_etg'])->name('cancel_calculate_etg');
     Route::get('/book/cancel/confirm/etg', [\App\Http\Controllers\BookingEtgController::class, 'cancel_confirm_etg'])->name('cancel_confirm_etg');
     
-    
-    Route::get('/hotel-results', HotelResults::class)->name('hotel.results');
-    Route::get('/hotel-rooms', HotelRooms::class)->name('hotel.rooms');
-    Route::get('/bookingform', BookingForm::class)->name('bookingform');
-
-    Route::get('/allhotels', [PageController::class, 'hotels'])->name('hotels');
-
-    //Route::get('/order/{order}', [PageController::class, 'order'])->name('order');
+       //Route::get('/order/{order}', [PageController::class, 'order'])->name('order');
     Route::get('/testsearch', [PageController::class, 'testsearch'])->name('testsearch');
 
     //email

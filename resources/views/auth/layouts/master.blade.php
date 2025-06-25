@@ -134,11 +134,19 @@
         });
     });
 
-    // $(document).ready(function () {
-    //     $('#country').selectize({
-    //         sortField: 'text'
-    //     });
-    // });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#cityhot').select2({
+            placeholder: "Выберите город",
+            allowClear: true
+        });
+        $('#timezone').select2({
+            placeholder: "Выберите часовой пояс",
+            allowClear: true
+        });
+    });
 </script>
 
 </body>

@@ -7,8 +7,21 @@
     <div class="page admin">
         <div class="container">
             <div class="row">
-                <div class="col-md-12">
-                    <h1>Страницы</h1>
+                <div class="col-md-3">
+                    @include('auth.layouts.sidebar')
+                </div>
+                <div class="col-md-9">
+                    <div class="row align-items-center aic">
+                        <div class="col-md-7">
+                            <h1>Страницы</h1>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="btn-wrap">
+                                <a class="btn add" href="{{ route('pages.create') }}"><i class="fa-solid
+                                fa-plus"></i> @lang('admin.add')</a>
+                            </div>
+                        </div>
+                    </div>
                     <table class="table">
                         <thead>
                         <tr>

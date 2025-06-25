@@ -124,7 +124,6 @@ return [
     'add_user' => 'Add user',
     'show_password' => 'Show password',
     'edit_user' => 'Edit user',
-    'plans_and_rules' => 'Tariffs and cancellations policy',
     'plans' => 'Tariffs',
     'cancellations' => 'Сancellation policy',
     'meals' => 'Foods',

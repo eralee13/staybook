@@ -36,4 +36,13 @@ return [
         'base_url' => env('EXELY_BASE_URL'),
     ],
 
+    'main' => [
+        'coef' => env('MAIN_COEF'),
+    ],
+
+    'fxkg' => [
+        'url'   => env('FXKG_API_URL', 'https://data.fx.kg/api/v1'),
+        'token' => env('FXKG_API_TOKEN'),
+    ],
+
 ];

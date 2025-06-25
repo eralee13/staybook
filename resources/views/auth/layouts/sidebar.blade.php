@@ -6,10 +6,11 @@
 {{--    @endphp--}}
     <ul>
         @can('edit-hotel')
+            <li @routeactive('dashboard*') class="hotel-list"><a href="{{route('dashboard')}}"><img src="{{ route('index') }}/img/icons/home.svg" alt=""> Консоль</a></li>
                 <li @routeactive(
                 'hotel*') class="hotel-list"><a href="{{route('hotels.index')}}"><img src="{{ route('index') }}/img/icons/home.svg" alt=""> @lang('admin.hotels')</a></li>
                 <li @routeactive(
-                'bookings.index') class="price-list"><a href="{{route('bookings.index')}}"><img src="{{ route('index') }}/img/money.svg" alt=""> @lang('admin.rates_and_availability')</a></li>
+                'bookings.index') class="price-list"><a href="{{route('bookcalendar.index')}}"><img src="{{ route('index') }}/img/money.svg" alt=""> @lang('admin.rates_and_availability')</a></li>
                 <li @routeactive(
                 'listbooks.index') class="price-list"><a href="{{route('listbooks.index')}}"><img src="{{ route('index') }}/img/money.svg" alt=""> @lang('admin.bookings')</a></li>
                 <li @routeactive(
@@ -29,11 +30,15 @@
             <li @routeactive(
             'allbills.index')><a href="{{route('allbills.index')}}"><img src="{{ route('index') }}/img/icons/file.svg" alt=""> Все счета</a></li>
             @endhasrole
-            @hasrole('B2B')
+{{--            @hasrole('B2B')--}}
+{{--            <li @routeactive('userbook*')>--}}
+{{--        <a href="{{ route('userbooks.index')}}"><i class="fa-regular fa-money-bill"></i> @lang('admin.my_bookings')</a>--}}
+{{--        </li>--}}
+{{--            @endhasrole--}}
             <li @routeactive('userbook*')>
-        <a href="{{ route('userbooks.index')}}"><i class="fa-regular fa-money-bill"></i> @lang('admin.my_bookings')</a>
-        </li>
-            @endhasrole
+            <a href="{{ route('userbooks.index')}}"><i class="fa-regular fa-money-bill"></i> @lang('admin.my_bookings')</a>
+            </li>
+
         <li><a href="{{ route('logout') }}">Выйти из системы</a></li>
     </ul>
 </div>

@@ -4,18 +4,29 @@
 
 @section('content')
     @auth
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+        <style>
+            .select2-container--default .select2-selection--single{
+                height: 50px;
+                line-height: 50px;
+                display: block;
+            }
+            .select2-container--default .select2-selection--single .select2-selection__rendered{
+                line-height: 50px;
+            }
+        </style>
         <div class="main-filter">
             <div class="container">
                 <div class="row">
                     <div class="col-md-12">
-                        <h1>Остановитесь с удобством.
-                            Работайте с выгодой.</h1>
+                        <h1>@lang('main.head')</h1>
                         <div class="type">
                             <div class="type-item current">
-                                <a href="{{route('search')}}">Отели и номера</a>
+                                <a href="{{route('search')}}">@lang('main.hotels_and_rooms')</a>
                             </div>
                             <div class="type-item">
-                                <a href="#">Трансфер</a>
+                                <a href="#">@lang('main.transfer')</a>
                             </div>
                         </div>
 
@@ -36,7 +47,7 @@
                                 <div class="col-lg col-6">
                                     <div class="form-group">
                                         <div class="label in"><img src="{{route('index')}}/img/marker_in.svg" alt="">
-                                            Заезд
+                                            @lang('main.checkin')
                                         </div>
                                         <input type="text" id="date" class="date">
                                         <input type="hidden" id="arrivalDate" name="arrivalDate"
@@ -49,9 +60,8 @@
                                     {{-- Фильтр комнат --}}
                                     {{-- Общая сводка (клик открывает окно) --}}
                                     <a href="javascript:void(0)"
-                                       id="rooms-summary"
-                                       class="inline-block text-blue-600 hover:underline text-sm font-sans">
-                                        Комнат: 1, Взрослых: 1, Детей: 0
+                                       id="rooms-summary">
+                                        {{__('main.room')}}: 1, {{__('main.adult')}}: 1, {{__('main.child')}}: 0
                                     </a>
 
                                     {{-- Полупрозрачный оверлей --}}
@@ -65,7 +75,7 @@
             max-h-[80vh] overflow-auto z-50">
                                         <div class="p-4">
                                             <div class="flex justify-between items-center mb-4">
-                                                <h3 class="text-lg font-medium">Гости и номера</h3>
+                                                <h3 class="text-lg font-medium">@lang('main.guests_and_rooms')</h3>
                                                 <div class="close-btn">
                                                     <a href="javascript:void(0)"
                                                        id="panel-close"
@@ -78,7 +88,7 @@
                                                 <a href="javascript:void(0)"
                                                    id="add-room"
                                                    class="inline-block text-blue-600 hover:underline text-sm mb-4">
-                                                    + Добавить номер
+                                                    @lang('main.add_room')
                                                 </a>
                                             </div>
 
@@ -87,7 +97,7 @@
 
                                             <div class="mt-4 text-right">
                                                 <button id="panel-apply"class="more">
-                                                    Готово
+                                                    @lang('main.ready')
                                                 </button>
                                             </div>
                                         </div>
@@ -100,14 +110,14 @@
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <h4 class="flex justify-between items-center text-sm font-medium mb-3">
-                                                        <span class="room-number">__NUM__</span> номер
+                                                        <span class="room-number">__NUM__</span> @lang('main.room')
                                                     </h4>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="remove-btn">
                                                         <a href="javascript:void(0)"
                                                            class="remove-room text-red-500 hover:text-red-700 text-xs ml-2">
-                                                            Удалить
+                                                            @lang('main.delete')
                                                         </a>
                                                     </div>
                                                 </div>
@@ -123,7 +133,7 @@
                                             <a href="javascript:void(0)"
                                                class="guest-summary flex justify-between items-center w-full border border-gray-300
               rounded-md px-4 py-2 bg-white text-sm hover:border-blue-500">
-                                                <span class="summary-text">1 взрослый</span>
+                                                <span class="summary-text">1 @lang('main.adult')</span>
                                                 <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor"
                                                      viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -137,7 +147,7 @@
                 rounded-md shadow-lg p-4">
                                                 <div class="row">
                                                     <div class="col-md-6">
-                                                        <span class="text-sm">Кол-во взрослых</span>
+                                                        <span class="text-sm">@lang('main.count_adult')</span>
                                                         <div class="flex items-center">
                                                             <button class="dec-adult">−</button>
                                                             <span class="count-adult mx-3 w-5 text-center text-sm">1</span>
@@ -146,7 +156,7 @@
                                                     </div>
                                                     <div class="col-md-6">
                                                         <div class="flex justify-between items-center mb-4">
-                                                            <span class="text-sm">Количество детей</span>
+                                                            <span class="text-sm">@lang('main.count_child')</span>
                                                             <div class="flex items-center">
                                                                 <button class="dec-child">−</button>
                                                                 <span class="count-child mx-3 w-5 text-center text-sm">0</span>
@@ -157,8 +167,7 @@
                                                 </div>
                                                 <div class="children-ages space-y-2 mb-4"></div>
                                                 <div class="text-right">
-                                                    <button class="apply-guests inline-block bg-blue-600 hover:bg-blue-700 text-white
-                       rounded-md px-4 py-2 text-sm">Применить
+                                                    <button class="apply-guests">@lang('main.apply')
                                                     </button>
                                                 </div>
                                             </div>
@@ -230,8 +239,8 @@
                                             function updateRoomSummary(room) {
                                                 const aCount = +room.querySelector('.count-adult').textContent;
                                                 const cCount = +room.querySelector('.count-child').textContent;
-                                                const parts = [`${aCount} ${aCount === 1 ? 'взрослый' : 'взрослых'}`];
-                                                if (cCount) parts.push(`${cCount} ${cCount === 1 ? 'ребёнок' : 'детей'}`);
+                                                const parts = [`${aCount} ${aCount === 1 ? '{{__('main.adult')}}' : '{{__('main.adult')}}'}`];
+                                                if (cCount) parts.push(`${cCount} ${cCount === 1 ? '{{__('main.child')}}' : '{{__('main.child')}}'}`);
                                                 room.querySelector('.summary-text').textContent = parts.join(', ');
                                                 room.querySelector('.input-adults').value = aCount;
                                                 updateGlobalSummary();
@@ -314,7 +323,7 @@
                                                         const wrap = room.querySelector('.children-ages');
                                                         const div = document.createElement('div');
                                                         div.className = 'flex items-center';
-                                                        div.innerHTML = `<span class="mr-2 text-sm">Возраст</span>`;
+                                                        div.innerHTML = `<span class="mr-2 text-sm">@lang('main.age')</span>`;
                                                         const sel = document.createElement('select');
                                                         sel.className = 'border border-gray-300 rounded-md px-2 py-1 text-sm';
                                                         for (let a = 0; a <= 18; a++) sel.insertAdjacentHTML('beforeend', `<option value="${a}">${a}</option>`);
@@ -344,16 +353,15 @@
                                 <div class="col-lg col-6 extra">
                                     <div class="form-group">
                                         <div id="filter">
-                                            <div class="label filter"><img src="{{route('index')}}/img/setting.svg"
-                                                                           alt="">
-                                                Фильтры
+                                            <div class="label filter"><img src="{{route('index')}}/img/setting.svg" alt="">
+                                                @lang('main.filters')
                                             </div>
                                             <div class="filter-wrap" id="filter-wrap">
                                                 <div class="closebtn" id="closebtn"><img
                                                             src="{{route('index')}}/img/close.svg" alt=""></div>
-                                                <h5>Фильтры</h5>
+                                                <h5>@lang('main.filters')</h5>
                                                 <div class="form-group">
-                                                    <div class="name">Рейтинг</div>
+                                                    <div class="name">@lang('main.rating')</div>
                                                     <div class="row justify-content-center">
                                                         <div class="col-lg col-md-4 col-4">
                                                             <div class="item">
@@ -443,32 +451,32 @@
                                                         <div class="col-lg-3">
                                                             <div class="apart-item">
                                                                 <img src="{{route('index')}}/img/hotelb.svg" alt="">
-                                                                <h6>Отели</h6>
+                                                                <h6>@lang('main.hotels')</h6>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <div class="line"></div>
-                                                <div class="name">Прибытие</div>
+                                                <div class="name">@lang('main.arrival')</div>
                                                 <div class="form-group" id="income">
                                                     <div class="row">
                                                         <div class="col-md-6 col-6">
                                                             <div class="itemm">
                                                                 <input type="checkbox" value="early_in">
-                                                                <label for="">Ранний заезд</label>
+                                                                <label for="">@lang('main.early_in')</label>
                                                             </div>
                                                         </div>
                                                         <div class="col-md-6 col-6">
                                                             <div class="itemm">
                                                                 <input type="checkbox" value="late_out">
-                                                                <label for="">Поздний выезд</label>
+                                                                <label for="">@lang('main.late_out')</label>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <div class="line"></div>
                                                 <div class="form-group" id="meal">
-                                                    <div class="name">Виды питания</div>
+                                                    <div class="name">@lang('main.meal_plans')</div>
                                                     <div class="row justify-content-center">
                                                         <div class="col-lg col-md-4 col-4">
                                                             <div class="itemmm">
@@ -511,7 +519,7 @@
                                 <div class="col-lg col-12">
                                     <div class="form-group">
                                         <button type="submit" class="more"><img src="{{route('index')}}/img/search.svg"
-                                                                                alt=""> Найти
+                                                                                alt=""> @lang('main.find')
                                         </button>
                                     </div>
                                 </div>
@@ -522,13 +530,13 @@
                             <div class="property-list-item">
                                 <a href="#">
                                     <img src="{{route('index')}}/img/hotel.svg" alt="">
-                                    <div class="name">Отели</div>
+                                    <div class="name">@lang('main.hotels')</div>
                                 </a>
                             </div>
                             <div class="property-list-item">
                                 <a href="#">
                                     <img src="{{route('index')}}/img/rooms.svg" alt="">
-                                    <div class="name">Номера</div>
+                                    <div class="name">@lang('main.rooms')</div>
                                 </a>
                             </div>
                         </div>
@@ -542,7 +550,7 @@
             <div class="container">
                 <div class="row">
                     <div class="col-md-12">
-                        <h2>Места в Кыргызстане</h2>
+                        <h2>@lang('main.places')</h2>
                     </div>
                 </div>
                 <div class="row">
@@ -550,13 +558,19 @@
                         <div class="col-lg-4 col-md-6">
                             <div class="places-item">
                                     <span class="img-wrap">
-                                        <img src="{{ Storage::url($hotel->image) }}" alt="">
+                                        @if($hotel->image)
+                                            <img src="{{ Storage::url($hotel->image) }}" alt="">
+                                        @else
+                                            <img src="{{ route('index')}}/img/noimage.png" alt="">
+                                        @endif
                                     </span>
                                 <div class="text-wrap">
                                     <div class="address">{{ $hotel->city }}</div>
                                     <h5>{{ $hotel->title }}</h5>
-                                    <div class="rating"><img src="{{ route('index') }}/img/star.svg"
-                                                             alt=""> {{ $hotel->rating }}</div>
+                                    @if($hotel->rating)
+                                        <div class="rating"><img src="{{ route('index') }}/img/star.svg"
+                                                                 alt=""> {{ $hotel->rating }}</div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -565,7 +579,7 @@
                 <div class="row">
                     <div class="col-md-12">
                         <div class="btn-wrap">
-                            <a href="{{ route('hotels') }}">Показать больше</a>
+                            <a href="{{ route('hotels') }}">@lang('main.more')</a>
                         </div>
                     </div>
                 </div>
@@ -576,7 +590,7 @@
             <div class="container">
                 <div class="row">
                     <div class="col-md-12">
-                        <h2>Популярные направления</h2>
+                        <h2>@lang('main.popular')</h2>
                     </div>
                 </div>
                 <div class="row">
@@ -622,7 +636,7 @@
                 <div class="row">
                     <div class="col-md-12">
                         <div class="btn-wrap">
-                            <a href="{{ route('hotels') }}">Показать больше</a>
+                            <a href="{{ route('hotels') }}">@lang('main.more')</a>
                         </div>
                     </div>
                 </div>

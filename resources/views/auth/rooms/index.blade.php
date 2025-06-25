@@ -7,10 +7,10 @@
     <div class="page admin">
         <div class="container">
             <div class="row">
-                <div class="col-md-2">
+                <div class="col-md-3">
                     @include('auth.layouts.sidebar')
                 </div>
-                <div class="col-md-10">
+                <div class="col-md-9">
                     <div class="row align-items-center aic">
                         <div class="col-md-7">
                             <h6>{{ $hotel->title }}</h6>

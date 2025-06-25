@@ -84,21 +84,21 @@
                     </tr>
                     <tr>
                         <td>Hotel</td>
-                        <td>{{ $hotel->title }}</td>
+                        <td>{{ $hotel->title ?? ''}}</td>
                     </tr>
                     <tr>
                         <td>Room</td>
-                        <td>{{ $room->title }}</td>
+                        <td>{{ $room->title ?? '' }}</td>
                     </tr>
                     <tr>
                         <td>Rate</td>
                         <td>
-                            <div class="stick">{{ $rate->title }}</div>
+                            <div class="stick">{{ $rate->title ?? '' }}</div>
                         </td>
                     </tr>
                     <tr>
                         <td>Bedding</td>
-                        <td>{{ $rate->bed_type }}</td>
+                        <td>{{ $rate->bed_type ?? '' }}</td>
                     </tr>
                     <tr>
                         <td>Guest</td>
