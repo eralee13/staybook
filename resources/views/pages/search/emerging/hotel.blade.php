@@ -7,7 +7,7 @@
 
             $amenities = explode(',', $hotel->amenity->services ?? '');
             // $amenities = array_slice($amenities, 0, 8);
-                        $iconMap = [
+            $iconMap = [
                             'wi-fi'             => 'wifi.svg',
                             'интернет'          => 'wifi.svg',
                             'Доступ в интернет' => 'wifi.svg',

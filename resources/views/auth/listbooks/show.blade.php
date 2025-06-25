@@ -65,18 +65,18 @@
                                     $img = \App\Models\Image::where('room_id', $room->id)->first();
                                     $rate = \App\Models\Rate::where('id', $book->rate_id)->first();
                                 @endphp
-                                <div class="img"><img src="{{ Storage::url($img->image) }}"></div>
+                                <div class="img"><img src="{{ Storage::url($img->image ?? '') }}"></div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="dashboard-item">
                                 <div class="name">@lang('admin.hotel')</div>
                                 <div class="wrap">
-                                    {{ $hotel->title }}
+                                    {{ $hotel->title ??  $hotel->title_en ?? ''}} <br>
                                     <div class="name" style="margin-top: 20px">@lang('admin.room')</div>
-                                    {{ $room->title }} <br>
+                                    {{ $room->title ?? $room->title_en ?? ''}} <br>
                                     <div class="name" style="margin-top: 20px">Тариф</div>
-                                    {{ $rate->title }} <br>
+                                    {{ $rate->title ?? $rate->title_en ?? ''}} <br>
                                 </div>
                             </div>
                         </div>

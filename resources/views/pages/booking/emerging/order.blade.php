@@ -35,6 +35,8 @@
                                 @endif
                             @endforeach
 
+                        <input type="hidden" name="book_hash" value="{{ $request->book_hash }}">
+                        <input type="hidden" name="match_hash" value="{{ $request->match_hash }}">
                         <input type="hidden" name="room_name" value="{{ $request->room_name }}">
                         <input type="hidden" name="rate_name" value="{{ $request->rate_name }}">
                         <input type="hidden" name="refundable" value="{{ $request->refundable }}">

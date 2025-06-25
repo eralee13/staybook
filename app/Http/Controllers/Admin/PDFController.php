@@ -17,7 +17,7 @@ class PDFController extends Controller
             'date' => date('d/m/Y H:i'),
             'book' => $book
         ];
-        $pdf = PDF::loadView('pdf.book', $data);
+        $pdf = PDF::loadView('pdf.newbook', $data);
         return $pdf->download('book_'. $book->book_id .'_'.$date.'.pdf');
     }
 }

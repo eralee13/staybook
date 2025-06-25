@@ -92,7 +92,7 @@ class EmergingHotelController extends Controller
            
             $data = json_decode($line, true);
 
-            if ($data['region']['name'] == 'Amsterdam') {
+            if ($data['region']['name'] == 'Dubai') {
                 
                 $hotels[] = $data;
 
