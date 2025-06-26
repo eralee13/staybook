@@ -68,6 +68,10 @@ class BookingController extends Controller
         //Mail::to('myrzabekova@silkwaytravel.kg')->send(new BookMail($book));
         Log::warning('Бронь создана: ' . $book->id);
 
+        if($book){
+                Mail::to('eralee@staybook.asia')->send(new BookMail($book));
+            }
+
         return view('pages.booking.order-reserve', compact('book'));
     }
 
@@ -82,7 +86,13 @@ class BookingController extends Controller
         $book->where('book_token', $request->number)->update([
             'status' => "Cancelled"
         ]);
-        $book = Book::where('book_token', $request->number)->firstOrFail();
+
+        $book = Book::where('book_token', $request->number)->first();
+        
+        if($book){
+                Log::warning('Отмена брони: ' . $book->id);
+                Mail::to('eralee@staybook.asia')->send(new BookCancelMail($book));
+            }
         return view('pages.booking.cancel-confirm', compact('book', 'request'));
     }
 

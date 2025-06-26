@@ -19,36 +19,29 @@
             <div class="col-md-12">
                 <div class="tabs">
                     <ul>
-                        <li @routeactive('bookcalendar.index')><a href="{{route('bookcalendar.index')}}" class="more">Квоты</a></li>
-                        <li @routeactive('bookcalendarprice.index')><a href="{{route('bookcalendarprice.index')}}">Цены</a></li>
+                        <li @routeactive('bookcalendar.index')><a href="{{ route('bookcalendar.index', ['hotel' => request()->route('hotel') ?? 14]) }}" class="more">Квоты</a>
+                        </li>
+                        <li @routeactive('bookcalendarprice.index')><a href="{{ route('bookcalendarprice.index', ['hotel' => request()->route('hotel') ?? 14]) }}">Цены</a>
+                        </li>
                     </ul>
                 </div>
             </div>
         </div>
         <div class="status-container" style="display: flex; justify-content: space-around; align-items: center;">
             <div class="e-search">
-                <form action="">
-                    <div class="row">
-                        <div class="col-lg-8">
-                            <div class="form-group">
-                                <label for="">Выберите отель</label>
-                                <select name="hotel_id" id="hotel_id" class="form-control" style="width: 200px">
-                                    <option value="14">Все @lang('main.hotels')</option>
-                                    @foreach ($hotelslist as $hotel)
-                                        <option value="{{ $hotel->id }}">{{ $hotel->title }}</option>
-                                    @endforeach
+                <div class="form-group">
+                    <label for="">Выберите отель</label>
+                    <select name="hotel_id" id="hotel_id" class="form-control" style="width: 200px"
+                            onchange="window.location.href = '{{ route(Route::currentRouteName(), ['hotel' => '__HOTEL__']) }}'.replace('__HOTEL__', this.value)">
+                        @foreach ($hotelslist as $hotel)
+                            <option value="{{ $hotel->id }}" {{ request()->route('hotel') == $hotel->id ? 'selected' : '' }}>
+                                {{ $hotel->title }}
+                            </option>
+                        @endforeach
+                    </select>
 
-                                </select>
-                            </div>
-                        </div>
-{{--                        <div class="col-6">--}}
-{{--                            <div class="form-group">--}}
-{{--                                <label for="">Даты</label><br>--}}
-{{--                                <input type="text" id="daterange" class="da" autocomplete="off" placeholder="Выберите дату" style="width: auto">--}}
-{{--                                --}}{{-- <button type="submit" class="btn btn-primary more" style="margin-left: 10px;">@lang('main.search')</button> --}}
-{{--                            </div>--}}
-{{--                        </div>--}}
-                    </div>
+
+                </div>
                     @php
                         use Carbon\Carbon;
 
@@ -89,7 +82,7 @@
 
                         });
                     </script>
-                </form>
+
             </div>
             <div style="width: 30%"></div>
             <div class="status" style="display: flex; align-items: center; margin-right: 20px;">
