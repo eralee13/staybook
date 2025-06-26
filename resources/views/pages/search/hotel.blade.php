@@ -129,8 +129,9 @@
                             @foreach($rooms as $room)
                                 @php
                                     $image = \App\Models\Image::where('room_id', $room->id)->orderBy('id', 'desc')->first();
-                                    $rates = \App\Models\Rate::where('hotel_id', $hotel->id)->where('room_id', $room->id)->orderBy('price', 'asc')->get();
                                 @endphp
+
+
                                 <div class="row" style="margin-top: 30px">
                                     <div class="col-md-3">
                                         <div class="room">
@@ -178,8 +179,11 @@
                                     </div>
                                     <div class="col-md-9">
                                         <div class="tariff-wrap">
+                                            @if($room->rates->isEmpty())
+                                                <p class="text-muted">Нет доступных тарифов для этих дат и гостей.</p>
+                                            @else
                                             <div class="owl-carousel owl-tariffs">
-                                                @foreach($rates as $rate)
+                                                @foreach($room->rates as $rate)
                                                     <div class="tariffs-item">
                                                         @isset($rate)
                                                             <h5>{{ $rate->__('title') }}</h5>
@@ -204,8 +208,10 @@
                                                             //общая сумма
                                                             if($request->adultCount >= 2){
                                                                 $sum = ($rate->price2 + $price_child) * $request->adult * $nights;
+                                                                $sum = (config('services.main.coef') * $sum) + $sum;
                                                             } else {
                                                                 $sum = ($rate->price + $price_child) * $request->adult * $nights;
+                                                                $sum = (config('services.main.coef') * $sum) + $sum;
                                                             }
                                                         @endphp
                                                         <div class="item bed">
@@ -221,21 +227,23 @@
                                                                     @if(now()->lte($cancelDate))
                                                                         @lang('main.free_cancellation') {{ $cancelDate }}
                                                                         UTC +06:00.
+                                                                    @else
+                                                                        @lang('main.cancellation_is_not_avaialble').
                                                                     @endif
                                                                     @lang('main.cancellation_amount')
                                                                     :
                                                                     @if($cancel->penalty_type === 'fixed')
-                                                                        ${{ $cancel->penalty_amount }}
+                                                                        ${{ $cancelPrice = round($cancel->penalty_amount) }}
                                                                     @else
-                                                                        ${{ ($sum * $cancel->penalty_amount) / 100 }}
+                                                                        ${{ $cancelPrice = round(($sum * $cancel->penalty_amount) / 100) }}
                                                                     @endif
                                                                 @else
                                                                     @lang('main.cancellation_amount')
                                                                     :
                                                                     @if($cancel->penalty_type === 'fixed')
-                                                                        ${{ $cancel->penalty_amount }}
+                                                                        ${{ $cancelPrice = round($cancel->penalty_amount) }}
                                                                     @else
-                                                                        ${{ ($sum * $cancel->penalty_amount) / 100 }}
+                                                                        ${{ $cancelPrice = round(($sum * $cancel->penalty_amount) / 100) }}
                                                                     @endif
                                                                 @endif
                                                             </div>
@@ -276,9 +284,6 @@
                                                                 <input type="hidden"
                                                                        name="cancellation_id"
                                                                        value="{{ $cancel->id }}">
-                                                                {{--                                                                <input type="hidden" name="cancelDate" value="{{ $cancelDate }}">--}}
-                                                                {{--                                                                <input type="hidden" name="cancelPrice" value="{{ $room->cancellationPolicy->penaltyAmount  }}">--}}
-
                                                                 <input type="hidden"
                                                                        name="hotel_id"
                                                                        value="{{ $hotel->id }}">
@@ -290,10 +295,8 @@
                                                                        value="{{ $cancelDate }}">
                                                                 <input type="hidden"
                                                                        name="cancelPrice"
-                                                                       value="{{ $cancel->penalty_amount }}">
-                                                                <input type="hidden"
-                                                                       name="price"
-                                                                       value="{{ round($sum * config('services.main.coef')/100 + $sum, 0) }}">
+                                                                       value="{{ $cancelPrice }}">
+                                                                <input type="hidden" name="price" value="{{ round($sum) }}">
                                                                 {{--                                                                <input type="hidden" name="currency" value="{{ $room->currencyCode }}">--}}
                                                                 <button class="more">@lang('main.book')</button>
                                                             </form>
@@ -302,6 +305,7 @@
                                                 @endforeach
 
                                             </div>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>

@@ -52,25 +52,45 @@ table td{
 
 
 /* Панель снизу */
-#rooms-panel {
-    position: fixed;
-    bottom: 0;
-    left: 50%;
-    margin-left: -300px;
-    width: 600px;
-    max-height: 80vh;
-    background: #ffffff;
-    border-top: 1px solid #e5e7eb;
-    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
-    border-radius: 0.75rem 0.75rem 0 0;
-    transform: translateY(100%);
-    transition: transform 0.3s ease-in-out;
-    overflow-y: auto;
-    z-index: 50;
+#rooms-panel-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 40;
+    display: none;
+}
+#rooms-panel-overlay.open {
+    display: block;
 }
 
+/* Центрированное модальное окно */
+#rooms-panel {
+    position: fixed;
+    top: 50%; left: 50%;
+    width: 90%; max-width: 500px;
+    max-height: 80vh;
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.2);
+    overflow-y: auto;
+    z-index: 50;
+
+    /* Скрыто по-умолчанию через масштаб */
+    transform: translate(-50%, -50%) scale(0);
+    transform-origin: center center;
+    transition: transform 0.3s ease-in-out;
+}
+/* При открытии — масштабируем до 1 */
 #rooms-panel.open {
-    transform: translateY(0%);
+    transform: translate(-50%, -50%) scale(1);
+}
+
+#rooms-panel h3{
+    font-size: 20px;
+}
+
+#rooms-panel h4{
+    font-size: 16px;
 }
 
 /* Сводка по комнатам */

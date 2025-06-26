@@ -37,7 +37,6 @@
                                         <div class="label stay"><img src="{{route('index')}}/img/marker_out.svg" alt="">
                                         </div>
                                         <select name="city" id="city">
-                                            <option value="Amsterdam" selected>Amsterdam</option>
                                             @foreach($cities as $city)
                                                 <option value="{{ $city->title }}">{{ $city->title }}</option>
                                             @endforeach
@@ -68,13 +67,8 @@
                                     <div id="rooms-panel-overlay"
                                          class="fixed inset-0 bg-black bg-opacity-50 hidden z-40"></div>
 
-                                    {{-- Окно снизу --}}
-                                    <div id="rooms-panel"
-                                         class="fixed bottom-0 left-0 w-full bg-white border-t shadow-lg rounded-t-lg
-            transform translate-y-full transition-transform duration-300
-            max-h-[80vh] overflow-auto z-50">
-                                        <div class="p-4">
-                                            <div class="flex justify-between items-center mb-4">
+                                    <div id="rooms-panel">
+                                            <div class="flex justify-between items-center">
                                                 <h3 class="text-lg font-medium">@lang('main.guests_and_rooms')</h3>
                                                 <div class="close-btn">
                                                     <a href="javascript:void(0)"
@@ -100,7 +94,6 @@
                                                     @lang('main.ready')
                                                 </button>
                                             </div>
-                                        </div>
                                     </div>
 
                                     {{-- Шаблон одной комнаты --}}

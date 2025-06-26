@@ -50,3 +50,4 @@ phpunit.xml.cache
 # Mac & System files
 .DS_Store
 Thumbs.db
+.env

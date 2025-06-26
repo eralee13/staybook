@@ -56,6 +56,8 @@
                                     @if(now()->lte($request->cancelDate))
                                         @lang('main.free_cancellation') {{ $request->cancelDate }} (UTC {{ $hotel_utc }}
                                         ).
+                                    @else
+                                        @lang('main.cancellation_is_not_avaialble').
                                     @endif
                                     @lang('main.cancellation_amount')
                                     : {{ $request->cancelPrice }} {{ $order->booking->currencyCode ?? '$' }}</td>
