@@ -9,8 +9,9 @@
             <li @routeactive('dashboard*') class="hotel-list"><a href="{{route('dashboard')}}"><img src="{{ route('index') }}/img/icons/home.svg" alt=""> Консоль</a></li>
                 <li @routeactive(
                 'hotel*') class="hotel-list"><a href="{{route('hotels.index')}}"><img src="{{ route('index') }}/img/icons/home.svg" alt=""> @lang('admin.hotels')</a></li>
-                <li @routeactive(
-                'bookings.index') class="price-list"><a href="{{route('bookcalendar.index')}}"><img src="{{ route('index') }}/img/money.svg" alt=""> @lang('admin.rates_and_availability')</a></li>
+{{--                <li @routeactive(--}}
+{{--                'bookings.index') class="price-list"><a href="{{route('bookcalendar.index')}}"><img src="{{ route('index') }}/img/money.svg" alt=""> @lang('admin.rates_and_availability')</a></li>--}}
+{{--                --}}
                 <li @routeactive(
                 'listbooks.index') class="price-list"><a href="{{route('listbooks.index')}}"><img src="{{ route('index') }}/img/money.svg" alt=""> @lang('admin.bookings')</a></li>
                 <li @routeactive(

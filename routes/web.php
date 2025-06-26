@@ -42,14 +42,23 @@ Route::middleware('set_locale')->group(function () {
         Route::resource("hotels", "App\Http\Controllers\Admin\HotelController");
         Route::resource("amenities", "App\Http\Controllers\Admin\AmenityController");
         Route::prefix('bookcalendar')->group(function () {
-            Route::get('/books', [BookingCalendarController::class, 'index'])->name('bookcalendar.index');
-            Route::get('/books/events', [BookingCalendarController::class, 'getEvents'])->name('bookcalendar.events');
+            Route::get('/books/events', [BookingCalendarController::class, 'getEvents'])->name('bookcalendar.events'); // СТАВИМ ВЫШЕ
+            Route::get('/books', function () {
+                $firstHotel = \App\Models\Hotel::orderBy('title')->first();
+                return redirect()->route('bookcalendar.index', ['hotel' => $firstHotel->id ?? 14]);
+            });
+            Route::get('/books/{hotel?}', [BookingCalendarController::class, 'index'])->name('bookcalendar.index');
             Route::post('/books/create', [BookingCalendarController::class, 'store'])->name('bookcalendar.create');
         });
 
+
         Route::prefix('bookcalendarprice')->group(function () {
-            Route::get('/books', [BookingCalendarPriceController::class, 'index'])->name('bookcalendarprice.index');
             Route::get('/books/events', [BookingCalendarPriceController::class, 'getEvents'])->name('bookcalendarprice.events');
+            Route::get('/books', function () {
+                $firstHotel = \App\Models\Hotel::orderBy('title')->first();
+                return redirect()->route('bookcalendarprice.index', ['hotel' => $firstHotel->id ?? 14]);
+            });
+            Route::get('/books/{hotel?}', [BookingCalendarPriceController::class, 'index'])->name('bookcalendarprice.index');
             Route::post('/books/create', [BookingCalendarPriceController::class, 'store'])->name('bookcalendarprice.create');
         });
 
@@ -155,7 +164,7 @@ Route::middleware('set_locale')->group(function () {
     Route::get('/book/reserve/tm', [\App\Http\Controllers\BookingTmController::class, 'book_reserve_tm'])->name('book_reserve_tm');
     Route::get('/book/cancel/tm', [\App\Http\Controllers\BookingTmController::class, 'cancel_calculate_tm'])->name('cancel_calculate_tm');
     Route::get('/book/cancel/confirm/tm', [\App\Http\Controllers\BookingTmController::class, 'cancel_confirm_tm'])->name('cancel_confirm_tm');
-    
+
     // Emerging
     Route::get('/hoteletg/{hid}', [\App\Http\Controllers\SearchController::class, 'hotel_etg'])->name('hotel_etg');
     Route::get('/book/order/etg', [\App\Http\Controllers\BookingEtgController::class, 'order_etg'])->name('order_etg');
@@ -163,8 +172,8 @@ Route::middleware('set_locale')->group(function () {
     Route::get('/book/reserve/etg', [\App\Http\Controllers\BookingEtgController::class, 'book_reserve_etg'])->name('book_reserve_etg');
     Route::get('/book/cancel/etg', [\App\Http\Controllers\BookingEtgController::class, 'cancel_calculate_etg'])->name('cancel_calculate_etg');
     Route::get('/book/cancel/confirm/etg', [\App\Http\Controllers\BookingEtgController::class, 'cancel_confirm_etg'])->name('cancel_confirm_etg');
-    
-       //Route::get('/order/{order}', [PageController::class, 'order'])->name('order');
+
+    //Route::get('/order/{order}', [PageController::class, 'order'])->name('order');
     Route::get('/testsearch', [PageController::class, 'testsearch'])->name('testsearch');
 
     //email

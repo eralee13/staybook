@@ -159,6 +159,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         fetch(`/auth/bookcalendar/books/events?hotel_id=${selectedHotel}&start=${selectedStart}&end=${selectedEnd}`)
+
             .then(res => res.json())
             .then(data => {
                 calendar.removeAllEventSources();

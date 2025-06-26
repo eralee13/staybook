@@ -30,6 +30,8 @@
                                 <td>
                                     @if(now() <= $cancelDate)
                                         @lang('main.free_cancellation') {{ $cancelDate }} (UTC {{ $hotel_utc }}).
+                                    @else
+                                        @lang('main.cancellation_is_not_avaialble').
                                     @endif
                                         @lang('main.cancellation_amount'): {{ $book->cancel_penalty }} {{ $order->booking->currencyCode ?? '$' }}</td>
                             @else

@@ -147,9 +147,9 @@ class SearchController extends Controller
         // $hotelService = new \App\Services\Tourmind\HotelServices();
         // $tmhotels = $hotelService->tmGetHotels($request);
         // // dd($tmhotels['Hotels']);
-        
+
         // if ( isset($tmhotels['Hotels']) ){
-            
+
         //     $filteredHotels = array_filter($tmhotels['Hotels'], function ($hotel) {
         //         return isset($hotel['localData']['id']);
         //     });
@@ -179,7 +179,6 @@ class SearchController extends Controller
         //     // dd($results->hotels);
         // }
         // ***** end Tourmind api *****
-
 
 
         if (!empty($propertyIds)) {
@@ -230,12 +229,12 @@ class SearchController extends Controller
 
         if ($localHotels->isEmpty()) {
             return view('pages.search.search', [
-                'hotels'   => [],
-                'cities'   => $cities,
+                'hotels' => [],
+                'cities' => $cities,
                 'tomorrow' => $tomorrow,
-                'request'  => $request,
-                'results'  => $results,
-                'error'    => 'По вашему запросу отели не найдены.',
+                'request' => $request,
+                'results' => $results,
+                'error' => 'По вашему запросу отели не найдены.',
             ]);
         } else {
             // 7. Возвращаем вьюшку с объединёнными данными
@@ -264,43 +263,41 @@ class SearchController extends Controller
             if ($request->filled('adult')) {
                 $q->where('availability', '>=', $request->adult);
             }
-
             if ($request->filled('child')) {
                 $q->where('child', '>=', $request->child);
             }
-
             if ($request->filled('meal_id')) {
                 $q->where('meal_id', $request->meal_id);
             }
 
-            // Показать только те тарифы, у которых нет бронирования
+            // 2) Если указаны даты — исключаем и reserved, и pending с adult=0
             if ($request->filled('arrivalDate') && $request->filled('departureDate')) {
-                $startTime = $request->arrivalDate;
-                $endTime = $request->departureDate;
+                $start = $request->arrivalDate;
+                $end = $request->departureDate;
 
-                $q->whereDoesntHave('bookings', function ($b) use ($startTime, $endTime) {
-                    $b->where('status', 'reserved')
-                        ->where(function ($query) use ($startTime, $endTime) {
-                            $query->whereBetween('arrivalDate', [$startTime, $endTime])
-                                ->orWhereBetween('departureDate', [$startTime, $endTime])
-                                ->orWhere(function ($q) use ($startTime, $endTime) {
-                                    $q->where('arrivalDate', '<=', $startTime)
-                                        ->where('departureDate', '>=', $endTime);
+                $q->whereDoesntHave('bookings', function ($b) use ($start, $end) {
+                    // Сначала отбираем «проблемные» брони:
+                    //   status = reserved  OR  (status = pending AND adult = 0)
+                    $b->where(function ($b2) {
+                        $b2->where('status', 'pending')
+                            ->where('adult', '===', 0);
+                    })
+                        ->where(function ($b4) use ($start, $end) {
+                            $b4->whereBetween('arrivalDate', [$start, $end])
+                                ->orWhereBetween('departureDate', [$start, $end])
+                                ->orWhere(function ($b5) use ($start, $end) {
+                                    $b5->where('arrivalDate', '<=', $start)
+                                        ->where('departureDate', '>=', $end);
                                 });
                         });
                 });
             }
-        }])->where('hotel_id', $hotel->id);
+        }])
+            ->where('hotel_id', $hotel->id);
+        $rooms = $query->get()->filter(fn($r) => $r->rates->isNotEmpty());
 
-        $rooms = $query->get()->filter(function ($room) {
-            return $room->rates->isNotEmpty();
-        });
 
-        if ($hotel->exely_id != null) {
-            return view('pages.search.hotel', compact('hotel', 'arrival', 'departure', 'adult', 'count_day', 'request', 'rooms'));
-        } else {
-            return view('pages.search.hotel', compact('hotel', 'arrival', 'departure', 'adult', 'count_day', 'request', 'rooms'));
-        }
+        return view('pages.search.hotel', compact('hotel', 'arrival', 'departure', 'adult', 'count_day', 'request', 'rooms'));
     }
 
     //exely
@@ -370,8 +367,6 @@ class SearchController extends Controller
         return view('pages.search.exely.hotel', compact('rooms', 'request'));
 
 
-
-
     }
 
     // tourmind
@@ -384,17 +379,17 @@ class SearchController extends Controller
         $meals = Meal::pluck('title', 'id');
         $arrival = Carbon::createFromDate($request->arrivalDate);
         $departure = Carbon::createFromDate($request->departureDate);
-        
-            $hotelService = new \App\Services\Tourmind\HotelServices();
-            $tmroom = $hotelService->getOneDetail($request, $hotel->id);
-            $tmimages = Image::where('hotel_id', $hotel->id)->where('caption', 'Room')->get('image');
 
-            $city = City::where('title', $hotel->city)->first(['country_code']);
+        $hotelService = new \App\Services\Tourmind\HotelServices();
+        $tmroom = $hotelService->getOneDetail($request, $hotel->id);
+        $tmimages = Image::where('hotel_id', $hotel->id)->where('caption', 'Room')->get('image');
 
-            if (!$hotel->utc && $city && ($utc = $hotelService->getUtcOffsetByCountryCode($city->country_code))) {
-                $hotel->utc = $utc;
-                $hotel->save();
-            }
+        $city = City::where('title', $hotel->city)->first(['country_code']);
+
+        if (!$hotel->utc && $city && ($utc = $hotelService->getUtcOffsetByCountryCode($city->country_code))) {
+            $hotel->utc = $utc;
+            $hotel->save();
+        }
 
 
         return view('pages.search.tourmind.hotel', compact('hotel', 'arrival', 'departure', 'request', 'roomAmenity', 'tmroom', 'tmimages', 'meals'));
@@ -410,18 +405,18 @@ class SearchController extends Controller
         $meals = Meal::pluck('title', 'id');
         $arrival = Carbon::createFromDate($request->arrivalDate);
         $departure = Carbon::createFromDate($request->departureDate);
-        
-            $emergingSearch = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
-            $etgroom = $emergingSearch->searchRates($request, $hotel->id);
-            // dd($etgroom);
-            $tmimages = Image::where('hotel_id', $hotel->id)->where('caption', 'guest_rooms')->get('image');
 
-            $city = City::where('title', $hotel->city)->first(['country_code']);
+        $emergingSearch = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
+        $etgroom = $emergingSearch->searchRates($request, $hotel->id);
+        // dd($etgroom);
+        $tmimages = Image::where('hotel_id', $hotel->id)->where('caption', 'guest_rooms')->get('image');
 
-            if (!$hotel->utc && $city && ($utc = $hotelService->getUtcOffsetByCountryCode($city->country_code))) {
-                $hotel->utc = $utc;
-                $hotel->save();
-            }
+        $city = City::where('title', $hotel->city)->first(['country_code']);
+
+        if (!$hotel->utc && $city && ($utc = $hotelService->getUtcOffsetByCountryCode($city->country_code))) {
+            $hotel->utc = $utc;
+            $hotel->save();
+        }
 
 
         return view('pages.search.emerging.hotel', compact('hotel', 'arrival', 'departure', 'request', 'roomAmenity', 'etgroom', 'tmimages', 'meals'));

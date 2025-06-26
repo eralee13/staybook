@@ -25,7 +25,7 @@ class PageController extends Controller
         $cities = City::orderBy('title', 'asc')->get();
         $tomorrow = Carbon::tomorrow()->format('Y-m-d');
         $now = Carbon::now();
-        if ($now->hour > 3 && $now->hour < 5) {
+        if ($now->hour > 3 && $now->hour < 4) {
             set_time_limit(300);
             //exely static data
             $response = Http::timeout(300)

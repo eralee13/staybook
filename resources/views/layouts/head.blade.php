@@ -30,9 +30,9 @@
 
 <body>
 
-<div id="preloader">
-    <div class="loader"></div>
-</div>
+{{--<div id="preloader">--}}
+{{--    <div class="loader"></div>--}}
+{{--</div>--}}
 
 <header class="is_order">
     <div class="container-fluid">
