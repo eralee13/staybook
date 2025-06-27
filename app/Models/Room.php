@@ -40,7 +40,7 @@ class Room extends Model
 
     public function rates()
     {
-        return $this->hasMany(Rate::class);
+        return $this->hasMany(Rate::class, 'room_id', 'id');
     }
 
     public function images()

@@ -130,8 +130,6 @@
                                 @php
                                     $image = \App\Models\Image::where('room_id', $room->id)->orderBy('id', 'desc')->first();
                                 @endphp
-
-
                                 <div class="row" style="margin-top: 30px">
                                     <div class="col-md-3">
                                         <div class="room">
@@ -143,7 +141,7 @@
                                                      alt=""
                                                      width="100px">
                                             @endif
-                                            <h5>{{ $room->__('title') }}</h5>
+                                            <h5>{{ $room->title }}</h5>
                                             {{--                                            <div class="bed">2 отдельные кровати</div>--}}
                                             <div class="amenities">
                                                 <div class="amenities-item">
