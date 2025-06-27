@@ -66,8 +66,8 @@ class BookingEtgController extends Controller
     {
        
             // $hotel = Hotel::find($request->hotel_id);
-            $hotelService = new \App\Services\Tourmind\HotelServices();
-            $order = $hotelService->createOrder($request);
+            $emergingOrder = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
+            $order = $emergingOrder->startProcess($request);
             $message = '';
             // dd($order);
             if ( isset($order['Error']) == true) {

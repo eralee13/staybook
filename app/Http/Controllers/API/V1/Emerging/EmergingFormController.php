@@ -115,7 +115,7 @@ class EmergingFormController extends Controller
                     "language" => "en",
                     "guests" => $guests,
                     // "timeout" => 30,
-                    "region_id" => 378,
+                    "region_id" => 6053839,
                     "currency" => "USD"
                 ]);
                 // dd($response->json());
@@ -183,30 +183,14 @@ class EmergingFormController extends Controller
                 'Content-Type' => 'application/json',
             ])
             ->post($this->url . '/hotel/order/booking/form/', [
-                "partner_order_id" => "0b370500-5321-4046-92c5-5982f1a64fc8",
-                "book_hash" => "h-b8e4ce1d-fa50-518f-9e22-3effe807a27e",
+                "partner_order_id" => $request->token,
+                "book_hash" => $request->book_hash,
                 "language" => "en",
                 "user_ip" => $request->ip(),
             ]);
-
+            dd( json_decode($response->body()) );
             return response()->json($response->json());
 
-        // if ( $response->successful() ) {
-
-        //     $res = $response->json();
-
-        //     return response()->json($res);
-
-        // } else {
-
-        //     $res = response()->json([
-        //         'error' => 'Ошибка запроса',
-        //         'status' => $response->status(),
-        //         'details' => $response->json()
-        //     ], $response->status());
-
-        //     // dd($res);
-        // }
     }
     
     public function booking(Request $request)

@@ -868,11 +868,7 @@
                                                                 <input type="hidden" name="title"
                                                                        value="{{ $room->fullPlacementsName }}">
                                                                 <input type="hidden" name="price"
-<<<<<<< HEAD
-                                                                       value="{{ round($room->total->priceBeforeTax * config('services.main.coef')/100 + $room->total->priceBeforeTax, 0) }}">
-=======
                                                                        value="{{ $room->total->priceBeforeTax }}">
->>>>>>> origin/eralast
                                                                 <button class="more">@lang('main.show_all_rooms')</button>
                                                             </form>
                                                         </div>
@@ -881,11 +877,7 @@
 
                                                 <div class="col-md-2 order-xl-3 order-lg-3 order-2">
                                                     <div class="price">
-<<<<<<< HEAD
-                                                        @lang('main.from') {{ round($room->total->priceBeforeTax * config('services.main.coef')/100 + $room->total->priceBeforeTax, 0) }} {{ $room->currencyCode }}</div>
-=======
                                                         @lang('main.from') {{ $room->total->priceBeforeTax }} {{ $room->currencyCode }}</div>
->>>>>>> origin/eralast
                                                     <div class="night">@lang('main.night')</div>
                                                 </div>
                                             </div>

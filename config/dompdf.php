@@ -278,6 +278,7 @@ return array(
          * @var bool
          */
         "enable_html5_parser" => true,
+        "isRemoteEnabled" => true, // Enable remote file access for images and CSS files
     ),
 
 

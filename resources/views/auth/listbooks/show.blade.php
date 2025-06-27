@@ -77,12 +77,12 @@
                             <div class="dashboard-item">
                                 <div class="name">@lang('admin.hotel')</div>
                                 <div class="wrap">
-                                    {{ $hotel->title }}
+                                    {{ $hotel->title ??  $hotel->title_en ?? ''}} <br>
                                     <div class="name" style="margin-top: 20px">@lang('admin.room')</div>
-                                    {{ $room->title }} <br>
+                                    {{ $room->title ?? $room->title_en ?? ''}} <br>
                                     @if(!empty($rate))
                                         <div class="name" style="margin-top: 20px">Тариф</div>
-                                        {{ $rate->title ?? '' }} <br>
+                                        {{ $rate->title ?? '' ?? $rate->title_en ?? ''}} <br>
                                     @endif
                                 </div>
                             </div>

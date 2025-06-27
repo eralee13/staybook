@@ -12,6 +12,7 @@ use App\Models\Book;
 use App\Models\Rate;
 use App\Models\Room;
 use App\Models\Hotel;
+use App\Models\Meal;
 
 class BookingCalendarPriceController extends Controller
 {
@@ -34,6 +35,8 @@ class BookingCalendarPriceController extends Controller
             ->where('hotel_id', $hotelId)
             ->get();
 
+        $meals = Meal::all()->keyBy('id'); 
+
         $resources = [];
         foreach ($rooms as $room) {
             $validRates = $room->rates->filter();
@@ -49,9 +52,10 @@ class BookingCalendarPriceController extends Controller
             ];
 
             foreach ($validRates as $rate) {
+                $code = $meals[$rate->meal_id]->code ?? null;
                 $resources[] = [
                     'id' => $parentId . '_rate_' . $rate->id,
-                    'title' => $rate->title,
+                    'title' => $rate->title .' - '. ($code ? ' (' . $code . ')' : ''),
                     'parentId' => $parentId,
                 ];
             }
@@ -91,6 +95,8 @@ class BookingCalendarPriceController extends Controller
             ->where('hotel_id', $hotelId)
             ->get();
 
+        $meals = Meal::all()->keyBy('id');
+
         $bookingsMap = [];
         foreach ($books as $book) {
             $room = $book->room;
@@ -127,10 +133,11 @@ class BookingCalendarPriceController extends Controller
             ];
 
             foreach ($room->rates as $rate) {
+                $code = $meals[$rate->meal_id]->code ?? null;
                 $resourceId = $parentId . '_rate_' . $rate->id;
                 $resources[] = [
                     'id' => $resourceId,
-                    'title' => $rate->title,
+                    'title' => $rate->title .' - ' . ($code ? ' (' . $code . ')' : ''),
                     'parentId' => $parentId,
                 ];
 

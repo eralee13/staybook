@@ -8,6 +8,7 @@
 public_html
 
 # Environment
+.env
 .env.*.local
 
 # Logs & Debugging

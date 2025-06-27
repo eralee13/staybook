@@ -186,11 +186,17 @@
                                                         @isset($rate)
                                                             <h5>{{ $rate->__('title') }}</h5>
                                                         @endisset
+                                                        
                                                         @php
                                                             $arrival = \Carbon\Carbon::createFromDate($request->arrivalDate)->format('d.m.Y H:i');
                                                             $departure = \Carbon\Carbon::createFromDate($request->departureDate)->format('d.m.Y H:i');
-                                                            $cancel = \App\Models\CancellationRule::where('rate_id', $rate->id)->firstOrFail();
-                                                            $cancelDate = \Carbon\Carbon::parse($request->arrivalDate)->subDays($cancel->free_cancellation_days)->format('d.m.Y H:i');
+                                                            $cancel = \App\Models\CancellationRule::where('rate_id', $rate->id)->first();
+
+                                                            // dd($cancel->free_cancellation_days);
+                                                            if( isset($cancel->free_cancellation_days) ){
+                                                                $cancelDate = \Carbon\Carbon::parse($request->arrivalDate)->subDays($cancel->free_cancellation_days)->format('d.m.Y H:i');
+                                                            }   
+                                                            
                                                             //кол-во дней
                                                             $arr = \Carbon\Carbon::parse($request->arrivalDate);
                                                             $dep = \Carbon\Carbon::parse($request->departureDate);
@@ -221,7 +227,7 @@
                                                         <div class="item cancel">
                                                             <div class="name">@lang('main.cancellation_policy')
                                                                 :
-                                                                @if($cancel->is_refundable == 1)
+                                                                @if( isset($cancel->is_refundable) == 1)
                                                                     @if(now()->lte($cancelDate))
                                                                         @lang('main.free_cancellation') {{ $cancelDate }}
                                                                         UTC +06:00.
@@ -230,7 +236,7 @@
                                                                     @endif
                                                                     @lang('main.cancellation_amount')
                                                                     :
-                                                                    @if($cancel->penalty_type === 'fixed')
+                                                                    @if(isset($cancel->penalty_type) === 'fixed')
                                                                         ${{ $cancelPrice = round($cancel->penalty_amount) }}
                                                                     @else
                                                                         ${{ $cancelPrice = round(($sum * $cancel->penalty_amount) / 100) }}
@@ -238,10 +244,10 @@
                                                                 @else
                                                                     @lang('main.cancellation_amount')
                                                                     :
-                                                                    @if($cancel->penalty_type === 'fixed')
+                                                                    @if( isset($cancel->penalty_type) == 'fixed')
                                                                         ${{ $cancelPrice = round($cancel->penalty_amount) }}
                                                                     @else
-                                                                        ${{ $cancelPrice = round(($sum * $cancel->penalty_amount) / 100) }}
+                                                                        {{-- ${{ $cancelPrice = round(($sum * $cancel->penalty_amount) / 100) }} --}}
                                                                     @endif
                                                                 @endif
                                                             </div>
@@ -281,7 +287,7 @@
                                                                        value="{{ $rate->meal_id }}">
                                                                 <input type="hidden"
                                                                        name="cancellation_id"
-                                                                       value="{{ $cancel->id }}">
+                                                                       value="{{ $cancel->id ?? ''}}">
                                                                 <input type="hidden"
                                                                        name="hotel_id"
                                                                        value="{{ $hotel->id }}">
