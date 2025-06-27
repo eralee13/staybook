@@ -19,6 +19,9 @@ document.addEventListener('DOMContentLoaded', function () {
         locale: ruLocale,
         initialView: 'resourceTimelineMonth',
         initialDate: new Date().toISOString().split('T')[0],
+        validRange: {
+            start: new Date().toISOString().split('T')[0]
+        },
         resourceAreaHeaderContent: 'Номера / Тарифы',
         nowIndicator: true,
         height: 'auto',
@@ -156,10 +159,13 @@ document.addEventListener('DOMContentLoaded', function () {
             const parts = datos.split(' - ');
             selectedStart = parts[0].trim().split('.').reverse().join('-');
             selectedEnd = parts[1].trim().split('.').reverse().join('-');
+        } else {
+            const today = new Date().toISOString().split('T')[0];
+            selectedStart = today;
+            selectedEnd = today;
         }
 
         fetch(`/auth/bookcalendar/books/events?hotel_id=${selectedHotel}&start=${selectedStart}&end=${selectedEnd}`)
-
             .then(res => res.json())
             .then(data => {
                 calendar.removeAllEventSources();
