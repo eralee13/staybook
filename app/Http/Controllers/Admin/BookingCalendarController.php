@@ -44,8 +44,7 @@ class BookingCalendarController extends Controller
 
         $resources = [];
         $events = [];
-        $today = now()->startOfDay();
-        $tomorrow = now()->addDay()->startOfDay();
+
 
         foreach ($rooms as $room) {
             $roomId = 'room_' . $room->id;
@@ -63,13 +62,37 @@ class BookingCalendarController extends Controller
                     'parentId' => $roomId,
                 ];
 
+
+                $bookings = Book::where('rate_id', $rate->id)
+                    ->where(function ($q) use ($startDate, $endDate) {
+                        $q->whereBetween('arrivalDate', [$startDate, $endDate])
+                            ->orWhereBetween('departureDate', [$startDate, $endDate])
+                            ->orWhere(function ($q2) use ($startDate, $endDate) {
+                                $q2->where('arrivalDate', '<=', $startDate)
+                                    ->where('departureDate', '>=', $endDate);
+                            });
+                    })
+                    ->get();
+
+                $adultByDate = [];
+
+                foreach ($bookings as $book) {
+                    $arrival = Carbon::parse($book->arrivalDate)->startOfDay();
+                    $departure = Carbon::parse($book->departureDate)->startOfDay();
+
+                    foreach ($arrival->daysUntil($departure) as $date) {
+                        $dateStr = $date->format('Y-m-d');
+                        $adultByDate[$dateStr] = ($adultByDate[$dateStr] ?? $rate->avaibility) + $book->adult;
+                    }
+                }
+
                 $period = $startDate->daysUntil($endDate);
                 foreach ($period as $date) {
                     $dateStr = $date->format('Y-m-d');
                     $color = $rate->availability > 0 ? '#39bb43' : '#d95d5d';
                     $events[] = [
                         'id' => 'local_' . $rate->id . '_' . $dateStr,
-                        'title' => (string) $rate->availability,
+                        'title' => $book->adult ?? $rate->availability,
                         'start' => $dateStr,
                         'end' => $dateStr,
                         'resourceId' => $resourceId,
@@ -80,6 +103,8 @@ class BookingCalendarController extends Controller
             }
         }
 
+
+        //Exely
         if ($hotel && $hotel->exely_id) {
             $params = [
                 'arrivalDate' => $startDate->format('Y-m-d'),
@@ -116,6 +141,7 @@ class BookingCalendarController extends Controller
                         'parentId' => $roomId,
                     ];
 
+
                     $period = $startDate->daysUntil($endDate);
                     foreach ($period as $date) {
                         $dateStr = $date->format('Y-m-d');
@@ -123,7 +149,7 @@ class BookingCalendarController extends Controller
 
                         $events[] = [
                             'id' => $resourceId . '_' . $dateStr,
-                            'title' => (string) $rateItem['availability'],
+                            'title' => $rateItem['availability'],
                             'start' => $dateStr,
                             'end' => $dateStr,
                             'resourceId' => $resourceId,
@@ -181,6 +207,20 @@ class BookingCalendarController extends Controller
             $resources[] = ['id' => $roomId, 'title' => $room->title];
 
             foreach ($room->rates as $rate) {
+
+                $bookings = Book::where('rate_id', $rate->id)
+                    ->where(function ($q) use ($startDate, $endDate) {
+                        $q->whereBetween('arrivalDate', [$startDate, $endDate])
+                            ->orWhereBetween('departureDate', [$startDate, $endDate])
+                            ->orWhere(function ($q2) use ($startDate, $endDate) {
+                                $q2->where('arrivalDate', '<=', $startDate)
+                                    ->where('departureDate', '>=', $endDate);
+                            });
+                    })
+                    ->get();
+
+                $adultByDate = [];
+
                 $code = $meals[$rate->meal_id]->code ?? null;
                 $resourceId = $roomId . '_rate_' . $rate->id;
                 $resources[] = [
@@ -188,12 +228,24 @@ class BookingCalendarController extends Controller
                     'title' => $rate->title .' - '. ($code ? "({$code})" : ''),
                     'parentId' => $roomId,
                 ];
+
+                foreach ($bookings as $book) {
+                    $arrival = Carbon::parse($book->arrivalDate)->startOfDay();
+                    $departure = Carbon::parse($book->departureDate)->startOfDay();
+
+                    foreach ($arrival->daysUntil($departure) as $date) {
+                        $dateStr = $date->format('Y-m-d');
+                        $adultByDate[$dateStr] = ($adultByDate[$dateStr] ?? $rate->avaibility) + $book->adult;
+                    }
+                }
+
                 foreach ($startDate->daysUntil($endDate) as $date) {
                     $dateStr = $date->format('Y-m-d');
+                    $adultCount = $adultByDate[$dateStr] ?? $rate->availability;
                     $color = $rate->availability > 0 ? '#39bb43' : '#d95d5d';
                     $events[] = [
                         'id' => 'local_' . $rate->id . '_' . $dateStr,
-                        'title' => (string) $rate->availability,
+                        'title' => (string) $adultCount,
                         'start' => $dateStr,
                         'end' => $dateStr,
                         'resourceId' => $resourceId,

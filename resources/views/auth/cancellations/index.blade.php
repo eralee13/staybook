@@ -31,7 +31,6 @@
                                 <th>ID</th>
                                 <th>@lang('admin.title')</th>
                                 <th>Тип штрафа</th>
-                                <th>Размер штрафа</th>
                                 <th>Тариф</th>
                                 <th>@lang('admin.action')</th>
                             </tr>
@@ -41,8 +40,15 @@
                                 <tr>
                                     <td>{{ $cancellation->id }}</td>
                                     <td>{{ $cancellation->title }}</td>
-                                    <td>{{ $cancellation->penalty_type }}</td>
-                                    <td>{{ $cancellation->penalty_amount }}</td>
+                                    <td>
+                                        @if($cancellation->cancel_policy === 'free_until_checkin')
+                                            Бесплатная отмена вплоть до времени заезда
+                                        @elseif($cancellation->cancel_policy === 'free_then_penalty')
+                                            Бесплатная отмена, а затем отмена со штрафом вплоть до времени заезда
+                                        @else
+                                            Невозвратный тариф
+                                        @endif
+                                    </td>
                                     <td>{{ $cancellation->rate->title ?? '' }}</td>
                                     <td>
                                         <form action="{{ route('cancellations.destroy', $cancellation) }}" method="post">
