@@ -30,6 +30,7 @@ return [
     'profile' => 'Profile',
     'logout' => 'Logout',
     'main' => 'Main',
+    'offlines' => 'Offline requests',
     'pages' => 'Pages',
     'contacts' => 'Contacts',
     'all_rights' => 'All rights reserved',

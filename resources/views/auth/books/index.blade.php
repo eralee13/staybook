@@ -1,6 +1,6 @@
 @extends('auth.layouts.master')
 
-@section('title', __('admin.rates_and_availability'))
+@section('title', 'Квоты')
 
 <meta name="csrf-token" content="{{ csrf_token() }}">
 @vite(['resources/css/app.css', 'resources/js/bookcalendar.js'])
@@ -102,6 +102,15 @@
 
         <div id="calendar"></div>
     </div>
+
+    @php
+        $id = $request->route('hotel');
+        $hotel = \App\Models\Hotel::where('id', $id)->first();
+    @endphp
+
+    @if($hotel->exely_id != null)
+
+    @else
     <!-- Modal -->
     <div class="modal fade" id="createBookingModal" tabindex="-1" aria-labelledby="createBookingLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -146,7 +155,7 @@
             </div>
         </div>
     </div>
-
+    @endif
 @endsection
 
 <style>

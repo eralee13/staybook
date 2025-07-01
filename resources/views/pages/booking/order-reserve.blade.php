@@ -16,26 +16,50 @@
                         @php
                             $hotel = \App\Models\Hotel::where('id', $book->hotel_id)->first();
                             $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
+                            $rate = \App\Models\Rate::where('id', $request->rate_id)->firstOrFail();
                             $arrival = \Carbon\Carbon::createFromDate($book->arrivalDate)->format('d.m.Y');
                             $departure = \Carbon\Carbon::createFromDate($book->departureDate)->format('d.m.Y');
                             $cancel = \App\Models\CancellationRule::where('id', $book->cancellation_id)->firstOrFail();
                             $cancelDate = \Carbon\Carbon::parse($arrival)->subDays($cancel->free_cancellation_days)->format('d.m.Y H:i');
+                            $freeDate = \Carbon\Carbon::parse($book->arrivalDate)->format('d.m.Y H:i');
+                            $timezone = \Carbon\Carbon::parse($hotel->timezone)->format('P');
                         @endphp
 
                         <li>@lang('main.dates'): {{ $arrival }} {{$hotel->checkin}} - {{ $departure }} {{ $hotel->checkout }}
                             (UTC {{ $hotel_utc }})
                         </li>
                         <li>
-                            @if($cancel->is_refundable == true)
-                                <td>
-                                    @if(now() <= $cancelDate)
-                                        @lang('main.free_cancellation') {{ $cancelDate }} (UTC {{ $hotel_utc }}).
-                                    @else
-                                        @lang('main.cancellation_is_not_avaialble').
-                                    @endif
-                                        @lang('main.cancellation_amount'): {{ $book->cancel_penalty }} {{ $order->booking->currencyCode ?? '$' }}</td>
+                            @if($cancel->cancel_policy === 'free_until_checkin')
+                                <td>@lang('main.free_cancellation') {{ $freeDate }}
+                                    UTC {{ $timezone }}</td>
+
+                            @elseif($cancel->cancel_policy === 'free_then_penalty')
+                                @if(now()->lte($cancelDate))
+                                    <td> @lang('main.free_cancellation') {{ $cancelDate }}
+                                        UTC {{ $timezone }}</td>
+                                @else
+                                    <td>@lang('main.cancellation_is_not_avaialble').</td>
+                                @endif
+                                @lang('main.cancellation_amount')
+                                :
+                                @if($cancel->penalty_type === 'fixed')
+                                    ${{ $cancelPrice = round($cancel->penalty_amount) }}
+                                @elseif($cancel->penalty_type === 'night')
+                                    ${{ $cancelPrice = round($cancel->penalty_nights * $rate->price) }}
+                                @else
+                                    ${{ $cancelPrice = round(($sum * $cancel->penalty_amount) / 100) }}
+                                @endif
+
                             @else
-                                <td>@lang('main.free_cancellation'). @lang('main.cancellation_amount'): {{ $book->cancel_penalty }} {{ $order->booking->currencyCode ?? '$' }}</td>
+                                <td>@lang('main.cancellation_amount')
+                                    :
+                                    @if($cancel->penalty_type === 'fixed')
+                                        ${{ $cancelPrice = round($cancel->penalty_amount) }}
+                                    @elseif($cancel->penalty_type === 'night')
+                                        ${{ $cancelPrice = round($cancel->penalty_nights * $rate->price) }}
+                                    @else
+                                        ${{ $cancelPrice = round(($sum * $cancel->penalty_amount) / 100) }}
+                                    @endif</td>
                         @endif
                         <li>
                             @lang('main.guest'): {{ $book->title }}

@@ -46,6 +46,7 @@
                                 @endif
                             @endforeach
                         @endif
+                        <input type="hidden" name="roomCount" value="{{ $request->roomCount }}">
                         <input type="hidden" name="cancellation_id" value="{{ $request->cancellation_id }}">
                         <input type="hidden" name="cancelDate" value="{{ $request->cancelDate }}">
                         <input type="hidden" name="cancelPrice" value="{{ $request->cancelPrice }}">
@@ -67,7 +68,7 @@
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <div class="label">@lang('main.count_child')</div>
-                                    <input type="text" value="{{ $request->child }}" readonly>
+                                    <input type="text" name="child" value="{{ $request->child }}" readonly>
                                 </div>
                             </div>
 
@@ -163,14 +164,15 @@
                 </div>
                 <div class="col-lg-4 col-md-12 order-xl-2 order-lg-2 order-1">
                     @php
-
                         $hotel = Hotel::where('exely_id', $request->propertyId)->orWhere('id', $request->propertyId)->first();
                         $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
                         $cancel_utc = \Carbon\Carbon::createFromDate($request->cancelDate)->format('P');
-                        $cancel = \App\Models\CancellationRule::where('id', $request->cancellation_id)->firstOrFail();
                         $room = \App\Models\Room::where('id', $request->room_id)->firstOrFail();
                         $rate = \App\Models\Rate::where('id', $request->rate_id)->firstOrFail();
-
+                        $cancel = \App\Models\CancellationRule::where('id', $request->cancellation_id)->firstOrFail();
+                        $cancelDate = \Carbon\Carbon::parse($request->arrivalDate)->subDays($cancel->free_cancellation_days)->format('d.m.Y H:i');
+                        $freeDate = \Carbon\Carbon::parse($request->arrivalDate)->format('d.m.Y H:i');
+                        $timezone = \Carbon\Carbon::parse($hotel->timezone)->format('P');
                     @endphp
                     <div class="sidebar">
                         <div class="row">
@@ -185,18 +187,37 @@
                                     - {{ $departure }} {{ $hotel->checkout }} (UTC {{ $hotel_utc }})
                                 </div>
                                 <div class="cancel">@lang('main.cancellation_policy'):
-                                    @if($cancel->is_refundable == 1)
-                                        @if(now()->lte($request->cancelDate))
-                                            @lang('main.free_cancellation') {{ $request->cancelDate }}
-                                            (UTC {{ $cancel_utc }}).
+                                    @if($cancel->cancel_policy === 'free_until_checkin')
+                                        @lang('main.free_cancellation') {{ $freeDate }}
+                                        UTC {{ $timezone }}
+
+                                    @elseif($cancel->cancel_policy === 'free_then_penalty')
+                                        @if(now()->lte($cancelDate))
+                                            @lang('main.free_cancellation') {{ $cancelDate }}
+                                            UTC {{ $timezone }}
                                         @else
                                             @lang('main.cancellation_is_not_avaialble').
                                         @endif
                                         @lang('main.cancellation_amount')
-                                        : {{ $request->cancelPrice }} {{ $request->currency ?? '$' }}
+                                        :
+                                        @if($cancel->penalty_type === 'fixed')
+                                            ${{ $cancelPrice = round($cancel->penalty_amount) }}
+                                        @elseif($cancel->penalty_type === 'night')
+                                            ${{ $cancelPrice = round($cancel->penalty_nights * $rate->price) }}
+                                        @else
+                                            ${{ $cancelPrice = round(($sum * $cancel->penalty_amount) / 100) }}
+                                        @endif
+
                                     @else
-                                        @lang('main.cancellation_is_not_avaialble'). @lang('main.cancellation_amount')
-                                        : {{ $request->cancelPrice }} {{ $request->currency ?? '$' }}
+                                        @lang('main.cancellation_amount')
+                                        :
+                                        @if($cancel->penalty_type === 'fixed')
+                                            ${{ $cancelPrice = round($cancel->penalty_amount) }}
+                                        @elseif($cancel->penalty_type === 'night')
+                                            ${{ $cancelPrice = round($cancel->penalty_nights * $rate->price) }}
+                                        @else
+                                            ${{ $cancelPrice = round(($sum * $cancel->penalty_amount) / 100) }}
+                                        @endif
                                     @endif
                                 </div>
                             </div>

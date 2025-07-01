@@ -1,4 +1,4 @@
-@extends('auth.layouts.hotelhead')
+@extends('auth.layouts.master')
 
 @section('title', 'Консоль')
 

@@ -186,17 +186,14 @@
                                                         @isset($rate)
                                                             <h5>{{ $rate->__('title') }}</h5>
                                                         @endisset
-                                                        
                                                         @php
                                                             $arrival = \Carbon\Carbon::createFromDate($request->arrivalDate)->format('d.m.Y H:i');
                                                             $departure = \Carbon\Carbon::createFromDate($request->departureDate)->format('d.m.Y H:i');
                                                             $cancel = \App\Models\CancellationRule::where('rate_id', $rate->id)->first();
+                                                            $cancelDate = \Carbon\Carbon::parse($request->arrivalDate)->subDays($cancel->free_cancellation_days)->format('d.m.Y H:i');
+                                                            $freeDate = \Carbon\Carbon::parse($request->arrivalDate)->format('d.m.Y H:i');
+                                                            $timezone = \Carbon\Carbon::parse($hotel->timezone)->format('P');
 
-                                                            // dd($cancel->free_cancellation_days);
-                                                            if( isset($cancel->free_cancellation_days) ){
-                                                                $cancelDate = \Carbon\Carbon::parse($request->arrivalDate)->subDays($cancel->free_cancellation_days)->format('d.m.Y H:i');
-                                                            }   
-                                                            
                                                             //кол-во дней
                                                             $arr = \Carbon\Carbon::parse($request->arrivalDate);
                                                             $dep = \Carbon\Carbon::parse($request->departureDate);
@@ -209,15 +206,18 @@
                                                                     }
                                                                 }
                                                             }
+                                                            $cancelPrice = 0;
                                                             //общая сумма
+                                                            $calendarPrice = $ratePrices[$rate->id] ?? $rate->price;
                                                             if($request->adultCount >= 2){
                                                                 $sum = ($rate->price2 + $price_child) * $request->adult * $nights;
                                                                 $sum = (config('services.main.coef') * $sum) + $sum;
                                                             } else {
-                                                                $sum = ($rate->price + $price_child) * $request->adult * $nights;
+                                                                $sum = ($calendarPrice + $price_child) * $request->adult * $nights;
                                                                 $sum = (config('services.main.coef') * $sum) + $sum;
                                                             }
                                                         @endphp
+
                                                         <div class="item bed">
                                                             <div class="name">{{ $rate->bed_type }}</div>
                                                         </div>
@@ -225,35 +225,43 @@
                                                             <div class="name">{{ $rate->meal->__('title') }}</div>
                                                         </div>
                                                         <div class="item cancel">
-                                                            <div class="name">@lang('main.cancellation_policy')
-                                                                :
-                                                                @if( isset($cancel->is_refundable) == 1)
+                                                            <div class="name">
+                                                                @if($cancel->cancel_policy === 'free_until_checkin')
+                                                                    @lang('main.free_cancellation') {{ $freeDate }}
+                                                                    UTC {{ $timezone }}
+
+                                                                @elseif($cancel->cancel_policy === 'free_then_penalty')
                                                                     @if(now()->lte($cancelDate))
                                                                         @lang('main.free_cancellation') {{ $cancelDate }}
-                                                                        UTC +06:00.
+                                                                        UTC {{ $timezone }}
                                                                     @else
                                                                         @lang('main.cancellation_is_not_avaialble').
                                                                     @endif
                                                                     @lang('main.cancellation_amount')
                                                                     :
-                                                                    @if(isset($cancel->penalty_type) === 'fixed')
+                                                                    @if($cancel->penalty_type === 'fixed')
                                                                         ${{ $cancelPrice = round($cancel->penalty_amount) }}
+                                                                    @elseif($cancel->penalty_type === 'night')
+                                                                            ${{ $cancelPrice = round($cancel->penalty_nights * $rate->price) }}
                                                                     @else
                                                                         ${{ $cancelPrice = round(($sum * $cancel->penalty_amount) / 100) }}
                                                                     @endif
+
                                                                 @else
                                                                     @lang('main.cancellation_amount')
                                                                     :
-                                                                    @if( isset($cancel->penalty_type) == 'fixed')
+                                                                    @if($cancel->penalty_type === 'fixed')
                                                                         ${{ $cancelPrice = round($cancel->penalty_amount) }}
+                                                                    @elseif($cancel->penalty_type === 'night')
+                                                                        ${{ $cancelPrice = round($cancel->penalty_nights * $rate->price) }}
                                                                     @else
-                                                                        {{-- ${{ $cancelPrice = round(($sum * $cancel->penalty_amount) / 100) }} --}}
+                                                                         ${{ $cancelPrice = round(($sum * $cancel->penalty_amount) / 100) }}
                                                                     @endif
                                                                 @endif
                                                             </div>
                                                         </div>
                                                         <div class="item price">
-                                                            ${{ round($sum * config('services.main.coef')/100 + $sum, 0) }}</div>
+                                                            ${{ round($sum) }}</div>
                                                         {{--                                                            <div class="nds">Все налоги включены</div>--}}
                                                         {{--                                                        <div class="night">за ночь для 1 гостя</div>--}}
                                                         <div class="btn-wrap">
@@ -267,6 +275,7 @@
                                                                 <input type="hidden"
                                                                        name="departureDate"
                                                                        value="{{ $request->departureDate }}">
+                                                                <input type="hidden" name="roomCount" value="{{ $request->roomCount }}">
                                                                 <input type="hidden"
                                                                        name="adult"
                                                                        value="{{ $request->adult }}">

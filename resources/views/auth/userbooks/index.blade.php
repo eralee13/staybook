@@ -45,7 +45,7 @@
                                     </td>
                                     <td>
                                         <div class="title">Кол-во гостей:</div>
-                                        <div class="value">{{ $book->adult }} взрос.</div>
+                                        <div class="value">{{ $book->room_count }} ном. {{ $book->adult }} взрос. @if($book->child) {{ $book->child }} дет.@endif</div>
                                     </td>
                                     <td>
                                         <div class="title">К оплате</div>
@@ -109,7 +109,7 @@
                                                     @if($book->status == 'Reserved')
                                                         <button class="btn delete"
                                                                 onclick="return confirm('Do you want to cancel this?');">
-                                                            <i class="fa-solid fa-xmark"></i></button>
+                                                        Отменить</button>
                                                     @endif
                                                 </ul>
                                             </form>
@@ -123,7 +123,7 @@
                                                     @if($book->status == 'Reserved')
                                                         <button class="btn delete"
                                                                 onclick="return confirm('Do you want to cancel this?');">
-                                                            <i class="fa-solid fa-xmark"></i></button>
+                                                            Отменить</button>
                                                     @endif
                                                 </ul>
                                             </form>

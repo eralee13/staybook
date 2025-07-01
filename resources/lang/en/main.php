@@ -24,6 +24,7 @@ return [
     'early_in' => 'Early check-in',
     'late_out' => 'Late check-out',
     'meal_plans' => 'Types of meals',
+    'count_room' => 'Number of rooms',
     'count_adult' => 'Number of adults',
     'count_child' => 'Number of children',
     'apply' => 'Apply',

@@ -36,6 +36,8 @@ class Book extends Model
         'user_id',
         'api_type',
         'agent_ref',
+        'allotment',
+        'room_count'
     ];
 
     protected $hidden = [
@@ -63,6 +65,7 @@ class Book extends Model
     {
         return $this->belongsTo(Rate::class);
     }
+
 
 
     public function showStartDate()

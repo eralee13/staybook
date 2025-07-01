@@ -100,43 +100,26 @@
                             </div>
                         </div>
                     </div>
-                    <div class="menu-wrap">
-                        <ul>
-                            <li><a href="{{route('about')}}">@lang('main.about_service')</a></li>
-                            <li><a href="{{route('contactspage')}}">@lang('main.contacts')</a></li>
-                        </ul>
-                    </div>
                     <div class="auth">
-                        <a href="{{ route('extranet') }}"><img src="{{route('index')}}/img/user_w.svg" alt=""> @lang('main.login')</a>
+                        <a href="{{ route('login') }}"><img src="{{route('index')}}/img/user_w.svg" alt=""> @lang('main.login')</a>
                     </div>
                 </div>
                 <div class="col-lg-10 col-md-9 col-8 d-xl-none d-lg-none d-block">
                     <div class="wrap">
                         <div class="auth">
-                            <a href="{{ route('extranet') }}"><img src="{{ route('index') }}/img/user_w.svg" alt=""> @lang('main.login')</a>
+                            <a href="{{ route('login') }}"><img src="{{ route('index') }}/img/user_w.svg" alt=""> @lang('main.login')</a>
                         </div>
-                        <nav>
-                            <a href="#" class="toggle-mnu d-xl-none d-lg-none"><span></span></a>
-                            <ul>
-                                <li><a href="{{ route('about') }}">@lang('main.about_service')</a></li>
-                                <li><a href="{{ route('contactspage') }}">@lang('mains.contact')</a></li>
-                                <a href="">Русский <img src="{{ route('index') }}/img/ru.svg" alt=""></a>
-                            </ul>
-                        </nav>
-
                     </div>
                 </div>
             </div>
             <div class="col-lg-10 col-md-9 col-8 d-xl-none d-lg-none d-block">
                 <div class="wrap">
                     <div class="auth">
-                        <a href="{{route('extranet')}}"><img src="{{route('index')}}/img/user_w.svg" alt=""> @lang('main.login')</a>
+                        <a href="{{route('login')}}"><img src="{{route('index')}}/img/user_w.svg" alt=""> @lang('main.login')</a>
                     </div>
                     <nav>
                         <a href="#" class="toggle-mnu d-xl-none d-lg-none"><span></span></a>
                         <ul>
-                            <li><a href="{{route('about')}}">@lang('main.about_service')</a></li>
-                            <li><a href="{{route('contactspage')}}">@lang('main.contacts')</a></li>
                             {{--                                <li><a href="#"><img src="{{route('index')}}/img/kg.svg" alt=""> Кыргыз тили </a></li>--}}
                             <li @if(session('locale')=='ru')
                                     current

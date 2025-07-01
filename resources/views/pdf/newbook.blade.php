@@ -36,8 +36,8 @@
             <img width="50" src=".\img\logo-100.jpg" />
         </div>
         <div style="float: right; width: 50%; ">
-            <h2 style="text-indent: 0pt;text-align: right;">Reservation 260553810 made on {{ $today }} </h2>
-            <p class="s2" style="padding-top: 2pt;text-indent: 0pt;text-align: right;">This accommodation is booked by our partner</p>
+            <h2 style="text-indent: 0pt;text-align: right;">Reservation {{ $book->id }} made on {{ $today }} </h2>
+{{--            <p class="s2" style="padding-top: 2pt;text-indent: 0pt;text-align: right;">This accommodation is booked by our partner</p>--}}
         </div>
 
         <div style="clear: both; padding-top: 10pt;">
@@ -58,7 +58,7 @@
                    
                     <p style=" float: left;">
                         <p class="s3" style="padding-top: 2pt;  text-align: left;">{{ $hotel->title ?? $hotel->title_en ?? ''}}</p>
-                        <p class="s4" style="text-indent: 0pt; text-align: left; margin-bottom: 2pt;">{{ $region->title}}, {{ $hotel->city}}, {{ $hotel->address ?? $hotel->address_en  ?? ''}}</p>
+                        <p class="s4" style="text-indent: 0pt; text-align: left; margin-bottom: 2pt;">{{ $region->title ?? ''}}, {{ $hotel->city}}, {{ $hotel->address ?? $hotel->address_en  ?? ''}}</p>
                         <p class="s4" style=" text-indent: 0pt; text-align: left;">{{ $hotel->phone ?? ''}} </p>
                     </p>
 
@@ -92,6 +92,15 @@
       <p style="text-indent: 0pt; text-align: left;">
       <h2 style="padding-bottom: 6pt; text-indent: 0pt;text-align: left;">Guests:       
         <span class="s5" style="text-transform: uppercase;">{{ $book->title ?? $book->title_en ?? ''}}</span></h2>
+
+        <h2 style="padding-bottom: 6pt; text-indent: 0pt;text-align: left;">Count of room:
+        <span class="s5" style="text-transform: uppercase;">{{ $book->room_count ?? ''}}</span></h2>
+
+        <h2 style="padding-bottom: 6pt; text-indent: 0pt;text-align: left;">Count of childs:
+        <span class="s5">{{ $book->child ?? 0}}</span></h2>
+
+        <h2 style="padding-bottom: 6pt; text-indent: 0pt;text-align: left;">Rate:
+        <span class="s5">{{ $rate->title_en ?? $rate->title ?? ''}}</span></h2>
 
         <hr style="border: none; border-top: 2px dotted #c7e1f6;  margin-top: 10px; margin-bottom: 10px; margin-left: 5pt;">
 

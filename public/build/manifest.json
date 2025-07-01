@@ -11,18 +11,18 @@
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-C6G_3qQV.css",
+    "file": "assets/app-DxSIxjtm.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-DaBYqt0m.js",
+    "file": "assets/app-s8GuJHnM.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true
   },
   "resources/js/bookcalendar.js": {
-    "file": "assets/bookcalendar-CLTE-pFm.js",
+    "file": "assets/bookcalendar-BOS7qXAn.js",
     "name": "bookcalendar",
     "src": "resources/js/bookcalendar.js",
     "isEntry": true,
@@ -31,7 +31,7 @@
     ]
   },
   "resources/js/bookcalendarprice.js": {
-    "file": "assets/bookcalendarprice-C7ZiKd8R.js",
+    "file": "assets/bookcalendarprice-mFHheirW.js",
     "name": "bookcalendarprice",
     "src": "resources/js/bookcalendarprice.js",
     "isEntry": true,

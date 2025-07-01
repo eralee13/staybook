@@ -17,11 +17,19 @@ document.addEventListener('DOMContentLoaded', function () {
         schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
         plugins: [resourceTimelinePlugin, interactionPlugin],
         locale: ruLocale,
-        initialView: 'resourceTimelineMonth',
         initialDate: new Date().toISOString().split('T')[0],
         validRange: {
             start: new Date().toISOString().split('T')[0]
         },
+        initialView: 'timelineTwoMonths',
+        views: {
+            timelineTwoMonths: {
+                type: 'resourceTimeline',
+                duration: { months: 2 },
+                slotDuration: { days: 1 },
+            }
+        },
+        slotMinWidth: 80,
         resourceAreaHeaderContent: 'Номера / Тарифы',
         nowIndicator: true,
         height: 'auto',

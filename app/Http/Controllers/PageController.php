@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\OfflineRequest;
+use App\Models\Offline;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -26,7 +28,7 @@ class PageController extends Controller
         $tomorrow = Carbon::tomorrow()->format('Y-m-d');
         $now = Carbon::now();
 
-        if ($now->hour > 3 && $now->hour < 23) {
+        if ($now->hour > 3 && $now->hour < 4) {
             set_time_limit(300);
 
             $response = Http::timeout(300)
@@ -350,6 +352,35 @@ class PageController extends Controller
     {
         $page = Page::cacheFor(now()->addHours(6))->where('id', 13)->first();
         return view('pages.page', compact('page'));
+    }
+
+    public function extranet()
+    {
+        return view('pages.extranet');
+    }
+
+    public function offline_request()
+    {
+        $cities = City::where('country_id', null)->orderBy('title', 'asc')->get();
+        $tomorrow = Carbon::tomorrow();
+        return view('pages.offline', compact('cities', 'tomorrow'));
+    }
+
+    public function offline_send(OfflineRequest $request)
+    {
+        $params = $request->except(['meal', 'childAges', 'file']);
+
+        $params['meal'] = $request->has('meal') ? implode(',', $request->meal) : null;
+        $params['childAges'] = $request->has('childAges') ? json_encode($request->childAges) : null;
+
+        if ($request->hasFile('file')) {
+            $params['file'] = $request->file('file')->store('offline_files', 'public');
+        }
+
+        Offline::create($params);
+
+        session()->flash('success', 'Offline-request ' . $request->name . ' is created');
+        return redirect()->route('index');
     }
 
 }

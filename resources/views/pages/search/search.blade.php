@@ -369,7 +369,7 @@
                                                 <div class="form-group">
                                                     <div class="name">@lang('main.rating')</div>
                                                     <div class="row justify-content-center">
-                                                        <div class="col-lg col-md-4">
+                                                        <div class="col-lg col-md-4 col-4">
                                                             <div class="item">
                                                                 <input type="radio" id="1" name="rating" value="1"
                                                                        @if($request->rating == 1) checked @endif>
@@ -382,7 +382,7 @@
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="col-lg col-md-4">
+                                                        <div class="col-lg col-md-4 col-4">
                                                             <div class="item">
                                                                 <input type="radio" name="rating" value="2" id="2"
                                                                        @if($request->rating == 2) checked @endif>
@@ -397,7 +397,7 @@
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="col-lg col-md-4">
+                                                        <div class="col-lg col-md-4 col-4">
                                                             <div class="item">
                                                                 <input type="radio" name="rating" value="3" id="3"
                                                                        @if($request->rating == 3) checked @endif>
@@ -414,7 +414,7 @@
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="col-lg col-md-4">
+                                                        <div class="col-lg col-md-4 col-6">
                                                             <div class="item">
                                                                 <input type="radio" name="rating" value="4" id="4"
                                                                        @if($request->rating == 4) checked @endif>
@@ -433,7 +433,7 @@
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div class="col-lg col-md-4">
+                                                        <div class="col-lg col-md-4 col-6">
                                                             <div class="item">
                                                                 <input type="radio" name="rating" value="5" id="5"
                                                                        @if($request->rating == 5) checked @endif>
@@ -531,7 +531,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-lg col-12">
+                                <div class="col-lg col-6">
                                     <div class="form-group">
                                         <button class="more"><img src="{{ route('index') }}/img/search.svg" alt="">
                                             @lang('main.find')
@@ -619,7 +619,7 @@
                                                 'Письменный стол' => 'table.svg',
                                                 'Минеральная вода' => 'water.svg',
                                             ];
-                                            
+
                                         @endphp
                                         <div class="search-item">
                                             <div class="row">
@@ -656,7 +656,7 @@
                                                 </div>
                                                 <div class="col-md-5 order-xl-2 order-lg-2 order-3">
                                                     <h4>
-                                                        {{ $hotel->title_en }} 
+                                                        {{ $hotel->title_en }}
                                                         &#9733; {{ $hotel->rating }}
                                                     </h4>
                                                     <div class="amenities">
@@ -679,29 +679,28 @@
                                                     </div>
                                                     <div class="btn-wrap">
                                                         @if( $hotel->apiName == 'TM')
-
                                                             <div class="btn-wrap">
                                                                 <form action="{{ route('hotel_tm', ["hid" => $hotel->hid]) }}">
                                                                     <input type="hidden" name="arrivalDate"
                                                                         value="{{ $request->arrivalDate }}">
                                                                     <input type="hidden" name="departureDate"
                                                                         value="{{ $request->departureDate }}">
+                                                                    <input type="hidden" name="roomCount" value="{{ $roomCount }}">
                                                                     <input type="hidden" name="adult" value="{{ $totalAdults }}">
                                                                     <input type="hidden" name="child" value="{{ $child }}">
-                                                                    <input type="hidden" name="roomCount" value="{{ $roomCount }}">
-                                                                    
+
                                                                     @if($allChildAges)
                                                                         @foreach($allChildAges as $age)
                                                                             <input type="hidden" name="childAges[]"
                                                                                 value="{{ $age }}">
                                                                         @endforeach
                                                                     @endif
-                                                                    
+
                                                                     <input type="hidden" name="city" value="{{ $request->city }}">
                                                                     <input type="hidden" name="meal_id" value="{{       $request->meal_id }}">
                                                                     <input type="hidden" name="api_name"
                                                                         value="{{ $hotel->apiName ?? '' }}">
-                                                    
+
                                                                     <button class="more">Показать все номера</button>
                                                                 </form>
                                                             </div>
@@ -716,19 +715,19 @@
 
                                                                     @foreach ($rooms as $i => $room)
                                                                         <input type="hidden" name="rooms[{{ $i }}][adults]" value="{{ $room['adults'] }}">
-                                                                        
+
                                                                         @if (isset($room['childAges']))
                                                                             @foreach ($room['childAges'] as $a => $age)
                                                                                 <input type="hidden" name="rooms[{{ $i }}][childAges][]" value="{{ $age }}">
                                                                             @endforeach
                                                                         @endif
                                                                     @endforeach
-                                                                    
+
                                                                     <input type="hidden" name="city" value="{{ $request->city }}">
                                                                     <input type="hidden" name="meal_id" value="{{       $request->meal_id }}">
                                                                     <input type="hidden" name="apiHotelId"
                                                                         value="{{ $hotel->apiHotelId ?? '' }}">
-                                                    
+
                                                                     <button class="more">Показать все номера</button>
                                                                 </form>
                                                             </div>
@@ -996,6 +995,7 @@
                                                         <input type="hidden" name="departureDate"
                                                                value="{{ $request->departureDate }}">
                                                         @php
+                                                            //$roomCount = is_array($request->rooms) ? count($request->rooms) : 0;
                                                             $totalAdults   = 0;
                                                             $totalChildren = 0;
                                                             if (!empty($request->rooms) && is_array($request->rooms)) {
@@ -1049,6 +1049,7 @@
                                                         }
                                                 }
                                                         @endphp
+                                                        <input type="hidden" name="roomCount" value="{{ $roomCount }}">
                                                         <input type="hidden" name="adult" value="{{ $totalAdults }}">
                                                         <input type="hidden" name="child" value="{{ $totalChildren }}">
                                                         <input type="hidden" name="childAges[]"

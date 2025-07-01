@@ -108,6 +108,8 @@
                     <ul>
                         <li @routeactive('pages.index')><a href="{{ route('pages.index')}}"><i class="fas
             fa-page"></i> @lang('admin.pages')</a></li>
+                        <li @routeactive('offlines.index')><a href="{{ route('offlines.index')}}"><i class="fas
+            fa-page"></i> @lang('admin.offlines')</a></li>
                         <li @routeactive('users.index')><a href="{{ route('users.index')}}"><i class="fa-solid fa-user"></i> @lang('admin.users')</a></li>
                         <li @routeactive('roles.index')><a href="{{ route('roles.index')}}"><i class="fa-solid fa-mask"></i> @lang('admin.roles')</a></li>
                         <li @routeactive('permissions.index')><a href="{{ route('permissions.index')}}"><i class="fa-solid fa-lock"></i> @lang('admin.permissions')</a></li>

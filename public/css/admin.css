@@ -241,6 +241,7 @@ header .logo img{
 .admin .date, .admin .name{
     opacity: .8;
     font-size: 14px;
+    margin-top: 20px;
 }
 .alert {
     padding: 5px 10px;
@@ -314,4 +315,11 @@ nav ul li a{
 .tabs ul li.current a{
     background-color: var(--blue);
     color: #fff;
+}
+.admin form button.delete{
+    background-color: red;
+    color: #fff;
+    font-size: 10px;
+    padding: 5px 10px;
+    margin-left: 5px;
 }

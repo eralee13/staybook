@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\FetchExelyAvailabilityJob;
+use App\Models\Meal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
@@ -12,7 +16,6 @@ use App\Models\Book;
 use App\Models\Rate;
 use App\Models\Room;
 use App\Models\Hotel;
-use App\Models\Meal;
 
 class BookingCalendarPriceController extends Controller
 {
@@ -23,168 +26,430 @@ class BookingCalendarPriceController extends Controller
         }
 
         $hotelId = $request->get('hotel_id') ?? 14;
+        $hotelslist = Hotel::select('id', 'title')->orderBy('title', 'asc')->get();
 
-        $hotelslist = Hotel::select('id', 'title')
-            ->orderBy('title', 'asc')
-            ->get();
+        $startDate = Carbon::now()->startOfDay();
+        $endDate = Carbon::now()->copy()->addDays(5)->endOfDay();
 
-        $startDate = Carbon::now()->startOfMonth()->startOfDay();
-        $endDate = Carbon::now()->endOfMonth()->endOfDay();
-
-        $rooms = Room::with('rates')
-            ->where('hotel_id', $hotelId)
-            ->get();
-
-        $meals = Meal::all()->keyBy('id'); 
-
-        $resources = [];
-        foreach ($rooms as $room) {
-            $validRates = $room->rates->filter();
-            if ($validRates->isEmpty()) {
-                continue;
-            }
-
-            $parentId = 'room_' . $room->id;
-
-            $resources[] = [
-                'id' => $parentId,
-                'title' => $room->title,
-            ];
-
-            foreach ($validRates as $rate) {
-                $code = $meals[$rate->meal_id]->code ?? null;
-                $resources[] = [
-                    'id' => $parentId . '_rate_' . $rate->id,
-                    'title' => $rate->title .' - '. ($code ? ' (' . $code . ')' : ''),
-                    'parentId' => $parentId,
-                ];
-            }
-        }
-
-        return view('auth.books.calendarprice.index', [
-            'resources' => $resources,
-            'hotelslist' => $hotelslist,
-            'events' => []
-        ]);
-    }
-
-    public function getEvents(Request $request)
-    {
-        if (!Auth::check()) {
-            return redirect()->route('index');
-        }
-
-        $hotelId = $request->get('hotel_id') ?? 14;
-
-        $startDate = $request->input('start')
-            ? Carbon::parse($request->input('start'))->startOfDay()
-            : now()->startOfMonth();
-
-        $endDate = $request->input('end')
-            ? Carbon::parse($request->input('end'))->endOfDay()
-            : now()->endOfMonth();
-
-        $books = Book::with(['room', 'rate'])
+        $books = Book::with('room.rates')
             ->whereHas('room', fn($q) => $q->where('hotel_id', $hotelId))
             ->whereBetween('arrivalDate', [$startDate, $endDate])
-            ->whereNotNull('price')
-            ->where('price', '>', 0)
-            ->get();
-
-        $rooms = Room::with('rates')
-            ->where('hotel_id', $hotelId)
             ->get();
 
         $meals = Meal::all()->keyBy('id');
 
-        $bookingsMap = [];
-        foreach ($books as $book) {
-            $room = $book->room;
-            $rate = $book->rate;
-            if (!$room || !$rate) continue;
-
-            $resourceId = 'room_' . $room->id . '_rate_' . $rate->id;
-
-            $period = Carbon::parse($book->arrivalDate)->daysUntil(Carbon::parse($book->departureDate));
-
-            foreach ($period as $date) {
-                $dateStr = $date->format('Y-m-d');
-
-                $bookingsMap[$resourceId][$dateStr] = [
-                    'id' => $book->id,
-                    'status' => $book->status,
-                    'price' => $book->price,
-                    'currency' => $book->currency,
-                    'phone' => $book->phone,
-                    'email' => $book->email,
-                    'adult' => $book->adult,
-                ];
-            }
-        }
+        $hotel = Hotel::find($hotelId);
+        $roomHotelId = $hotel?->exely_id ?: $hotelId;
+        $rooms = Room::with('rates')->where('hotel_id', $roomHotelId)->get();
 
         $resources = [];
         $events = [];
 
+
+        //local
         foreach ($rooms as $room) {
-            $parentId = 'room_' . $room->id;
+            $roomId = 'room_' . $room->id;
             $resources[] = [
-                'id' => $parentId,
+                'id' => $roomId,
                 'title' => $room->title,
             ];
 
             foreach ($room->rates as $rate) {
                 $code = $meals[$rate->meal_id]->code ?? null;
-                $resourceId = $parentId . '_rate_' . $rate->id;
+                $resourceId = $roomId . '_rate_' . $rate->id;
                 $resources[] = [
                     'id' => $resourceId,
-                    'title' => $rate->title .' - ' . ($code ? ' (' . $code . ')' : ''),
-                    'parentId' => $parentId,
+                    'title' => $rate->title .' - '. ($code ? "({$code})" : ''),
+                    'parentId' => $roomId,
                 ];
 
-                $period = $startDate->daysUntil($endDate);
-                foreach ($period as $date) {
-                    $dateStr = $date->format('Y-m-d');
 
-                    $isBooked = $bookingsMap[$resourceId][$dateStr] ?? null;
-                    $price = $isBooked ? $isBooked['price'] : $rate->price;
-                    $currency = $isBooked ? $isBooked['currency'] : ($rate->currency ?? '$');
+                $bookings = Book::where('rate_id', $rate->id)
+                    ->where(function ($q) use ($startDate, $endDate) {
+                        $q->whereBetween('arrivalDate', [$startDate, $endDate])
+                            ->orWhereBetween('departureDate', [$startDate, $endDate])
+                            ->orWhere(function ($q2) use ($startDate, $endDate) {
+                                $q2->where('arrivalDate', '<=', $startDate)
+                                    ->where('departureDate', '>=', $endDate);
+                            });
+                    })
+                    ->get();
+
+                $bookingsByDate = [];
+
+                foreach ($bookings as $book) {
+                    $arrival = Carbon::parse($book->arrivalDate)->startOfDay();
+                    $departure = Carbon::parse($book->departureDate)->startOfDay();
+
+                    foreach ($arrival->daysUntil($departure) as $date) {
+                        $dateStr = $date->format('Y-m-d');
+                        $bookingsByDate[$dateStr] = [
+                            'price' => $book->price ?? $rate->price,
+                            'currency' => $book->currency ?? '$',
+                            'id' => $book->id,
+                        ];
+                    }
+                }
+
+                foreach ($startDate->daysUntil($endDate) as $date) {
+                    $dateStr = $date->format('Y-m-d');
+                    $price = isset($bookingsByDate[$dateStr]) ? $bookingsByDate[$dateStr]['price'] : $rate->price;
+                    $currency = isset($bookingsByDate[$dateStr]) ? $bookingsByDate[$dateStr]['currency'] : ($rate->currency ?? '$');
+                    $color = $rate->availability > 0 ? '#39bb43' : '#d95d5d';
 
                     $events[] = [
-                        'id' => ($isBooked ? $isBooked['id'] : 'free_' . $rate->id) . '_' . $dateStr,
-                        'title' => $price . ' ' . $currency,
+                        'id' => 'local_' . $rate->id . '_' . $dateStr,
+                        'title' => '$ ' . $price,
                         'start' => $dateStr,
                         'end' => $dateStr,
                         'resourceId' => $resourceId,
-                        'backgroundColor' => $isBooked ? '#d95d5d' : '#39bb43',
-                        'borderColor' => $isBooked ? '#d95d5d' : '#39bb43',
-                        'extendedProps' => [
-                            'room_id' => $room->id,
-                            'rate_id' => $rate->id,
-                            'description' => $isBooked
-                                ? ($isBooked['price'] . ' ' . $isBooked['currency'] . '<br>' . $isBooked['phone'] . '<br>' . $isBooked['email'])
-                                : '',
-                        ]
+                        'backgroundColor' => $color,
+                        'borderColor' => $color,
+                    ];
+                }
+
+
+            }
+        }
+
+
+        //Exely
+        if ($hotel && $hotel->exely_id) {
+            $params = [
+                'arrivalDate' => $startDate->format('Y-m-d'),
+                'departureDate' => $endDate->format('Y-m-d'),
+                'adults' => 1,
+                'includeExtraStays' => 'false',
+                'includeExtraServices' => 'false',
+            ];
+            $url = rtrim(config('services.exely.base_url'), '/') . "/search/v1/properties/{$hotel->exely_id}/room-stays?" . http_build_query($params);
+
+            $response = Http::withHeaders([
+                'x-api-key' => config('services.exely.key'),
+                'accept' => 'application/json',
+            ])->get($url);
+
+            // Лог статуса и URL
+            Log::debug('📤 Exely API call', [
+                'url' => $url,
+                'status' => $response->status(),
+            ]);
+
+// Проверка тела ответа
+            if (!$response->successful()) {
+                Log::error('❌ Ошибка Exely API', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                return [];
+            }
+
+            $data = $response->json();
+
+            if (empty($data['roomStays'])) {
+                Log::warning('⚠️ Exely вернул пустой roomStays', ['response' => $data]);
+            } else {
+                foreach ($data['roomStays'] as $stay) {
+                    $roomId = $stay['roomType']['id'] ?? null;
+                    $rateName = $stay['ratePlan']['name'] ?? 'Unknown';
+                    $availability = $stay['availability'] ?? 0;
+
+                    $room = Room::where('exely_id', $roomId)->first();
+
+                    if (!$room) {
+                        Log::warning('⛔ Комната из Exely не найдена в базе', [
+                            'exely_id' => $roomId,
+                            'rate_name' => $rateName,
+                            'availability' => $availability,
+                        ]);
+                    } else {
+                        Log::info('✅ Найден тариф Exely', [
+                            'room_id' => $roomId,
+                            'rate_name' => $rateName,
+                            'availability' => $availability,
+                            'room_local_id' => $room->id,
+                        ]);
+                    }
+                }
+            }
+
+//            Log::debug('\uD83D\uDCE4 Exely API call', [
+//                'url' => $url,
+//                'status' => $response->status(),
+//            ]);
+
+            if ($response->successful() && isset($response['roomStays'])) {
+                foreach ($response['roomStays'] as $rateItem) {
+                    $room = Room::where('exely_id', $rateItem['roomType']['id'])->first();
+                    if (!$room) continue;
+
+                    $roomId = 'room_' . $room->id;
+                    $rateId = $rateItem['ratePlan']['id'] ?? $rateItem['checksum'] ?? Str::random(6);
+                    $rateName = $rateItem['ratePlan']['name'] ?? 'API Rate';
+                    $resourceId = $roomId . '_rate_' . $rateId;
+
+                    $resources[] = [
+                        'id' => $resourceId,
+                        'title' => $rateName,
+                        'parentId' => $roomId,
+                    ];
+
+
+                    $period = $startDate->daysUntil($endDate);
+                    foreach ($period as $date) {
+                        $dateStr = $date->format('Y-m-d');
+                        $color = $rateItem['availability'] > 0 ? '#39bb43' : '#d95d5d';
+
+                        $events[] = [
+                            'id' => $resourceId . '_' . $dateStr,
+                            'title' => '$ ' . $rateItem['total']['priceBeforeTax'] ?? 0,
+                            'start' => $dateStr,
+                            'end' => $dateStr,
+                            'resourceId' => $resourceId,
+                            'backgroundColor' => $color,
+                            'borderColor' => $color,
+                        ];
+                    }
+                }
+            }
+        }
+
+        Log::debug('Final resources and events', [
+            'resources_count' => count($resources),
+            'events_count' => count($events)
+        ]);
+
+
+        return view('auth.books.calendarprice.index', [
+            'resources' => $resources,
+            'hotelslist' => $hotelslist,
+            'events' => $events,
+            'request' => $request,
+        ]);
+    }
+
+    public function getEvents(Request $request)
+    {
+        if (!auth()->check()) {
+            return response()->json([
+                'error' => true,
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        $hotelId = $request->get('hotel_id');
+        $startDate = Carbon::now()->startOfDay();
+        $endDate = Carbon::now()->copy()->addDays(5)->endOfDay();
+
+        $hotel = Hotel::find($hotelId);
+        $resources = [];
+        $events = [];
+
+        $roomQuery = Room::with('rates');
+
+        if ($hotel && $hotel->exely_id) {
+            $roomQuery->where('hotel_id', $hotel->exely_id);
+        } else {
+            $roomQuery->where('hotel_id', $hotelId);
+        }
+
+
+        $meals = Meal::all()->keyBy('id');
+        $rooms = Room::with('rates')->where('hotel_id', $hotelId)->get();
+        // Локальные тарифы
+        foreach ($rooms as $room) {
+            $roomId = 'room_' . $room->id;
+            $resources[] = ['id' => $roomId, 'title' => $room->title];
+
+            foreach ($room->rates as $rate) {
+
+                $bookings = Book::where('rate_id', $rate->id)
+                    ->where(function ($q) use ($startDate, $endDate) {
+                        $q->whereBetween('arrivalDate', [$startDate, $endDate])
+                            ->orWhereBetween('departureDate', [$startDate, $endDate])
+                            ->orWhere(function ($q2) use ($startDate, $endDate) {
+                                $q2->where('arrivalDate', '<=', $startDate)
+                                    ->where('departureDate', '>=', $endDate);
+                            });
+                    })
+                    ->get();
+
+                $bookingsByDate = [];
+
+                $code = $meals[$rate->meal_id]->code ?? null;
+                $resourceId = $roomId . '_rate_' . $rate->id;
+                $resources[] = [
+                    'id' => $resourceId,
+                    'title' => $rate->title .' - '. ($code ? "({$code})" : ''),
+                    'parentId' => $roomId,
+                ];
+
+                $bookingsByDate = [];
+
+                foreach ($bookings as $book) {
+                    $arrival = Carbon::parse($book->arrivalDate)->startOfDay();
+                    $departure = Carbon::parse($book->departureDate)->startOfDay();
+
+                    foreach ($arrival->daysUntil($departure) as $date) {
+                        $dateStr = $date->format('Y-m-d');
+                        $bookingsByDate[$dateStr] = [
+                            'price' => $book->price,
+                            'currency' => $book->currency ?? '$',
+                            'id' => $book->id,
+                        ];
+                    }
+                }
+
+                foreach ($startDate->daysUntil($endDate) as $date) {
+                    $dateStr = $date->format('Y-m-d');
+                    $price = isset($bookingsByDate[$dateStr]) ? $bookingsByDate[$dateStr]['price'] : $rate->price;
+                    $currency = isset($bookingsByDate[$dateStr]) ? $bookingsByDate[$dateStr]['currency'] : ($rate->currency ?? '$');
+                    $color = $rate->availability > 0 ? '#39bb43' : '#d95d5d';
+
+                    $events[] = [
+                        'id' => 'local_' . $rate->id . '_' . $dateStr,
+                        'title' => '$ ' . $price,
+                        'start' => $dateStr,
+                        'end' => $dateStr,
+                        'resourceId' => $resourceId,
+                        'backgroundColor' => $color,
+                        'borderColor' => $color,
                     ];
                 }
             }
         }
 
+        // Exely API тарифы
+        $rooms = $roomQuery->get()->keyBy('exely_id');
+        if ($hotel && $hotel->exely_id) {
+            $params = [
+                'arrivalDate' => $startDate->format('Y-m-d'),
+                'departureDate' => $endDate->copy()->addDay()->format('Y-m-d'),
+                'adults' => 1,
+                'includeExtraStays' => 'false',
+                'includeExtraServices' => 'false',
+            ];
+
+            $url = rtrim(config('services.exely.base_url'), '/') . "/search/v1/properties/{$hotel->exely_id}/room-stays?" . http_build_query($params);
+            $response = Http::withHeaders([
+                'x-api-key' => config('services.exely.key'),
+                'accept' => 'application/json',
+            ])->get($url);
+
+//            Log::debug('📤 Exely API call', ['url' => $url, 'status' => $response->status()]);
+
+            // Лог статуса и URL
+            Log::debug('📤 Exely API call', [
+                'url' => $url,
+                'status' => $response->status(),
+            ]);
+
+// Проверка тела ответа
+            if (!$response->successful()) {
+                Log::error('❌ Ошибка Exely API', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                return [];
+            }
+
+            $data = $response->json();
+
+            if (empty($data['roomStays'])) {
+                Log::warning('⚠️ Exely вернул пустой roomStays', ['response' => $data]);
+            } else {
+                foreach ($data['roomStays'] as $stay) {
+                    $roomId = $stay['roomType']['id'] ?? null;
+                    $rateName = $stay['ratePlan']['name'] ?? 'Unknown';
+                    $availability = $stay['availability'] ?? 0;
+
+                    $room = Room::where('exely_id', $roomId)->first();
+
+                    if (!$room) {
+                        Log::warning('⛔ Комната из Exely не найдена в базе', [
+                            'exely_id' => $roomId,
+                            'rate_name' => $rateName,
+                            'availability' => $availability,
+                        ]);
+                    } else {
+                        Log::info('✅ Найден тариф Exely', [
+                            'room_id' => $roomId,
+                            'rate_name' => $rateName,
+                            'availability' => $availability,
+                            'room_local_id' => $room->id,
+                        ]);
+                    }
+                }
+            }
+
+            if ($response->successful() && isset($response['roomStays'])) {
+                foreach ($response['roomStays'] as $stay) {
+                    $roomExelyId = $stay['roomType']['id'] ?? null;
+                    $room = $rooms->get($roomExelyId);
+                    if (!$room || !isset($stay['availability'])) continue;
+
+                    $roomId = 'room_' . $room->id;
+                    $rateId = $stay['ratePlan']['id'] ?? $stay['checksum'] ?? Str::uuid();
+                    $resourceId = $roomId . '_rate_' . $rateId;
+                    $rateName = $stay['fullPlacementsName'] ?? $stay['ratePlan']['name'] ?? 'Rate';
+
+                    // Добавляем ресурс
+                    if (!collect($resources)->contains('id', $roomId)) {
+                        $resources[] = [
+                            'id' => $roomId,
+                            'title' => $room->title,
+                        ];
+                    }
+                    $resources[] = [
+                        'id' => $resourceId,
+                        'title' => $rateName,
+                        'parentId' => $roomId,
+                    ];
+
+                    $totalPrice = $stay['total']['priceBeforeTax'] ?? 0;
+                    $nightsCount = Carbon::parse($params['departureDate'])->diffInDays(Carbon::parse($params['arrivalDate'])) ?: 1;
+                    $pricePerNight = round($totalPrice / $nightsCount, 2);
+
+                    foreach ($startDate->daysUntil($endDate->copy()->addDay()) as $date) {
+                        $dateStr = $date->format('Y-m-d');
+                        $color = $availability > 0 ? '#39bb43' : '#d95d5d';
+
+                        $events[] = [
+                            'id' => $resourceId . '_' . $dateStr,
+                            'title' => '$ ' . $pricePerNight,
+                            'start' => $dateStr,
+                            'end' => $dateStr,
+                            'resourceId' => $resourceId,
+                            'backgroundColor' => $color,
+                            'borderColor' => $color,
+                        ];
+                    }
+                }
+            }
+        }
+
+        Log::debug('Final resources and events', [
+            'resources_count' => count($resources),
+            'events_count' => count($events)
+        ]);
+
         return response()->json([
-            'events' => $events,
             'resources' => $resources,
+            'events' => $events,
         ]);
     }
 
     public function store(Request $request)
     {
         try {
+            // ✅ Шаг 1: Валидация входных данных
             $validated = $request->validate([
                 'start' => 'required|date',
                 'end' => 'required|date|after_or_equal:start',
                 'rate_id' => 'required|exists:rates,id',
                 'room_id' => 'required|exists:rooms,id',
                 'hotel_id' => 'required|exists:hotels,id',
-                'allotment' => 'required|numeric|min:0',
+                'allotment' => 'nullable|numeric',
             ]);
 
             $start = Carbon::parse($validated['start'])->format('Y-m-d');
@@ -194,6 +459,7 @@ class BookingCalendarPriceController extends Controller
             $hotelId = $validated['hotel_id'];
             $allotment = $validated['allotment'];
 
+            // ✅ Шаг 2: Найти тариф и проверить его принадлежность номеру
             $rate = Rate::find($rateId);
             if ((int) $rate->room_id !== (int) $roomId) {
                 return response()->json([
@@ -202,10 +468,38 @@ class BookingCalendarPriceController extends Controller
                 ]);
             }
 
+
+            $now = now()->setTimezone('Asia/Bishkek');
+            $checkinDate = Carbon::parse($validated['start'])->startOfDay();
+
+            if ($rate->booking_open_time) {
+                $openAt = Carbon::parse($checkinDate->format('Y-m-d') . ' ' . $rate->booking_open_time);
+                if ($now->lt($openAt)) {
+                    return response()->json([
+                        'error' => true,
+                        'message' => 'Бронирование ещё не открыто для этого тарифа.'
+                    ]);
+                }
+            }
+
+            if ($rate->booking_close_time) {
+                $closeAt = Carbon::parse($checkinDate->format('Y-m-d') . ' ' . $rate->booking_close_time);
+                if ($now->gt($closeAt)) {
+                    return response()->json([
+                        'error' => true,
+                        'message' => 'Бронирование закрыто для этого тарифа.'
+                    ]);
+                }
+            }
+
+
+            // ✅ Шаг 4: Генерация уникального токена брони
             do {
                 $token = Str::random(40);
-            } while (Book::where('book_token', $token)->exists());
+            }
+            while (Book::where('book_token', $token)->exists());
 
+            // ✅ Шаг 5: Создание брони
             $book = Book::create([
                 'book_token' => $token,
                 'title' => '',
@@ -216,11 +510,11 @@ class BookingCalendarPriceController extends Controller
                 'phone' => '',
                 'email' => '',
                 'comment' => '',
-                'adult' => 0,
+                'adult' => 1,
                 'child' => null,
                 'price' => $allotment,
                 'sum' => 0,
-                'currency' => $rate->currency ?? '$',
+                'currency' => '',
                 'arrivalDate' => $start,
                 'departureDate' => $end,
                 'status' => 'Pending',
@@ -228,17 +522,34 @@ class BookingCalendarPriceController extends Controller
                 'api_type' => 'calendar',
             ]);
 
+            // ✅ Шаг 6: Уменьшение квоты
+//            $rate->availability -= $allotment;
+//            $rate->save();
+
             return response()->json(['success' => true, 'message' => 'Бронь успешно создана.']);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        }
+
+            // Обработка ошибок валидации (Laravel automatically throws ValidationException)
+        catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'error' => true,
                 'message' => implode('<br>', $e->validator->errors()->all())
             ]);
-        } catch (\Throwable $th) {
+        }
+
+            // Общая защита
+        catch (\Throwable $th) {
             return response()->json([
                 'error' => true,
                 'message' => 'Ошибка сервера: ' . $th->getMessage()
             ]);
         }
     }
+
+    private function getRoomTitleByRoomId($externalRoomId): string
+    {
+        $room = \App\Models\Room::where('exely_id', $externalRoomId)->first();
+        return $room?->title ?? 'Exely Room #' . $externalRoomId;
+    }
+
 }

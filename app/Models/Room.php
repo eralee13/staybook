@@ -32,16 +32,16 @@ class Room extends Model
         'deleted_at'
     ];
 
-
-    public function book()
-    {
-        return $this->belongsTo(Book::class);
-    }
-
+//    public function rates()
+//    {
+//        return $this->hasMany(Rate::class, 'room_id', 'id');
+//    }
+//
     public function rates()
     {
-        return $this->hasMany(Rate::class, 'room_id', 'id');
+        return $this->hasMany(Rate::class);
     }
+
 
     public function images()
     {

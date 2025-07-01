@@ -56,7 +56,7 @@ class Rate extends Model
 
     public function bookings()
     {
-        return $this->hasMany(Book::class);
+        return $this->hasMany(Book::class, 'rate_id');
     }
 
     /**

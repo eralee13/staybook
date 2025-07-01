@@ -20,7 +20,6 @@ class BookingController extends Controller
     //local
     public function order(Request $request)
     {
-        //dd($request->all());
         $arrival = Carbon::createFromDate($request->arrivalDate)->format('d.m.Y');
         $departure = Carbon::createFromDate($request->departureDate)->format('d.m.Y');
 
@@ -50,14 +49,15 @@ class BookingController extends Controller
             'cancel_penalty' => $request->get('cancelPrice'),
             'arrivalDate' => $request->get('arrivalDate'),
             'departureDate' => $request->get('departureDate'),
-            'currency' => $res->booking->currencyCode ?? '$',
+            'currency' => $request->currency ?? '$',
             'title' => $request->get('firstName'),
             'phone' => $request->get('phone'),
             'email' => $request->get('email'),
             'comment' => $request->get('comment'),
-            'adult' => $request->get('adultCount'),
+            'room_count' => $request->get('roomCount'),
+            'adult' => $request->get('adult'),
             'child' => $request->get('child'),
-            'childAges' => implode(',', $request->get('childAges')),
+            'childages' => implode(',', $request->get('childAges')),
             'sum' => $request->get('total'),
             'status' => 'Reserved',
             'book_token' => $res->booking->number ?? $str,
@@ -68,11 +68,11 @@ class BookingController extends Controller
         //Mail::to('myrzabekova@silkwaytravel.kg')->send(new BookMail($book));
         Log::warning('Бронь создана: ' . $book->id);
 
-        if($book){
-                Mail::to('eralee@staybook.asia')->send(new BookMail($book));
-            }
+//        if($book){
+//                Mail::to('eralee@staybook.asia')->send(new BookMail($book));
+//            }
 
-        return view('pages.booking.order-reserve', compact('book'));
+        return view('pages.booking.order-reserve', compact('book', 'request'));
     }
 
     public function cancel_calculate(Request $request)
@@ -88,11 +88,10 @@ class BookingController extends Controller
         ]);
 
         $book = Book::where('book_token', $request->number)->first();
-        
-        if($book){
-                Log::warning('Отмена брони: ' . $book->id);
-                Mail::to('eralee@staybook.asia')->send(new BookCancelMail($book));
-            }
+//        if($book){
+//                Log::warning('Отмена брони: ' . $book->id);
+//                Mail::to('eralee@staybook.asia')->send(new BookCancelMail($book));
+//            }
         return view('pages.booking.cancel-confirm', compact('book', 'request'));
     }
 

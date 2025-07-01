@@ -47,6 +47,7 @@
                         <div class="col-md-4">
                             <div class="dashboard-item">
                                 <div class="name">@lang('admin.count')</div>
+                                <div class="div">{{ $book->room_count }} @lang('admin.room')</div>
                                 <div>{{ $book->adult }} @lang('admin.adult')</div>
                                 @if($book->child > 0)
                                     <div>{{ $book->child }} @lang('admin.child')</div>

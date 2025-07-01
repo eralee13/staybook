@@ -131,7 +131,8 @@
                                                         }
                                                     @endphp
                                                     <div class="amenities-item">
-                                                        <img src="{{ asset('img/icons/' . $iconFile) }}" alt="{{ $amenity }}">
+                                                        <img src="{{ asset('img/icons/' . $iconFile) }}"
+                                                             alt="{{ $amenity }}">
                                                         <div class="name">{{ $amenity }}</div>
                                                     </div>
                                                 @endforeach
@@ -164,7 +165,8 @@
                                                             @lang('main.check-in'): {{ $arrival }} UTC {{ $hotel_utc }}
                                                         </div>
                                                         <div class="dates">
-                                                            @lang('main.check-out'): {{ $departure }} UTC {{ $hotel_utc }}
+                                                            @lang('main.check-out'): {{ $departure }}
+                                                            UTC {{ $hotel_utc }}
                                                         </div>
                                                         <br>
                                                         <div class="item meal">
@@ -174,14 +176,16 @@
                                                             <div class="name">@lang('main.cancellation_policy'):
                                                                 @if($room->cancellationPolicy->freeCancellationPossible == true)
                                                                     @lang('main.free_cancellation') {{ $cancelDate }}
-                                                                    ({{ $offset }}). @lang('main.cancellation_amount'): {{ $room->cancellationPolicy->penaltyAmount }} {{ $room->currencyCode }}
+                                                                    ({{ $offset }}). @lang('main.cancellation_amount')
+                                                                    : {{ $room->cancellationPolicy->penaltyAmount }} {{ $room->currencyCode }}
                                                                 @else
-                                                                    @lang('main.cancellation_amount'): {{ $room->cancellationPolicy->penaltyAmount }} {{ $room->currencyCode }}
+                                                                    @lang('main.cancellation_amount')
+                                                                    : {{ $room->cancellationPolicy->penaltyAmount }} {{ $room->currencyCode }}
                                                                 @endif
                                                             </div>
                                                         </div>
                                                         <div class="item price">{{ $room->total->priceBeforeTax }} {{ $room->currencyCode }}</div>
-{{--                                                        <div class="nds">Все налоги включены</div>--}}
+                                                        {{--                                                        <div class="nds">Все налоги включены</div>--}}
                                                         <div class="btn-wrap">
                                                             <form action="{{ route('order_exely', $room->roomType->id) }}">
                                                                 <input type="hidden" name="propertyId"

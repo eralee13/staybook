@@ -26,8 +26,11 @@
                                 <a href="{{route('search')}}">@lang('main.hotels_and_rooms')</a>
                             </div>
                             <div class="type-item">
-                                <a href="#">@lang('main.transfer')</a>
+                                <a href="{{ route('offline') }}">Оффлайн запрос</a>
                             </div>
+{{--                            <div class="type-item">--}}
+{{--                                <a href="#">@lang('main.transfer')</a>--}}
+{{--                            </div>--}}
                         </div>
 
                         <form action="{{ route('search') }}" method="GET">
@@ -37,6 +40,7 @@
                                         <div class="label stay"><img src="{{route('index')}}/img/marker_out.svg" alt="">
                                         </div>
                                         <select name="city" id="city">
+                                            <option value="Bishkek">Bishkek</option>
                                             @foreach($cities as $city)
                                                 <option value="{{ $city->title }}">{{ $city->title }}</option>
                                             @endforeach
@@ -509,7 +513,7 @@
 
                                     </div>
                                 </div>
-                                <div class="col-lg col-12">
+                                <div class="col-lg col-6">
                                     <div class="form-group">
                                         <button type="submit" class="more"><img src="{{route('index')}}/img/search.svg"
                                                                                 alt=""> @lang('main.find')

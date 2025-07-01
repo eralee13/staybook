@@ -16,6 +16,12 @@
                         $room = \App\Models\Room::where('id', $request->room_id)->firstOrFail();
                         $rate = \App\Models\Rate::where('id', $request->rate_id)->firstOrFail();
                         $cancelPossible = \App\Models\CancellationRule::where('rate_id', $rate->id)->firstOrFail();
+                        $freeDate = \Carbon\Carbon::parse($request->arrivalDate)->format('d.m.Y H:i');
+                        $timezone = \Carbon\Carbon::parse($hotel->timezone)->format('P');
+                        $cancel = \App\Models\CancellationRule::where('id', $request->cancellation_id)->firstOrFail();
+                        $cancelDate = \Carbon\Carbon::parse($request->arrivalDate)->subDays($cancel->free_cancellation_days)->format('d.m.Y H:i');
+                        $freeDate = \Carbon\Carbon::parse($request->arrivalDate)->format('d.m.Y H:i');
+                        $timezone = \Carbon\Carbon::parse($hotel->timezone)->format('P');
                     @endphp
                     <h1>@lang('main.order_confirmation')</h1>
                     <table>
@@ -32,8 +38,12 @@
                             <td>{{ $rate->__('title') }}</td>
                         </tr>
                         <tr>
+                            <td>@lang('main.count_room')</td>
+                            <td>{{ $request->roomCount }}</td>
+                        </tr>
+                        <tr>
                             <td>@lang('main.count_adult'):</td>
-                            <td>{{ $room->guestCount->adultCount ?? $request->adult }}</td>
+                            <td>{{ $request->adult }}</td>
                         </tr>
                         <tr>
                             <td>@lang('main.count_child'):</td>
@@ -51,19 +61,37 @@
                         </tr>
                         <tr>
                             <td>@lang('main.cancellation_policy'):</td>
-                            @if($cancelPossible->is_refundable == true)
-                                <td>
-                                    @if(now()->lte($request->cancelDate))
-                                        @lang('main.free_cancellation') {{ $request->cancelDate }} (UTC {{ $hotel_utc }}
-                                        ).
-                                    @else
-                                        @lang('main.cancellation_is_not_avaialble').
-                                    @endif
-                                    @lang('main.cancellation_amount')
-                                    : {{ $request->cancelPrice }} {{ $order->booking->currencyCode ?? '$' }}</td>
+                            @if($cancel->cancel_policy === 'free_until_checkin')
+                                <td>@lang('main.free_cancellation') {{ $freeDate }}
+                                    UTC {{ $timezone }}</td>
+
+                            @elseif($cancel->cancel_policy === 'free_then_penalty')
+                                @if(now()->lte($cancelDate))
+                                   <td> @lang('main.free_cancellation') {{ $cancelDate }}
+                                       UTC {{ $timezone }}</td>
+                                @else
+                                    <td>@lang('main.cancellation_is_not_avaialble').</td>
+                                @endif
+                                @lang('main.cancellation_amount')
+                                :
+                                @if($cancel->penalty_type === 'fixed')
+                                    ${{ $cancelPrice = round($cancel->penalty_amount) }}
+                                @elseif($cancel->penalty_type === 'night')
+                                    ${{ $cancelPrice = round($cancel->penalty_nights * $rate->price) }}
+                                @else
+                                    ${{ $cancelPrice = round(($sum * $cancel->penalty_amount) / 100) }}
+                                @endif
+
                             @else
-                                <td>@lang('main.cancellation_is_not_avaialble'). @lang('main.cancellation_amount')
-                                    : {{ $cancelPossible->penaltyAmount ?? $request->cancelPrice }} {{ $order->booking->currencyCode ?? '$' }}</td>
+                                <td>@lang('main.cancellation_amount')
+                                    :
+                                    @if($cancel->penalty_type === 'fixed')
+                                        ${{ $cancelPrice = round($cancel->penalty_amount) }}
+                                    @elseif($cancel->penalty_type === 'night')
+                                        ${{ $cancelPrice = round($cancel->penalty_nights * $rate->price) }}
+                                    @else
+                                        ${{ $cancelPrice = round(($sum * $cancel->penalty_amount) / 100) }}
+                                    @endif</td>
                             @endif
                         </tr>
                         <tr>
@@ -86,45 +114,37 @@
                         </tr>
                         <tr>
                             <td>@lang('main.message'):</td>
-                            <td>{{ $order->booking->bookingComments[0] ?? $request->comment }}</td>
+                            <td>{{ $request->comment }}</td>
                         </tr>
                     </table>
 
                     <div class="btn-wrap">
                         <form action="{{ route('book_reserve') }}" method="get">
                             <input type="hidden" name="propertyId"
-                                   value="{{ $order->booking->propertyId ?? $request->propertyId }}">
+                                   value="{{ $request->propertyId }}">
                             <input type="hidden" name="total"
-                                   value="{{ $order->booking->total->priceBeforeTax ?? $request->price }}">
+                                   value="{{ $request->price }}">
                             <input type="hidden" name="cancellation_id" value="{{ $request->cancellation_id }}">
                             <input type="hidden" name="cancelPrice" value="{{ $request->cancelPrice }}">
                             <input type="hidden" name="arrivalDate"
-                                   value="{{ $order->booking->roomStays[0]->stayDates->arrivalDateTime ?? $request->arrivalDate }}">
+                                   value="{{ $request->arrivalDate }}">
                             <input type="hidden" name="departureDate"
-                                   value="{{ $order->booking->roomStays[0]->stayDates->departureDateTime ?? $request->departureDate }}">
-                            <input type="hidden" name="ratePlanId"
-                                   value="{{ $order->booking->roomStays[0]->ratePlan->id ?? $request->rate_id }}">
+                                   value="{{ $request->departureDate }}">
+                            <input type="hidden" name="rate_id"
+                                   value="{{ $request->rate_id }}">
                             <input type="hidden" name="roomTypeId"
-                                   value="{{ $order->booking->roomStays[0]->roomType->id ?? $request->room_id }}">
-                            <input type="hidden" name="roomCode"
-                                   value="{{ $order->booking->roomStays[0]->roomType->placements[0]->code ?? '' }}">
+                                   value="{{ $request->room_id }}">
                             <input type="hidden" name="firstName"
-                                   value="{{ $order->booking->roomStays[0]->guests[0]->firstName ?? $request->name }}">
+                                   value="{{ $request->name }}">
                             <input type="hidden" name="lastName"
-                                   value="{{ $order->booking->roomStays[0]->guests[0]->lastName ?? $request->name }}">
+                                   value="{{ $request->name }}">
                             <input type="hidden" name="sex" value="Male">
                             <input type="hidden" name="citizenship" value="KGS">
-                            {{--                            <input type="hidden" name="placements"--}}
-                            {{--                                   value="{{ json_encode($order->booking->roomStays[0]->roomType->placements) ?? '' }}">--}}
-                            <input type="hidden" name="adultCount"
-                                   value="{{ $order->booking->roomStays[0]->guestCount->adultCount ?? $request->adult }}">
+                            <input type="hidden" name="roomCount" value="{{ $request->roomCount }}">
+                            <input type="hidden" name="adult" value="{{ $request->adult }}">
+                            <input type="hidden" name="child" value="{{ $request->child }}">
                             <input type="hidden" name="childAges[]"
                                    value="{{ implode(', ', $request->childAges ?? []) }}">
-
-                            {{--                            <input type="hidden" name="createBookingToken"--}}
-                            {{--                                   value="{{ $order->booking->createBookingToken ?? '' }}">--}}
-                            {{--                            <input type="hidden" name="checkSum"--}}
-                            {{--                                   value="{{ $order->booking->roomStays[0]->checksum ?? '' }}">--}}
                             <input type="hidden" name="comment"
                                    value="{{ $order->booking->bookingComments[0] ?? $request->comment }}">
                             <input type="hidden" name="phone"
