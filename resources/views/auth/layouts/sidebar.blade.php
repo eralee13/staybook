@@ -14,8 +14,11 @@
 
                 <li @routeactive(
                 'listbooks.index') class="price-list"><a href="{{route('listbooks.index')}}"><img src="{{ route('index') }}/img/money.svg" alt=""> @lang('admin.bookings')</a></li>
-                <li @routeactive(
-                'rooms.index') class="room-list"><a href="{{route('rooms.index')}}"><img src="{{ route('index') }}/img/icons/bed.svg" alt=""> @lang('admin.rooms')</a></li>
+                
+                @if( session()->has('hotel_id') )
+                    <li @routeactive('rooms.index') class="room-list"><a href="{{route('rooms.index')}}"><img src="{{ route('index') }}/img/icons/bed.svg" alt=""> @lang('admin.rooms')</a></li>
+                @endif
+
                <li @routeactive(
                 'bills.index')><a href="{{route('bills.index')}}"><img src="{{ route('index') }}/img/icons/file.svg" alt=""> @lang('admin.bills')</a></li>
 

@@ -16,6 +16,7 @@ use App\Livewire\BookingForm;
 use App\Livewire\HotelResults;
 use App\Livewire\HotelRooms;
 use App\Livewire\HotelWizard;
+use App\Livewire\LWTester;
 use Dedoc\Scramble\Scramble;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
@@ -179,5 +180,7 @@ Route::middleware('set_locale')->group(function () {
     //email
     Route::post('contact_mail', [MainController::class, 'contact_mail'])->name('contact_mail');
     Route::post('book_mail', [MainController::class, 'book_mail'])->name('book_mail');
+
+    Route::get('/lwtester', [LWTester::class, 'render'])->name('livewire.lwtester');
 });
 
