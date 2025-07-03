@@ -25,7 +25,7 @@ class BookingCalendarPriceController extends Controller
             return redirect()->route('index');
         }
 
-        $hotelId = $request->get('hotel_id') ?? 14;
+        $hotelId = $request->get('hotel_id');
         $hotelslist = Hotel::select('id', 'title')->orderBy('title', 'asc')->get();
 
         $startDate = Carbon::now()->startOfDay();
@@ -219,12 +219,21 @@ class BookingCalendarPriceController extends Controller
             'events_count' => count($events)
         ]);
 
+        $eventsCount = count($events);
+        $warning = $eventsCount === 0 ? 'Нет доступных предложений на выбранные даты.' : null;
+
+        Log::debug('⚠️ Warning message evaluation', [
+            'events_count' => $eventsCount,
+            'warning' => $warning,
+        ]);
+
 
         return view('auth.books.calendarprice.index', [
             'resources' => $resources,
             'hotelslist' => $hotelslist,
             'events' => $events,
             'request' => $request,
+            'warning' => $warning,
         ]);
     }
 
@@ -433,9 +442,17 @@ class BookingCalendarPriceController extends Controller
             'events_count' => count($events)
         ]);
 
+        Log::debug('Final resources and events', [
+            'events_count' => count($events)
+        ]);
+
+        $warning = count($events) === 0 ? 'Нет доступных предложений на выбранные даты.' : null;
+
+
         return response()->json([
             'resources' => $resources,
             'events' => $events,
+            'warning' => $warning,
         ]);
     }
 

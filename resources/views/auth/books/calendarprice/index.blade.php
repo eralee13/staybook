@@ -103,6 +103,7 @@
             </div>
         </div>
 
+        <div id="warning" class="alert alert-warning"></div>
 
         <div id="calendar"></div>
     </div>

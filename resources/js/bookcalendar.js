@@ -176,6 +176,17 @@ document.addEventListener('DOMContentLoaded', function () {
         fetch(`/auth/bookcalendar/books/events?hotel_id=${selectedHotel}&start=${selectedStart}&end=${selectedEnd}`)
             .then(res => res.json())
             .then(data => {
+                if (data.warning) {
+                    $('#warning').text(data.warning).show();
+
+                    const alertDiv = document.createElement('header .tabs div');
+                    alertDiv.className = 'alert alert-warning';
+                    alertDiv.innerText = data.warning;
+
+                    // Добавим сообщение перед календарём
+                    const container = document.querySelector('.container-fluid');
+                    container.prepend(alertDiv);
+                }
                 calendar.removeAllEventSources();
                 calendar.setOption('resources', data.resources);
                 calendar.addEventSource(data.events);

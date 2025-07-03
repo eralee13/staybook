@@ -99,6 +99,13 @@
             </div>
         </div>
 
+        @if($exelyEmpty)
+            <div class="alert alert-warning">
+                ⚠️ Нет доступных номеров от Exely на выбранные даты.
+            </div>
+        @endif
+
+        <div id="warning" class="alert alert-warning"></div>
 
         <div id="calendar"></div>
     </div>

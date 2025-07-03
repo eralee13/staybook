@@ -2,12 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Book;
 use App\Models\City;
 use App\Models\Room;
 use App\Models\Hotel;
-use App\Models\Image;
-use App\Models\Meal;
 use Carbon\Carbon;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Request;
@@ -20,12 +17,12 @@ class SearchController extends Controller
     {
         $cities = City::whereNull('country_id')->orderBy('title')->get();
         $tomorrow = Carbon::tomorrow()->format('Y-m-d');
-        $rooms = $request->input('rooms', []);
+        $rooms = $request->input('rooms', []); // если нет — пустой массив
         $totalAdults = 0;
         $allChildAges = [];
-
         foreach ($rooms as $room) {
             $totalAdults += (int)($room['adults'] ?? 0);
+
             if (!empty($room['childAges']) && is_array($room['childAges'])) {
                 foreach ($room['childAges'] as $age) {
                     $allChildAges[] = (int)$age;
@@ -33,86 +30,74 @@ class SearchController extends Controller
             }
         }
 
-        $start = $request->input('arrivalDate');
-        $end = $request->input('departureDate');
-
-        $hotelQuery = Hotel::with(['rates' => function ($q) use ($request, $totalAdults, $start, $end) {
+        $hotelQuery = Hotel::with(['rates' => function ($q) use ($request, $totalAdults) {
+            // Фильтруем тарифы: проверяем, что есть места для всех взрослых и детей
             if ($request->filled('rooms')) {
                 $q->where('availability', '>=', $totalAdults);
             }
 
+            // Если задан meal_id — фильтруем по питанию
             if ($request->filled('meal_id')) {
                 $q->where('meal_id', $request->meal_id);
             }
 
-            if ($start && $end) {
+            // Фильтрация по датам: исключаем тарифы, у которых уже зарезервированы подходящие даты
+            if ($request->filled('start_d') && $request->filled('end_d')) {
+                $start = $request->start_d;
+                $end = $request->end_d;
                 $q->whereDoesntHave('bookings', function ($b) use ($start, $end) {
-                    $b->where(function ($qb) use ($start, $end) {
-                        $qb->whereBetween('arrivalDate', [$start, $end])
-                            ->orWhereBetween('departureDate', [$start, $end])
-                            ->orWhere(function ($qbb) use ($start, $end) {
-                                $qbb->where('arrivalDate', '<=', $start)
-                                    ->where('departureDate', '>=', $end);
-                            });
-                    });
+                    $b->where('status', 'reserved')
+                        ->where(function ($qb) use ($start, $end) {
+                            $qb->whereBetween('arrivalDate', [$start, $end])
+                                ->orWhereBetween('departureDate', [$start, $end])
+                                ->orWhere(function ($qbb) use ($start, $end) {
+                                    $qbb->where('arrivalDate', '<=', $start)
+                                        ->where('departureDate', '>=', $end);
+                                });
+                        });
                 });
-
-                $q->with(['bookings' => function ($b) use ($start, $end) {
-                    $b->where(function ($qb) use ($start, $end) {
-                        $qb->whereBetween('arrivalDate', [$start, $end])
-                            ->orWhereBetween('departureDate', [$start, $end])
-                            ->orWhere(function ($qbb) use ($start, $end) {
-                                $qbb->where('arrivalDate', '<=', $start)
-                                    ->where('departureDate', '>=', $end);
-                            });
-                    });
-                }]);
             }
         }]);
 
+        // Фильтруем по городу и рейтингу
         if ($request->filled('city')) {
             $hotelQuery->where('city', $request->city);
         }
-
         if ($request->filled('rating')) {
             $hotelQuery->where('rating', '>=', $request->rating);
         }
 
+        // Сортировка по рейтингу
         if ($request->sort === 'highest_rating') {
             $hotelQuery->orderBy('rating', 'desc');
         } elseif ($request->sort === 'lowest_rating') {
             $hotelQuery->orderBy('rating', 'asc');
         }
 
+        // Выполняем запрос и получаем коллекцию отелей вместе с уже подгруженными тарифами
         $localHotels = $hotelQuery->get();
 
-        // Перезаписываем цену если есть брони
-        foreach ($localHotels as $hotel) {
-            foreach ($hotel->rates as $rate) {
-                $customBook = $rate->bookings->first();
-                $rate->effective_price = $customBook?->price ?? $rate->price;
-            }
-        }
 
+        // Дополнительная сортировка по цене (если задана)
         if ($request->sort === 'lowest_price') {
-            $localHotels = $localHotels->sortBy(fn($h) => $h->rates->min('effective_price'))->values();
+            $localHotels = $localHotels->sortBy(fn($h) => $h->rates->min('price'))->values();
         } elseif ($request->sort === 'highest_price') {
-            $localHotels = $localHotels->sortByDesc(fn($h) => $h->rates->max('effective_price'))->values();
+            $localHotels = $localHotels->sortByDesc(fn($h) => $h->rates->max('price'))->values();
         }
 
-        // API Exely
+        // 4. Берём exely_id из отелей для запроса к API
         $propertyIds = $localHotels
             ->pluck('exely_id')
-            ->filter()
+            ->filter()                    // убираем null/пустые
             ->map(fn($id) => (string)$id)
             ->unique()
             ->values()
             ->all();
 
         $results = null;
-
         if (!empty($propertyIds)) {
             try {
+                // Формируем полезную нагрузку (payload) для Exely API
                 $payload = [
                     'propertyIds' => $propertyIds,
                     'adults' => $totalAdults,
@@ -143,6 +128,7 @@ class SearchController extends Controller
             }
         }
 
+        // 5. Привязываем полученные от API «roomStays» к локальным моделям отелей (по exely_id)
         if ($results && property_exists($results, 'propertyRoomStayResponses')) {
             $apiMap = collect($results->propertyRoomStayResponses)
                 ->keyBy(fn($item) => (string)$item->propertyId);
@@ -155,118 +141,81 @@ class SearchController extends Controller
             });
         }
 
-        $localHotels = $localHotels->filter(function ($hotel) {
-            $hasLocalRates = $hotel->rates && $hotel->rates->isNotEmpty();
-            $hasApiRates = !empty($hotel->api_room_stays);
-            return $hasLocalRates || $hasApiRates;
-        })->values();
-
         if ($localHotels->isEmpty()) {
             return view('pages.search.search', [
-                'hotels' => [],
+                'hotels'   => [],
+                'cities'   => $cities,
+                'tomorrow' => $tomorrow,
+                'request'  => $request,
+                'results'  => $results,
+                'error'    => 'По вашему запросу отели не найдены.',
+            ]);
+        } else {
+            // 7. Возвращаем вьюшку с объединёнными данными
+            return view('pages.search.search', [
+                'hotels' => $localHotels,
                 'cities' => $cities,
                 'tomorrow' => $tomorrow,
                 'request' => $request,
                 'results' => $results,
-                'error' => 'По вашему запросу отели не найдены.',
             ]);
         }
 
-        return view('pages.search.search', [
-            'hotels' => $localHotels,
-            'cities' => $cities,
-            'tomorrow' => $tomorrow,
-            'request' => $request,
-            'results' => $results,
-        ]);
     }
+
 
     public function hotel($code, Request $request)
     {
         $hotel = Hotel::where('code', $code)->first();
+        //$hotel = Hotel::cacheFor(now()->addHours(2))->where('code', $code)->first();
         $arrival = Carbon::createFromDate($request->arrivalDate);
         $departure = Carbon::createFromDate($request->departureDate);
         $count_day = $arrival->diffInDays($departure);
         $adult = $request->adult;
 
-        $query = Room::with(['rates' => function ($q) use ($request, $arrival, $departure) {
+        $query = Room::with(['rates' => function ($q) use ($request) {
             if ($request->filled('adult')) {
                 $q->where('availability', '>=', $request->adult);
             }
+
             if ($request->filled('child')) {
                 $q->where('child', '>=', $request->child);
             }
+
             if ($request->filled('meal_id')) {
                 $q->where('meal_id', $request->meal_id);
             }
 
+            // Показать только те тарифы, у которых нет бронирования
             if ($request->filled('arrivalDate') && $request->filled('departureDate')) {
-                $start = $request->arrivalDate;
-                $end = $request->departureDate;
+                $startTime = $request->arrivalDate;
+                $endTime = $request->departureDate;
 
-                $q->whereDoesntHave('bookings', function ($b) use ($start, $end) {
-                    $b->where(function ($b2) {
-                        $b2->where('status', 'reserved')
-                            ->orWhere(function ($b3) {
-                                $b3->where('status', 'pending')->where('adult', 0);
-                            });
-                    })
-                        ->where(function ($b4) use ($start, $end) {
-                            $b4->whereBetween('arrivalDate', [$start, $end])
-                                ->orWhereBetween('departureDate', [$start, $end])
-                                ->orWhere(function ($b5) use ($start, $end) {
-                                    $b5->where('arrivalDate', '<=', $start)
-                                        ->where('departureDate', '>=', $end);
+                $q->whereDoesntHave('bookings', function ($b) use ($startTime, $endTime) {
+                    $b->where('status', 'reserved')
+                        ->where(function ($query) use ($startTime, $endTime) {
+                            $query->whereBetween('arrivalDate', [$startTime, $endTime])
+                                ->orWhereBetween('departureDate', [$startTime, $endTime])
+                                ->orWhere(function ($q) use ($startTime, $endTime) {
+                                    $q->where('arrivalDate', '<=', $startTime)
+                                        ->where('departureDate', '>=', $endTime);
                                 });
                         });
                 });
             }
-        }])
-            ->where('hotel_id', $hotel->id);
+        }])->where('hotel_id', $hotel->id);
 
-        $rooms = $query->get()->filter(function ($r) use ($arrival, $departure) {
-            $r->rates->transform(function ($rate) use ($arrival, $departure) {
-                $bookPrice = Book::where('rate_id', $rate->id)
-                    ->where('arrivalDate', '<=', $arrival)
-                    ->where('departureDate', '>=', $departure)
-                    ->whereNotNull('price')
-                    ->orderByDesc('id')
-                    ->value('price');
-                if ($bookPrice !== null) {
-                    $rate->price = $bookPrice;
-                }
-                return $rate;
-            });
-            return $r->rates->isNotEmpty();
+        $rooms = $query->get()->filter(function ($room) {
+            return $room->rates->isNotEmpty();
         });
 
-        $start = $arrival->copy()->startOfDay();
-        $end = $departure->copy()->startOfDay();
 
-        $bookingPrices = \App\Models\Book::whereIn('rate_id', $rooms->flatMap->rates->pluck('id'))
-            ->where(function ($q) use ($start, $end) {
-                $q->whereBetween('arrivalDate', [$start, $end])
-                    ->orWhereBetween('departureDate', [$start, $end])
-                    ->orWhere(function ($q2) use ($start, $end) {
-                        $q2->where('arrivalDate', '<=', $start)
-                            ->where('departureDate', '>=', $end);
-                    });
-            })
-            ->whereNotNull('price')
-            ->get()
-            ->groupBy('rate_id');
 
-        $ratePrices = [];
-
-        foreach ($rooms as $room) {
-            foreach ($room->rates as $rate) {
-                if (isset($bookingPrices[$rate->id])) {
-                    $ratePrices[$rate->id] = $bookingPrices[$rate->id]->first()->price;
-                }
-            }
+        if ($hotel->exely_id != null) {
+            return view('pages.search.hotel', compact('hotel', 'arrival', 'departure', 'adult', 'count_day', 'request', 'rooms'));
+        } else {
+            return view('pages.search.hotel', compact('hotel', 'arrival', 'departure', 'adult', 'count_day', 'request', 'rooms'));
         }
-
-        return view('pages.search.hotel', compact('hotel', 'arrival', 'departure', 'adult', 'count_day', 'request', 'rooms', 'ratePrices'));
     }
 
     //exely
@@ -334,60 +283,5 @@ class SearchController extends Controller
             ->all();
 
         return view('pages.search.exely.hotel', compact('rooms', 'request'));
-
-
-    }
-
-    // tourmind
-    public function hotel_tm($hid, Request $request)
-    {
-        $hotel = Hotel::where('id', $hid)->with(['amenity'])->first();
-        $room = Room::where('hotel_id', $hid)->where('tourmind_id', $hotel->tourmind_id)->get(['amenities'])->first();
-        $amenities = explode(',', $room->amenities ?? '');
-        $roomAmenity = array_slice($amenities, 0, 8);
-        $meals = Meal::pluck('title', 'id');
-        $arrival = Carbon::createFromDate($request->arrivalDate);
-        $departure = Carbon::createFromDate($request->departureDate);
-
-        $hotelService = new \App\Services\Tourmind\HotelServices();
-        $tmroom = $hotelService->getOneDetail($request, $hotel->id);
-        $tmimages = Image::where('hotel_id', $hotel->id)->where('caption', 'Room')->get('image');
-
-        $city = City::where('title', $hotel->city)->first(['country_code']);
-
-        if (!$hotel->utc && $city && ($utc = $hotelService->getUtcOffsetByCountryCode($city->country_code))) {
-            $hotel->utc = $utc;
-            $hotel->save();
-        }
-
-
-        return view('pages.search.tourmind.hotel', compact('hotel', 'arrival', 'departure', 'request', 'roomAmenity', 'tmroom', 'tmimages', 'meals'));
-    }
-
-    // Emerging
-    public function hotel_etg($hid, Request $request)
-    {
-        $hotel = Hotel::where('id', $hid)->with(['amenity'])->first();
-        $room = Room::where('hotel_id', $hid)->get(['amenities'])->first();
-        $amenities = explode(',', $room->amenities ?? '');
-        $roomAmenity = array_slice($amenities, 0, 8);
-        $meals = Meal::pluck('title', 'id');
-        $arrival = Carbon::createFromDate($request->arrivalDate);
-        $departure = Carbon::createFromDate($request->departureDate);
-
-        $emergingSearch = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
-        $etgroom = $emergingSearch->searchRates($request, $hotel->id);
-        // dd($etgroom);
-        $tmimages = Image::where('hotel_id', $hotel->id)->where('caption', 'guest_rooms')->get('image');
-
-        $city = City::where('title', $hotel->city)->first(['country_code']);
-
-        if (!$hotel->utc && $city && ($utc = $hotelService->getUtcOffsetByCountryCode($city->country_code))) {
-            $hotel->utc = $utc;
-            $hotel->save();
-        }
-
-
-        return view('pages.search.emerging.hotel', compact('hotel', 'arrival', 'departure', 'request', 'roomAmenity', 'etgroom', 'tmimages', 'meals'));
     }
 }

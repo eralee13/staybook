@@ -14,6 +14,7 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
         $schedule->command('fx:update')->hourly();
+        $schedule->command('sync:exely-hotels')->dailyAt('03:00');
     }
 
     /**

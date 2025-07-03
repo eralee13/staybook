@@ -28,7 +28,7 @@ class PageController extends Controller
         $tomorrow = Carbon::tomorrow()->format('Y-m-d');
         $now = Carbon::now();
 
-        if ($now->hour > 3 && $now->hour < 4) {
+        if ($now->hour > 3 && $now->hour < 23) {
             set_time_limit(300);
 
             $response = Http::timeout(300)
