@@ -28,7 +28,7 @@ class PageController extends Controller
         $tomorrow = Carbon::tomorrow()->format('Y-m-d');
         $now = Carbon::now();
 
-        if ($now->hour > 3 && $now->hour < 23) {
+        if ($now->hour > 3 && $now->hour < 4) {
             set_time_limit(300);
 
             $response = Http::timeout(300)
@@ -47,6 +47,8 @@ class PageController extends Controller
                     ])->get(config('services.exely.base_url') . 'content/v1/properties/' . $hotel->id);
 
                     $property = $response->object();
+
+
                     $exely_hotel = Hotel::where('exely_id', $property->id)->first();
 
                     if ($exely_hotel) {
@@ -73,15 +75,9 @@ class PageController extends Controller
                             'exely_id' => $property->id,
                         ]);
                     } else {
-                        $filename = null;
-                        if (!empty($property->images)) {
-                            $url = $property->images[0]->url;
-                            $imageContents = @file_get_contents($url);
-                            if ($imageContents) {
-                                $filename = 'hotels/' . Str::uuid() . '.jpg';
-                                Storage::disk('public')->put($filename, $imageContents);
-                            }
-                        }
+                        $imagePaths = [];
+
+
 
                         Hotel::create([
                             'title' => $property->name,
@@ -89,7 +85,7 @@ class PageController extends Controller
                             'code' => Str::slug($property->name),
                             'description' => $property->description,
                             'description_en' => $property->description,
-                            'image' => $filename,
+                            //'image' => $imagePaths[0] ?? null,
                             'rating' => $property->stars ?? null,
                             'city' => $property->contactInfo->address->cityName,
                             'address' => $property->contactInfo->address->addressLine,
@@ -106,6 +102,21 @@ class PageController extends Controller
                             'status' => 1,
                             'exely_id' => $property->id,
                         ]);
+                    }
+
+                    foreach (array_slice($property->images, 0, 3) as $image) {
+                        $url = $image->url;
+                        $imageContents = @file_get_contents($url);
+
+                        if ($imageContents) {
+                            $filename = 'hotels/' . Str::uuid() . '.jpg';
+                            Storage::disk('public')->put($filename, $imageContents);
+
+                            Image::create([
+                                'hotel_id' => $exely_hotel->id ?? $hotel->id,
+                                'image' => $filename,
+                            ]);
+                        }
                     }
 
                     foreach ($property->ratePlans as $rate) {

@@ -3,7 +3,7 @@
 @section('title', 'Отели')
 
 @section('content')
-
+@auth
     <div class="page places about">
         <div class="container">
             <div class="row">
@@ -39,5 +39,8 @@
             </div>
         </div>
     </div>
+@else
+    @include('layouts.auth')
+@endauth
 
 @endsection

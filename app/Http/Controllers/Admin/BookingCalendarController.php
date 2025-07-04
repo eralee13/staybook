@@ -90,10 +90,14 @@ class BookingCalendarController extends Controller
                 $period = $startDate->daysUntil($endDate);
                 foreach ($period as $date) {
                     $dateStr = $date->format('Y-m-d');
-                    $color = $rate->availability > 0 ? '#39bb43' : '#d95d5d';
+                    $usedAdults = $adultByDate[$dateStr] ?? 0;
+                    $available = max(0, $rate->availability - $usedAdults);
+
+                    $color = ($available == 0) ? '#d95d5d' : '#39bb43';
+
                     $events[] = [
                         'id' => 'local_' . $rate->id . '_' . $dateStr,
-                        'title' => $book->adult ?? $rate->availability,
+                        'title' => (string) $available,
                         'start' => $dateStr,
                         'end' => $dateStr,
                         'resourceId' => $resourceId,
@@ -291,11 +295,14 @@ class BookingCalendarController extends Controller
 
                 foreach ($startDate->daysUntil($endDate) as $date) {
                     $dateStr = $date->format('Y-m-d');
-                    $adultCount = $adultByDate[$dateStr] ?? $rate->availability;
-                    $color = $rate->availability > 0 ? '#39bb43' : '#d95d5d';
+                    $usedAdults = $adultByDate[$dateStr] ?? 0;
+                    $available = max(0, $rate->availability - $usedAdults);
+
+                    $color = ($available == 0) ? '#d95d5d' : '#39bb43';
+
                     $events[] = [
                         'id' => 'local_' . $rate->id . '_' . $dateStr,
-                        'title' => (string) $adultCount,
+                        'title' => (string) $available,
                         'start' => $dateStr,
                         'end' => $dateStr,
                         'resourceId' => $resourceId,

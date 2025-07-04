@@ -4,6 +4,7 @@
 
 @section('content')
 
+    @auth
     <div class="page order">
         <div class="container">
             <div class="row">
@@ -71,5 +72,8 @@
             </div>
         </div>
     </div>
+    @else
+        @include('layouts.auth')
+    @endauth
 
 @endsection

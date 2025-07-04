@@ -4,6 +4,7 @@
 
 @section('content')
 
+    @auth()
     @vite(['resources/js/app.js', 'resources/css/app.css'])
 
     <style>
@@ -315,5 +316,8 @@
             }
         }
     </script>
+    @else
+        @include('layouts.auth')
+    @endauth
 
 @endsection

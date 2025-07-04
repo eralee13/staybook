@@ -514,14 +514,6 @@
             <div class="container">
                 <div class="row">
                     <div class="col-md-12">
-                        {{--                        @if(isset($error))--}}
-                        {{--                            <div class="alert alert-danger">--}}
-                        {{--                                {{ $error }}--}}
-                        {{--                            </div>--}}
-                        {{--                            <div class="btn-wrap">--}}
-                        {{--                                <a href="{{ route('index') }}" class="more">Попробуйте снова</a>--}}
-                        {{--                            </div>--}}
-                        {{--                        @endif--}}
                         @if($results != null)
                             @if(isset($results->errors))
                                 @foreach ($results->errors as $error)
@@ -575,8 +567,24 @@
                                             <div class="row">
                                                 <div class="col-md-5 order-xl-1 order-lg-1 order-1">
                                                     <div class="img-wrap">
-                                                        @if($hotel->image)
-                                                            <img src="{{ Storage::url($hotel->image) }}" alt="">
+                                                        @php
+                                                            $images = \App\Models\Image::where('hotel_id', $hotel->id)->get()
+                                                        @endphp
+                                                        @if($images->isNotEmpty())
+                                                            <div class="row">
+                                                                <div class="col-md-6">
+                                                                    <div class="main">
+                                                                        <img src="{{ Storage::url($images->first()->image) }}" alt="">
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    @foreach($images->slice(1, 2) as $file)
+                                                                        <div class="primary">
+                                                                            <img src="{{ Storage::url($file->image) }}" alt="">
+                                                                        </div>
+                                                                    @endforeach
+                                                                </div>
+                                                            </div>
                                                         @else
                                                             <img src="{{ route('index')}}/img/noimage.png" alt="">
                                                         @endif

@@ -47,8 +47,10 @@
                                 <div class="col-md-7">
                                     <div class="fotorama" data-allowfullscreen="true" data-nav="thumbs" data-loop="true"
                                          data-autoplay="30000">
-                                        @if($hotel->image)
-                                            <img loading="lazy" src="{{ Storage::url($hotel->image) }}" alt="">
+                                        @if($images)
+                                            @foreach($images as $file)
+                                                <img loading="lazy" src="{{ Storage::url($file->image)}}" alt="">
+                                            @endforeach
                                         @else
                                             <img loading="lazy" src="{{ route('index')}}/img/noimage.png" alt="">
                                         @endif
@@ -60,24 +62,26 @@
                                                       alt=""> {{ $hotel->address }}</div>
                             <h4>@lang('main.description')</h4>
                             {!! $hotel->__('description') !!}
-                            <div class="amenities">
-                                <h4>@lang('main.amenities')</h4>
-                                @foreach($amenities as $amenity)
-                                    @php
-                                        $iconFile = 'check.svg';
-                                        foreach ($iconMap as $keyword => $filename) {
-                                            if (mb_stripos($amenity, $keyword) !== false) {
-                                                $iconFile = $filename;
-                                                break;
+                            @if(collect($amenities)->filter()->isNotEmpty())
+                                <div class="amenities">
+                                    <h4>@lang('main.amenities')</h4>
+                                    @foreach($amenities as $amenity)
+                                        @php
+                                            $iconFile = 'check.svg';
+                                            foreach ($iconMap as $keyword => $filename) {
+                                                if (mb_stripos($amenity, $keyword) !== false) {
+                                                    $iconFile = $filename;
+                                                    break;
+                                                }
                                             }
-                                        }
-                                    @endphp
-                                    <div class="amenities-item">
-                                        <img src="{{ asset('img/icons/' . $iconFile) }}" alt="{{ $amenity }}">
-                                        <div class="name">{{ $amenity }}</div>
-                                    </div>
-                                @endforeach
-                            </div>
+                                        @endphp
+                                        <div class="amenities-item">
+                                            <img src="{{ asset('img/icons/' . $iconFile) }}" alt="{{ $amenity }}">
+                                            <div class="name">{{ $amenity }}</div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
                             <div class="maps">
                                 <h4>@lang('main.location')</h4>
                                 <script src="https://maps.api.2gis.ru/2.0/loader.js"></script>
@@ -286,22 +290,7 @@
                 </div>
             </div>
         @else
-            <div class="page auth">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-lg-8 offset-lg-2 col-md-12">
-                            <div class="img-wrap">
-                                <img src="{{ route('index') }}/img/b2b.jpg" alt="">
-                                <h4>@lang('main.b2b')</h4>
-                            </div>
-                            <div class="alert alert-danger">
-                                <div class="descr">@lang('main.need_auth') <a
-                                            href="{{ route('login') }}">@lang('main.auth')</a></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            @include('layouts.auth')
         @endauth
 
     @endsection

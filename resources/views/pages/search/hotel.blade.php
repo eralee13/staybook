@@ -14,6 +14,9 @@
                              data-loop="true"
                              data-autoplay="30000">
                             <img loading="lazy" src="{{ Storage::url($hotel->image)}}" alt="">
+                            @foreach($images as $file)
+                                <img loading="lazy" src="{{ Storage::url($image->file)}}" alt="">
+                            @endforeach
                         </div>
                         <h3>{{ $hotel->__('title') }}</h3>
                         <div class="address"><img src="{{ route('index') }}/img/marker_in.svg"
@@ -335,22 +338,7 @@
         </div>
         </div>
     @else
-        <div class="page auth">
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-8 offset-lg-2 col-md-12">
-                        <div class="img-wrap">
-                            <img src="{{ route('index') }}/img/b2b.jpg" alt="">
-                            <h4>@lang('main.b2b')</h4>
-                        </div>
-                        <div class="alert alert-danger">
-                            <div class="descr">@lang('main.need_auth') <a
-                                        href="{{ route('login') }}">@lang('main.auth')</a></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        @include('layouts.auth')
     @endauth
 
 @endsection

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\City;
+use App\Models\Image;
 use App\Models\Room;
 use App\Models\Hotel;
 use Carbon\Carbon;
@@ -167,6 +168,7 @@ class SearchController extends Controller
     public function hotel($code, Request $request)
     {
         $hotel = Hotel::where('code', $code)->first();
+        $images = Image::where('hotel_id', $hotel->id)->get();
         //$hotel = Hotel::cacheFor(now()->addHours(2))->where('code', $code)->first();
         $arrival = Carbon::createFromDate($request->arrivalDate);
         $departure = Carbon::createFromDate($request->departureDate);
@@ -212,9 +214,9 @@ class SearchController extends Controller
 
 
         if ($hotel->exely_id != null) {
-            return view('pages.search.hotel', compact('hotel', 'arrival', 'departure', 'adult', 'count_day', 'request', 'rooms'));
+            return view('pages.search.hotel', compact('hotel', 'arrival', 'departure', 'adult', 'count_day', 'request', 'rooms', 'images'));
         } else {
-            return view('pages.search.hotel', compact('hotel', 'arrival', 'departure', 'adult', 'count_day', 'request', 'rooms'));
+            return view('pages.search.hotel', compact('hotel', 'arrival', 'departure', 'adult', 'count_day', 'request', 'rooms', 'images'));
         }
     }
 
@@ -282,6 +284,9 @@ class SearchController extends Controller
             ->values()
             ->all();
 
-        return view('pages.search.exely.hotel', compact('rooms', 'request'));
+        $hotel = Hotel::where('exely_id', $request->propertyId)->first();
+        $images = Image::where('hotel_id', $hotel->id)->get();
+
+        return view('pages.search.exely.hotel', compact('rooms', 'request', 'images'));
     }
 }

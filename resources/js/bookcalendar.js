@@ -13,11 +13,15 @@ let selectedEnd = '';
 document.addEventListener('DOMContentLoaded', function () {
     const calendarEl = document.getElementById('calendar');
 
+    // Получаем параметры из URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const startDate = urlParams.get('start') || new Date().toISOString().split('T')[0];
+
     const calendar = new Calendar(calendarEl, {
         schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
         plugins: [resourceTimelinePlugin, interactionPlugin],
         locale: ruLocale,
-        initialDate: new Date().toISOString().split('T')[0],
+        initialDate: startDate,
         validRange: {
             start: new Date().toISOString().split('T')[0]
         },
@@ -170,7 +174,7 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             const today = new Date().toISOString().split('T')[0];
             selectedStart = today;
-            selectedEnd = today;
+            selectedEnd = '2025-07-06';
         }
 
         fetch(`/auth/bookcalendar/books/events?hotel_id=${selectedHotel}&start=${selectedStart}&end=${selectedEnd}`)
@@ -178,10 +182,6 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => {
                 if (data.warning) {
                     $('#warning').text(data.warning).show();
-
-                    const alertDiv = document.createElement('header .tabs div');
-                    alertDiv.className = 'alert alert-warning';
-                    alertDiv.innerText = data.warning;
 
                     // Добавим сообщение перед календарём
                     const container = document.querySelector('.container-fluid');

@@ -5,6 +5,7 @@
 
 @section('content')
 
+    @auth
     <div class="page order">
         <div class="container">
             <div class="row">
@@ -189,5 +190,9 @@
             padding-left: 50px;
         }
     </style>
+
+    @else
+        @include('layouts.auth')
+    @endauth
 
 @endsection
