@@ -38,8 +38,9 @@ class SearchController extends Controller
             }
 
             // Если задан meal_id — фильтруем по питанию
-            if ($request->filled('meal_id')) {
-                $q->where('meal_id', $request->meal_id);
+            if ($request->filled('meal')) {
+                $meals = (array)$request->meal;
+                $q->whereIn('meal_id', $meals); // или другая колонка, по которой фильтруешь
             }
 
             // Фильтрация по датам: исключаем тарифы, у которых уже зарезервированы подходящие даты
@@ -184,8 +185,8 @@ class SearchController extends Controller
                 $q->where('child', '>=', $request->child);
             }
 
-            if ($request->filled('meal_id')) {
-                $q->where('meal_id', $request->meal_id);
+            if ($request->filled('meal') && is_array($request->meal)) {
+                $q->whereIn('meal_id', $request->meal);
             }
 
             // Показать только те тарифы, у которых нет бронирования

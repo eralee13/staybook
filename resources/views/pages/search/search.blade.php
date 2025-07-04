@@ -454,41 +454,22 @@
                                                 <div class="form-group" id="meal">
                                                     <div class="name">@lang('main.meal_plans')</div>
                                                     <div class="row">
-                                                        <div class="col-lg col-md-4 col-4">
-                                                            <div class="itemmm @if($request->meal_id == 1) active @endif">
-                                                                <input type="radio" value="1" id="ro" name="meal_id"
-                                                                       @if($request->meal_id == 1) checked @endif">
-                                                                <label for="ro">RO</label>
+                                                        @php
+                                                            $meals = \App\Models\Meal::all();
+                                                        @endphp
+                                                        @foreach ($meals as $meal)
+                                                            <div class="col-lg">
+                                                                <div class="itemmm {{ in_array($meal->id, (array) request('meal')) ? 'active' : '' }}">
+                                                                    <input type="checkbox"
+                                                                           name="meal[]"
+                                                                           id="{{ $meal->code }}"
+                                                                           value="{{ $meal->id }}"
+                                                                            {{ in_array($meal->id, (array) request('meal')) ? 'checked' : '' }}>
+                                                                    <label class="meal-checkbox"
+                                                                           for="{{ $meal->code }}">{{ $meal->code }}</label>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                        <div class="col-lg col-md-4 col-4">
-                                                            <div class="itemmm @if($request->meal_id == 2) active @endif">
-                                                                <input type="radio" value="2" id="bb" name="meal_id"
-                                                                       @if($request->meal_id == 2) checked @endif>
-                                                                <label for="bb">BB</label>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-lg col-md-4 col-4">
-                                                            <div class="itemmm @if($request->meal_id == 3) active @endif">
-                                                                <input type="radio" id="hb" value="3" name="meal_id"
-                                                                       @if($request->meal_id == 3) checked @endif>
-                                                                <label for="hb">HB</label>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-lg col-md-4 col-4">
-                                                            <div class="itemmm @if($request->meal_id == 4) active @endif">
-                                                                <input type="radio" id="fb" value="4" name="meal_id"
-                                                                       @if($request->meal_id == 4) checked @endif>
-                                                                <label for="fb">FB</label>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-lg col-md-4 col-4">
-                                                            <div class="itemmm @if($request->meal_id == 5) active @endif">
-                                                                <input type="radio" id="ai" value="5" name="meal_id"
-                                                                       @if($request->meal_id == 5) checked @endif>
-                                                                <label for="ai">AI</label>
-                                                            </div>
-                                                        </div>
+                                                        @endforeach
                                                     </div>
                                                 </div>
                                                 <button class="more">@lang('main.find')</button>
@@ -574,13 +555,15 @@
                                                             <div class="row">
                                                                 <div class="col-md-6">
                                                                     <div class="main">
-                                                                        <img src="{{ Storage::url($images->first()->image) }}" alt="">
+                                                                        <img src="{{ Storage::url($images->first()->image) }}"
+                                                                             alt="">
                                                                     </div>
                                                                 </div>
                                                                 <div class="col-md-6">
                                                                     @foreach($images->slice(1, 2) as $file)
                                                                         <div class="primary">
-                                                                            <img src="{{ Storage::url($file->image) }}" alt="">
+                                                                            <img src="{{ Storage::url($file->image) }}"
+                                                                                 alt="">
                                                                         </div>
                                                                     @endforeach
                                                                 </div>
@@ -839,8 +822,6 @@
                                                             }
                                                         }
 
-                                                        // Вычисляем стоимость для этой комнаты:
-                                                        // если взрослых >= 2, используем price2, иначе – price
                                                         if ($totalAdults >= 2) {
                                                             $price = ($rate->price2 + $price_child) * 1 * $nights;
                                                         } else {
@@ -852,8 +833,9 @@
                                                         <input type="hidden" name="child" value="{{ $totalChildren }}">
                                                         <input type="hidden" name="childAges[]"
                                                                value="{{ implode(', ', $childAges) }}">
-                                                        <input type="hidden" name="meal_id"
-                                                               value="{{ $request->meal_id }}">
+                                                        @foreach((array) $request->meal as $meal)
+                                                            <input type="hidden" name="meal[]" value="{{ $meal }}">
+                                                        @endforeach
                                                         <button class="more">@lang('main.show_all_rooms')</button>
                                                     </form>
                                                 </div>

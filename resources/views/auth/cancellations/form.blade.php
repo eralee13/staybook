@@ -128,7 +128,10 @@
                                         @endif
                                         @endisset
                                         @foreach($rates as $rate)
-                                            <option value="{{ $rate->id }}">{{ $rate->title }}</option>
+                                            @php
+                                                $canc = \App\Models\CancellationRule::where('rate_id', $rate->id)->first();
+                                            @endphp
+                                            <option value="{{ $rate->id }}">{{ $rate->title }} - {{ $canc->rate->title ?? ''}}</option>
                                         @endforeach
                                     </select>
                                 </div>

@@ -47,8 +47,6 @@ class PageController extends Controller
                     ])->get(config('services.exely.base_url') . 'content/v1/properties/' . $hotel->id);
 
                     $property = $response->object();
-
-
                     $exely_hotel = Hotel::where('exely_id', $property->id)->first();
 
                     if ($exely_hotel) {
@@ -75,9 +73,15 @@ class PageController extends Controller
                             'exely_id' => $property->id,
                         ]);
                     } else {
-                        $imagePaths = [];
-
-
+                        $filename = null;
+                        if (!empty($property->images)) {
+                            $url = $property->images[0]->url;
+                            $imageContents = @file_get_contents($url);
+                            if ($imageContents) {
+                                $filename = 'hotels/' . Str::uuid() . '.jpg';
+                                Storage::disk('public')->put($filename, $imageContents);
+                            }
+                        }
 
                         Hotel::create([
                             'title' => $property->name,
@@ -85,7 +89,7 @@ class PageController extends Controller
                             'code' => Str::slug($property->name),
                             'description' => $property->description,
                             'description_en' => $property->description,
-                            //'image' => $imagePaths[0] ?? null,
+                            'image' => $filename,
                             'rating' => $property->stars ?? null,
                             'city' => $property->contactInfo->address->cityName,
                             'address' => $property->contactInfo->address->addressLine,
@@ -102,21 +106,6 @@ class PageController extends Controller
                             'status' => 1,
                             'exely_id' => $property->id,
                         ]);
-                    }
-
-                    foreach (array_slice($property->images, 0, 3) as $image) {
-                        $url = $image->url;
-                        $imageContents = @file_get_contents($url);
-
-                        if ($imageContents) {
-                            $filename = 'hotels/' . Str::uuid() . '.jpg';
-                            Storage::disk('public')->put($filename, $imageContents);
-
-                            Image::create([
-                                'hotel_id' => $exely_hotel->id ?? $hotel->id,
-                                'image' => $filename,
-                            ]);
-                        }
                     }
 
                     foreach ($property->ratePlans as $rate) {
@@ -178,8 +167,10 @@ class PageController extends Controller
                 $q->where('child', '>=', $request->child);
             }
 
-            if ($request->filled('meal_id')) {
-                $q->where('meal_id', $request->meal_id);
+            $meals = $request->input('meal_id', []); // ['RO', 'BB']
+
+            if (!empty($meals)) {
+                $q->whereIn('meal_id', $meals); // замените на реальное имя колонки
             }
 
             //    if ($request->boolean('early_in')) {
@@ -237,7 +228,7 @@ class PageController extends Controller
 
         $hotelService = new \App\Services\Tourmind\HotelServices();
         $tmhotels = $hotelService->tmGetHotels($request);
-        
+
         return view('pages.search', compact('hotels', 'cities', 'tomorrow', 'request', 'related', 'tmhotels'));
     }
 
@@ -295,7 +286,7 @@ class PageController extends Controller
 
         if ($hotel->exely_id != null) {
             return view('pages.hotel', compact('hotel', 'arrival', 'departure', 'adult', 'count_day', 'request', 'rooms'));
-        } 
+        }
         elseif ($_GET['api_name'] == 'TM') {
             return view('pages.hotel', compact('hotel', 'arrival', 'departure', 'adult', 'count_day', 'request', 'rooms', 'tmroom', 'tmimages'));
         } else {
@@ -365,11 +356,6 @@ class PageController extends Controller
         return view('pages.page', compact('page'));
     }
 
-    public function extranet()
-    {
-        return view('pages.extranet');
-    }
-
     public function offline_request()
     {
         $cities = City::where('country_id', null)->orderBy('title', 'asc')->get();
@@ -393,5 +379,6 @@ class PageController extends Controller
         session()->flash('success', 'Offline-request ' . $request->name . ' is created');
         return redirect()->route('index');
     }
+
 
 }

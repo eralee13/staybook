@@ -152,9 +152,11 @@ class BookingTmController extends Controller
                 $cancelFee = $cancel['CancelResult']['CancelFee'];
                 $cancelFee = (($cancelFee * 8) / 100) + $cancelFee;
                 $curr = $cancel['CancelResult']['CurrencyCode'];
+                $thisdate = Carbon::now()->format('Y-m-d H:i:s');
 
                 Book::where('book_token', $request->number)->update([
                     'status' => 'Cancelled', 
+                    'cancel_date' => $thisdate, 
                     // 'cancel_penalty' => $cancelFee, 
                     'currency' => $curr
                 ]);
