@@ -39,7 +39,7 @@
                                         </div>
                                         <select name="city" id="city">
                                             @foreach($cities as $city)
-                                                <option value="{{ $city->title }}">{{ $city->title }}</option>
+                                                <option value="{{ $city->country_id }}-{{ $city->name }}">{{ $city->name }}</option>
                                             @endforeach
                                         </select>
                                     </div>

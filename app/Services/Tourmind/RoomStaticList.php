@@ -72,6 +72,7 @@ class RoomStaticList
                             'tourmind_id' => (int)$type['RoomTypeCode'],
                         ],
                         [
+                            'title' => (string)$type['RoomTypeName'],
                             'title_en' => (string)$type['RoomTypeName'],
                             'description_en' => (string)$type['BedTypeDesc']
                         ],

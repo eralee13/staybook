@@ -22,7 +22,7 @@ class BookingCalendarPriceController extends Controller
             return redirect()->route('index');
         }
 
-        $hotelId = $request->get('hotel_id') ?? 14;
+        $hotelId = $request->hotel ?? 14;
 
         $hotelslist = Hotel::select('id', 'title')
             ->orderBy('title', 'asc')
@@ -74,7 +74,7 @@ class BookingCalendarPriceController extends Controller
             return redirect()->route('index');
         }
 
-        $hotelId = $request->get('hotel_id') ?? 14;
+        $hotelId = $request->hotel ?? 14;
 
         $startDate = $request->input('start')
             ? Carbon::parse($request->input('start'))->startOfDay()

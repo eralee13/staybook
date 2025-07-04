@@ -15,6 +15,8 @@
 
 @section('content')
     <div class="container-fluid mt-5">
+        @dump($tmhotels)
+        
         <div class="row">
             <div class="col-md-12">
                 <div class="tabs">
@@ -101,6 +103,8 @@
 
 
         <div id="calendar"></div>
+        @dump($resources)
+        @dump($events)
     </div>
     <!-- Modal -->
     <div class="modal fade" id="createBookingModal" tabindex="-1" aria-labelledby="createBookingLabel" aria-hidden="true">

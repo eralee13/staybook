@@ -21,6 +21,8 @@ use App\Models\CancellationRule;
 
 class BookingTmController extends Controller
 {
+    public $coef;
+
     // Booking Tourmind Controller
     public function __construct()
     {
@@ -29,6 +31,7 @@ class BookingTmController extends Controller
         $this->tm_agent_code = config('app.tm_agent_code');
         $this->tm_user_name = config('app.tm_user_name');
         $this->tm_password = config('app.tm_password');
+        $this->coef = config('app.main_coef');
 
         $this->middleware(function ($request, $next) {
             if (!auth()->check()) {
@@ -150,7 +153,7 @@ class BookingTmController extends Controller
             } elseif( isset($cancel['CancelResult']['OrderStatus']) && $cancel['CancelResult']['OrderStatus'] == 'CANCELLED'){
 
                 $cancelFee = $cancel['CancelResult']['CancelFee'];
-                $cancelFee = (($cancelFee * 8) / 100) + $cancelFee;
+                $cancelFee = ($cancelFee * $this->coef) + $cancelFee;
                 $curr = $cancel['CancelResult']['CurrencyCode'];
                 $thisdate = Carbon::now()->format('Y-m-d H:i:s');
 

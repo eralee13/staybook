@@ -15,8 +15,15 @@ use Illuminate\Support\Facades\Log;
 
 class SearchController extends Controller
 {
+    public $coef;
+
+    public function __construct(){
+        $this->coef = config('app.main_coef');
+    }
+
     public function search(Request $request)
     {
+        
         $cities = City::whereNull('country_id')->orderBy('title')->get();
         $tomorrow = Carbon::tomorrow()->format('Y-m-d');
         $rooms = $request->input('rooms', []); // если нет — пустой массив
@@ -115,7 +122,7 @@ class SearchController extends Controller
 //                    // dd($hotel);
 //                    $rate = $hotel['rates'][0];
 //                    $price = (float)$rate['payment_options']['payment_types'][0]['amount'] ?? 0;
-//                    $totalPrice = number_format( ($price * 0.08) + $price , 2, '.', '');
+//                    $totalPrice = number_format( ($price * $this->coef) + $price , 2, '.', '');
 //
 //                    return [
 //                        'apiName' => 'ETG',
@@ -144,40 +151,41 @@ class SearchController extends Controller
 
         // ***** Start Tourmind api *****
 
-        // $hotelService = new \App\Services\Tourmind\HotelServices();
-        // $tmhotels = $hotelService->tmGetHotels($request);
-        // // dd($tmhotels['Hotels']);
+        $hotelService = new \App\Services\Tourmind\HotelServices();
+        $tmhotels = $hotelService->tmGetHotels($request);
+        // dd($tmhotels);
 
-        // if ( isset($tmhotels['Hotels']) ){
+        if ( isset($tmhotels['Hotels']) ){
 
-        //     $filteredHotels = array_filter($tmhotels['Hotels'], function ($hotel) {
-        //         return isset($hotel['localData']['id']);
-        //     });
-        //     $hotels['hotels'] = array_map(function ($hotel) {
-        //         $rate = $hotel['RoomTypes'][0]['RateInfos'][0];
-        //         $price = $rate['TotalPrice'] ?? 0;
-        //         $totalPrice = number_format( (($price * 8) / 100) + $price , 2, '.', '');
+            $filteredHotels = array_filter($tmhotels['Hotels'], function ($hotel) {
+                return isset($hotel['localData']['id']);
+            });
+            $hotels['hotels'] = array_map(function ($hotel) {
+                $rate = $hotel['RoomTypes'][0]['RateInfos'][0];
+                $price = $rate['TotalPrice'] ?? 0;
+                $totalPrice = number_format( ($price * $this->coef) + $price , 2, '.', '');
 
-        //         return [
-        //             'apiName' => 'TM',
-        //             'apiHotelId' => $hotel['HotelCode'],
-        //             'hid' => $hotel['localData']['id'] ?? '',
-        //             'code' => $hotel['localData']['code'] ?? '',
-        //             'title' => $hotel['localData']['title'] ?? '',
-        //             'title_en' => $hotel['localData']['title_en'] ?? '',
-        //             'rating' => $hotel['localData']['rating'] ?? '',
-        //             'city' => $hotel['localData']['city'] ?? '',
-        //             'amenities' => $hotel['localData']['amenity']['services'] ?? '',
-        //             'images' => $hotel['localData']['images'] ?? [],
-        //             'price' => $rate['TotalPrice'] ?? 0,
-        //             'totalPrice' => $totalPrice ?? 0,
-        //             'currency' => $rate['CurrencyCode'] ?? 0,
-        //         ];
-        //     }, $filteredHotels);
+                return [
+                    'apiName' => 'TM',
+                    'apiHotelId' => $hotel['HotelCode'],
+                    'hid' => $hotel['localData']['id'] ?? '',
+                    'code' => $hotel['localData']['code'] ?? '',
+                    'title' => $hotel['localData']['title'] ?? '',
+                    'title_en' => $hotel['localData']['title_en'] ?? '',
+                    'rating' => $hotel['localData']['rating'] ?? '',
+                    'city' => $hotel['localData']['city'] ?? '',
+                    'amenities' => $hotel['localData']['amenity']['services'] ?? '',
+                    'images' => $hotel['localData']['images'] ?? [],
+                    'price' => $rate['TotalPrice'] ?? 0,
+                    'totalPrice' => $totalPrice ?? 0,
+                    'currency' => $rate['CurrencyCode'] ?? 0,
+                ];
+            }, $filteredHotels);
 
-        //     $results = json_decode(json_encode($hotels));
-        //     // dd($results->hotels);
-        // }
+            $results = json_decode(json_encode($hotels));
+            // dd($results->hotels);
+        }
+
         // ***** end Tourmind api *****
 
 
@@ -376,7 +384,17 @@ class SearchController extends Controller
         $room = Room::where('hotel_id', $hid)->where('tourmind_id', $hotel->tourmind_id)->get(['amenities'])->first();
         $amenities = explode(',', $room->amenities ?? '');
         $roomAmenity = array_slice($amenities, 0, 8);
-        $meals = Meal::pluck('title', 'id');
+        $meals = [
+                        1 => 'No Breakfast',
+                        2 => 'Breakfast',
+                        3 => 'Lunch',
+                        4 => 'Dinner',
+                        5 => 'Lunch and Dinner',
+                        6 => 'HalfBoard',
+                        7 => 'FullBoard',
+                        8 => 'AllInclusive',
+                        9 => 'SelfCatering',
+                    ];
         $arrival = Carbon::createFromDate($request->arrivalDate);
         $departure = Carbon::createFromDate($request->departureDate);
 

@@ -25,62 +25,77 @@ class BookingCalendarController extends Controller
             return redirect()->route('index');
         }
 
-        $hotelId = $request->get('hotel_id') ?? 14;
+        $hotelId = $request->hotel ?? 14;
         $hotelslist = Hotel::select('id', 'title')->orderBy('title', 'asc')->get();
 
         $startDate = Carbon::now()->startOfDay();
         $endDate = Carbon::now()->copy()->addMonth()->endOfDay();
+
+        $meals = Meal::all()->keyBy('id');
 
         $books = Book::with('room.rates')
             ->whereHas('room', fn($q) => $q->where('hotel_id', $hotelId))
             ->whereBetween('arrivalDate', [$startDate, $endDate])
             ->get();
 
-        $meals = Meal::all()->keyBy('id');
-
-        $hotel = Hotel::find($hotelId);
-        $roomHotelId = $hotel?->exely_id ?: $hotelId;
-        $rooms = Room::with('rates')->where('hotel_id', $roomHotelId)->get();
-
         $resources = [];
         $events = [];
         $today = now()->startOfDay();
         $tomorrow = now()->addDay()->startOfDay();
 
-        foreach ($rooms as $room) {
-            $roomId = 'room_' . $room->id;
-            $resources[] = [
-                'id' => $roomId,
-                'title' => $room->title,
-            ];
+        $hotel = Hotel::find($hotelId);
 
-            foreach ($room->rates as $rate) {
-                $code = $meals[$rate->meal_id]->code ?? null;
-                $resourceId = $roomId . '_rate_' . $rate->id;
-                $resources[] = [
-                    'id' => $resourceId,
-                    'title' => $rate->title .' - '. ($code ? "({$code})" : ''),
-                    'parentId' => $roomId,
-                ];
 
-                $period = $startDate->daysUntil($endDate);
-                foreach ($period as $date) {
-                    $dateStr = $date->format('Y-m-d');
-                    $color = $rate->availability > 0 ? '#39bb43' : '#d95d5d';
-                    $events[] = [
-                        'id' => 'local_' . $rate->id . '_' . $dateStr,
-                        'title' => (string) $rate->availability,
-                        'start' => $dateStr,
-                        'end' => $dateStr,
-                        'resourceId' => $resourceId,
-                        'backgroundColor' => $color,
-                        'borderColor' => $color,
+
+        // #### Tourmind API start ######
+        $tmhotels = $request->hotel;
+        if ($hotel && !empty($hotel->tourmind_id)) {
+
+            $hotelService = new \App\Services\Tourmind\HotelServices();
+            $tmhotels = $hotelService->getOneDetailForCalendar($request, $hotel);
+
+            if ( isset($tmhotels->Hotels[0]->RoomTypes[0]) ){
+                
+                foreach ($tmhotels->Hotels[0]->RoomTypes as $room) {
+                    
+                    $roomId = 'room_' . $room->RoomTypeCode;
+                    $resources[] = [
+                        'id' => $roomId,
+                        'title' => $room->Name,
                     ];
+                    $i=0;
+                    foreach ($room->RateInfos as $rate) {
+                        $i++;
+                        $code = $meals[$rate->MealInfo->MealType]->code ?? null;
+                        $resourceId = $roomId . '_rate_' . $rate->RateCode;
+                        $resources[] = [
+                            'id' => $resourceId,
+                            'title' => $rate->bedTypeDesc .' - '. ($code ? "({$code})" : ''),
+                            'parentId' => $roomId,
+                        ];
+
+                        $period = $startDate->daysUntil($endDate);
+                        foreach ($period as $date) {
+                            $dateStr = $date->format('Y-m-d');
+                            $color = $rate->Allotment > 0 ? '#39bb43' : '#d95d5d';
+                            $events[] = [
+                                'id' => 'tm_' . $rate->RateCode . '_' . $dateStr,
+                                'title' => (string) $rate->Allotment,
+                                'start' => $dateStr,
+                                'end' => $dateStr,
+                                'resourceId' => $resourceId,
+                                'backgroundColor' => $color,
+                                'borderColor' => $color,
+                            ];
+                        }
+                    }
                 }
+
             }
         }
+        // #### Tourmind API end ######
 
-        if ($hotel && $hotel->exely_id) {
+        elseif ($hotel && $hotel->exely_id) {
             $params = [
                 'arrivalDate' => $startDate->format('Y-m-d'),
                 'departureDate' => $endDate->format('Y-m-d'),
@@ -135,6 +150,46 @@ class BookingCalendarController extends Controller
             }
         }
 
+        else{
+            
+            $roomHotelId = $hotel?->exely_id ?: $hotelId;
+            $rooms = Room::with('rates')->where('hotel_id', $roomHotelId)->get();
+
+            foreach ($rooms as $room) {
+                $roomId = 'room_' . $room->id;
+                $resources[] = [
+                    'id' => $roomId,
+                    'title' => $room->title,
+                ];
+
+                foreach ($room->rates as $rate) {
+                    $code = $meals[$rate->meal_id]->code ?? null;
+                    $resourceId = $roomId . '_rate_' . $rate->id;
+                    $resources[] = [
+                        'id' => $resourceId,
+                        'title' => $rate->title .' - '. ($code ? "({$code})" : ''),
+                        'parentId' => $roomId,
+                    ];
+
+                    $period = $startDate->daysUntil($endDate);
+                    foreach ($period as $date) {
+                        $dateStr = $date->format('Y-m-d');
+                        $color = $rate->availability > 0 ? '#39bb43' : '#d95d5d';
+                        $events[] = [
+                            'id' => 'local_' . $rate->id . '_' . $dateStr,
+                            'title' => (string) $rate->availability,
+                            'start' => $dateStr,
+                            'end' => $dateStr,
+                            'resourceId' => $resourceId,
+                            'backgroundColor' => $color,
+                            'borderColor' => $color,
+                        ];
+                    }
+                }
+            }
+        }
+
+
         Log::debug('Final resources and events', [
             'resources_count' => count($resources),
             'events_count' => count($events)
@@ -143,7 +198,8 @@ class BookingCalendarController extends Controller
         return view('auth.books.index', [
             'resources' => $resources,
             'hotelslist' => $hotelslist,
-            'events' => $events
+            'events' => $events,
+            'tmhotels' => $tmhotels,
         ]);
     }
 
@@ -156,7 +212,7 @@ class BookingCalendarController extends Controller
             ], 401);
         }
 
-        $hotelId = $request->get('hotel_id');
+        $hotelId = $request->hotel_id;
         $startDate = Carbon::now()->startOfDay();
         $endDate = Carbon::now()->copy()->endOfMonth();
 
@@ -274,6 +330,7 @@ class BookingCalendarController extends Controller
         return response()->json([
             'resources' => $resources,
             'events' => $events,
+            'tmhotels' => $hotelId,
         ]);
     }
 

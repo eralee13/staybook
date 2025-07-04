@@ -4,7 +4,7 @@
 @section('title', 'Поиск')
 
 @section('content')
-
+    {{-- @dump($request) --}}
     @auth
         <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
@@ -32,7 +32,7 @@
                                         <select name="city" id="city" required>
                                             <option value="{{ $request->city }}">{{ $request->city }}</option>
                                             @foreach($cities as $city)
-                                                <option value="{{ $city->title }}">{{ $city->title }}</option>
+                                                <option value="{{ $city->country_id }}-{{ $city->name }}">{{ $city->name }}</option>
                                             @endforeach
                                         </select>
                                     </div>

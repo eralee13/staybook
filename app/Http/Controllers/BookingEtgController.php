@@ -26,6 +26,7 @@ class BookingEtgController extends Controller
         $this->keyId = (int) config('app.emerging_key_id');
         $this->apiKey = config('app.emerging_api_key');
         $this->url = config('app.emerging_api_url');
+        $this->coef = config('app.main_coef');
 
         $this->middleware(function ($request, $next) {
             if (!auth()->check()) {
@@ -147,7 +148,7 @@ class BookingEtgController extends Controller
             } elseif( isset($cancel['CancelResult']['OrderStatus']) && $cancel['CancelResult']['OrderStatus'] == 'CANCELLED'){
 
                 $cancelFee = $cancel['CancelResult']['CancelFee'];
-                $cancelFee = (($cancelFee * 8) / 100) + $cancelFee;
+                $cancelFee = ($cancelFee * $this->coef) + $cancelFee;
                 $curr = $cancel['CancelResult']['CurrencyCode'];
 
                 Book::where('book_token', $request->number)->update([
