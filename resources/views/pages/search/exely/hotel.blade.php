@@ -45,23 +45,27 @@
                             <h1>{{ $hotel->city }}</h1>
                             <div class="row">
                                 <div class="col-md-7">
+                                    @if($hotel->image)
                                     <div class="fotorama" data-allowfullscreen="true" data-nav="thumbs" data-loop="true"
                                          data-autoplay="30000">
                                         @if($images)
                                             @foreach($images as $file)
                                                 <img loading="lazy" src="{{ Storage::url($file->image)}}" alt="">
                                             @endforeach
-                                        @else
-                                            <img loading="lazy" src="{{ route('index')}}/img/noimage.png" alt="">
                                         @endif
                                     </div>
+                                    @else
+                                        <img loading="lazy" src="{{ route('index')}}/img/noimage.png" alt="" style="margin-bottom: 10px">
+                                    @endif
                                 </div>
                             </div>
                             <h3>{{ $hotel->title }}</h3>
                             <div class="address"><img src="{{ route('index') }}/img/marker_in.svg"
                                                       alt=""> {{ $hotel->address }}</div>
-                            <h4>@lang('main.description')</h4>
-                            {!! $hotel->__('description') !!}
+                            @if($hotel->description)
+                                <h4>@lang('main.description')</h4>
+                                {!! $hotel->__('description') !!}
+                            @endif
                             @if(collect($amenities)->filter()->isNotEmpty())
                                 <div class="amenities">
                                     <h4>@lang('main.amenities')</h4>
@@ -160,6 +164,9 @@
                                             <div class="tariff-wrap">
                                                 <div class="owl-carousel owl-tariffs">
                                                     @foreach($roomRates as $room)
+                                                        @can('edit-contact')
+                                                            Кол-во квот: {{ $room->availability }}
+                                                        @endcan
                                                         @php
                                                             $roomName = \App\Models\Room::where('exely_id', $room->roomType->id)->first();
                                                                $arrival = \Carbon\Carbon::createFromDate($room->stayDates->arrivalDateTime)->format('d.m.Y H:i');

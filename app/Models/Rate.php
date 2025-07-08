@@ -25,7 +25,6 @@ class Rate extends Model
         'price4',
         'desc_en',
         'rate_code',
-        'allotment',
         'currency',
         'total_price',
         'adult',
@@ -35,9 +34,9 @@ class Rate extends Model
         'free_children_age',
         'child_extra_fee',
         'availability',
-        'cancellation_rule_id',
         'open_time',
         'close_time',
+        'exely_id'
     ];
 
     protected $hidden = [
@@ -64,7 +63,7 @@ class Rate extends Model
      */
     public function room()
     {
-        return $this->belongsTo(Room::class);
+        return $this->belongsTo(Room::class, 'room_id', 'exely_id');
     }
     /**
      * @return BelongsTo

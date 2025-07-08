@@ -36,9 +36,9 @@
 {{--        <a href="{{ route('userbooks.index')}}"><i class="fa-regular fa-money-bill"></i> @lang('admin.my_bookings')</a>--}}
 {{--        </li>--}}
 {{--            @endhasrole--}}
-            <li @routeactive('userbook*')>
-            <a href="{{ route('userbooks.index')}}"><i class="fa-regular fa-money-bill"></i> @lang('admin.my_bookings')</a>
-            </li>
+{{--            <li @routeactive('userbook*')>--}}
+{{--            <a href="{{ route('userbooks.index')}}"><i class="fa-regular fa-money-bill"></i> @lang('admin.my_bookings')</a>--}}
+{{--            </li>--}}
 
         <li><a href="{{ route('logout') }}">Выйти из системы</a></li>
     </ul>

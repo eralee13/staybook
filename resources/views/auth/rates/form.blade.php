@@ -79,7 +79,7 @@
                                 <div class="form-group">
                                     <label for="">@lang('admin.food')</label>
                                     <select name="meal_id" id="">
-                                        @isset($rate)
+                                        @isset($rate->meal_id)
                                             <option value="{{ $rate->meal_id }}" selected>
                                                 {{ $rate->meal->code }}</option>
                                         @else

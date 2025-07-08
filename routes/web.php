@@ -127,9 +127,9 @@ Route::middleware('set_locale')->group(function () {
     //-----search
     //local
     Route::get('/search', [\App\Http\Controllers\SearchController::class, 'search'])->name('search');
-    Route::get('/hotel/{hotel}', [\App\Http\Controllers\SearchController::class, 'hotel'])->name('hotel');
+    Route::get('/search/hotel/{hotel}', [\App\Http\Controllers\SearchController::class, 'findHotel'])->name('findHotel');
     //exely
-    Route::get('/hotelex', [\App\Http\Controllers\SearchController::class, 'hotel_exely'])->name('hotel_exely');
+    Route::get('/search/hotelex', [\App\Http\Controllers\SearchController::class, 'findHotelExely'])->name('findHotelExely');
 
     //-----booking
     //local
@@ -148,6 +148,7 @@ Route::middleware('set_locale')->group(function () {
 
     //pages
     Route::get('/hotels', [PageController::class, 'hotels'])->name('hotels');
+    Route::get('/hotel/{hotel}', [PageController::class, 'hotel'])->name('hotel');
     Route::get('/about', [PageController::class, 'about'])->name('about');
     Route::get('/contactspage', [PageController::class, 'contactspage'])->name('contactspage');
     Route::get('/companies', [PageController::class, 'companies'])->name('companies');

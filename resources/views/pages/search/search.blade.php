@@ -193,38 +193,38 @@
                                             const applyBtn = document.getElementById('panel-apply');
                                             const addRoomBtn = document.getElementById('add-room');
                                             const roomsContainer = document.getElementById('rooms-container');
-                                            const tpl = document.getElementById('room-template').innerHTML;
+                                            const tplHtml = document.getElementById('room-template').innerHTML;
                                             let nextIndex = 0;
 
-                                            // Создадим JS-массив из PHP
-                                            const initialRooms = {!! $roomsJson !!} || [];
+                                            // данные из PHP
+                                            const initialRooms = {!! $roomsJson !!};
 
+                                            // Открыть/закрыть
                                             function openPanel() {
-                                                overlay.classList.remove('hidden');
+                                                overlay.classList.add('open');
                                                 panel.classList.add('open');
                                             }
 
                                             function closePanel() {
+                                                overlay.classList.remove('open');
                                                 panel.classList.remove('open');
-                                                overlay.classList.add('hidden');
                                             }
 
-
+                                            // Глобальная сводка
                                             function updateGlobalSummary() {
                                                 const rooms = roomsContainer.querySelectorAll('.guest-room');
-                                                const roomCount = rooms.length;
-                                                let adultsTotal = 0;
-                                                let childrenTotal = 0;
+                                                let adults = 0, children = 0;
                                                 rooms.forEach(r => {
-                                                    adultsTotal += +r.querySelector('.count-adult').textContent;
-                                                    childrenTotal += +r.querySelector('.count-child').textContent;
+                                                    adults += +r.querySelector('.count-adult').textContent;
+                                                    children += +r.querySelector('.count-child').textContent;
                                                 });
                                                 summaryBtn.textContent =
-                                                    `Комнат: ${roomCount}, Взрослых: ${adultsTotal}, Детей: ${childrenTotal}`;
-                                                summaryBtn.classList.toggle('opacity-50', roomCount >= MAX_ROOMS);
-                                                summaryBtn.classList.toggle('pointer-events-none', roomCount >= MAX_ROOMS);
+                                                    `Номера: ${rooms.length}, Взрослых: ${adults}, Детей: ${children}`;
+                                                // кнопка добавить
+                                                addRoomBtn.style.display = rooms.length < MAX_ROOMS ? 'inline-block' : 'none';
                                             }
 
+                                            // Переиндексация комнат
                                             function reindexRooms() {
                                                 roomsContainer.querySelectorAll('.guest-room').forEach((r, i) => {
                                                     r.dataset.index = i;
@@ -237,84 +237,134 @@
                                                 updateGlobalSummary();
                                             }
 
-                                            function addRoom() {
+                                            // Обновить сводку одной комнаты
+                                            function updateRoomSummary(roomEl) {
+                                                const a = +roomEl.querySelector('.count-adult').textContent;
+                                                const c = +roomEl.querySelector('.count-child').textContent;
+                                                const txt = [`${a} ${a === 1 ? 'взрослый' : 'взрослых'}`];
+                                                if (c) txt.push(`${c} ${c === 1 ? 'ребёнок' : 'детей'}`);
+                                                roomEl.querySelector('.summary-text').textContent = txt.join(', ');
+                                                roomEl.querySelector('.input-adults').value = a;
+                                                updateGlobalSummary();
+                                            }
+
+                                            // Инициализация одной комнаты (навешиваем события)
+                                            function initRoom(roomEl) {
+                                                // кнопка сводки
+                                                roomEl.querySelector('.guest-summary').addEventListener('click', e => {
+                                                    e.preventDefault();
+                                                    roomEl.querySelector('.guest-dropdown').classList.toggle('hidden');
+                                                });
+                                                // dec/inc взрослых и детей, удаление, применить
+                                                roomEl.addEventListener('click', e => {
+                                                    const tgt = e.target;
+                                                    if (tgt.classList.contains('dec-adult') || tgt.classList.contains('inc-adult')) {
+                                                        e.preventDefault();
+                                                        const cnt = roomEl.querySelector('.count-adult');
+                                                        let v = +cnt.textContent;
+                                                        if (tgt.classList.contains('dec-adult') && v > 1) v--;
+                                                        if (tgt.classList.contains('inc-adult') && v < 8) v++;
+                                                        cnt.textContent = v;
+                                                        updateRoomSummary(roomEl);
+                                                    }
+                                                    if (tgt.classList.contains('dec-child') || tgt.classList.contains('inc-child')) {
+                                                        e.preventDefault();
+                                                        const cnt = roomEl.querySelector('.count-child');
+                                                        let v = +cnt.textContent;
+                                                        if (tgt.classList.contains('dec-child') && v > 0) {
+                                                            // удалить последний select
+                                                            const wrap = roomEl.querySelector('.children-ages');
+                                                            wrap.lastElementChild && wrap.removeChild(wrap.lastElementChild);
+                                                            v--;
+                                                        }
+                                                        if (tgt.classList.contains('inc-child') && v < 3) {
+                                                            const wrap = roomEl.querySelector('.children-ages');
+                                                            // создать селект
+                                                            const div = document.createElement('div');
+                                                            div.className = 'flex items-center mb-2';
+                                                            div.innerHTML = `<span class="mr-2 text-sm">@lang('main.age')</span>`;
+                                                            const sel = document.createElement('select');
+                                                            sel.className = 'border rounded px-2 py-1 text-sm';
+                                                            for (let age = 0; age <= 18; age++) {
+                                                                sel.insertAdjacentHTML('beforeend', `<option value="${age}">${age}</option>`);
+                                                            }
+                                                            div.appendChild(sel);
+                                                            wrap.appendChild(div);
+                                                            v++;
+                                                        }
+                                                        cnt.textContent = v;
+                                                        updateRoomSummary(roomEl);
+                                                        reindexRooms();
+                                                    }
+                                                    if (tgt.classList.contains('remove-room')) {
+                                                        e.preventDefault();
+                                                        roomEl.remove();
+                                                        reindexRooms();
+                                                    }
+                                                    if (tgt.classList.contains('apply-guests')) {
+                                                        e.preventDefault();
+                                                        roomEl.querySelector('.guest-dropdown').classList.add('hidden');
+                                                    }
+                                                });
+                                            }
+
+                                            // Добавление комнаты: data – {adults, childAges[]} или undefined
+                                            function addRoom(data) {
                                                 if (roomsContainer.children.length >= MAX_ROOMS) return;
                                                 const idx = nextIndex++;
                                                 const num = roomsContainer.children.length + 1;
-                                                roomsContainer.insertAdjacentHTML(
-                                                    'beforeend',
-                                                    tpl.replace(/__INDEX__/g, idx).replace(/__NUM__/g, num)
-                                                );
-                                                reindexRooms();
-                                            }
-
-                                            function updateRoomSummary(room) { /* … */
-                                            }
-
-                                            summaryBtn.addEventListener('click', e => { /* … */
-                                            });
-                                            closeBtn.addEventListener('click', e => { /* … */
-                                            });
-                                            applyBtn.addEventListener('click', e => { /* … */
-                                            });
-                                            overlay.addEventListener('click', closePanel);
-                                            addRoomBtn.addEventListener('click', e => { /* … */
-                                            });
-
-                                            document.addEventListener('click', e => { /* … весь делегат … */
-                                            });
-
-                                            // === Инициалиазация ===
-                                            if (initialRooms.length > 0) {
-                                                initialRooms.forEach((roomData, idx) => {
-                                                    // 1) Рендерим HTML для комнаты из шаблона
-                                                    const idxPlaceholder = idx;
-                                                    const roomHtml = tpl
-                                                        .replace(/__INDEX__/g, idxPlaceholder)
-                                                        .replace(/__NUM__/g, idx + 1);
-
-                                                    roomsContainer.insertAdjacentHTML('beforeend', roomHtml);
-
-                                                    // 2) Проставляем значения “взрослых” и “детей” в эту комнату
-                                                    const newRoom = roomsContainer.querySelector(`.guest-room[data-index="${idxPlaceholder}"]`);
-                                                    const adults = parseInt(roomData.adults) || 1;
-                                                    newRoom.querySelector('.count-adult').textContent = adults;
-
-                                                    const childAgesArr = Array.isArray(roomData.childAges) ? roomData.childAges : [];
-                                                    newRoom.querySelector('.count-child').textContent = childAgesArr.length;
-                                                    const agesContainer = newRoom.querySelector('.children-ages');
-                                                    agesContainer.innerHTML = '';
-
-                                                    childAgesArr.forEach((age, cidx) => {
+                                                const html = tplHtml.replace(/__INDEX__/g, idx).replace(/__NUM__/g, num);
+                                                roomsContainer.insertAdjacentHTML('beforeend', html);
+                                                const newRoom = roomsContainer.querySelector(`.guest-room[data-index="${idx}"]`);
+                                                initRoom(newRoom);
+                                                // если data – подставляем значения
+                                                if (data) {
+                                                    newRoom.querySelector('.count-adult').textContent = data.adults || 1;
+                                                    newRoom.querySelector('.count-child').textContent = (data.childAges || []).length;
+                                                    const wrap = newRoom.querySelector('.children-ages');
+                                                    wrap.innerHTML = '';
+                                                    (data.childAges || []).forEach(age => {
                                                         const div = document.createElement('div');
-                                                        div.className = 'flex items-center';
-                                                        div.innerHTML = `<span class="mr-2 text-sm">Возраст</span>`;
+                                                        div.className = 'flex items-center mb-2';
+                                                        div.innerHTML = `<span class="mr-2 text-sm">@lang('main.age')</span>`;
                                                         const sel = document.createElement('select');
-                                                        sel.className = 'border border-gray-300 rounded-md px-2 py-1 text-sm';
-                                                        sel.name = `rooms[${idxPlaceholder}][childAges][${cidx}]`;
-
+                                                        sel.className = 'border rounded px-2 py-1 text-sm';
                                                         for (let a = 0; a <= 18; a++) {
-                                                            const opt = document.createElement('option');
-                                                            opt.value = a;
-                                                            opt.textContent = a;
-                                                            if (parseInt(age) === a) opt.selected = true;
-                                                            sel.appendChild(opt);
+                                                            sel.insertAdjacentHTML('beforeend', `<option value="${a}"${a == age ? ' selected' : ''}>${a}</option>`);
                                                         }
                                                         div.appendChild(sel);
-                                                        agesContainer.appendChild(div);
+                                                        wrap.appendChild(div);
                                                     });
-
-                                                    updateRoomSummary(newRoom);
-                                                });
-
+                                                }
+                                                updateRoomSummary(newRoom);
                                                 reindexRooms();
+                                            }
 
+                                            // События открытия/закрытия
+                                            summaryBtn.addEventListener('click', e => {
+                                                e.preventDefault();
+                                                openPanel();
+                                            });
+                                            closeBtn.addEventListener('click', e => {
+                                                e.preventDefault();
+                                                closePanel();
+                                            });
+                                            applyBtn.addEventListener('click', e => {
+                                                e.preventDefault();
+                                                closePanel();
+                                            });
+                                            overlay.addEventListener('click', closePanel);
+                                            addRoomBtn.addEventListener('click', e => {
+                                                e.preventDefault();
+                                                addRoom();
+                                            });
+
+                                            // При инициализации: если есть из запроса — рендерим их, иначе одну
+                                            if (initialRooms && initialRooms.length) {
+                                                initialRooms.forEach(roomData => addRoom(roomData));
                                             } else {
                                                 addRoom();
                                             }
-
-                                            // Обновим глобальную сводку (на всякий случай)
-                                            updateGlobalSummary();
                                         });
                                     </script>
 
@@ -595,14 +645,13 @@
                                                     </div>
                                                     <div class="btn-wrap">
                                                         <div class="btn-wrap">
-                                                            <form action="{{ route('hotel_exely', $room->roomType->id) }}">
+                                                            <form action="{{ route('findHotelExely', $room->roomType->id) }}">
                                                                 <input type="hidden" name="propertyId"
                                                                        value="{{ $room->propertyId }}">
                                                                 <input type="hidden" name="arrivalDate"
                                                                        value="{{ $request->arrivalDate }}">
                                                                 <input type="hidden" name="departureDate"
                                                                        value="{{ $request->departureDate }}">
-
                                                                 <input type="hidden" name="adultCount"
                                                                        value="{{ $room->guestCount->adultCount }}">
                                                                 @php
@@ -631,14 +680,12 @@
                                                                     <input type="hidden" name="maxAge"
                                                                            value="{{ $type->maxAge }}">
                                                                 @endforeach
-
                                                                 <input type="hidden" name="checkSum"
                                                                        value="{{ $room->checksum }}">
                                                                 @foreach($room->includedServices as $serv)
                                                                     <input type="hidden" name="servicesId"
                                                                            value="{{ $serv->id }}">
                                                                 @endforeach
-
                                                                 {{-- <input type="hidden" name="servicesQuantity" value="{{  }}">--}}
                                                                 <input type="hidden" name="hotel"
                                                                        value="{{ $room->fullPlacementsName }}">
@@ -772,7 +819,7 @@
                                             </div>
                                             <div class="btn-wrap">
                                                 <div class="btn-wrap">
-                                                    <form action="{{ route('hotel', $hotel->code) }}">
+                                                    <form action="{{ route('findHotel', $hotel->code) }}">
                                                         <input type="hidden" name="arrivalDate"
                                                                value="{{ $request->arrivalDate }}">
                                                         <input type="hidden" name="departureDate"
@@ -791,7 +838,6 @@
                                                                                       : 0;
                                                                 }
                                                             }
-
                                                             // Вычисляем количество ночей
                                                 $arr    = Carbon::parse($request->arrivalDate);
                                                 $dep    = Carbon::parse($request->departureDate);
@@ -829,6 +875,7 @@
                                                         }
                                                 }
                                                         @endphp
+                                                        <input type="hidden" name="roomCount" value="{{ $roomCount }}">
                                                         <input type="hidden" name="adult" value="{{ $totalAdults }}">
                                                         <input type="hidden" name="child" value="{{ $totalChildren }}">
                                                         <input type="hidden" name="childAges[]"

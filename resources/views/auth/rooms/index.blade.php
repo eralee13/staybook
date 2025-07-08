@@ -40,12 +40,9 @@
                             @foreach($rooms as $room)
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
-                                    @php
-                                        $image = \App\Models\Image::where('room_id', $room->id)->orderBy('id', 'DESC')->first();
-                                    @endphp
                                     <td>
-                                        @if ($image)
-                                            <img src="{{ Storage::url($image->image) }}" alt="{{ $room->__('title') }}" width="100px">
+                                        @if ($room->image)
+                                            <img src="{{ Storage::url($room->image) }}" alt="{{ $room->__('title') }}" width="100px">
                                         @else
                                             <img src="{{ route('index') }}/img/noimage.png" alt="" width="100px">
                                         @endif

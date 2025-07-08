@@ -25,41 +25,41 @@
                             <input type="hidden" name="room_id" value="{{ $request->room_id }}">
                             <input type="hidden" name="rate_id" value="{{ $request->rate_id }}">
                             <input type="hidden" name="meal_id" value="{{ $request->meal_id }}">
-                            {{-- <input type="hidden" name="roomType" value="{{ $request->roomType }}">--}}
-                            {{-- <input type="hidden" name="roomCount" value="{{ $request->roomCount }}">--}}
-                            {{-- <input type="hidden" name="roomCode" value="{{ $request->roomCode }}">--}}
-                            {{-- <input type="hidden" name="placementCode" value="{{ $request->placementCode }}">--}}
-                            @if(!empty($request->rooms) && is_array($request->rooms))
-                                @foreach($request->rooms as $i => $room)
-                                    <input
-                                            type="hidden"
-                                            name="rooms[{{ $i }}][adults]"
-                                            value="{{ $room['adults'] }}"
-                                    >
-                                    @if(!empty($room['childAges']) && is_array($room['childAges']))
-                                        @foreach($room['childAges'] as $j => $age)
-                                            <input
-                                                    type="hidden"
-                                                    name="rooms[{{ $i }}][childAges][{{ $j }}]"
-                                                    value="{{ $age }}"
-                                            >
-                                        @endforeach
-                                    @endif
-                                @endforeach
-                            @endif
                             <input type="hidden" name="roomCount" value="{{ $request->roomCount }}">
                             <input type="hidden" name="cancellation_id" value="{{ $request->cancellation_id }}">
                             <input type="hidden" name="cancelDate" value="{{ $request->cancelDate }}">
                             <input type="hidden" name="cancelPrice" value="{{ $request->cancelPrice }}">
                             <input type="hidden" name="price" value="{{ $request->price }}">
                             <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <div class="label">@lang('main.full_name')</div>
-                                        <input type="text" name="name" placeholder="Асанов А.А."
-                                               value="{{ Auth::user()->name }}" required>
+                                @for ($i = 1; $i <= $request->adult; $i++)
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <div class="label">
+                                                @if($i === 1)
+                                                    @lang('main.full_name')
+                                                @else
+                                                    #{{ $i }} @lang('main.full_name')
+                                                @endif
+                                            </div>
+                                            <input type="text" name="title{{ $i }}" placeholder="Асанов А.А."
+                                                   value="{{ $i === 1 && Auth::check() ? Auth::user()->name : '' }}" required>
+                                        </div>
                                     </div>
-                                </div>
+                                @endfor
+                                    @for ($i = 1; $i <= $request->child; $i++)
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <div class="label">
+                                                    @if($i === 1)
+                                                        @lang('main.full_name') ребенка
+                                                    @else
+                                                        #{{ $i }} @lang('main.full_name') ребенка
+                                                    @endif
+                                                </div>
+                                                <input type="text" name="child_name{{ $i }}" placeholder="Усенов У.У." required>
+                                            </div>
+                                        </div>
+                                    @endfor
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <div class="label">@lang('main.count_adult')</div>

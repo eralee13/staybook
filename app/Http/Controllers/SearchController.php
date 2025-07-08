@@ -166,7 +166,7 @@ class SearchController extends Controller
     }
 
 
-    public function hotel($code, Request $request)
+    public function findHotel($code, Request $request)
     {
         $hotel = Hotel::where('code', $code)->first();
         $images = Image::where('hotel_id', $hotel->id)->get();
@@ -222,7 +222,7 @@ class SearchController extends Controller
     }
 
     //exely
-    public function hotel_exely(Request $request)
+    public function findHotelExely(Request $request)
     {
         // ✅ Валидация входных параметров
         $request->validate([

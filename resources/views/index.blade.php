@@ -42,7 +42,7 @@
                                         <div class="label stay"><img src="{{route('index')}}/img/marker_out.svg" alt="">
                                         </div>
                                         <select name="city" id="city">
-                                            <option value="Bishkek">Bishkek</option>
+                                            <option value="Бишкек">Бишкек</option>
                                             @foreach($cities as $city)
                                                 <option value="{{ $city->title }}">{{ $city->title }}</option>
                                             @endforeach
@@ -540,6 +540,7 @@
                     @foreach($hotels as $hotel)
                         <div class="col-lg-4 col-md-6">
                             <div class="places-item">
+                                <a href="{{ route('hotel', $hotel->code) }}">
                                     <span class="img-wrap">
                                         @if($hotel->image)
                                             <img src="{{ Storage::url($hotel->image) }}" alt="">
@@ -547,6 +548,7 @@
                                             <img src="{{ route('index')}}/img/noimage.png" alt="">
                                         @endif
                                     </span>
+                                </a>
                                 <div class="text-wrap">
                                     <div class="address">{{ $hotel->city }}</div>
                                     <h5>{{ $hotel->title }}</h5>
