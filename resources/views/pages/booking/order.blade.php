@@ -30,6 +30,7 @@
                             <input type="hidden" name="cancelDate" value="{{ $request->cancelDate }}">
                             <input type="hidden" name="cancelPrice" value="{{ $request->cancelPrice }}">
                             <input type="hidden" name="price" value="{{ $request->price }}">
+                            <input type="hidden" name="currency" value="{{ $request->currency }}">
                             <div class="row">
                                 @for ($i = 1; $i <= $request->adult; $i++)
                                     <div class="col-md-6">
@@ -201,24 +202,12 @@
                                             @endif
                                             @lang('main.cancellation_amount')
                                             :
-                                            @if($cancel->penalty_type === 'fixed')
-                                                ${{ $cancelPrice = round($cancel->penalty_amount) }}
-                                            @elseif($cancel->penalty_type === 'night')
-                                                ${{ $cancelPrice = round($cancel->penalty_nights * $rate->price) }}
-                                            @else
-                                                ${{ $cancelPrice = round(($sum * $cancel->penalty_amount) / 100) }}
-                                            @endif
+                                            {{ $request->cancelPrice }} {{ $request->currency }}
 
                                         @else
                                             @lang('main.cancellation_amount')
                                             :
-                                            @if($cancel->penalty_type === 'fixed')
-                                                ${{ $cancelPrice = round($cancel->penalty_amount) }}
-                                            @elseif($cancel->penalty_type === 'night')
-                                                ${{ $cancelPrice = round($cancel->penalty_nights * $rate->price) }}
-                                            @else
-                                                ${{ $cancelPrice = round(($sum * $cancel->penalty_amount) / 100) }}
-                                            @endif
+                                            {{ $request->cancelPrice }} {{ $request->currency }}
                                         @endif
                                     </div>
                                 </div>
@@ -241,7 +230,7 @@
                                     <div class="total">@lang('main.total')</div>
                                 </div>
                                 <div class="col-md-4">
-                                    <div class="price">{{ $request->price }} {{ $request->currency ?? '$'}}</div>
+                                    <div class="price">{{ $request->price }} {{ $request->currency}}</div>
                                 </div>
                             </div>
                         </div>

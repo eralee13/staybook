@@ -85,9 +85,7 @@ class UserBookController extends Controller
 
             if ($response->successful()) {
                 $cancel = $response->object();
-                $book->update([
-                    'status' => "Cancelled"
-                ]);
+                Book::where('id', $book->id)->update(['status' => 'Cancelled']);
                 Log::warning('Отмена брони: ' . $book->id);
                 Mail::to('myrzabekova@silkwaytravel.kg')->send(new BookCancelMail($book));
                 return view('auth.userbooks.cancel-confirm-exely', compact('cancel'));

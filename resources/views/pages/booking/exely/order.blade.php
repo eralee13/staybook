@@ -162,9 +162,9 @@
                                 </div>
                                 <div class="cancel">@lang('main.cancellation_policy'):
                                     @if($request->cancelPossible == true)
-                                        @lang('main.free_cancellation') {{ $request->cancelDate }} ({{ $offset }}). Размер штрафа: {{ $request->cancelPrice }} {{ $request->currency }}
+                                        @lang('main.free_cancellation') {{ $request->cancelDate }} ({{ $offset }}). Размер штрафа: {{ round($request->cancelPrice) }} {{ $request->currency }}
                                     @else
-                                        @lang('main.cancellation_is_not_avaialble'). @lang('main.cancellation_amount'): {{ $request->cancelPrice }} {{ $request->currency }}
+                                        @lang('main.cancellation_is_not_avaialble'). @lang('main.cancellation_amount'): {{ round($request->cancelPrice) }} {{ $request->currency }}
                                     @endif
                                 </div>
                             </div>

@@ -73,7 +73,7 @@
             <div class="col-lg-10 d-xl-block d-lg-block d-none">
                 <div class="wrap">
                     <div class="lang-wrap" id="lang">
-                        <div class="currency">USD</div>
+                        <div class="currency">{{ $fxBase }}</div>
                         <div class="lang">
                             <div class="lang-item">
                                 @if(app()->getLocale() == 'ru')
@@ -89,11 +89,26 @@
                                 <li data-tab="tab-2">@lang('main.language')</li>
                             </ul>
                             <div class="tab-content current" id="tab-1">
-                                <ul>
-{{--                                    <li>KGS Кыргызский сом</li>--}}
-{{--                                    <li>RUB Российский рубль</li>--}}
-                                    <li class="current">USD Американский доллар</li>
+                                <ul class="currency-switcher">
+                                    @foreach(['USD', 'KGS', 'RUB'] as $ccy)
+                                        <li>
+                                            <a class="{{ $fxBase === $ccy ? 'current' : '' }}" href="{{ route('currency.switch', $ccy) }}">
+                                                @if($ccy === 'USD')
+                                                    USD Американский доллар
+                                                @elseif($ccy === 'KGS')
+                                                    KGS Кыргызский сом
+                                                @else
+                                                    RUB Российский рубль
+                                                @endif
+                                            </a>
+                                        </li>
+                                    @endforeach
                                 </ul>
+                                <style>
+                                    header .wrap .lang-wrap .overwrap .tab-content ul li a.current{
+                                        color: #0061ae;
+                                    }
+                                </style>
                             </div>
                             <div class="tab-content" id="tab-2">
                                 <ul>

@@ -705,7 +705,32 @@
 
                                                 <div class="col-md-2 order-xl-3 order-lg-3 order-2">
                                                     <div class="price">
-                                                        @lang('main.from') {{ round($room->total->priceBeforeTax * config('services.main.coef')/100 + $room->total->priceBeforeTax, 0) }} {{ $room->currencyCode }}</div>
+                                                        @php
+                                                            $basePrice = round($room->total->priceBeforeTax * config('services.main.coef') / 100 + $room->total->priceBeforeTax, 0);
+
+                                                            $toCurrency = strtoupper($fxBase ?? 'USD');
+
+                                                            $fxRates = [
+                                                                'USD' => $fxRates['usd'] ?? 1,
+                                                                'RUB' => $fxRates['rub'] ?? 1,
+                                                                'KGS' => $fxRates['kgs'] ?? 1,
+                                                                'UZS' => $fxRates['uzs'] ?? 1,
+                                                            ];
+
+                                                            $symbols = [
+                                                                'USD' => '$',
+                                                                'RUB' => '₽',
+                                                                'KGS' => 'сом',
+                                                                'UZS' => 'сўм',
+                                                            ];
+
+                                                            $rateTo = $fxRates[$toCurrency] ?? 1;
+                                                            $converted = app(\App\Services\FXService::class)->convert($basePrice, $room->currencyCode, $fxBase);
+                                                            $symbol = $symbols[$toCurrency] ?? $toCurrency;
+                                                        @endphp
+
+                                                        @lang('main.from') {{ round($converted) }} {{ $symbol }}</div>
+
                                                     <div class="night">@lang('main.night')</div>
                                                 </div>
                                             </div>
@@ -892,16 +917,25 @@
                                         <div class="col-md-2 order-xl-3 order-lg-3 order-2">
                                             @php
                                                 // 1) Исходная цена с коэффициентом
-                                                $basePrice = round($price * config('services.main.coef')/100 + $price);
-                                                // 2) Курс для выбранной валюты (например, ['usd'=>1,'rub'=>…,'kgs'=>…])
-                                                //    ключи fxRates – в нижнем регистре
-                                                $rateKey = strtolower($fxBase);
-                                                $currencyRate = $fxRates[$rateKey] ?? 1;
-                                                // 3) Переводим в выбранную валюту
-                                                $converted = round($basePrice * $currencyRate);
-                                                $symbols = ['USD' => '$', 'RUB' => '₽', 'KGS' => 'сом'];
-                                                $symbol = $symbols[$fxBase] ?? $fxBase;
+                                                $basePrice = round($price * config('services.main.coef')/100 + $price, 0);
+                                                            $toCurrency = strtoupper($fxBase ?? 'USD');
+                                                            $fxRates = [
+                                                                'USD' => $fxRates['usd'] ?? 1,
+                                                                'RUB' => $fxRates['rub'] ?? 1,
+                                                                'KGS' => $fxRates['kgs'] ?? 1,
+                                                                'UZS' => $fxRates['uzs'] ?? 1,
+                                                            ];
+                                                            $symbols = [
+                                                                'USD' => '$',
+                                                                'RUB' => '₽',
+                                                                'KGS' => 'сом',
+                                                                'UZS' => 'сўм',
+                                                            ];
+                                                            $rateTo = $fxRates[$toCurrency] ?? 1;
+                                                            $converted = app(\App\Services\FXService::class)->convert($basePrice, $rate->currency ?? 'USD', $fxBase);
+                                                            $symbol = $symbols[$toCurrency] ?? $toCurrency;
                                             @endphp
+
                                             <div class="price">@lang('main.from') {{ number_format($converted, 0, '.', ' ') }}
                                                 {{ $symbol }}
                                             </div>

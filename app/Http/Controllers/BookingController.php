@@ -44,7 +44,7 @@ class BookingController extends Controller
         $data = [
             'hotel_id' => $request->get('propertyId'),
             'room_id' => $request->get('room_id'),
-            'rate_id' => $request->get('ratePlanId'),
+            'rate_id' => $request->get('rate_id'),
             'cancellation_id' => $request->get('cancellation_id'),
             'cancel_penalty' => $request->get('cancelPrice'),
             'arrivalDate' => $request->get('arrivalDate'),
@@ -75,12 +75,12 @@ class BookingController extends Controller
             'childages' => implode(',', $request->get('childAges')),
             'sum' => $request->get('sum'),
             'status' => 'Reserved',
-            'book_token' => $res->booking->number ?? $str,
+            'book_token' => $str,
             'user_id' => Auth::id() ?? '1',
-            'tag' => 'local'
+            'api_type' => 'local'
         ];
         $book = Book::create($data);
-        //Mail::to('myrzabekova@silkwaytravel.kg')->send(new BookMail($book));
+        //Mail::to('info@staybook.asia')->send(new BookMail($book));
         Log::warning('Бронь создана: ' . $book->id);
 
 //        if($book){
@@ -103,10 +103,10 @@ class BookingController extends Controller
         ]);
 
         $book = Book::where('book_token', $request->number)->first();
-//        if($book){
-//                Log::warning('Отмена брони: ' . $book->id);
-//                Mail::to('eralee@staybook.asia')->send(new BookCancelMail($book));
-//            }
+        if ($book) {
+            Log::warning('Отмена брони: ' . $book->id);
+            //Mail::to('info@staybook.asia')->send(new BookCancelMail($book));
+        }
         return view('pages.booking.cancel-confirm', compact('book', 'request'));
     }
 
@@ -483,7 +483,7 @@ class BookingController extends Controller
                             'user_id' => Auth::id() ?? 1,
                             'tag' => 'exely'
                         ]);
-                        //Mail::to('myrzabekova@silkwaytravel.kg')->send(new BookMail($book));
+                        Mail::to('myrzabekova@silkwaytravel.kg')->send(new BookMail($book));
                         Log::warning('Бронь создана: ' . $book->id);
                     } else {
                         $book = Book::create([

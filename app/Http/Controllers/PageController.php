@@ -21,7 +21,7 @@ class PageController extends Controller
 {
     public function index()
     {
-        $hotels = Hotel::where('tourmind_id', null)->get();
+        $hotels = Hotel::where('tourmind_id', null)->latest()->limit(9)->get();
         $cities = City::orderBy('title', 'asc')->get();
         $tomorrow = Carbon::tomorrow()->format('Y-m-d');
 
@@ -30,7 +30,7 @@ class PageController extends Controller
 
     public function hotels()
     {
-        $hotels = Hotel::where('status', 1)->paginate(21);
+        $hotels = Hotel::where('status', 1)->latest()->paginate(27);
         return view('pages.hotels', compact('hotels'));
     }
 

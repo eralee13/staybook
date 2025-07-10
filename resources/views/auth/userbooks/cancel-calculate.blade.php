@@ -21,9 +21,9 @@
                                 @lang('main.free_cancellation') {{ $request->cancelTime }} (UTC {{ $hotel_utc }}
                                 ).
                             @endif
-                            @lang('main.cancellation_amount'): {{ $book->cancel_penalty }} {{ $request->currency }}</p>
+                            @lang('main.cancellation_amount'): {{ $book->cancel_penalty }} {{ $book->currency }}</p>
                     @else
-                        <p>@lang('main.free_cancellation'). @lang('main.cancellation_amount'): {{ $book->cancel_penalty }} {{ $request->currency }}</p>
+                        <p>@lang('main.free_cancellation'). @lang('main.cancellation_amount'): {{ $book->cancel_penalty }} {{ $book->currency }}</p>
                     @endif
                     <form action="{{ route('cancel_confirm') }}">
                         <div class="form-group">

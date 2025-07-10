@@ -6,6 +6,7 @@ use App\Models\City;
 use App\Models\Image;
 use App\Models\Room;
 use App\Models\Hotel;
+use App\Services\FXService;
 use Carbon\Carbon;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Request;
@@ -18,6 +19,10 @@ class SearchController extends Controller
     {
         $cities = City::whereNull('country_id')->orderBy('title')->get();
         $tomorrow = Carbon::tomorrow()->format('Y-m-d');
+        $fxBase = session('currency', 'USD'); // выбранная пользователем валюта
+        $fxRates = app(\App\Services\FXService::class)->getRatesBaseCentral(); // всегда база USD
+
+
         $rooms = $request->input('rooms', []); // если нет — пустой массив
         $totalAdults = 0;
         $allChildAges = [];

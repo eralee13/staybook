@@ -1,3 +1,4 @@
+@php use Carbon\Carbon; @endphp
 @extends('auth.layouts.master')
 
 @section('title', __('admin.bookings'))
@@ -7,10 +8,10 @@
     <div class="page admin bookings">
         <div class="container">
             <div class="row">
-                <div class="col-md-3">
+                <div class="col-md-2">
                     @include('auth.layouts.sidebar')
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-10">
                     @if($books->isNotEmpty())
                         <h1>@lang('admin.my_bookings')</h1>
                         @foreach($books as $book)
@@ -37,7 +38,7 @@
                                     </td>
                                     <td>
                                         <div class="title">Гость:</div>
-                                        <div class="value">{{ $book->title }}</div>
+                                        <div class="value">{{ $book->title1 }}</div>
                                         {{--                                        <div class="count">{{ $book->count }} @lang('admin.adult')</div>--}}
                                         {{--                                        @if($book->countc > 0)--}}
                                         {{--                                            <div class="count">{{ $book->countc }} @lang('admin.child')</div>--}}
@@ -81,13 +82,17 @@
                                     </td>
                                     @php
                                         $cancel = \App\Models\CancellationRule::where('id', $book->cancellation_id)->first();
+                                        $timezone = $hotel->timezone ?? config('app.timezone'); // если задан в отеле
+                                        $createdAt = Carbon::parse($cancel->arrivalDate)->timezone($timezone);
+                                        $freeLimitDate = $createdAt->copy()->addDays($cancel->free_cancellation_days ?? 0);
+                                        $now = Carbon::now($timezone);
+                                        $canCancelFree = $now->lessThanOrEqualTo($freeLimitDate);
                                     @endphp
                                     @if($cancel)
                                         <td>
                                             <div class="title">Правило аннуляции</div>
-                                            @if($cancel->is_refundable == true)
-                                                <div class="value">@lang('main.cancellation_amount')
-                                                    : {{ $book->cancel_penalty }} {{ $book->currency ?? '$' }}
+                                            @if($canCancelFree)
+                                                <div class="value">Бесплатная отмена доступна до {{ $freeLimitDate->translatedFormat('d M Y H:i') }} ({{ $timezone }})
                                                 </div>
                                             @else
                                                 <div class="value">@lang('main.cancellation_is_not_avaialble')

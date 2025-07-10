@@ -34,16 +34,41 @@
                                     $local = \Carbon\Carbon::parse($res->booking->cancellationPolicy->freeCancellationDeadlineLocal . 'Z');
                                     $hours = $utc->diffInHours($local, false);
                                     $offset = sprintf('UTC%+03d:00', $hours);
+
+                                    //currency
+                                                                    $baseCancelPrice = round($res->booking->cancellationPolicy->penaltyAmount * config('services.main.coef') / 100 + $res->booking->cancellationPolicy->penaltyAmount, 0);
+                                                                    $basePrice = round($res->booking->total->priceBeforeTax * config('services.main.coef') / 100 + $res->booking->total->priceBeforeTax, 0);
+
+                                                                    $toCurrency = strtoupper($fxBase ?? 'USD');
+
+                                                                    $fxRates = [
+                                                                        'USD' => $fxRates['usd'] ?? 1,
+                                                                        'RUB' => $fxRates['rub'] ?? 1,
+                                                                        'KGS' => $fxRates['kgs'] ?? 1,
+                                                                        'UZS' => $fxRates['uzs'] ?? 1,
+                                                                    ];
+
+                                                                    $symbols = [
+                                                                        'USD' => '$',
+                                                                        'RUB' => '₽',
+                                                                        'KGS' => 'сом',
+                                                                        'UZS' => 'сўм',
+                                                                    ];
+
+                                                                    $rateTo = $fxRates[$toCurrency] ?? 1;
+                                                                    $convertedCancel = app(\App\Services\FXService::class)->convert($baseCancelPrice, $res->booking->currencyCode, $fxBase);
+                                                                    $converted = app(\App\Services\FXService::class)->convert($basePrice, $res->booking->currencyCode, $fxBase);
+                                                                    $symbol = $symbols[$toCurrency] ?? $toCurrency;
                                 @endphp
                                 <li>@lang('main.dates'): {{ $arrival }} - {{ $departure }} (UTC {{ $hotel_utc }})</li>
                                 <li>
                                     @if($res->booking->cancellationPolicy->freeCancellationPossible == true)
                                         @lang('main.free_cancellation'): {{ $cancel_time }} ({{ $offset }}
                                         ) @lang('main.cancellation_amount')
-                                        : {{ $res->booking->cancellationPolicy->penaltyAmount }} {{ $res->booking->currencyCode }}</li>
+                                        : {{ round($converted) }} {{ $symbol }}</li>
                                 @else
                                     @lang('main.free_cancellation'). @lang('main.cancellation_amount')
-                                    : {{ $res->booking->cancellationPolicy->penaltyAmount }} {{ $res->booking->currencyCode }}
+                                    : {{ round($convertedCancel) }} {{ $symbol }}
                                 @endif
                                 <li>
                                     @lang('main.guest')
@@ -58,7 +83,7 @@
                             <div class="bnt-wrap">
                                 <form action="{{ route('cancel_calculate_exely') }}">
                                     <input type="hidden" name="number" value="{{ $res->booking->number }}">
-                                    <input type="hidden" name="currency" value="{{ $res->booking->currencyCode }}">
+                                    <input type="hidden" name="currency" value="{{ $symbol }}">
                                     @if($res->booking->cancellation == null)
                                         <input type="hidden" name="cancelTime"
                                                value="{{ $res->booking->cancellationPolicy->freeCancellationDeadlineUtc }}">

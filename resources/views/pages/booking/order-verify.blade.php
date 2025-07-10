@@ -58,7 +58,7 @@
                             </tr>
                             <tr>
                                 <td>@lang('main.price'):</td>
-                                <td>{{ $request->price }} {{ $order->booking->currencyCode ?? '$' }}</td>
+                                <td>{{ $request->price }} {{ $request->currency ?? '$' }}</td>
                             </tr>
                             <tr>
                                 <td>@lang('main.cancellation_policy'):</td>
@@ -69,30 +69,17 @@
                                 @elseif($cancel->cancel_policy === 'free_then_penalty')
                                     @if(now()->lte($cancelDate))
                                         <td> @lang('main.free_cancellation') {{ $cancelDate }}
-                                            UTC {{ $timezone }}</td>
+                                            UTC {{ $timezone }}
                                     @else
-                                        <td>@lang('main.cancellation_is_not_avaialble').</td>
+                                        <td>@lang('main.cancellation_is_not_avaialble')
+                                            .
                                     @endif
                                     @lang('main.cancellation_amount')
-                                    :
-                                    @if($cancel->penalty_type === 'fixed')
-                                        ${{ $cancelPrice = round($cancel->penalty_amount) }}
-                                    @elseif($cancel->penalty_type === 'night')
-                                        ${{ $cancelPrice = round($cancel->penalty_nights * $rate->price) }}
-                                    @else
-                                        ${{ $cancelPrice = round(($sum * $cancel->penalty_amount) / 100) }}
-                                    @endif
-
+                                    : {{ $request->cancelPrice }} {{ $request->currency }}</td>
                                 @else
                                     <td>@lang('main.cancellation_amount')
-                                        :
-                                        @if($cancel->penalty_type === 'fixed')
-                                            ${{ $cancelPrice = round($cancel->penalty_amount) }}
-                                        @elseif($cancel->penalty_type === 'night')
-                                            ${{ $cancelPrice = round($cancel->penalty_nights * $rate->price) }}
-                                        @else
-                                            ${{ $cancelPrice = round(($sum * $cancel->penalty_amount) / 100) }}
-                                        @endif</td>
+                                        : {{ $request->cancelPrice }} {{ $request->currency }}
+                                    </td>
                                 @endif
                             </tr>
                             <tr>
@@ -139,10 +126,12 @@
                                     <div class="name">{{ $request->email }}</div>
                                 </td>
                             </tr>
-                            <tr>
-                                <td>@lang('main.message'):</td>
-                                <td>{{ $request->comment }}</td>
-                            </tr>
+                            @if($request->cooment)
+                                <tr>
+                                    <td>@lang('main.message'):</td>
+                                    <td>{{ $request->comment }}</td>
+                                </tr>
+                            @endif
                         </table>
 
                         <div class="btn-wrap">
@@ -151,8 +140,10 @@
                                        value="{{ $request->propertyId }}">
                                 <input type="hidden" name="sum"
                                        value="{{ $request->price }}">
+                                <input type="hidden" name="currency" value="{{ $request->currency }}">
                                 <input type="hidden" name="cancellation_id" value="{{ $request->cancellation_id }}">
                                 <input type="hidden" name="cancelPrice" value="{{ $request->cancelPrice }}">
+                                <input type="hidden" name="currency" value="{{ $request->currency }}">
                                 <input type="hidden" name="arrivalDate"
                                        value="{{ $request->arrivalDate }}">
                                 <input type="hidden" name="departureDate"

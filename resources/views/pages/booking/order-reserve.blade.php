@@ -11,13 +11,14 @@
                 <div class="col-lg-12 col-md-12">
                     <h1>@lang('main.congratulations')!</h1>
                     <ul>
-                        <li>@lang('main.status'): {{ $res->booking->status ?? $book->status }}</li>
-                        <li>@lang('main.booking_number'): {{ $res->booking->number ?? $book->id }}</li>
-                        <li>ID @lang('main.hotel'): {{ $res->booking->propertyId ?? $book->hotel_id }}</li>
+                        <li>@lang('main.status'): {{ $book->status }}</li>
+                        <li>@lang('main.booking_number'): {{ $book->id }}</li>
+                        <li>ID @lang('main.hotel'): {{ $book->hotel_id }}</li>
+                        <li>@lang('main.price'): {{ $book->sum }} {{ $book->currency }}</li>
                         @php
                             $hotel = \App\Models\Hotel::where('id', $book->hotel_id)->first();
                             $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
-                            $rate = \App\Models\Rate::where('id', $request->rate_id)->firstOrFail();
+                            $rate = \App\Models\Rate::where('id', $book->rate_id)->firstOrFail();
                             $arrival = \Carbon\Carbon::createFromDate($book->arrivalDate)->format('d.m.Y');
                             $departure = \Carbon\Carbon::createFromDate($book->departureDate)->format('d.m.Y');
                             $cancel = \App\Models\CancellationRule::where('id', $book->cancellation_id)->firstOrFail();
@@ -33,51 +34,34 @@
                             @if($cancel->cancel_policy === 'free_until_checkin')
                                 <td>@lang('main.free_cancellation') {{ $freeDate }}
                                     UTC {{ $timezone }}</td>
-
                             @elseif($cancel->cancel_policy === 'free_then_penalty')
                                 @if(now()->lte($cancelDate))
                                     <td> @lang('main.free_cancellation') {{ $cancelDate }}
                                         UTC {{ $timezone }}</td>
                                 @else
-                                    <td>@lang('main.cancellation_is_not_avaialble').</td>
+                                    <td>@lang('main.cancellation_is_not_avaialble'). @lang('main.cancellation_amount') {{ $book->cancel_penalty }} {{ $book->currency }}</td>
                                 @endif
-                                @lang('main.cancellation_amount')
-                                :
-                                @if($cancel->penalty_type === 'fixed')
-                                    ${{ $cancelPrice = round($cancel->penalty_amount) }}
-                                @elseif($cancel->penalty_type === 'night')
-                                    ${{ $cancelPrice = round($cancel->penalty_nights * $rate->price) }}
-                                @else
-                                    ${{ $cancelPrice = round(($sum * $cancel->penalty_amount) / 100) }}
-                                @endif
-
                             @else
                                 <td>@lang('main.cancellation_amount')
-                                    :
-                                    @if($cancel->penalty_type === 'fixed')
-                                        ${{ $cancelPrice = round($cancel->penalty_amount) }}
-                                    @elseif($cancel->penalty_type === 'night')
-                                        ${{ $cancelPrice = round($cancel->penalty_nights * $rate->price) }}
-                                    @else
-                                        ${{ $cancelPrice = round(($sum * $cancel->penalty_amount) / 100) }}
-                                    @endif</td>
+                                    : {{ $book->cancel_penalty }} {{ $book->currency }}</td>
                         @endif
                         <li>
                             @lang('main.guest'): {{ $book->title }}
                             <ul>
-                                <li>@lang('main.phone'): {{ $res->booking->customer->contacts->phones[0]->phoneNumber ?? $book->phone }}</li>
+                                <li>@lang('main.phone'): {{ $book->phone }}</li>
                                 <li>
-                                    Email: {{ $res->booking->customer->contacts->emails[0]->emailAddress ?? $book->email }}</li>
-                                <li>@lang('main.message'): {{ $res->booking->customer->comment ?? $book->email }}</li>
+                                    Email: {{ $book->email }}</li>
+                                @if($book->message)
+                                    <li>@lang('main.message'): {{ $book->message }}</li>
+                                @endif
                             </ul>
                         </li>
                     </ul>
                     <div class="bnt-wrap">
                         <form action="{{ route('cancel_calculate', $book->id) }}">
                             <input type="hidden" name="number" value="{{ $res->booking->number ?? $book->book_token }}">
-                            <input type="hidden" name="currency" value="{{ $res->booking->currencyCode ?? '$' }}">
-                            <input type="hidden" name="cancelTime"
-                                   value="{{ $res->booking->cancellationPolicy->freeCancellationDeadlineUtc ?? $cancelDate }}">
+                            <input type="hidden" name="currency" value="{{ $request->currency }}">
+                            <input type="hidden" name="cancelTime" value="{{ $cancelDate }}">
                             <button class="more">@lang('main.cancel_booking')</button>
                         </form>
                     </div>

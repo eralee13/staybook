@@ -104,215 +104,234 @@
                     </div>
                 </div>
                 @if($rooms->isNotEmpty())
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="tariffs availabity">
-                            <h4>@lang('main.available')</h4>
-                            @foreach($rooms as $room)
-                                @php
-                                    $image = \App\Models\Image::where('room_id', $room->id)->orderBy('id', 'desc')->first();
-                                @endphp
-                                <div class="row" style="margin-top: 30px">
-                                    <div class="col-md-3">
-                                        <div class="room">
-                                            @if ($image)
-                                                <img src="{{ Storage::url($image->image) }}"
-                                                     alt="">
-                                            @else
-                                                <img src="{{ route('index') }}/img/noimage.png"
-                                                     alt=""
-                                                     width="100px">
-                                            @endif
-                                            <h5>{{ $room->title }}</h5>
-                                            {{--                                            <div class="bed">2 отдельные кровати</div>--}}
-                                            @php
-                                                $amenities = \App\Models\Room::where('hotel_id', $hotel->id)->first();
-                                                $room_amenities = [];
-                                                if ($amenities) {
-                                                    $room_amenities = explode(',', $amenities->amenities);
-                                                }
-                                                $items = array_slice($room_amenities, 0, 8);
-                                            @endphp
-                                            <div class="amenities">
-                                                <div class="amenities-item">
-                                                    <img src="{{ route('index') }}/img/icons/area.svg"
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="tariffs availabity">
+                                <h4>@lang('main.available')</h4>
+                                @foreach($rooms as $room)
+                                    @php
+                                        $image = \App\Models\Image::where('room_id', $room->id)->orderBy('id', 'desc')->first();
+                                    @endphp
+                                    <div class="row" style="margin-top: 30px">
+                                        <div class="col-md-3">
+                                            <div class="room">
+                                                @if ($image)
+                                                    <img src="{{ Storage::url($image->image) }}"
                                                          alt="">
-                                                    <div class="name">{{ $room->area }} кв. м
-                                                    </div>
-                                                </div>
-                                                @foreach($items as $amenity)
-                                                    @php
-                                                        $iconFile = 'check.svg';
-                                                        foreach ($iconMap as $keyword => $filename) {
-                                                            if (mb_stripos($amenity, $keyword) !== false) {
-                                                                $iconFile = $filename;
-                                                                break;
-                                                            }
-                                                        }
-                                                    @endphp
+                                                @else
+                                                    <img src="{{ route('index') }}/img/noimage.png"
+                                                         alt=""
+                                                         width="100px">
+                                                @endif
+                                                <h5>{{ $room->title }}</h5>
+                                                {{--                                            <div class="bed">2 отдельные кровати</div>--}}
+                                                @php
+                                                    $amenities = \App\Models\Room::where('hotel_id', $hotel->id)->first();
+                                                    $room_amenities = [];
+                                                    if ($amenities) {
+                                                        $room_amenities = explode(',', $amenities->amenities);
+                                                    }
+                                                    $items = array_slice($room_amenities, 0, 8);
+                                                @endphp
+                                                <div class="amenities">
                                                     <div class="amenities-item">
-                                                        <img src="{{ asset('img/icons/' . $iconFile) }}"
-                                                             alt="{{ $amenity }}">
-                                                        <div class="name">{{ $amenity }}</div>
+                                                        <img src="{{ route('index') }}/img/icons/area.svg"
+                                                             alt="">
+                                                        <div class="name">{{ $room->area }} кв. м
+                                                        </div>
                                                     </div>
-                                                @endforeach
+                                                    @foreach($items as $amenity)
+                                                        @php
+                                                            $iconFile = 'check.svg';
+                                                            foreach ($iconMap as $keyword => $filename) {
+                                                                if (mb_stripos($amenity, $keyword) !== false) {
+                                                                    $iconFile = $filename;
+                                                                    break;
+                                                                }
+                                                            }
+                                                        @endphp
+                                                        <div class="amenities-item">
+                                                            <img src="{{ asset('img/icons/' . $iconFile) }}"
+                                                                 alt="{{ $amenity }}">
+                                                            <div class="name">{{ $amenity }}</div>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-9">
+                                            <div class="tariff-wrap">
+                                                @if($room->rates->isEmpty())
+                                                    <p class="text-muted">Нет доступных тарифов для этих дат и
+                                                        гостей.</p>
+                                                @else
+                                                    <div class="owl-carousel owl-tariffs">
+                                                        @foreach($room->rates as $rate)
+                                                            <div class="tariffs-item">
+                                                                @isset($rate)
+                                                                    <h5>{{ $rate->__('title') }}</h5>
+                                                                @endisset
+                                                                @php
+                                                                    $arrival = \Carbon\Carbon::createFromDate($request->arrivalDate)->format('d.m.Y H:i');
+                                                                    $departure = \Carbon\Carbon::createFromDate($request->departureDate)->format('d.m.Y H:i');
+                                                                    $cancel = \App\Models\CancellationRule::where('rate_id', $rate->id)->first();
+                                                                    $cancelDate = \Carbon\Carbon::parse($request->arrivalDate)->subDays($cancel->free_cancellation_days ?? 0)->format('d.m.Y H:i');
+                                                                    $freeDate = \Carbon\Carbon::parse($request->arrivalDate)->format('d.m.Y H:i');
+                                                                    $timezone = \Carbon\Carbon::parse($hotel->timezone)->format('P');
+
+                                                                    //кол-во дней
+                                                                    $arr = \Carbon\Carbon::parse($request->arrivalDate);
+                                                                    $dep = \Carbon\Carbon::parse($request->departureDate);
+                                                                    $nights = $arr->diffInDays($dep);
+                                                                    $price_child = 0;
+                                                                    if (count(array_filter($request->childAges, fn($item) => is_null($item))) === 0) {
+                                                                        foreach (explode(',', implode($request->childAges)) as $age){
+                                                                            if($rate->free_children_age <= $age ){
+                                                                                $price_child += $rate->child_extra_fee;
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    $cancelPrice = 0;
+                                                                    //общая сумма
+                                                                    $calendarPrice = $ratePrices[$rate->id] ?? $rate->price;
+                                                                    if($request->adultCount >= 2){
+                                                                        $sum = ($rate->price2 + $price_child) * $request->adult * $nights;
+                                                                        $sum = (config('services.main.coef') * $sum) + $sum;
+                                                                        $converted = app(\App\Services\FXService::class)->convert($sum, $rate->currency ?? 'USD', $fxBase);
+                                                                    } else {
+                                                                        $sum = ($calendarPrice + $price_child) * $request->adult * $nights;
+                                                                        $sum = (config('services.main.coef') * $sum) + $sum;
+                                                                        $converted = app(\App\Services\FXService::class)->convert($sum, $rate->currency ?? 'USD', $fxBase);
+                                                                    }
+                                                                @endphp
+
+                                                                <div class="item bed">
+                                                                    <div class="name">{{ $rate->bed_type }}</div>
+                                                                </div>
+                                                                <div class="item meal">
+                                                                    <div class="name">{{ $rate->meal->__('title') }}</div>
+                                                                </div>
+                                                                @php
+                                                                    $baseCancelPrice = round($cancel->penalty_amount * config('services.main.coef') / 100 + $cancel->penalty_amount, 0);
+                                                                    $basePrice = round($sum * config('services.main.coef') / 100 + $sum, 0);
+
+                                                                    $toCurrency = strtoupper($fxBase ?? 'USD');
+
+                                                                    $symbols = [
+                                                                        'USD' => '$',
+                                                                        'RUB' => '₽',
+                                                                        'KGS' => 'сом',
+                                                                        'UZS' => 'сўм',
+                                                                    ];
+
+                                                                    $symbol = $symbols[$toCurrency] ?? $toCurrency;
+
+                                                                    // Рассчитываем основную сумму штрафа (до конвертации)
+                                                                    if ($cancel->penalty_type === 'fixed') {
+                                                                        $cancelRaw = round($cancel->penalty_amount);
+                                                                    } elseif ($cancel->penalty_type === 'night') {
+                                                                        $cancelRaw = round($cancel->penalty_nights * ($rate->price ?? 0));
+                                                                    } else { // %
+                                                                        $cancelRaw = round(($sum * $cancel->penalty_amount) / 100);
+                                                                    }
+
+                                                                    // Переводим в пользовательскую валюту
+                                                                    $cancelPrice = app(\App\Services\FXService::class)->convert($cancelRaw, $rate->currency ?? 'USD', $fxBase);
+                                                                @endphp
+
+                                                                <div class="item cancel">
+                                                                    <div class="name">
+                                                                        @if($cancel->cancel_policy === 'free_until_checkin')
+                                                                            @lang('main.free_cancellation') {{ $freeDate }}
+                                                                            UTC {{ $timezone }}
+
+                                                                        @elseif($cancel->cancel_policy === 'free_then_penalty')
+                                                                            @if(now()->lte($cancelDate))
+                                                                                @lang('main.free_cancellation') {{ $cancelDate }}
+                                                                                UTC {{ $timezone }}
+                                                                            @else
+                                                                                @lang('main.cancellation_is_not_avaialble')
+                                                                                .
+                                                                            @endif
+                                                                            @lang('main.cancellation_amount')
+                                                                            : {{ round($cancelPrice) }} {{ $symbol }}
+
+                                                                        @else
+                                                                            @lang('main.cancellation_amount')
+                                                                            : {{ round($cancelPrice) }} {{ $symbol }}
+                                                                        @endif
+                                                                    </div>
+                                                                </div>
+                                                                <div class="item price">
+                                                                    {{ round($converted) }} {{ $symbol }}
+                                                                </div>
+                                                                {{--                                                            <div class="nds">Все налоги включены</div>--}}
+                                                                {{--                                                        <div class="night">за ночь для 1 гостя</div>--}}
+                                                                <div class="btn-wrap">
+                                                                    <form action="{{ route('order', $rate->id) }}">
+                                                                        <input type="hidden"
+                                                                               name="propertyId"
+                                                                               value="{{ $hotel->id }}">
+                                                                        <input type="hidden"
+                                                                               name="arrivalDate"
+                                                                               value="{{ $request->arrivalDate }}">
+                                                                        <input type="hidden"
+                                                                               name="departureDate"
+                                                                               value="{{ $request->departureDate }}">
+                                                                        <input type="hidden" name="roomCount"
+                                                                               value="{{ $request->roomCount }}">
+                                                                        <input type="hidden"
+                                                                               name="adult"
+                                                                               value="{{ $request->adult }}">
+                                                                        <input type="hidden"
+                                                                               name="child"
+                                                                               value="{{ $request->child }}">
+                                                                        <input type="hidden"
+                                                                               name="childAges[]"
+                                                                               value="{{ implode(',', $request->childAges) }}">
+                                                                        <input type="hidden"
+                                                                               name="room_id"
+                                                                               value="{{ $rate->room_id }}">
+                                                                        <input type="hidden"
+                                                                               name="rate_id"
+                                                                               value="{{ $rate->id }}">
+                                                                        <input type="hidden"
+                                                                               name="meal_id"
+                                                                               value="{{ $rate->meal_id }}">
+                                                                        <input type="hidden"
+                                                                               name="cancellation_id"
+                                                                               value="{{ $cancel->id ?? ''}}">
+                                                                        <input type="hidden"
+                                                                               name="hotel_id"
+                                                                               value="{{ $hotel->id }}">
+                                                                        <input type="hidden"
+                                                                               name="title"
+                                                                               value="{{ $rate->title }}">
+                                                                        <input type="hidden"
+                                                                               name="cancelDate"
+                                                                               value="{{ $cancelDate }}">
+                                                                        <input type="hidden"
+                                                                               name="cancelPrice"
+                                                                               value="{{ round($cancelPrice) }}">
+                                                                        <input type="hidden" name="price"
+                                                                               value="{{ round($converted) }}">
+                                                                        <input type="hidden" name="currency" value="{{ $symbol }}">
+                                                                        <button class="more">@lang('main.book')</button>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        @endforeach
+
+                                                    </div>
+                                                @endif
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-9">
-                                        <div class="tariff-wrap">
-                                            @if($room->rates->isEmpty())
-                                                <p class="text-muted">Нет доступных тарифов для этих дат и гостей.</p>
-                                            @else
-                                                <div class="owl-carousel owl-tariffs">
-                                                    @foreach($room->rates as $rate)
-                                                        <div class="tariffs-item">
-                                                            @isset($rate)
-                                                                <h5>{{ $rate->__('title') }}</h5>
-                                                            @endisset
-                                                            @php
-                                                                $arrival = \Carbon\Carbon::createFromDate($request->arrivalDate)->format('d.m.Y H:i');
-                                                                $departure = \Carbon\Carbon::createFromDate($request->departureDate)->format('d.m.Y H:i');
-                                                                $cancel = \App\Models\CancellationRule::where('rate_id', $rate->id)->first();
-                                                                $cancelDate = \Carbon\Carbon::parse($request->arrivalDate)->subDays($cancel->free_cancellation_days ?? 0)->format('d.m.Y H:i');
-                                                                $freeDate = \Carbon\Carbon::parse($request->arrivalDate)->format('d.m.Y H:i');
-                                                                $timezone = \Carbon\Carbon::parse($hotel->timezone)->format('P');
 
-                                                                //кол-во дней
-                                                                $arr = \Carbon\Carbon::parse($request->arrivalDate);
-                                                                $dep = \Carbon\Carbon::parse($request->departureDate);
-                                                                $nights = $arr->diffInDays($dep);
-                                                                $price_child = 0;
-                                                                if (count(array_filter($request->childAges, fn($item) => is_null($item))) === 0) {
-                                                                    foreach (explode(',', implode($request->childAges)) as $age){
-                                                                        if($rate->free_children_age <= $age ){
-                                                                            $price_child += $rate->child_extra_fee;
-                                                                        }
-                                                                    }
-                                                                }
-                                                                $cancelPrice = 0;
-                                                                //общая сумма
-                                                                $calendarPrice = $ratePrices[$rate->id] ?? $rate->price;
-                                                                if($request->adultCount >= 2){
-                                                                    $sum = ($rate->price2 + $price_child) * $request->adult * $nights;
-                                                                    $sum = (config('services.main.coef') * $sum) + $sum;
-                                                                } else {
-                                                                    $sum = ($calendarPrice + $price_child) * $request->adult * $nights;
-                                                                    $sum = (config('services.main.coef') * $sum) + $sum;
-                                                                }
-                                                            @endphp
-
-                                                            <div class="item bed">
-                                                                <div class="name">{{ $rate->bed_type }}</div>
-                                                            </div>
-                                                            <div class="item meal">
-                                                                <div class="name">{{ $rate->meal->__('title') }}</div>
-                                                            </div>
-                                                            <div class="item cancel">
-                                                                <div class="name">
-                                                                    @if($cancel->cancel_policy === 'free_until_checkin')
-                                                                        @lang('main.free_cancellation') {{ $freeDate }}
-                                                                        UTC {{ $timezone }}
-
-                                                                    @elseif($cancel->cancel_policy === 'free_then_penalty')
-                                                                        @if(now()->lte($cancelDate))
-                                                                            @lang('main.free_cancellation') {{ $cancelDate }}
-                                                                            UTC {{ $timezone }}
-                                                                        @else
-                                                                            @lang('main.cancellation_is_not_avaialble').
-                                                                        @endif
-                                                                        @lang('main.cancellation_amount')
-                                                                        :
-                                                                        @if($cancel->penalty_type === 'fixed')
-                                                                            ${{ $cancelPrice = round($cancel->penalty_amount) }}
-                                                                        @elseif($cancel->penalty_type === 'night')
-                                                                            ${{ $cancelPrice = round($cancel->penalty_nights * $rate->price) }}
-                                                                        @else
-                                                                            ${{ $cancelPrice = round(($sum * $cancel->penalty_amount) / 100) }}
-                                                                        @endif
-
-                                                                    @else
-                                                                        @lang('main.cancellation_amount')
-                                                                        :
-                                                                        @if($cancel->penalty_type === 'fixed')
-                                                                            ${{ $cancelPrice = round($cancel->penalty_amount) }}
-                                                                        @elseif($cancel->penalty_type === 'night')
-                                                                            ${{ $cancelPrice = round($cancel->penalty_nights * $rate->price) }}
-                                                                        @else
-                                                                            ${{ $cancelPrice = round(($sum * $cancel->penalty_amount) / 100) }}
-                                                                        @endif
-                                                                    @endif
-                                                                </div>
-                                                            </div>
-                                                            <div class="item price">
-                                                                ${{ round($sum) }}</div>
-                                                            {{--                                                            <div class="nds">Все налоги включены</div>--}}
-                                                            {{--                                                        <div class="night">за ночь для 1 гостя</div>--}}
-                                                            <div class="btn-wrap">
-                                                                <form action="{{ route('order', $rate->id) }}">
-                                                                    <input type="hidden"
-                                                                           name="propertyId"
-                                                                           value="{{ $hotel->id }}">
-                                                                    <input type="hidden"
-                                                                           name="arrivalDate"
-                                                                           value="{{ $request->arrivalDate }}">
-                                                                    <input type="hidden"
-                                                                           name="departureDate"
-                                                                           value="{{ $request->departureDate }}">
-                                                                    <input type="hidden" name="roomCount"
-                                                                           value="{{ $request->roomCount }}">
-                                                                    <input type="hidden"
-                                                                           name="adult"
-                                                                           value="{{ $request->adult }}">
-                                                                    <input type="hidden"
-                                                                           name="child"
-                                                                           value="{{ $request->child }}">
-                                                                    <input type="hidden"
-                                                                           name="childAges[]"
-                                                                           value="{{ implode(',', $request->childAges) }}">
-                                                                    <input type="hidden"
-                                                                           name="room_id"
-                                                                           value="{{ $rate->room_id }}">
-                                                                    <input type="hidden"
-                                                                           name="rate_id"
-                                                                           value="{{ $rate->id }}">
-                                                                    <input type="hidden"
-                                                                           name="meal_id"
-                                                                           value="{{ $rate->meal_id }}">
-                                                                    <input type="hidden"
-                                                                           name="cancellation_id"
-                                                                           value="{{ $cancel->id ?? ''}}">
-                                                                    <input type="hidden"
-                                                                           name="hotel_id"
-                                                                           value="{{ $hotel->id }}">
-                                                                    <input type="hidden"
-                                                                           name="title"
-                                                                           value="{{ $rate->title }}">
-                                                                    <input type="hidden"
-                                                                           name="cancelDate"
-                                                                           value="{{ $cancelDate }}">
-                                                                    <input type="hidden"
-                                                                           name="cancelPrice"
-                                                                           value="{{ $cancelPrice }}">
-                                                                    <input type="hidden" name="price"
-                                                                           value="{{ round($sum) }}">
-                                                                    {{--                                                                <input type="hidden" name="currency" value="{{ $room->currencyCode }}">--}}
-                                                                    <button class="more">@lang('main.book')</button>
-                                                                </form>
-                                                            </div>
-                                                        </div>
-                                                    @endforeach
-
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-
-                            @endforeach
+                                @endforeach
+                            </div>
                         </div>
                     </div>
-                </div>
                 @endif
             </div>
         </div>

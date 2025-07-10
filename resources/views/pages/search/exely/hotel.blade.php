@@ -46,16 +46,18 @@
                             <div class="row">
                                 <div class="col-md-7">
                                     @if($hotel->image)
-                                    <div class="fotorama" data-allowfullscreen="true" data-nav="thumbs" data-loop="true"
-                                         data-autoplay="30000">
-                                        @if($images)
-                                            @foreach($images as $file)
-                                                <img loading="lazy" src="{{ Storage::url($file->image)}}" alt="">
-                                            @endforeach
-                                        @endif
-                                    </div>
+                                        <div class="fotorama" data-allowfullscreen="true" data-nav="thumbs"
+                                             data-loop="true"
+                                             data-autoplay="30000">
+                                            @if($images)
+                                                @foreach($images as $file)
+                                                    <img loading="lazy" src="{{ Storage::url($file->image)}}" alt="">
+                                                @endforeach
+                                            @endif
+                                        </div>
                                     @else
-                                        <img loading="lazy" src="{{ route('index')}}/img/noimage.png" alt="" style="margin-bottom: 10px">
+                                        <img loading="lazy" src="{{ route('index')}}/img/noimage.png" alt=""
+                                             style="margin-bottom: 10px">
                                     @endif
                                 </div>
                             </div>
@@ -197,20 +199,45 @@
                                                             <div class="item meal">
                                                                 <div class="name">{{ $room->mealPlanCode }}</div>
                                                             </div>
+                                                            @php
+                                                                $baseCancelPrice = round($room->cancellationPolicy->penaltyAmount * config('services.main.coef') / 100 + $room->cancellationPolicy->penaltyAmount, 0);
+                                                                $basePrice = round($room->total->priceBeforeTax * config('services.main.coef') / 100 + $room->total->priceBeforeTax, 0);
+
+                                                                $toCurrency = strtoupper($fxBase ?? 'USD');
+
+                                                                $fxRates = [
+                                                                    'USD' => $fxRates['usd'] ?? 1,
+                                                                    'RUB' => $fxRates['rub'] ?? 1,
+                                                                    'KGS' => $fxRates['kgs'] ?? 1,
+                                                                    'UZS' => $fxRates['uzs'] ?? 1,
+                                                                ];
+
+                                                                $symbols = [
+                                                                    'USD' => '$',
+                                                                    'RUB' => '₽',
+                                                                    'KGS' => 'сом',
+                                                                    'UZS' => 'сўм',
+                                                                ];
+
+                                                                $rateTo = $fxRates[$toCurrency] ?? 1;
+                                                                $convertedCancel = app(\App\Services\FXService::class)->convert($baseCancelPrice, $room->currencyCode, $fxBase);
+                                                                $converted = app(\App\Services\FXService::class)->convert($basePrice, $room->currencyCode, $fxBase);
+                                                                $symbol = $symbols[$toCurrency] ?? $toCurrency;
+                                                            @endphp
                                                             <div class="item cancel">
                                                                 <div class="name">@lang('main.cancellation_policy'):
                                                                     @if($room->cancellationPolicy->freeCancellationPossible == true)
                                                                         @lang('main.free_cancellation') {{ $cancelDate }}
                                                                         ({{ $offset }}
                                                                         ). @lang('main.cancellation_amount')
-                                                                        : {{ $room->cancellationPolicy->penaltyAmount }} {{ $room->currencyCode }}
+                                                                        : {{ round($convertedCancel) }} {{ $symbol }}
                                                                     @else
                                                                         @lang('main.cancellation_amount')
-                                                                        : {{ $room->cancellationPolicy->penaltyAmount }} {{ $room->currencyCode }}
+                                                                        : {{ round($convertedCancel) }} {{ $symbol }}
                                                                     @endif
                                                                 </div>
                                                             </div>
-                                                            <div class="item price">{{ $room->total->priceBeforeTax }} {{ $room->currencyCode }}</div>
+                                                            <div class="item price">{{ round($converted) }} {{ $symbol }}</div>
                                                             {{--                                                        <div class="nds">Все налоги включены</div>--}}
                                                             <div class="btn-wrap">
                                                                 <form action="{{ route('order_exely', $room->roomType->id) }}">
@@ -256,7 +283,7 @@
                                                                     <input type="hidden" name="cancelDate"
                                                                            value="{{ $cancelDate }}">
                                                                     <input type="hidden" name="cancelPrice"
-                                                                           value="{{ $room->cancellationPolicy->penaltyAmount  }}">
+                                                                           value="{{ round($convertedCancel) }}">
                                                                     <input type="hidden" name="checkSum"
                                                                            value="{{ $room->checksum }}">
                                                                     @foreach($room->includedServices as $serv)
@@ -274,9 +301,9 @@
                                                                     <input type="hidden" name="title"
                                                                            value="{{ $room->fullPlacementsName }}">
                                                                     <input type="hidden" name="price"
-                                                                           value="{{ $room->total->priceBeforeTax }}">
+                                                                           value="{{ round($converted) }}">
                                                                     <input type="hidden" name="currency"
-                                                                           value="{{ $room->currencyCode }}">
+                                                                           value="{{ $symbol }}">
                                                                     <button class="more">@lang('main.book')</button>
                                                                 </form>
                                                             </div>
