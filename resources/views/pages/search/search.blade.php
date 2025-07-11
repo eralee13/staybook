@@ -72,8 +72,7 @@
                                     {{-- Общая сводка (клик открывает окно) --}}
                                     <a href="javascript:void(0)"
                                        id="rooms-summary">
-                                        Комнат: {{ $roomCount }}, Взрослых: {{ $totalAdults }},
-                                        Детей: {{ $totalChildren }}
+                                        @lang('main.room'): 1, @lang('main.adult'): 1, @lang('main.child'): 0
                                     </a>
 
                                     {{-- Полупрозрачный оверлей --}}
@@ -83,7 +82,7 @@
                                     <div id="rooms-panel">
                                         <div class="p-4">
                                             <div class="flex justify-between items-center mb-4">
-                                                <h3 class="text-lg font-medium">Гости и номера</h3>
+                                                <h3 class="text-lg font-medium">@lang('main.guests_and_rooms')</h3>
                                                 <div class="close-btn">
                                                     <a href="javascript:void(0)"
                                                        id="panel-close"
@@ -219,7 +218,7 @@
                                                     children += +r.querySelector('.count-child').textContent;
                                                 });
                                                 summaryBtn.textContent =
-                                                    `Номера: ${rooms.length}, Взрослых: ${adults}, Детей: ${children}`;
+                                                    `@lang('main.room'): ${rooms.length}, @lang('main.adult'): ${adults}, @lang('main.child'): ${children}`;
                                                 // кнопка добавить
                                                 addRoomBtn.style.display = rooms.length < MAX_ROOMS ? 'inline-block' : 'none';
                                             }
@@ -241,8 +240,8 @@
                                             function updateRoomSummary(roomEl) {
                                                 const a = +roomEl.querySelector('.count-adult').textContent;
                                                 const c = +roomEl.querySelector('.count-child').textContent;
-                                                const txt = [`${a} ${a === 1 ? 'взрослый' : 'взрослых'}`];
-                                                if (c) txt.push(`${c} ${c === 1 ? 'ребёнок' : 'детей'}`);
+                                                const txt = [`${a} ${a === 1 ? '@lang('main.adult')' : '@lang('main.adult')'}`];
+                                                if (c) txt.push(`${c} ${c === 1 ? '@lang('main.child')' : '@lang('main.child')'}`);
                                                 roomEl.querySelector('.summary-text').textContent = txt.join(', ');
                                                 roomEl.querySelector('.input-adults').value = a;
                                                 updateGlobalSummary();
@@ -643,6 +642,7 @@
                                                             </div>
                                                         @endforeach
                                                     </div>
+                                                    <div class="address" style="margin-top: 20px">{{ $hotel->__('address') }}</div>
                                                     <div class="btn-wrap">
                                                         <div class="btn-wrap">
                                                             <form action="{{ route('findHotelExely', $room->roomType->id) }}">
@@ -745,10 +745,10 @@
                             <!-- local hotels-->
                             @foreach($hotels as $hotel)
                                 @php
-                                    $items = \App\Models\Amenity::where('hotel_id', $hotel->id)->get()->first();
                                     $images = \App\Models\Image::where('hotel_id', $hotel->id)->get();
-                                    $amenities = explode(',', $items->services);
-                                    $items  = array_slice($amenities, 0, 8);
+                                    $amenityObj = \App\Models\Amenity::where('hotel_id', $hotel->id)->first();
+                                    $amenities = $amenityObj && $amenityObj->services ? explode(',', $amenityObj->services) : [];
+                                    $items = array_slice($amenities, 0, 8);
                                     $iconMap = [
                                         'wi-fi'             => 'wifi.svg',
                                         'интернет'          => 'wifi.svg',
@@ -842,6 +842,7 @@
                                                     </div>
                                                 @endforeach
                                             </div>
+                                            <div class="address" style="margin-top: 20px">{{ $hotel->__('address') }}</div>
                                             <div class="btn-wrap">
                                                 <div class="btn-wrap">
                                                     <form action="{{ route('findHotel', $hotel->code) }}">

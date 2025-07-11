@@ -115,15 +115,19 @@
                                     <div class="row" style="margin-top: 30px">
                                         <div class="col-md-3">
                                             <div class="room">
-                                                @if ($image)
-                                                    <img src="{{ Storage::url($image->image) }}"
+                                                @if ($room->image)
+                                                    <img src="{{ Storage::url($room->image) }}"
                                                          alt="">
                                                 @else
                                                     <img src="{{ route('index') }}/img/noimage.png"
                                                          alt=""
                                                          width="100px">
                                                 @endif
-                                                <h5>{{ $room->title }}</h5>
+                                                @if($room->__('title_local'))
+                                                    <h5>{{ $room->__('title_local') }}</h5>
+                                                @else
+                                                    <h5>{{ $room->__('title') }}</h5>
+                                                @endif
                                                 {{--                                            <div class="bed">2 отдельные кровати</div>--}}
                                                 @php
                                                     $amenities = \App\Models\Room::where('hotel_id', $hotel->id)->first();
@@ -162,8 +166,14 @@
                                         <div class="col-md-9">
                                             <div class="tariff-wrap">
                                                 @if($room->rates->isEmpty())
-                                                    <p class="text-muted">Нет доступных тарифов для этих дат и
-                                                        гостей.</p>
+                                                    <p class="text-muted">
+                                                        @if(app()->getLocale() == 'ru')
+                                                        Нет доступных тарифов для этих дат и
+                                                        гостей
+                                                        @else
+                                                            No available rates for the selected dates and guests
+                                                        @endif
+                                                    </p>
                                                 @else
                                                     <div class="owl-carousel owl-tariffs">
                                                         @foreach($room->rates as $rate)
@@ -211,57 +221,59 @@
                                                                 <div class="item meal">
                                                                     <div class="name">{{ $rate->meal->__('title') }}</div>
                                                                 </div>
-                                                                @php
-                                                                    $baseCancelPrice = round($cancel->penalty_amount * config('services.main.coef') / 100 + $cancel->penalty_amount, 0);
-                                                                    $basePrice = round($sum * config('services.main.coef') / 100 + $sum, 0);
+                                                                @if($cancel)
+                                                                    @php
+                                                                        $baseCancelPrice = round($cancel->penalty_amount ?? 1 * config('services.main.coef') / 100 + $cancel->penalty_amount ?? 1, 0);
+                                                                        $basePrice = round($sum * config('services.main.coef') / 100 + $sum, 0);
 
-                                                                    $toCurrency = strtoupper($fxBase ?? 'USD');
+                                                                        $toCurrency = strtoupper($fxBase ?? 'USD');
 
-                                                                    $symbols = [
-                                                                        'USD' => '$',
-                                                                        'RUB' => '₽',
-                                                                        'KGS' => 'сом',
-                                                                        'UZS' => 'сўм',
-                                                                    ];
+                                                                        $symbols = [
+                                                                            'USD' => '$',
+                                                                            'RUB' => '₽',
+                                                                            'KGS' => 'сом',
+                                                                            'UZS' => 'сўм',
+                                                                        ];
 
-                                                                    $symbol = $symbols[$toCurrency] ?? $toCurrency;
+                                                                        $symbol = $symbols[$toCurrency] ?? $toCurrency;
 
-                                                                    // Рассчитываем основную сумму штрафа (до конвертации)
-                                                                    if ($cancel->penalty_type === 'fixed') {
-                                                                        $cancelRaw = round($cancel->penalty_amount);
-                                                                    } elseif ($cancel->penalty_type === 'night') {
-                                                                        $cancelRaw = round($cancel->penalty_nights * ($rate->price ?? 0));
-                                                                    } else { // %
-                                                                        $cancelRaw = round(($sum * $cancel->penalty_amount) / 100);
-                                                                    }
+                                                                        // Рассчитываем основную сумму штрафа (до конвертации)
+                                                                        if ($cancel->penalty_type === 'fixed') {
+                                                                            $cancelRaw = round($cancel->penalty_amount);
+                                                                        } elseif ($cancel->penalty_type === 'night') {
+                                                                            $cancelRaw = round($cancel->penalty_nights * ($rate->price ?? 0));
+                                                                        } else { // %
+                                                                            $cancelRaw = round(($sum * $cancel->penalty_amount) / 100);
+                                                                        }
 
-                                                                    // Переводим в пользовательскую валюту
-                                                                    $cancelPrice = app(\App\Services\FXService::class)->convert($cancelRaw, $rate->currency ?? 'USD', $fxBase);
-                                                                @endphp
+                                                                        // Переводим в пользовательскую валюту
+                                                                        $cancelPrice = app(\App\Services\FXService::class)->convert($cancelRaw, $rate->currency ?? 'USD', $fxBase);
+                                                                    @endphp
 
-                                                                <div class="item cancel">
-                                                                    <div class="name">
-                                                                        @if($cancel->cancel_policy === 'free_until_checkin')
-                                                                            @lang('main.free_cancellation') {{ $freeDate }}
-                                                                            UTC {{ $timezone }}
-
-                                                                        @elseif($cancel->cancel_policy === 'free_then_penalty')
-                                                                            @if(now()->lte($cancelDate))
-                                                                                @lang('main.free_cancellation') {{ $cancelDate }}
+                                                                    <div class="item cancel">
+                                                                        <div class="name">
+                                                                            @if($cancel->cancel_policy === 'free_until_checkin')
+                                                                                @lang('main.free_cancellation') {{ $freeDate }}
                                                                                 UTC {{ $timezone }}
-                                                                            @else
-                                                                                @lang('main.cancellation_is_not_avaialble')
-                                                                                .
-                                                                            @endif
-                                                                            @lang('main.cancellation_amount')
-                                                                            : {{ round($cancelPrice) }} {{ $symbol }}
 
-                                                                        @else
-                                                                            @lang('main.cancellation_amount')
-                                                                            : {{ round($cancelPrice) }} {{ $symbol }}
-                                                                        @endif
+                                                                            @elseif($cancel->cancel_policy === 'free_then_penalty')
+                                                                                @if(now()->lte($cancelDate))
+                                                                                    @lang('main.free_cancellation') {{ $cancelDate }}
+                                                                                    UTC {{ $timezone }}
+                                                                                @else
+                                                                                    @lang('main.cancellation_is_not_avaialble')
+                                                                                    .
+                                                                                @endif
+                                                                                @lang('main.cancellation_amount')
+                                                                                : {{ round($cancelPrice) }} {{ $symbol }}
+
+                                                                            @else
+                                                                                @lang('main.cancellation_amount')
+                                                                                : {{ round($cancelPrice) }} {{ $symbol }}
+                                                                            @endif
+                                                                        </div>
                                                                     </div>
-                                                                </div>
+                                                                @endif
                                                                 <div class="item price">
                                                                     {{ round($converted) }} {{ $symbol }}
                                                                 </div>
@@ -315,7 +327,8 @@
                                                                                value="{{ round($cancelPrice) }}">
                                                                         <input type="hidden" name="price"
                                                                                value="{{ round($converted) }}">
-                                                                        <input type="hidden" name="currency" value="{{ $symbol }}">
+                                                                        <input type="hidden" name="currency"
+                                                                               value="{{ $symbol }}">
                                                                         <button class="more">@lang('main.book')</button>
                                                                     </form>
                                                                 </div>

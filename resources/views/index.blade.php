@@ -12,7 +12,6 @@
                 line-height: 50px;
                 display: block;
             }
-
             .select2-container--default .select2-selection--single .select2-selection__rendered {
                 line-height: 50px;
             }
@@ -28,7 +27,7 @@
                                 <a href="{{route('search')}}">@lang('main.hotels_and_rooms')</a>
                             </div>
                             <div class="type-item">
-                                <a href="{{ route('offline') }}">Оффлайн запрос</a>
+                                <a href="{{ route('offline') }}">@lang('main.offline')</a>
                             </div>
                             {{--                            <div class="type-item">--}}
                             {{--                                <a href="#">@lang('main.transfer')</a>--}}
@@ -66,7 +65,7 @@
                                     {{-- Общая сводка (клик открывает окно) --}}
                                     <a href="javascript:void(0)"
                                        id="rooms-summary">
-                                        {{__('main.room')}}: 1, {{__('main.adult')}}: 1, {{__('main.child')}}: 0
+                                        @lang('main.room'): 1, @lang('main.adult'): 1, @lang('main.child'): 0
                                     </a>
 
                                     {{-- Полупрозрачный оверлей --}}
@@ -206,7 +205,7 @@
                                                     childrenTotal += +r.querySelector('.count-child').textContent;
                                                 });
                                                 summaryBtn.textContent =
-                                                    `Комнат: ${roomCount}, Взрослых: ${adultsTotal}, Детей: ${childrenTotal}`;
+                                                    `@lang('main.room'): ${roomCount}, @lang('main.adult'): ${adultsTotal}, @lang('main.child'): ${childrenTotal}`;
                                                 summaryBtn.classList.toggle('opacity-50', roomCount >= MAX_ROOMS);
                                                 summaryBtn.classList.toggle('pointer-events-none', roomCount >= MAX_ROOMS);
                                             }
@@ -628,6 +627,8 @@
             </div>
         </div>
     @else
-        @include('layouts.auth')
+        <script>
+            window.location.href = "{{ route('extranet') }}";
+        </script>
     @endauth
 @endsection

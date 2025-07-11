@@ -25,7 +25,7 @@
         $room = \App\Models\Room::where('id', $book->room_id)->first();
         $img = \App\Models\Image::where('hotel_id', $book->hotel_id)->first();
         $rate = \App\Models\Rate::where('id', $book->rate_id)->first();
-        $meal = \App\Models\Meal::where('id', $rate->meal_id)->first('title');
+        $meal = \App\Models\Meal::where('id', $rate->meal_id  ?? 1)->first('title');
         $region = \App\Models\City::where('name', $hotel->city)->first('title');
         $arrivalDate = \Carbon\Carbon::parse($book->arrivalDate)->format('d.m.Y');
         $departureDate = \Carbon\Carbon::parse($book->departureDate)->format('d.m.Y');

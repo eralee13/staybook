@@ -19,7 +19,11 @@
         }
 
         .noUi-connect {
-            background-color: #00a3e9;
+            background-color: #0161ae;
+        }
+        .btn-check:active+.btn-outline-primary, .btn-check:checked+.btn-outline-primary, .btn-outline-primary.active, .btn-outline-primary.dropdown-toggle.show, .btn-outline-primary:active{
+            background-color: #0161ae !important;
+            border-color: #0161ae !important;
         }
     </style>
 
@@ -36,7 +40,7 @@
                             <a href="{{route('index')}}">@lang('main.hotels_and_rooms')</a>
                         </div>
                         <div class="type-item current">
-                            <a href="{{ route('offline') }}">Оффлайн запрос</a>
+                            <a href="{{ route('offline') }}">@lang('main.offline')</a>
                         </div>
                     </div>
                     <form action="{{ route('offline_send') }}" method="post" enctype="multipart/form-data">
@@ -247,6 +251,8 @@
                                     <label for="">Ваше сообщение</label>
                                     <textarea name="message" cols="30" rows="3"></textarea>
                                 </div>
+                            </div>
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="">Добавить файл</label>
                                     <input type="file" name="file">

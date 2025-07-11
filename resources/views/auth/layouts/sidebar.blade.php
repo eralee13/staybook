@@ -6,7 +6,7 @@
 {{--    @endphp--}}
     <ul>
         @can('edit-hotel')
-            <li @routeactive('dashboard*') class="hotel-list"><a href="{{route('dashboard')}}"><img src="{{ route('index') }}/img/icons/home.svg" alt=""> Консоль</a></li>
+            <li @routeactive('dashboard*') class="hotel-list"><a href="{{route('dashboard')}}"><img src="{{ route('index') }}/img/icons/home.svg" alt=""> @lang('admin.dashboard')</a></li>
                 <li @routeactive(
                 'hotel*') class="hotel-list"><a href="{{route('hotels.index')}}"><img src="{{ route('index') }}/img/icons/home.svg" alt=""> @lang('admin.hotels')</a></li>
                 <li @routeactive(
@@ -31,15 +31,15 @@
             <li @routeactive(
             'allbills.index')><a href="{{route('allbills.index')}}"><img src="{{ route('index') }}/img/icons/file.svg" alt=""> Все счета</a></li>
             @endhasrole
-{{--            @hasrole('B2B')--}}
-{{--            <li @routeactive('userbook*')>--}}
-{{--        <a href="{{ route('userbooks.index')}}"><i class="fa-regular fa-money-bill"></i> @lang('admin.my_bookings')</a>--}}
-{{--        </li>--}}
-{{--            @endhasrole--}}
+            @hasrole('B2B')
+            <li @routeactive('userbook*')>
+        <a href="{{ route('userbooks.index')}}"><i class="fa-regular fa-money-bill"></i> @lang('admin.my_bookings')</a>
+        </li>
+            @endhasrole
 {{--            <li @routeactive('userbook*')>--}}
 {{--            <a href="{{ route('userbooks.index')}}"><i class="fa-regular fa-money-bill"></i> @lang('admin.my_bookings')</a>--}}
 {{--            </li>--}}
 
-        <li><a href="{{ route('logout') }}">Выйти из системы</a></li>
+        <li><a href="{{ route('logout') }}">@lang('admin.logout')</a></li>
     </ul>
 </div>

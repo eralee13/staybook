@@ -1,4 +1,4 @@
-@extends('auth.layouts.hotelhead')
+@extends('auth.layouts.master')
 
 @section('title', __('admin.hotels'))
 
@@ -23,7 +23,7 @@
                 </div>
                 <div class="col-md-4">
                     <div class="add">
-                        <a href="{{ route('hotel.create') }}" class="more add">Воспользоваться помощником</a>
+                        <a href="{{ route('hotel.create') }}" class="more add">@lang('admin.use_assistant')</a>
                     </div>
                 </div>
             </div>
@@ -31,7 +31,7 @@
                 <div class="col-md-12">
                     <div id="search_list"></div>
                     @admin
-                        Кол-во отелей: {{ $chotel->count() }}
+                        @lang('admin.count_hotels'): {{ $chotel->count() }}
                     @endadmin
                     <table>
                         <tr>

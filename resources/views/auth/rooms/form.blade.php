@@ -51,6 +51,26 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="row border-wrap">
+                            <div class="col-md-6">
+                                @include('auth.layouts.error', ['fieldname' => 'title_local'])
+                                <div class="form-group">
+                                    <label for="">@lang('admin.title') Local</label>
+                                    <input type="text" name="title_local" value="{{ old('title_local', isset($room) ? $room->title_local :
+                             null) }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                @include('auth.layouts.error', ['fieldname' => 'title_en'])
+                                <div class="form-group">
+                                    <label for="">@lang('admin.title') Local EN</label>
+                                    <input type="text" name="title_local_en" value="{{ old('title_en', isset($room) ?
+                                $room->title_local_en :
+                             null) }}">
+                                </div>
+                            </div>
+                        </div>
                         @include('auth.layouts.error', ['fieldname' => 'description'])
                         <div class="form-group">
                             <label for="">@lang('admin.description')</label>
@@ -503,7 +523,8 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <input id="ament19" type="checkbox" name="amenities[]" value="High quality bed linen"
+                                    <input id="ament19" type="checkbox" name="amenities[]"
+                                           value="High quality bed linen"
                                     @isset($room)
                                         {{ in_array('High quality bed linen', $amenities) ? 'checked' : '' }}
                                             @endisset>
@@ -938,7 +959,8 @@
                             <h6>Internet</h6>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <input id="int" type="checkbox" name="amenities[]" value="High-speed internet access"
+                                    <input id="int" type="checkbox" name="amenities[]"
+                                           value="High-speed internet access"
                                     @isset($room)
                                         {{ in_array('High-speed internet access', $amenities) ? 'checked' : '' }}
                                             @endisset>
@@ -968,7 +990,7 @@
                             <input type="file" name="image">
                         </div>
                         <div class="form-group">
-                            <label for="">Загрузить изображения</label>
+                            <label for="">@lang('admin.images')</label>
                             <input type="file" name="images[]" multiple="true">
                         </div>
                         @csrf
@@ -979,7 +1001,7 @@
                     @isset($images)
                         <div class="img-wrap">
                             <div class="row">
-                                <label for="">Все изображения</label>
+                                <label for="">@lang('admin.images')</label>
                                 @foreach($images as $image)
                                     <div class="col-md-2">
                                         <div class="img-item">

@@ -53,21 +53,21 @@
                             <div class="col-md-6">
                                 @include('auth.layouts.error', ['fieldname' => 'room_id'])
                                 <div class="form-group">
-                                    <label for="">Категория номера</label>
+                                    <label for="">@lang('admin.category_room')</label>
                                     <select name="room_id">
-                                        @isset($rate)
-                                            <option value="{{ $rate->room_id }}"
-                                                    selected>{{ $rate->room->title }}</option>
-                                        @else
-                                            <option value="">@lang('admin.choose')</option>
-                                        @endisset
+{{--                                        @isset($rate)--}}
+{{--                                            <option value="{{ $rate->room_id }}"--}}
+{{--                                                    selected>{{ $rate->room->title }}</option>--}}
+{{--                                        @else--}}
+{{--                                            <option value="">@lang('admin.choose')</option>--}}
+{{--                                        @endisset--}}
                                         @foreach($rooms as $room)
                                             @isset($rate)
                                                 @if($rate->room_id != $room->id)
-                                                    <option value="{{ $room->id }}">{{ $room->title }}</option>
+                                                    <option value="{{ $room->id }}">{{ $room->__('title') }}</option>
                                                 @endif
                                             @else
-                                                <option value="{{ $room->id }}">{{ $room->title }}</option>
+                                                <option value="{{ $room->id }}">{{ $room->__('title') }}</option>
                                             @endisset
                                         @endforeach
                                     </select>
@@ -120,7 +120,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'availability'])
-                                    <label for="">Доступно</label>
+                                    <label for="">@lang('admin.availability')</label>
                                     <input type="number" name="availability" value="{{ old('availability', isset($rate) ?
                                 $rate->availability : null) }}">
                                 </div>
@@ -128,7 +128,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'price'])
-                                    <label for="">Стоимость за 1 взрослого</label>
+                                    <label for="">@lang('admin.price_for') 1 @lang('main.adult')</label>
                                     <input type="number" name="price" value="{{ old('price', isset($rate) ?
                                 $rate->price : null) }}">
                                 </div>
@@ -136,7 +136,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'price2'])
-                                    <label for="">Стоимость за 2 взрослого</label>
+                                    <label for="">@lang('admin.price_for') 2 @lang('main.adult')</label>
                                     <input type="number" name="price2" value="{{ old('price2', isset($rate) ?
                                 $rate->price2 : null) }}">
                                 </div>
@@ -144,7 +144,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'price3'])
-                                    <label for="">Стоимость за 3 взрослого</label>
+                                    <label for="">@lang('admin.price_for') 3 @lang('main.adult')</label>
                                     <input type="number" name="price3" value="{{ old('price3', isset($rate) ?
                                 $rate->price3 : null) }}">
                                 </div>
@@ -152,7 +152,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'price4'])
-                                    <label for="">Стоимость за 4 взрослого</label>
+                                    <label for="">@lang('admin.price_for') 4 @lang('main.adult')</label>
                                     <input type="number" name="price4" value="{{ old('price4', isset($rate) ?
                                 $rate->price4 : null) }}">
                                 </div>
@@ -160,7 +160,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'adult'])
-                                    <label for="">Кол-во взрослых</label>
+                                    <label for="">@lang('admin.count_adult')</label>
                                     <input type="number" name="adult" value="{{ old('adult', isset($rate) ?
                                 $rate->adult : null) }}">
                                 </div>
@@ -168,7 +168,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'child'])
-                                    <label for="">Кол-во детей</label>
+                                    <label for="">@lang('admin.count_child')</label>
                                     <input type="number" name="child" value="{{ old('child', isset($rate) ?
                                 $rate->child : null) }}">
                                 </div>
@@ -183,13 +183,13 @@
                                     @else
                                         <input type="checkbox" name="children_allowed" value="1" id="children_allowed">
                                     @endisset
-                                    <label for="children_allowed">Можно ли заселять с детьми</label>
+                                    <label for="children_allowed">@lang('admin.child_possible')</label>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'free_child_age'])
-                                    <label for="">Возраст ребёнка, при котором бесплатное проживание*</label>
+                                    <label for="">@lang('admin.child_age_free')</label>
                                     <input type="number" name="free_children_age" value="{{ old('free_children_age', isset($rate) ?
                                 $rate->free_children_age : null) }}">
                                 </div>
@@ -197,7 +197,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'child_extra_fee'])
-                                    <label for="">Стоимость доплаты за ребенка</label>
+                                    <label for="">@lang('admin.child_pay')</label>
                                     <input type="number" name="child_extra_fee" value="{{ old('child_extra_fee', isset($rate) ?
                                 $rate->child_extra_fee : null) }}">
                                 </div>
@@ -206,23 +206,29 @@
                         </div>
                         <div class="row">
                             <div class="col-md-12">
-                                <h4>Ограничения бронирования</h4>
-                                <label for="">Вы можете открыть или закрыть продажи тарифа в определённое время. Отсчёт
-                                    идёт от 00:00 (начала суток) предполагаемого дня заезда.
-                                </label>
+                                @if(app()->getLocale() == 'ru')
+                                    <h4>Ограничения бронирования</h4>
+                                    <label for="">Вы можете открыть или закрыть продажи тарифа в определённое время. Отсчёт
+                                        идёт от 00:00 (начала суток) предполагаемого дня заезда.
+                                    </label>
+                                @else
+                                    <h4>Booking restrictions</h4>
+                                    <label for="">You can open or close sales of the tariff at a certain time. The countdown starts from 00:00 (beginning of the day) of the expected day of arrival.
+                                    </label>
+                                @endif
                             </div>
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         @include('auth.layouts.error', ['fieldname' => 'open_time'])
-                                        <label for="">Продажи будут открыты за (дней)</label>
+                                        <label for="">@lang('admin.book_open')</label>
                                         <input type="text" name="open_time">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         @include('auth.layouts.error', ['fieldname' => 'close_time'])
-                                        <label for="">Продажи будут закрыты за (дней)</label>
+                                        <label for="">@lang('admin.book_close')</label>
                                         <input type="text" name="close_time">
                                     </div>
                                 </div>

@@ -16,6 +16,8 @@ class Room extends Model
     protected $fillable = [
         'title',
         'title_en',
+        'title_local',
+        'title_local_en',
         'description',
         'description_en',
         'tourmind_id',

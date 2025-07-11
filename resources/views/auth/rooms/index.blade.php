@@ -13,7 +13,7 @@
                 <div class="col-md-9">
                     <div class="row align-items-center aic">
                         <div class="col-md-7">
-                            <h6>{{ $hotel->title }}</h6>
+                            <h6>{{ $hotel->__('title') }}</h6>
                             <h1>@lang('admin.rooms')</h1>
                         </div>
                         <div class="col-md-5">
@@ -32,6 +32,7 @@
                                 <th>#</th>
                                 <th>@lang('admin.image')</th>
                                 <th>@lang('admin.title')</th>
+                                <th>@lang('admin.title') Local</th>
                                 <th>@lang('admin.area')</th>
                                 <th>@lang('admin.action')</th>
                             </tr>
@@ -48,6 +49,7 @@
                                         @endif
                                     </td>
                                     <td>{{ $room->__('title') }}</td>
+                                    <td>{{ $room->__('title_local') }}</td>
                                     <td>{{ $room->area }} м<sup>2</sup></td>
                                     <td>
                                         <form action="{{ route('rooms.destroy', $room) }}" method="post">

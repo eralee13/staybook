@@ -63,7 +63,7 @@ class Rate extends Model
      */
     public function room()
     {
-        return $this->belongsTo(Room::class, 'room_id', 'exely_id');
+        return $this->belongsTo(Room::class);
     }
     /**
      * @return BelongsTo

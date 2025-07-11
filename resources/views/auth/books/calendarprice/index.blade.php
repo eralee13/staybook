@@ -20,9 +20,9 @@
                 <div class="tabs">
                     <ul>
                         <li @routeactive(
-                        'bookcalendar.index')><a href="{{route('bookcalendar.index')}}" class="more">Квоты</a></li>
+                        'bookcalendar.index')><a href="{{route('bookcalendar.index', $hotel)}}" class="more">Квоты</a></li>
                         <li @routeactive(
-                        'bookcalendarprice.index')><a href="{{route('bookcalendarprice.index')}}">Цены</a></li>
+                        'bookcalendarprice.index')><a href="{{route('bookcalendarprice.index', $hotel)}}">Цены</a></li>
                     </ul>
                 </div>
             </div>
@@ -31,24 +31,35 @@
             <div class="e-search">
                 <div class="form-group">
                     <label for="">Выберите отель</label>
+                    @can('edit-contact')
+                        <select name="hotel_id" id="hotel_id" class="form-control" style="width: 200px"
+                                onchange="window.location.href = '{{ route(Route::currentRouteName(), ['hotel' => '__HOTEL__']) }}'.replace('__HOTEL__', this.value)">
+                            @foreach ($hotelslist as $hotel)
+                                <option value="{{ $hotel->id }}" {{ request()->route('hotel') == $hotel->id ? 'selected' : '' }}>
+                                    {{ $hotel->title }}
+                                </option>
+                            @endforeach
+                        </select>
+                    @endcan
+                    @hasrole('Hotel')
+                    @php
+                        $hot = \App\Models\Hotel::where('id', $hotel)->first();
+                    @endphp
                     <select name="hotel_id" id="hotel_id" class="form-control" style="width: 200px"
                             onchange="window.location.href = '{{ route(Route::currentRouteName(), ['hotel' => '__HOTEL__']) }}'.replace('__HOTEL__', this.value)">
-                        @foreach ($hotelslist as $hotel)
-                            <option value="{{ $hotel->id }}" {{ request()->route('hotel') == $hotel->id ? 'selected' : '' }}>
-                                {{ $hotel->title }}
-                            </option>
-                        @endforeach
+                        @if($hot)
+                            <option value="{{ $hot->id }}">{{ $hot->title }}</option>
+                        @else
+                            <option disabled>Отель не найден</option>
+                        @endif
                     </select>
-
-
+                    @endhasrole
                 </div>
                 @php
                     use Carbon\Carbon;
-
                     // Добавляем 1 месяц вперёд и устанавливаем на 1 и 2 число
                     $startDate = Carbon::now()->startOfMonth()->format('Y-m-d');
                     $endDate = Carbon::now()->endOfMonth()->format('Y-m-d');
-
 
                     // Получаем текущую локаль Laravel
                     $locale = app()->getLocale(); // 'ru', 'en', и т.д.

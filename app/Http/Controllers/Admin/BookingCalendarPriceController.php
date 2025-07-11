@@ -25,11 +25,11 @@ class BookingCalendarPriceController extends Controller
             return redirect()->route('index');
         }
 
-        $hotelId = $request->get('hotel_id');
+        $hotelId = $request->session()->get('hotel_id');
         $hotelslist = Hotel::select('id', 'title')->orderBy('title', 'asc')->get();
 
         $startDate = Carbon::now()->startOfDay();
-        $endDate = Carbon::now()->copy()->addDays(5)->endOfDay();
+        $endDate = Carbon::now()->copy()->addDays(60)->endOfDay();
 
         $books = Book::with('room.rates')
             ->whereHas('room', fn($q) => $q->where('hotel_id', $hotelId))
@@ -234,6 +234,7 @@ class BookingCalendarPriceController extends Controller
             'events' => $events,
             'request' => $request,
             'warning' => $warning,
+            'hotel' => $hotelId
         ]);
     }
 
@@ -248,7 +249,7 @@ class BookingCalendarPriceController extends Controller
 
         $hotelId = $request->get('hotel_id');
         $startDate = Carbon::now()->startOfDay();
-        $endDate = Carbon::now()->copy()->addDays(5)->endOfDay();
+        $endDate = Carbon::now()->copy()->addDays(60)->endOfDay();
 
         $hotel = Hotel::find($hotelId);
         $resources = [];
@@ -519,7 +520,7 @@ class BookingCalendarPriceController extends Controller
             // ✅ Шаг 5: Создание брони
             $book = Book::create([
                 'book_token' => $token,
-                'title' => '',
+                'title1' => '',
                 'title2' => '',
                 'hotel_id' => $hotelId,
                 'room_id' => $roomId,

@@ -29,18 +29,9 @@
                         <div class="col-md-4">
                             <div class="dashboard-item">
                                 <div class="name">@lang('admin.guests')</div>
-                                {{ $book->title }}<br>
+                                {{ $book->title1 }}<br>
                                 @isset($book->title2)
                                     {{ $book->title2 }}<br>
-                                @endisset
-                                @isset($book->titlec1)
-                                    {{ $book->titlec1 }} - ({{$book->age1}})<br>
-                                @endisset
-                                @isset($book->titlec2)
-                                    {{ $book->titlec2 }} - ({{$book->age2}})<br>
-                                @endisset
-                                @isset($book->titlec3)
-                                    {{ $book->titlec3 }} - ({{$book->age3}})
                                 @endisset
                             </div>
                         </div>
@@ -85,9 +76,9 @@
                             <div class="dashboard-item">
                                 <div class="name">@lang('admin.hotel')</div>
                                 <div class="wrap">
-                                    {{ $hotel->title }}
+                                    {{ $hotel->__('title') }}
                                     <div class="name" style="margin-top: 20px">@lang('admin.room')</div>
-                                    @isset($room) {{ $room->title }}@endisset <br>
+                                    @isset($room) {{ $room->__('title') }}@endisset <br>
 {{--                                    <div class="name">Тариф:</div> {{ $category->title }}--}}
                                 </div>
                             </div>

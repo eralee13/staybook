@@ -7,7 +7,6 @@ use App\Jobs\FetchExelyAvailabilityJob;
 use App\Models\Meal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -25,11 +24,11 @@ class BookingCalendarController extends Controller
             return redirect()->route('index');
         }
 
-        $hotelId = $request->get('hotel_id');
+        $hotelId = $request->session()->get('hotel_id');
         $hotelslist = Hotel::select('id', 'title')->orderBy('title', 'asc')->get();
 
         $startDate = Carbon::now()->startOfDay();
-        $endDate = Carbon::now()->copy()->addDays(5)->endOfDay();
+        $endDate = Carbon::now()->copy()->addDays(60)->endOfDay();
 
         Book::with('room.rates')
             ->whereHas('room', fn($q) => $q->where('hotel_id', $hotelId))
@@ -227,6 +226,7 @@ class BookingCalendarController extends Controller
             'request' => $request,
             'exelyEmpty' => $exelyEmpty ?? false,
             'warning' => $warning,
+            'hotel' => $hotelId
         ]);
     }
 
@@ -241,7 +241,7 @@ class BookingCalendarController extends Controller
 
         $hotelId = $request->get('hotel_id');
         $startDate = Carbon::now()->startOfDay();
-        $endDate = Carbon::now()->copy()->addDays(5)->endOfDay();
+        $endDate = Carbon::now()->copy()->addDays(60)->endOfDay();
 
         $hotel = Hotel::find($hotelId);
         $resources = [];
@@ -405,7 +405,7 @@ class BookingCalendarController extends Controller
         return response()->json([
             'resources' => $resources,
             'events' => $events,
-            'warning' => $warning
+            'warning' => $warning,
         ]);
     }
 
@@ -479,7 +479,7 @@ class BookingCalendarController extends Controller
             // ✅ Шаг 5: Создание брони
             $book = Book::create([
                 'book_token' => $token,
-                'title' => '',
+                'title1' => '',
                 'title2' => '',
                 'hotel_id' => $hotelId,
                 'room_id' => $roomId,

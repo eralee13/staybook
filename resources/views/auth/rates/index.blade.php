@@ -29,7 +29,7 @@
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
                                     <td>{{ $rate->__('title') ?? '' }}</td>
-                                    <td>{{ $rate->room->title ?? '' }}</td>
+                                    <td>{{ $rate->room->__('title') ?? '' }}</td>
                                     <td>{{ $rate->meal->code ?? '' }}</td>
                                     <td>
                                         <form action="{{ route('rates.destroy', $rate) }}" method="post">
@@ -48,7 +48,7 @@
                         </table>
                         {{ $rates->links('pagination::bootstrap-4') }}
                     @else
-                        <h2 style="text-align: center">Тарифы не найдены</h2>
+                        <h2 style="text-align: center">@lang('admin.rates_not_found')</h2>
                     @endif
                     <div class="btn-wrap" style="margin-top: 20px">
                         <a class="btn add" href="{{ route('rates.create') }}"><i class="fa-solid

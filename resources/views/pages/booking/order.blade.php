@@ -77,7 +77,7 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="">@lang('main.phone')</label>
-                                        <input type="text" name="phone" id="phone" value="{{ Auth::user()->phone }}"
+                                        <input type="text" name="phone" id="phone" style="padding-left: 50px" value="{{ Auth::user()->phone }}"
                                                required>
                                         <div id="output"></div>
                                     </div>

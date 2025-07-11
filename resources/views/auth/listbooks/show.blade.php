@@ -32,7 +32,7 @@
                         <div class="col-md-4">
                             <div class="dashboard-item">
                                 <div class="name">@lang('admin.guests')</div>
-                                {{ $book->title }}<br>
+                                {{ $book->title1 }}<br>
                                 @isset($book->title2)
                                     {{ $book->title2 }}<br>
                                 @endisset
@@ -79,10 +79,10 @@
                                 <div class="wrap">
                                     {{ $hotel->title ??  $hotel->title_en ?? ''}} <br>
                                     <div class="name" style="margin-top: 20px">@lang('admin.room')</div>
-                                    {{ $room->title ?? $room->title_en ?? ''}} <br>
+                                    {{ $room->__('title') ?? ''}} <br>
                                     @if(!empty($rate))
-                                        <div class="name" style="margin-top: 20px">Тариф</div>
-                                        {{ $rate->title ?? '' ?? $rate->title_en ?? ''}} <br>
+                                        <div class="name" style="margin-top: 20px">@lang('admin.rate')</div>
+                                        {{ $rate->__('title') ?? ''}} <br>
                                     @endif
                                 </div>
                             </div>
@@ -92,10 +92,10 @@
                                 <div class="name">@lang('admin.dates_of_stay')</div>
                                 {{ $book->showStartDate() }} - {{ $book->showEndDate() }}
                             </div>
-                            <div class="dashboard-item">
-                                <div class="name">Кол-во дней:</div>
-                                {{ $numberOfDays }}
-                            </div>
+{{--                            <div class="dashboard-item">--}}
+{{--                                <div class="name">Кол-во дней:</div>--}}
+{{--                                {{ $numberOfDays }}--}}
+{{--                            </div>--}}
                             <div class="dashboard-item">
                                 <div class="name">@lang('admin.price')</div>
                                 @if($book->sum != 1)

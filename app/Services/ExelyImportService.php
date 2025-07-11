@@ -51,9 +51,9 @@ class ExelyImportService
     protected function importCity($property)
     {
         City::updateOrCreate(
-            ['exely_id' => $property->contactInfo->address->cityId],
+            ['title' => $property->contactInfo->address->cityName],
             [
-                'title' => $property->contactInfo->address->cityName,
+                'exely' => $property->contactInfo->address->cityId,
                 'code' => Str::slug($property->contactInfo->address->cityName),
             ]
         );

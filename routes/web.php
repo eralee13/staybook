@@ -19,6 +19,7 @@ use App\Livewire\HotelRooms;
 use App\Livewire\HotelWizard;
 use App\Livewire\LWTester;
 use Dedoc\Scramble\Scramble;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
 
@@ -193,5 +194,13 @@ Route::middleware('set_locale')->group(function () {
     Route::post('book_mail', [MainController::class, 'book_mail'])->name('book_mail');
 
     Route::get('/lwtester', [LWTester::class, 'render'])->name('livewire.lwtester');
+});
+
+Route::get('/clear-cache', function () {
+    Artisan::call('cache:clear');
+    Artisan::call('route:clear');
+    Artisan::call('view:clear');
+    //Artisan::call('web:clear');
+    return "Cache cleared successfully";
 });
 

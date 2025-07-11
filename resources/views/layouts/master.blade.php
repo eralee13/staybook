@@ -118,15 +118,26 @@
                             </ul>
                         </div>
                         <div class="auth">
-                            <a href="{{ route('extranet') }}"><img src="{{route('index')}}/img/user_w.svg" alt="">
+                            @auth
+                            <a href="{{ route('profile.edit') }}"><img src="{{route('index')}}/img/user_w.svg" alt="">
                                 @lang('main.login')</a>
+                            @else
+                                <a href="{{ route('extranet') }}"><img src="{{route('index')}}/img/user_w.svg" alt="">
+                                    @lang('main.login')</a>
+                            @endif
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-10 col-md-9 col-8 d-xl-none d-lg-none d-block">
                     <div class="wrap">
                         <div class="auth">
-                            <a href="{{route('extranet')}}"><img src="{{route('index')}}/img/user_w.svg" alt=""> @lang('main.login')</a>
+                            @auth
+                                <a href="{{ route('profile.edit') }}"><img src="{{route('index')}}/img/user_w.svg" alt="">
+                                    @lang('main.login')</a>
+                            @else
+                                <a href="{{ route('extranet') }}"><img src="{{route('index')}}/img/user_w.svg" alt="">
+                                    @lang('main.login')</a>
+                            @endif
                         </div>
                         <nav>
                             <a href="#" class="toggle-mnu d-xl-none d-lg-none"><span></span></a>

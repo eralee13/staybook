@@ -118,24 +118,26 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'city'])
-                                    <label for="">Укажите город</label>
-                                    <select name="city" id="cityhot">
-                                        @isset($hotel)
-                                            <option value="{{ $hotel->city }}"
-                                                    selected>{{ $hotel->city }}</option>
-                                        @else
-                                            <option value="">@lang('admin.choose')</option>
-                                        @endisset
-                                        @foreach($cities as $city)
-                                            @isset($hotel)
-                                                @if($hotel->city != $city->title)
-                                                    <option value="{{ $city->id }}" {{ old('city') == $city->id ? 'selected' : '' }}>{{ $city->title }}</option>
-                                                @endif
-                                            @else
-                                                <option value="{{ $city->id }}" {{ old('city') == $city->id ? 'selected' : '' }}>{{ $city->title }}</option>
-                                            @endisset
-                                        @endforeach
-                                    </select>
+                                    <label for="">@lang('admin.city')</label>
+                                    <input type="text" name="city" {{ old('city', isset($hotel) ? $hotel->city :
+                             null) }}>
+{{--                                    <select name="city" id="cityhot">--}}
+{{--                                        @isset($hotel)--}}
+{{--                                            <option value="{{ $hotel->city }}"--}}
+{{--                                                    selected>{{ $hotel->city }}</option>--}}
+{{--                                        @else--}}
+{{--                                            <option value="">@lang('admin.choose')</option>--}}
+{{--                                        @endisset--}}
+{{--                                        @foreach($cities as $city)--}}
+{{--                                            @isset($hotel)--}}
+{{--                                                @if($hotel->city != $city->title)--}}
+{{--                                                    <option value="{{ $city->id }}" {{ old('city') == $city->id ? 'selected' : '' }}>{{ $city->title }}</option>--}}
+{{--                                                @endif--}}
+{{--                                            @else--}}
+{{--                                                <option value="{{ $city->id }}" {{ old('city') == $city->id ? 'selected' : '' }}>{{ $city->title }}</option>--}}
+{{--                                            @endisset--}}
+{{--                                        @endforeach--}}
+{{--                                    </select>--}}
                                 </div>
                             </div>
 
@@ -153,7 +155,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'timezone'])
-                                    <label for="">Часовой пояс</label>
+                                    <label for="">@lang('admin.timezone')</label>
                                     <select name="timezone" id="timezone">
                                         @isset($hotel)
                                             <option value="{{ $hotel->timezone }}"
@@ -391,7 +393,7 @@
 
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="">Изображения</label>
+                                    <label for="">@lang('admin.images')</label>
                                     <input type="file" name="images[]" multiple="true">
                                 </div>
                             </div>

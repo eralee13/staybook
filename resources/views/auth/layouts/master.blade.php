@@ -41,31 +41,27 @@
             </div>
             <div class="col-md-9">
                 <div class="profile">
-                    <a href="{{ route('profile.edit') }}">Профиль</a>
+                    <a href="{{ route('profile.edit') }}">@lang('admin.profile')</a>
                 </div>
                 <div class="wrap">
                     <div class="lang-wrap" id="lang">
-                        <div class="currency">KGS</div>
+{{--                        <div class="currency">KGS</div>--}}
                         <div class="lang">
                             <div class="lang-item">
-                                <a href="#">Русский <img src="{{route('index')}}/img/ru.svg" alt=""></a>
+                                @if(app()->getLocale() == 'ru')
+                                    <a href="#">Русский <img src="{{route('index')}}/img/ru.svg" alt=""></a>
+                                @else
+                                    <a href="#"><img src="{{route('index')}}/img/en.svg" alt=""> English</a>
+                                @endif
                             </div>
                         </div>
                         <div class="overwrap" id="over">
                             <ul class="tabs" id="tabs">
-                                <li class="current" data-tab="tab-1">Валюта</li>
-                                <li data-tab="tab-2">Язык</li>
+                                <li class="current" data-tab="tab-1">@lang('admin.language')</li>
                             </ul>
                             <div class="tab-content current" id="tab-1">
                                 <ul>
-                                    <li>KGS Кыргызский сом</li>
-                                    <li>RUB Российский рубль</li>
-                                    <li class="current">USD Американский доллар</li>
-                                </ul>
-                            </div>
-                            <div class="tab-content" id="tab-2">
-                                <ul>
-                                    <li><img src="{{route('index')}}/img/kg.svg" alt=""> Кыргыз тили</li>
+{{--                                    <li><img src="{{route('index')}}/img/kg.svg" alt=""> Кыргыз тили</li>--}}
                                     <li  @if(session('locale')=='ru')
                                              current
                                             @endif><a href="{{ route('locale', 'ru') }}"><img src="{{route('index')}}/img/ru.svg" alt=""> Русский</a></li>
@@ -78,7 +74,7 @@
                     </div>
                 </div>
                 <div class="homelink">
-                    <a href="{{route('index')}}" target="_blank">Перейти на сайт</a>
+                    <a href="{{route('index')}}" target="_blank">@lang('admin.visit')</a>
                 </div>
             </div>
         </div>
