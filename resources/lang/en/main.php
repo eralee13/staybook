@@ -124,6 +124,15 @@ return [
     'quest' => 'Guest',
     'city' => 'City',
     'type' => 'Type',
-    'offline' => 'Offline request'
+    'offline' => 'Offline request',
+    'hotel_name' => 'Hotel name',
+    'price_night' => 'Price per night',
+    'accommodation_type' => 'Accommodation type',
+    'room_type' => 'Room type',
+    'children_age' => 'Children age',
+    'upload_file' => 'Upload file',
+    'create_book' => 'Create book',
+    'guests' => 'Guests',
+    'clear' => 'Clear',
 
 ];

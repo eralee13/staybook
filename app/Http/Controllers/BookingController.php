@@ -20,6 +20,7 @@ class BookingController extends Controller
     //local
     public function order(Request $request)
     {
+        $startedAt = session('search_started_at');
         $arrival = Carbon::createFromDate($request->arrivalDate)->format('d.m.Y');
         $departure = Carbon::createFromDate($request->departureDate)->format('d.m.Y');
 
@@ -469,7 +470,7 @@ class BookingController extends Controller
                             'rate_id' => $request->get('ratePlanId'),
                             'currency' => $res->booking->currencyCode,
                             //'rateId' => $request->get('ratePlanId'),
-                            'title' => $request->get('firstName'),
+                            'title1' => $request->get('firstName'),
                             //'title2' => $request->get('roomCount'),
                             'phone' => $request->get('phone'),
                             'email' => $request->get('email'),
@@ -494,7 +495,7 @@ class BookingController extends Controller
                             'rate_id' => $request->get('ratePlanId'),
                             'currency' => $res->booking->currencyCode,
                             //'rateId' => $request->get('ratePlanId'),
-                            'title' => $request->get('firstName'),
+                            'title1' => $request->get('firstName'),
                             //'title2' => $request->get('roomCount'),
                             'phone' => $request->get('phone'),
                             'email' => $request->get('email'),
@@ -504,7 +505,7 @@ class BookingController extends Controller
                             'status' => 'Reserved',
                             'book_token' => $res->booking->number,
                             'user_id' => Auth::id() ?? 1,
-                            'tag' => 'exely'
+                            'api_type' => 'exely'
                         ]);
                         Mail::to('info@staybook.asia')->send(new BookMail($book));
                         Log::warning('Бронь создана: ' . $book->id);

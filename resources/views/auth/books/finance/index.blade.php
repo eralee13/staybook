@@ -11,6 +11,24 @@
                     @include('auth.layouts.sidebar')
                 </div>
                 <div class="col-md-9">
+                    <form method="GET" class="mb-3">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label for="month">Фильтр по месяцу</label>
+                                <select name="month" id="month" class="form-control" onchange="this.form.submit()">
+                                    <option value="">Все месяцы</option>
+                                    @foreach(range(1, 12) as $m)
+                                        @php
+                                            $date = \Carbon\Carbon::createFromDate(null, $m, 1);
+                                        @endphp
+                                        <option value="{{ $m }}" {{ request('month') == $m ? 'selected' : '' }}>
+                                            {{ $date->translatedFormat('F') }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </form>
                     @if($books->isNotEmpty())
                         <div class="row align-items-center aic">
                             <div class="col-md-9">
@@ -19,7 +37,7 @@
                             <div class="col-md-3">
                                 <div class="btn-wrap">
                                     <a class="btn add" href="{{ route('excel-books') }}">
-                                      Выгрузить в Excel
+                                      @lang('admin.export_excel')
                                     </a>
                                 </div>
                             </div>
@@ -45,7 +63,7 @@
                                         <div class="date">@lang('admin.created') {{ $book->created_at }}</div>
                                     </td>
                                     <td>
-                                        <div class="title">{{ $book->title }}</div>
+                                        <div class="title">{{ $book->title1 }}</div>
                                         <div class="date">{{ $book->adult }} @lang('admin.adult')</div>
                                         @if($book->child > 0)
                                             <div class="date">{{ $book->child }} @lang('admin.child')</div>
@@ -121,7 +139,5 @@
             display: inline-block;
         }
     </style>
-
-
 
 @endsection

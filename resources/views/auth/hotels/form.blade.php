@@ -119,8 +119,8 @@
                                 <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'city'])
                                     <label for="">@lang('admin.city')</label>
-                                    <input type="text" name="city" {{ old('city', isset($hotel) ? $hotel->city :
-                             null) }}>
+                                    <input type="text" name="city" value="{{ old('city', isset($hotel) ? $hotel->city :
+                             null) }}">
 {{--                                    <select name="city" id="cityhot">--}}
 {{--                                        @isset($hotel)--}}
 {{--                                            <option value="{{ $hotel->city }}"--}}

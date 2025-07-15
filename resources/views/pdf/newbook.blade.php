@@ -100,7 +100,7 @@
         <span class="s5">{{ $book->child ?? 0}}</span></h2>
 
         <h2 style="padding-bottom: 6pt; text-indent: 0pt;text-align: left;">Rate:
-        <span class="s5">{{ $rate->title_en ?? $rate->title ?? ''}}</span></h2>
+        <span class="s5">{{ $rate->title_en ?? $rate->title ??  ?? ''}}</span></h2>
 
         <hr style="border: none; border-top: 2px dotted #c7e1f6;  margin-top: 10px; margin-bottom: 10px; margin-left: 5pt;">
 

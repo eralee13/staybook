@@ -39,7 +39,7 @@
                             @foreach($rules as $cancellation)
                                 <tr>
                                     <td>{{ $cancellation->id }}</td>
-                                    <td>{{ $cancellation->__('title') }}</td>
+                                    <td>{{ $cancellation->__('title') ?? '' }}</td>
                                     <td>
                                         @if($cancellation->cancel_policy === 'free_until_checkin')
                                             @lang('admin.free_until_checkin')
@@ -49,7 +49,7 @@
                                             @lang('admin.non_refundable')
                                         @endif
                                     </td>
-                                    <td>{{ $cancellation->rate->__('title') ?? '' }}</td>
+                                    <td>{{ optional($cancellation->rate)->__('title') }}</td>
                                     <td>
                                         <form action="{{ route('cancellations.destroy', $cancellation) }}" method="post">
                                             <ul>

@@ -46,7 +46,7 @@ class UserBookController extends Controller
         $books = Book::where('user_id', $user)->where('status', 'Reserved')->get();
         Book::where('id', $book->id)->update(['status' => 'Cancelled']);
         Log::warning('Отмена брони: ' . $book->id);
-        //Mail::to('myrzabekova@silkwaytravel.kg')->send(new BookCancelMail($book));
+        Mail::to('info@staybook.asia')->send(new BookCancelMail($book));
         session()->flash('success', 'Booking ' . $request->title . ' is cancelled');
         return redirect()->route('auth.userbooks.index', compact('books'));
     }
@@ -87,7 +87,7 @@ class UserBookController extends Controller
                 $cancel = $response->object();
                 Book::where('id', $book->id)->update(['status' => 'Cancelled']);
                 Log::warning('Отмена брони: ' . $book->id);
-                Mail::to('myrzabekova@silkwaytravel.kg')->send(new BookCancelMail($book));
+                Mail::to('info@staybook.asia')->send(new BookCancelMail($book));
                 return view('auth.userbooks.cancel-confirm-exely', compact('cancel'));
             } else {
                 Log::warning('Запрос завершился ошибкой: ' . $response->status());
@@ -104,7 +104,7 @@ class UserBookController extends Controller
     public function cancelBookTM(Request $request, Book $book)
     {
         $user = Auth::id();
-        $message;
+        $message = '';
 
         if ( $request->api_type == 'tourmind' ){
             $res = $this->cancelOrderTm($request, $book);

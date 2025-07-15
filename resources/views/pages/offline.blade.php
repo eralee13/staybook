@@ -73,7 +73,7 @@
                         <hr>
                         <div class="row">
                             <div class="col-md-12">
-                                <h4>Название отеля</h4>
+                                <h4>@lang('main.hotel_name')</h4>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
@@ -108,11 +108,11 @@
                         <hr>
                         <div class="row">
                             <div class="col-md-12">
-                                <h4>Номера</h4>
+                                <h4>@lang('main.rooms')</h4>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label for="">Кол-во номеров</label>
+                                    <label for="">@lang('main.count_room')</label>
                                     <select name="room_count" id="room_count" class="form-select">
                                         <option value="">@lang('admin.choose')</option>
                                         @for($i = 1; $i <= 8; $i++)
@@ -126,7 +126,8 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label for="">Стоимость за ночь <span class="text-muted">USD</span></label>
+                                    <label for="">@lang('main.price_night') <span class="text-muted">{{ $fxBase }}</span></label>
+                                    <input type="hidden" name="currency" value="{{ $fxBase }}">
                                     <div id="price-slider" class="mb-2"></div>
                                     <div class="d-flex justify-content-between">
                                         <input type="number" id="min-price" name="min_price" class="form-control"
@@ -139,7 +140,7 @@
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="">@lang('admin.meals')</label>
-                                    <div class="btn-group" role="group" aria-label="Meal options">
+                                    <divad class="btn-group" role="group" aria-label="Meal options">
                                         @php
                                             $meals = ['ALL' => 'ALL', 'BB' => 'BB', 'FB' => 'FB', 'HB' => 'HB', 'RO' => 'RO'];
                                         @endphp
@@ -150,18 +151,18 @@
                                             <label class="btn btn-outline-primary"
                                                    for="meal-{{ $key }}">{{ $label }}</label>
                                         @endforeach
-                                    </div>
+                                    </divad>
                                 </div>
                             </div>
                         </div>
                         <hr>
                         <div class="row">
                             <div class="col-md-12">
-                                <h4>Тип размещения</h4>
+                                <h4>@lang('main.accommodation_type')</h4>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label for="">Тип размещения</label>
+                                    <label for="">@lang('main.accommodation_type')</label>
                                     <select name="accommodation" id="">
                                         <option>@lang('admin.choose')</option>
                                         <option value="Single">Single</option>
@@ -175,7 +176,7 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label for="">Тип номера</label>
+                                    <label for="">@lang('main.room_type')</label>
                                     <select name="type_room" id="">
                                         <option>@lang('admin.choose')</option>
                                         <option value="Suite">Suite</option>
@@ -190,10 +191,10 @@
                         <hr>
                         <div class="row">
                             <div class="col-md-12">
-                                <h4>Гости</h4>
+                                <h4>@lang('main.guests')</h4>
                             </div>
                             <div class="col-md-2 col-6 mb-3">
-                                <label class="form-label">Кол-во взрослых</label>
+                                <label class="form-label">@lang('main.count_adult')</label>
                                 <div class="input-group">
                                     <button type="button" class="btn btn-outline-secondary" onclick="updateGuests('adult', -1)">−</button>
                                     <input type="text" id="adult-count" name="adult" class="form-control text-center" value="1" readonly>
@@ -203,7 +204,7 @@
 
                             <!-- Дети -->
                             <div class="col-md-2 col-6 mb-3">
-                                <label class="form-label">Кол-во детей</label>
+                                <label class="form-label">@lang('main.count_child')</label>
                                 <div class="input-group">
                                     <button type="button" class="btn btn-outline-secondary" onclick="updateGuests('child', -1)">−</button>
                                     <input type="text" id="child-count" name="child" class="form-control text-center" value="0" readonly>
@@ -213,18 +214,18 @@
 
                             <!-- Возраст детей -->
                             <div class="col-md-8 mb-3">
-                                <label class="form-label">Возраст детей</label>
+                                <label class="form-label">@lang('main.children_age')</label>
                                 <div id="child-ages" class="d-flex flex-wrap gap-2"></div>
                             </div>
                         </div>
                         <hr>
                         <div class="row">
                             <div class="col-md-12">
-                                <h4>Контакты</h4>
+                                <h4>@lang('main.contacts')</h4>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label for="">Ваше имя</label>
+                                    <label for="">@lang('main.name')</label>
                                     <input type="text" name="name">
                                     @error('name')
                                     <div class="alert alert-danger">{{ $message }}</div>
@@ -233,7 +234,7 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label for="">Номер телефона</label>
+                                    <label for="">@lang('main.phone')</label>
                                     <input type="text" id="phone" name="phone">
                                     @error('phone')
                                     <div class="alert alert-danger">{{ $message }}</div>
@@ -242,19 +243,19 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label for="">Ваш email</label>
+                                    <label for="">Email</label>
                                     <input type="email" name="email">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="">Ваше сообщение</label>
+                                    <label for="">@lang('main.message')</label>
                                     <textarea name="message" cols="30" rows="3"></textarea>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="">Добавить файл</label>
+                                    <label for="">@lang('main.upload_file')</label>
                                     <input type="file" name="file">
                                 </div>
                             </div>
@@ -262,11 +263,11 @@
                         @csrf
                         <div class="row align-items-center">
                             <div class="col-md-4">
-                                <button class="more" id="send">Создать заказ</button>
+                                <button class="more" id="send">@lang('main.create_book')</button>
                             </div>
                             <div class="col-md-8">
                                 <div class="btn-wrap">
-                                    <a href="{{ route('offline') }}">Очистить фильтр</a>
+                                    <a href="{{ route('offline') }}">@lang('main.clear')</a>
                                 </div>
                             </div>
                         </div>

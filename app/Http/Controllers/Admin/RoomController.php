@@ -90,7 +90,7 @@ class RoomController extends Controller
             endforeach;
         endif;
 
-        //Mail::to('info@timmedia.store')->send(new RoomCreateMail($request));
+        Mail::to('info@staybook.asia')->send(new RoomCreateMail($request));
         session()->flash('success', 'Room ' . $request->title . ' created');
         return redirect()->route('rooms.index');
     }
@@ -166,7 +166,7 @@ class RoomController extends Controller
         }
 
         $room->update($params);
-        //Mail::to('info@timmedia.store')->send(new RoomUpdateMail($request));
+        Mail::to('info@staybook.asia')->send(new RoomUpdateMail($request));
         session()->flash('success', 'Room ' . $request->title . ' updated');
         return redirect()->route('rooms.index');
     }
@@ -188,7 +188,7 @@ class RoomController extends Controller
             }
             DB::table('images')->where('room_id', $room->id)->delete();
         }
-        //Mail::to('info@timmedia.store')->send(new RoomDeleteMail($room));
+        Mail::to('info@staybook.asia')->send(new RoomDeleteMail($room));
         session()->flash('success', 'Room ' . $room->title . ' deleted');
         return redirect()->route('rooms.index');
     }

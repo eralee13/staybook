@@ -14,19 +14,19 @@
 
                 <h3>Шаг {{ $step }}</h3>
 
-                    @if($hotelError)
-                        <div class="alert alert-danger">{{ $hotelError}}</div>
-                    @endif
+                @if($hotelError)
+                    <div class="alert alert-danger">{{ $hotelError}}</div>
+                @endif
 
-                        @if($hotelSuccess)
-                            <div class="alert alert-success">{{ $hotelSuccess}}</div>
-                        @endif
+                @if($hotelSuccess)
+                    <div class="alert alert-success">{{ $hotelSuccess}}</div>
+                @endif
 
                 @if ($step == 1)
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for=""class="form-label">@lang('admin.title')</label>
+                                <label for="" class="form-label">@lang('admin.title')</label>
                                 <input type="text" wire:model="title" class="form-control">
                                 @error('title')
                                 <div class="alert alert-danger">{{ $message }}</div>
@@ -86,7 +86,7 @@
                             <div class="form-group">
                                 <label for="address">Адрес EN</label>
                                 <input wire:model="address_en" type="text" class="form-control" name="address_en"/>
-                                 @error('address_en')
+                                @error('address_en')
                                 <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -110,7 +110,7 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="lat">Широта</label>
-                                        <input wire:model="lat" type="text" class="form-control" id="lat" >
+                                        <input wire:model="lat" type="text" class="form-control" id="lat">
                                         @error('lat')
                                         <div class="alert alert-danger">{{ $message }}</div>
                                         @enderror
@@ -138,7 +138,7 @@
                             </style>
 
                             <!-- Подключение стилей Leaflet -->
-                            <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+                            <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
                             <div wire:ignore id="map" style="height: 450px;"></div>
 
@@ -165,7 +165,7 @@
                                 L.control.scale().addTo(map);
 
                                 // Обработчик клика по карте
-                                map.on('click', function(e) {
+                                map.on('click', function (e) {
                                     var lat = e.latlng.lat;  // Широта
                                     var lng = e.latlng.lng;  // Долгота
 
@@ -174,8 +174,10 @@
                                         map.removeLayer(marker);
                                     }
 
-                                @this.set('lat', lat.toFixed(6));
-                                @this.set('lng', lng.toFixed(6));
+                                @this.set('lat', lat.toFixed(6))
+                                    ;
+                                @this.set('lng', lng.toFixed(6))
+                                    ;
 
                                     // Добавление маркера на выбранную точку
                                     if (lat && lng) {
@@ -257,7 +259,7 @@
                                     <option value="23:00">23:00</option>
                                 </select>
                                 @error('checkin')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
                             </div>
 
@@ -293,7 +295,7 @@
                                 <input type="email" wire:model="email" class="form-control">
 
                                 @error('email')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
                             </div>
 
@@ -306,7 +308,7 @@
                                     <option value="5">5</option>
                                 </select>
                                 @error('rating')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
                             </div>
 
@@ -317,7 +319,7 @@
                                 <label for="">Описание EN</label>
                                 <textarea class="form-control" wire:model="description_en" rows="3"></textarea>
                                 @error('description_en')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
                             </div>
 
@@ -345,7 +347,7 @@
                                     <option value="18:00">18:00</option>
                                 </select>
                                 @error('checkout')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
                             </div>
 
@@ -377,20 +379,20 @@
                             </div>
 
                             <div class="form-group">
-                                <label for=""class="form-label">@lang('main.phone')</label>
+                                <label for="" class="form-label">@lang('main.phone')</label>
                                 <input type="tel" id="phone" wire:model="phone" class="phone form-control">
                                 @error('phone')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
                             </div>
-                            
-                            
-                            <div class="form-group"  
-                                @can('edit-contact')
-                                    style="display: block;"
-                                @else
-                                    style="display: none;"
-                                @endcan
+
+
+                            <div class="form-group"
+                                 @can('edit-contact')
+                                     style="display: block;"
+                                 @else
+                                     style="display: none;"
+                                    @endcan
                             >
                                 <label for="status" class="form-label">@lang('main.status')</label>
                                 <select wire:model="status">
@@ -398,7 +400,7 @@
                                     <option value="0" selected>Отключен</option>
                                 </select>
                                 @error('status')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
                             </div>
 
@@ -409,12 +411,14 @@
                             <div class="form-group">
                                 <label for="hotel_images" class="form-label">Изображения</label>
                                 <input type="file" wire:model="hotel_images" multiple class="form-control"/>
-                                @error('hotel_images') <div class="alert alert-danger">{{ $message }}</div> @enderror
+                                @error('hotel_images')
+                                <div class="alert alert-danger">{{ $message }}</div> @enderror
 
                                 <div class="mt-2 row gap-2">
                                     @foreach ($hotel_images as $photo)
                                         <div class="col-2">
-                                            <img src="{{ $photo->temporaryUrl() }}" class="h-24 w-full object-cover rounded border" />
+                                            <img src="{{ $photo->temporaryUrl() }}"
+                                                 class="h-24 w-full object-cover rounded border"/>
                                         </div>
                                     @endforeach
                                 </div>
@@ -422,473 +426,6 @@
 
                         </div>
                     </div>
-
-                @elseif ($step == 3)
-                   
-                    <div class="row step-3 mt-3">
-                        <h3 class="mt-3">Добавить номер</h3>
-
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                               
-                                <label for="">Название</label>
-                                <input type="text" wire:model="room_name" class="form-control">
-                                 @error('room_name')
-                                    <div class="alert alert-danger">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                        </div>
-                        <div class="col-md-6">
-
-                            <div class="mb-3">
-                                
-                                <label for="">Название EN</label>
-                                <input type="text" wire:model="room_name_en" class="form-control">
-                                @error('room_name_en')
-                                    <div class="alert alert-danger">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                        </div>
-
-                        <div class="col-md-6">
-
-                            <div class="mb-3">
-                                
-                                <label for="">Площадь</label>
-                                <input type="text" wire:model="area" class="form-control">
-                                @error('area')
-                                    <div class="alert alert-danger">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="" class="form-label">Добавить изображения</label>
-                                <input type="file" wire:model="room_images" multiple class="form-control"/>
-                                @error('room_images') <div class="alert alert-danger">{{ $message }}</div> @enderror
-
-                                <div class="mt-2 row">
-                                    @foreach ($room_images as $photo)
-                                        <div class="col-2">
-                                            <img src="{{ $photo->temporaryUrl() }}" class="h-24 w-full object-cover rounded border" />
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-
-                            <div class="form-group">
-                                <label for="">Описание</label>
-                                <textarea class="form-control" wire:model="room_desc" rows="3"></textarea>
-                                @error('room_desc')
-                                    <div class="alert alert-danger">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="form-group">
-                                {{-- Услуги --}}
-                                <div x-data="serviceRoomInputServices('room_services')" class="mb-3">
-                                    <label>Услуги</label>
-                                    <div class="form-control d-flex flex-wrap" @click="$refs.input.focus()">
-                                        <template x-for="(item, index) in data" :key="index">
-                                                <span class="badge bg-primary me-1 mb-1">
-                                                    <span x-text="item"></span>
-                                                    <button type="button" class="btn-close btn-close-white btn-sm ms-1"
-                                                            @click="remove(index)"></button>
-                                                </span>
-                                        </template>
-
-                                        <input type="text"
-                                               x-ref="input"
-                                               x-model="inputValue"
-                                               @keydown.enter.prevent="add"
-                                               @keydown.tab.prevent="add"
-                                               @keydown.space.prevent="add"
-                                               class="border-0 flex-grow-1"
-                                               placeholder=""
-                                               style="min-width: 100px; outline: none;">
-                                    </div>
-                                    <input type="hidden" :value="JSON.stringify(data)" wire:model="room_services">
-                                </div>
-                            </div>
-
-                        </div>
-                        <div class="col-md-6">
-
-                            <div class="form-group">
-                                <label for="">Описание EN</label>
-                                <textarea class="form-control" wire:model="room_desc_en" rows="3"></textarea>
-                                @error('room_desc_en')
-                                    <div class="alert alert-danger">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="mb-3">
-                                {{-- Услуги EN --}}
-                                <div x-data="serviceRoomInputServicesEn('room_services_en')" class="mb-3">
-                                    <label>Услуги EN</label>
-                                    <div class="form-control d-flex flex-wrap" @click="$refs.input.focus()">
-                                        <template x-for="(item, index) in data" :key="index">
-                                                <span class="badge bg-primary me-1 mb-1">
-                                                    <span x-text="item"></span>
-                                                    <button type="button" class="btn-close btn-close-white btn-sm ms-1"
-                                                            @click="remove(index)"></button>
-                                                </span>
-                                        </template>
-
-                                        <input type="text"
-                                               x-ref="input"
-                                               x-model="inputValue"
-                                               @keydown.enter.prevent="add"
-                                               @keydown.tab.prevent="add"
-                                               @keydown.space.prevent="add"
-                                               class="border-0 flex-grow-1"
-                                               placeholder=""
-                                               style="min-width: 100px; outline: none;">
-                                    </div>
-                                    <input type="hidden" :value="JSON.stringify(data)" wire:model="room_services_en">
-                                </div>
-                            </div>
-
-                        </div>
-                        
-
-                        <div class="col-md-12">
-                            @if($roomError)
-                                <div class="alert alert-danger">{{ $roomError }}</div>
-                            @endif
-
-                            <ul style="list-style: none; padding: 0; margin: 0;">
-                                @foreach($rooms as $index => $room)
-                                    <li>
-                                        <img src="https://staybooc.local/img/icons/check.svg" style="width: 20px; height: 20px; margin-right: 10px; vertical-align: middle;">
-                                        <strong>{{ $room['name'] ? $room['name'] . ' -' : '' }} {{ $room['name_en'] }}</strong>
-                                    </li>
-                                @endforeach
-                            </ul>
-
-                            <div class="mt-4 d-flex justify-content-end gap-2">
-                                <button wire:click="addRoom" class="more">Добавить</button>
-                            </div>
-                        </div>
-                    </div>
-
-                @elseif ($step == 4)
-
-                    <div class="row">
-                        <h3>Добавить политику отмены</h3>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="rule_name" class="form-label">Название</label>
-                                    <input type="text" wire:model="rule_name" class="form-control">
-
-                                        @error('rule_name')
-                                            <div class="alert alert-danger">{{ $message }}</div>
-                                        @enderror
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                @include('auth.layouts.error', ['fieldname' => 'descr'])
-                                <div class="form-group">
-                                    <label for="descr">Описание правил отмены</label>
-                                    <textarea wire:model="descr" rows="3"></textarea>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="container mt-4" id="cancelPolicWrapper" >
-                            <h5 class="mb-3">Отмена и штрафы</h5>
-
-                            <div class="form-check mb-3">
-                                <input class="form-check-input" type="radio" wire:model="cancel_policy" id="policy1" value="free_until_checkin" wire:click="setCancelPolicy('free_until_checkin')">
-                                <label class="policy1 form-check-label" for="policy1">
-                                    <strong>Бесплатная отмена вплоть до времени заезда</strong><br>
-                                    <small class="text-muted">В случае отмены бронирования гостю вернётся полная стоимость или предоплата.</small>
-                                </label>
-                            </div>
-
-                            <div class="form-check mb-3">
-                                <input class="form-check-input" type="radio" wire:model="cancel_policy" id="policy2" value="free_then_penalty" wire:click="setCancelPolicy('free_then_penalty')">
-                                <label class="policy2 form-check-label" for="policy2">
-                                    <strong>Бесплатная отмена, а затем отмена со штрафом вплоть до времени заезда</strong><br>
-                                    <small class="text-muted">
-                                        В случае отмены до указанного времени, стоимость бронирования или предоплаты будет полностью возвращена гостю. 
-                                        Если бронирование отменено позже указанного времени, вы сможете списать штраф.
-                                    </small>
-                                </label>
-                            </div>
-
-                            <div class="form-check mb-3">
-                                <input class="form-check-input" type="radio" wire:model="cancel_policy" id="policy3" value="non_refundable" wire:click="setCancelPolicy('non_refundable')">
-                                <label class="policy3 form-check-label" for="policy3">
-                                    <strong>Невозвратный тариф</strong><br>
-                                    <small class="text-muted">В случае отмены бронирования с гостя будет удержана полная стоимость бронирования или предоплата.</small>
-                                </label>
-                            </div>
-                            
-                        </div>
-
-                        <div class="row">
-                            {{-- <div class="col-md-6">
-                                <div class="form-group">
-                                    <input type="checkbox" wire:model="is_refundable" value="1">
-                                    <label for="is_refundable">Разрешить отмену</label>
-                                </div>
-                            </div> --}}
-                            
-                            @if( $this->cancel_policy == 'free_then_penalty' )
-                                <div class="col-md-6" id="policy-field1">
-                                    <div class="form-group">
-                                        <label for="">Количество дней до заезда для бесплатной отмены</label>
-                                        <input type="number" wire:model="free_cancellation_days">
-
-                                            @error('free_cancellation_days')
-                                                <div class="alert alert-danger">{{ $message }}</div>
-                                            @enderror
-                                    </div>
-                                </div>
-                            @endif
-                            
-                            @if ($this->cancel_policy == 'free_then_penalty'  || $this->cancel_policy == 'non_refundable')
-                                <div class="col-md-6" id="policy-field2">
-                                    <div class="form-group">
-                                        <label for="">Тип штрафа</label>
-                                        <select wire:model="penalty_type" id="">
-                                            <option value="">@lang('admin.choose')</option>
-                                            <option value="fixed">Фиксированная сумма</option>
-                                            <option value="percent">Процент от стоимости</option>
-                                            <option value="nights">Кол-во ночей</option>
-                                        </select>
-
-                                            @error('penalty_type')
-                                                <div class="alert alert-danger">{{ $message }}</div>
-                                            @enderror
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6" id="policy-field3">
-                                    
-                                    <div class="form-group">
-                                        <label for="">Размер штрафа</label>
-                                        <input type="number" wire:model="penalty_amount">
-
-                                            @error('penalty_amount')
-                                                <div class="alert alert-danger">{{ $message }}</div>
-                                            @enderror
-                                    </div>
-                                </div>
-                            @endif
-
-                            <div class="col-md-12">
-                                @if($ruleError)
-                                    <div class="alert alert-danger">{{ $ruleError }}</div>
-                                @endif
-
-                                <ul style="list-style: none; padding: 0; margin: 0;">
-                                    @foreach($rules as $rule)
-                                        <li>
-                                            <img src="https://staybooc.local/img/icons/check.svg" style="width: 20px; height: 20px; margin-right: 10px; vertical-align: middle;">
-                                            <strong>{{ $rule['id'] }} → {{ $rule['name'] }}</strong>
-                                        </li>
-                                    @endforeach
-                                </ul>
-
-                                <div class="mt-4 d-flex justify-content-end gap-2">
-                                    <button wire:click="addRule" class="more">Добавить правило</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                @elseif ($step == 5)
-                    <div class="row">
-                        <h3>Добавить тарифы</h3>
-
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="" class="form-label">Номер</label>
-                                <select wire:model="selected_room" class="form-control">
-                                    <option value="">Выбрать</option>
-                                    @foreach($rooms as $index => $room)
-                                        <option value="{{ $room['id'] }}">{{ $room['name_en'] }}</option>
-                                    @endforeach
-                                </select>
-
-                                @error('selected_room')
-                                    <div class="alert alert-danger">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="" class="form-label">Доступно</label>
-                                <input type="text" wire:model="availability" class="form-control">
-                                    @error('availability')
-                                    <div class="alert alert-danger">{{ $message }}</div>
-                                    @enderror
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="" class="form-label">Название тарифа</label>
-                                <input type="text" wire:model="rate_name" class="form-control">
-                                    @error('rate_name')
-                                        <div class="alert alert-danger">{{ $message }}</div>
-                                    @enderror
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="" class="form-label">Название тарифа EN</label>
-                                <input type="text" wire:model="rate_name_en"  class="form-control">
-
-                                    @error('rate_name_en')
-                                    <div class="alert alert-danger">{{ $message }}</div>
-                                    @enderror
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="" class="form-label">Тип питания</label>
-                                <select wire:model="meal" class="form-control">
-                                    <option value="">Выбрать</option>
-                                    @foreach($meals as $key => $meal)
-                                        <option value="{{ $meal['id'] }}">{{ $meal['title'] }}</option>
-                                    @endforeach
-                                </select>
-                                    @error('meal')
-                                         <div class="alert alert-danger">{{ $message }}</div>
-                                    @enderror
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="bed">@lang('admin.bed')</label>
-                                <select wire:model="bed_type">
-                                    <option value="Single">Single</option>
-                                    <option value="Double">Double</option>
-                                    <option value="Twin">Twin</option>
-                                    <option value="Triple">Triple</option>
-                                    <option value="Quadruple">Quadruple</option>
-                                    <option value="King Size">King Size</option>
-                                </select>
-
-                                    @error('bed_type')
-                                         <div class="alert alert-danger">{{ $message }}</div>
-                                    @enderror
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="">Стоимость за 1 взрослого</label>
-                                <input type="number" wire:model="price">
-                                    @error('price')
-                                         <div class="alert alert-danger">{{ $message }}</div>
-                                    @enderror
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="">Стоимость за 2 взрослого</label>
-                                <input type="number" wire:model="price2">
-
-                                    @error('price2')
-                                         <div class="alert alert-danger">{{ $message }}</div>
-                                    @enderror
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="">Кол-во взрослых</label>
-                                <input type="number" name="adult" wire:model="adult">
-                                    @error('adult')
-                                         <div class="alert alert-danger">{{ $message }}</div>
-                                    @enderror
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="">Кол-во детей</label>
-                                <input type="number" name="child" wire:model="child">
-                                    @error('child')
-                                         <div class="alert alert-danger">{{ $message }}</div>
-                                    @enderror
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <input type="hidden" name="children_allowed" value="0">
-                                    @error('children_allowed')
-                                         <div class="alert alert-danger">{{ $message }}</div>
-                                    @enderror
-                                <input type="checkbox" wire:model="children_allowed" value="1" id="children_allowed">
-                                <label for="children_allowed">Можно ли заселять с детьми</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="">Возраст ребёнка, при котором бесплатное проживание*</label>
-                                <input type="number" wire:model="free_children_age">
-                                    @error('free_children_age')
-                                         <div class="alert alert-danger">{{ $message }}</div>
-                                    @enderror
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="">Стоимость доплаты за ребенка</label>
-                                <input type="number" wire:model="child_extra_fee">
-                                    @error('child_extra_fee')
-                                         <div class="alert alert-danger">{{ $message }}</div>
-                                    @enderror
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="" class="form-label">Политика отмены</label>
-                                <select wire:model="cancellation_rule_id" class="form-control">
-                                    <option value="">Выбрать</option>
-                                    @foreach($rules as $index => $rule)
-                                        <option value="{{ $rule['id'] }}">{{ $rule['name'] }}</option>
-                                    @endforeach
-                                </select>
-
-                                    @error('cancellation_rule_id')
-                                        <div class="alert alert-danger">{{ $message }}</div>
-                                    @enderror
-                            </div>
-                        </div>
-
-                        <div class="col-md-12 mt-3">
-                            @if($rateError)
-                                <div class="alert alert-danger">{{ $rateError }}</div>
-                            @endif
-                            <ul>
-                                @foreach($rates as $rate)
-                                    <li>{{ $rooms[$rate['room_id']]['name'] }} → {{ $rate['name'] }}</li>
-                                @endforeach
-                            </ul>
-                            <div class="mt-4 d-flex justify-content-end gap-2">
-                                <button wire:click="addRate" class="more">Добавить тариф</button>
-                            </div>
-                        </div>
-
-                    </div>
-
                 @endif
 
                 <div class="mt-4 d-flex justify-content-center gap-2">
@@ -896,10 +433,10 @@
                         <button wire:click="prevStep" class="more cancel">Назад</button>
                     @endif
 
-                    @if ($step < 5)
+                    @if ($step < 2)
                         <button wire:click="nextStep" class="more">Далее</button>
                     @else
-                        <a href="{{ route('index') }}" class="more">Завершить</a>
+                        <button wire:click="submit" class="more">Завершить</button>
                     @endif
                     <br><br>
                 </div>
@@ -981,7 +518,8 @@
                         height: auto;
                         margin-right: 5px;
                     }
-                    .more{
+
+                    .more {
                         margin: 0 20px;
                     }
                 </style>
@@ -989,11 +527,13 @@
                     .admin label {
                         display: inline-block;
                     }
+
                     #policy1, #policy2, #policy3 {
                         float: left;
                         width: 25px;
                         margin-right: 15px;
                     }
+
                     .policy1, .policy2, .policy3 {
                         display: inline-block;
                         width: calc(100% - 40px);

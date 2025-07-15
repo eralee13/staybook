@@ -42,6 +42,7 @@
                                     'Минеральная вода' => 'water.svg',
                                 ];
                             @endphp
+
                             <h1>{{ $hotel->city }}</h1>
                             <div class="row">
                                 <div class="col-md-7">
@@ -49,6 +50,7 @@
                                         <div class="fotorama" data-allowfullscreen="true" data-nav="thumbs"
                                              data-loop="true"
                                              data-autoplay="30000">
+                                            <img src="{{ Storage::url($hotel->image) }}" alt="">
                                             @if($images)
                                                 @foreach($images as $file)
                                                     <img loading="lazy" src="{{ Storage::url($file->image)}}" alt="">
@@ -167,7 +169,7 @@
                                                 <div class="owl-carousel owl-tariffs">
                                                     @foreach($roomRates as $room)
                                                         @can('edit-contact')
-                                                            Кол-во квот: {{ $room->availability }}
+                                                            Осталось квот: {{ $room->availability }}
                                                         @endcan
                                                         @php
                                                             $roomName = \App\Models\Room::where('exely_id', $room->roomType->id)->first();

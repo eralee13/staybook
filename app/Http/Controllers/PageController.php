@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\OfflineRequest;
+use App\Mail\OfflineMail;
 use App\Models\Amenity;
 use App\Models\Image;
 use App\Models\Offline;
@@ -16,6 +17,7 @@ use App\Models\Hotel;
 use App\Services\FXService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class PageController extends Controller
 {
@@ -123,7 +125,8 @@ class PageController extends Controller
             $params['file'] = $request->file('file')->store('offline_files', 'public');
         }
 
-        Offline::create($params);
+        $offline = Offline::create($params);
+        Mail::to('info@timdjol.com')->send(new OfflineMail($offline));
 
         session()->flash('success', 'Offline-request ' . $request->name . ' is created');
         return redirect()->route('index');

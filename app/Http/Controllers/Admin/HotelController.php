@@ -123,7 +123,7 @@ class HotelController extends Controller
             )
         );
 
-        //Mail::to('info@timmedia.store')->send(new HotelMail($request));
+        Mail::to('info@staybook.asia')->send(new HotelMail($request));
 
         session()->flash('success', $request->title . ' added');
         return redirect()->route('hotels.index');
@@ -214,7 +214,7 @@ class HotelController extends Controller
                 'rules' => $pathname2,
             ]);
 
-        //Mail::to('info@timmedia.store')->send(new HotelUpdateMail($request));
+        Mail::to('info@staybook.asia')->send(new HotelUpdateMail($request));
 
         session(['hotel_id' => $request->hotel_id]);
 
@@ -247,7 +247,7 @@ class HotelController extends Controller
         DB::table('rates')->where('hotel_id', $hotel->id)->delete();
         DB::table('amenities')->where('hotel_id', $hotel->id)->delete();
         DB::table('payments')->where('hotel_id', $hotel->id)->delete();
-        //Mail::to('info@timmedia.store')->send(new HotelDeleteMail($hotel));
+        Mail::to('info@staybook.asia')->send(new HotelDeleteMail($hotel));
         session()->flash('success', 'Property ' . $hotel->title . ' deleted');
         return redirect()->route('hotels.index');
     }

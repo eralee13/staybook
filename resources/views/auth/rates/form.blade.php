@@ -50,26 +50,20 @@
                                 </div>
                             </div>
 
+
                             <div class="col-md-6">
                                 @include('auth.layouts.error', ['fieldname' => 'room_id'])
                                 <div class="form-group">
                                     <label for="">@lang('admin.category_room')</label>
                                     <select name="room_id">
-{{--                                        @isset($rate)--}}
-{{--                                            <option value="{{ $rate->room_id }}"--}}
-{{--                                                    selected>{{ $rate->room->title }}</option>--}}
-{{--                                        @else--}}
-{{--                                            <option value="">@lang('admin.choose')</option>--}}
-{{--                                        @endisset--}}
-                                        @foreach($rooms as $room)
-                                            @isset($rate)
-                                                @if($rate->room_id != $room->id)
-                                                    <option value="{{ $room->id }}">{{ $room->__('title') }}</option>
-                                                @endif
-                                            @else
+                                        @isset($rate)
+                                            <option value="{{ $rate->room_id }}">{{ $rate->room->__('title') }}</option>
+                                        @else
+                                            <option value="">@lang('admin.choose')</option>
+                                            @foreach($rooms as $room)
                                                 <option value="{{ $room->id }}">{{ $room->__('title') }}</option>
-                                            @endisset
-                                        @endforeach
+                                            @endforeach
+                                        @endisset
                                     </select>
                                 </div>
                             </div>
@@ -208,12 +202,15 @@
                             <div class="col-md-12">
                                 @if(app()->getLocale() == 'ru')
                                     <h4>Ограничения бронирования</h4>
-                                    <label for="">Вы можете открыть или закрыть продажи тарифа в определённое время. Отсчёт
+                                    <label for="">Вы можете открыть или закрыть продажи тарифа в определённое время.
+                                        Отсчёт
                                         идёт от 00:00 (начала суток) предполагаемого дня заезда.
                                     </label>
                                 @else
                                     <h4>Booking restrictions</h4>
-                                    <label for="">You can open or close sales of the tariff at a certain time. The countdown starts from 00:00 (beginning of the day) of the expected day of arrival.
+                                    <label for="">You can open or close sales of the tariff at a certain time. The
+                                        countdown starts from 00:00 (beginning of the day) of the expected day of
+                                        arrival.
                                     </label>
                                 @endif
                             </div>

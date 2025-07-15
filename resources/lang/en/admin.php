@@ -182,5 +182,6 @@ return [
     'fixed_amount' => 'Fixed amount',
     'percent_from_total' => 'Percentage of the total cost',
     'number_nights' => 'Number of nights',
+    'export_excel' => 'Export as Excel',
 
 ];

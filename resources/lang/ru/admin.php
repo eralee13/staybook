@@ -166,6 +166,7 @@ return [
     'fixed_amount' => 'Фиксированная сумма',
     'percent_from_total' => 'Процент от стоимости',
     'number_nights' => 'Кол-во ночей',
+    'export_excel' => 'Выгрузить в Excel',
 
 
 
