@@ -68,7 +68,7 @@
                     {{-- <input type="hidden" name="api_name" 
                             value="tourmind"> --}}
 
-                    <button class="more">Забронировать</button>
+                    <button class="more" id="order">Забронировать</button>
                 </form>
             </div>
         </div>

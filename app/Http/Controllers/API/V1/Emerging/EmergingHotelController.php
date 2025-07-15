@@ -33,8 +33,8 @@ class EmergingHotelController extends Controller
             ->withHeaders([
                 'Content-Type' => 'application/json',
             ])
-            ->post($this->url . '/hotel/info/incremental_dump/', [
-                'inventory' => 'top', 
+            ->post($this->url . '/hotel/info/dump/', [
+                'inventory' => 'all', 
                 'language' => 'en',
             ]);
 
@@ -62,8 +62,8 @@ class EmergingHotelController extends Controller
         // $url = 'https://partner-feedora.s3.eu-central-1.amazonaws.com/feed/partner_feed_en_v3.jsonl.zst';
 
         // Шаг 1: Скачиваем файл во временное хранилище
-        $zstPath = storage_path('app\feed_en_v3.json.zst');
-        $jsonlPath = storage_path('app\hotels_en.jsonl');
+        $zstPath = storage_path('app\partner_feed_en_v3.jsonl.zst');
+        $jsonlPath = storage_path('app\partner_hotels_en.jsonl');
         $zstdExe = 'D:\OSPanel\tools\zstd\zstd.exe';
 
         // file_put_contents($zstPath, file_get_contents($url));
@@ -92,7 +92,7 @@ class EmergingHotelController extends Controller
            
             $data = json_decode($line, true);
 
-            if ($data['region']['name'] == 'Dubai') {
+            if ($data['hid'] == 8473727) {
                 
                 $hotels[] = $data;
 

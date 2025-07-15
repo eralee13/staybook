@@ -31,6 +31,6 @@ class UpdateHotelStaticList extends Command
 
         $request = new Request(); // Создаём пустой запрос
         $controller->fetchHotels($request); // Передаём в метод
-        $this->info('Список отелей обновлён.');
+        // $this->info('Список отелей обновлён.');
     }
 }

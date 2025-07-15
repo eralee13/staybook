@@ -13,7 +13,7 @@
                     <p>
                         Штраф за отмену составляет: {{ $book->cancel_penalty }} {{ $book->currency }}
                     </p>
-                    <form action="{{ route('cancel_confirm_tm') }}">
+                    <form action="{{ route('cancel_confirm_etg') }}">
                         <div class="form-group">
                             <label for="">Номер брони</label>
                             <input type="text" value="{{ $request->number }}" name="number">

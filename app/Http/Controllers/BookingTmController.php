@@ -45,6 +45,10 @@ class BookingTmController extends Controller
 
     public function order_tm(Request $request)
     {
+        // if (!session()->has('booking_tm_timer_start')) {
+        //     session(['booking_tm_timer_start' => now()]);
+        // }
+
         //dd($request->all());
         $arrival = Carbon::createFromDate($request->arrivalDate)->format('d.m.Y');
         $departure = Carbon::createFromDate($request->departureDate)->format('d.m.Y');

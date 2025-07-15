@@ -30,7 +30,14 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 col-md-12">
-                <h1>Подтверждение заказа</h1>
+
+                    <div class="clearfix">
+                        <div id="timer" style="color: red;" class="d-flex justify-content-end">
+                            Время на бронирование : &nbsp;<span id="countdown"></span>
+                        </div>
+                    </div>
+
+                    <h1>Подтверждение заказа</h1>
                     <table>
                         <tr>
                             <td>Отель:</td>
@@ -138,6 +145,7 @@
                         <input type="hidden" name="match_hash" value="{{ $request->match_hash }}">
                         <input type="hidden" name="room_name" value="{{ $request->room_name }}">
                         <input type="hidden" name="rate_name" value="{{ $request->rate_name }}">
+                        <input type="hidden" name="bedTypeDesc" value="{{ $request->bedTypeDesc }}">
                         <input type="hidden" name="refundable" value="{{ $request->refundable }}">
                         <input type="hidden" name="cancelDate" value="{{ $request->cancelDate }}">
                         <input type="hidden" name="cancelPrice" value="{{ $request->cancelPrice }}">
@@ -165,5 +173,46 @@
         </div>
     </div>
 </div>
+<script>
 
+    let secondsLeft = localStorage.getItem('booking_etg_secondsLeft');
+    if (secondsLeft === null) {
+    secondsLeft = 600;
+    } else {
+    secondsLeft = parseInt(secondsLeft);
+    }
+
+    let countdownInterval;
+    let alertShown = false; // флаг
+
+    function formatTime(sec) {
+        let m = Math.floor(sec / 60);
+        let s = sec % 60;
+        return `${m}:${s.toString().padStart(2, '0')}`;
+    }
+
+    function tick() {
+        if (secondsLeft <= 0) {
+            if (!alertShown) {
+                alertShown = true;
+                clearInterval(countdownInterval); // остановить интервал
+                alert("Время бронирования истекло. Пожалуйста, начните заново.");
+                window.location.href = "{{ route('index') }}";
+            }
+            return;
+        }
+
+        document.getElementById('countdown').innerText = formatTime(secondsLeft);
+        secondsLeft--;
+        localStorage.setItem('booking_etg_secondsLeft', secondsLeft);
+    }
+
+    tick(); // первый вызов сразу
+    countdownInterval = setInterval(tick, 1000);
+
+    document.getElementById('booking').addEventListener('click', function() {
+        clearInterval(countdownInterval); // Остановить таймер
+        localStorage.removeItem('booking_etg_secondsLeft'); // Очистить данные
+    });
+</script>
 @endsection

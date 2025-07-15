@@ -28,68 +28,69 @@ class RoomStaticList
 
     public function getRoomList(){
 
-        $hotels = Hotel::whereNotNull('tourmind_id')
-            ->where('tourmind_id', '!=', '')
-            ->get(['id', 'tourmind_id']) // Извлекаем только нужные колонки
-            ->toArray();
+        try {
 
-            // dd($hotels);
+            $hotels = Hotel::whereNotNull('tourmind_id')
+                ->where('tourmind_id', '!=', '')
+                ->get(['id', 'tourmind_id']) // Извлекаем только нужные колонки
+                ->toArray();
 
-        foreach ($hotels as $hotel) {
-            $tourmindId = $hotel['tourmind_id'];
-            $hId = $hotel['id'];
+                // dd($hotels);
 
-            $payload = [
-                "HotelCode" => $tourmindId,
-                "RequestHeader" => [
-                    "AgentCode" => $this->tm_agent_code,
-                    "Password" => $this->tm_password,
-                    "UserName" => $this->tm_user_name,
-                    "RequestTime" => now()->format('Y-m-d H:i:s')
-                ]
-            ];
-    
-            $response = Http::withHeaders([
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json'
-            ])->post("{$this->baseUrl}/RoomStaticList", $payload);
-    
-            if ($response->failed()) {
-                return ['error' => 'Ошибка при запросе к API', 'status' => $response->status()];
-            }
+            foreach ($hotels as $hotel) {
+                $tourmindId = $hotel['tourmind_id'];
+                $hId = $hotel['id'];
 
-            $data = $response->json();
-            $types = $data['RoomTypes'] ?? [];
-            
-            foreach($types as $type){
-
-                try {
-
-                    Room::updateOrCreate(
-
-                        [
-                            'hotel_id' => (int)$hId,
-                            'tourmind_id' => (int)$type['RoomTypeCode'],
-                        ],
-                        [
-                            'title' => (string)$type['RoomTypeName'],
-                            'title_en' => (string)$type['RoomTypeName'],
-                            'description_en' => (string)$type['BedTypeDesc']
-                        ],
-                        
-                    );
-                    
-                } catch (Exception $e) {
-
-                    // Обработка исключения
-                    Log::error('Ошибка Services Room static list: ' . $e->getMessage(), ['exception' => $e]);
-
+                $payload = [
+                    "HotelCode" => $tourmindId,
+                    "RequestHeader" => [
+                        "AgentCode" => $this->tm_agent_code,
+                        "Password" => $this->tm_password,
+                        "UserName" => $this->tm_user_name,
+                        "RequestTime" => now()->format('Y-m-d H:i:s')
+                    ]
+                ];
+        
+                $response = Http::withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json'
+                ])->post("{$this->baseUrl}/RoomStaticList", $payload);
+        
+                if ($response->failed()) {
+                    return ['error' => 'Ошибка при запросе к API', 'status' => $response->status()];
                 }
+
+                $data = $response->json();
+                $types = $data['RoomTypes'] ?? [];
+                
+                foreach($types as $type){
+
+                        Room::updateOrCreate(
+
+                            [
+                                'hotel_id' => (int)$hId,
+                                'tourmind_id' => (int)$type['RoomTypeCode'],
+                            ],
+                            [
+                                'title' => (string)$type['RoomTypeName'],
+                                'title_en' => (string)$type['RoomTypeName'],
+                                'description_en' => (string)$type['BedTypeDesc']
+                            ],
+                            
+                        );
+                        
+                }
+
             }
 
-        }
+            echo 'Данные успешно обновлены';
+            
+        } catch (Exception $e) {
 
-        return ['message' => 'Данные обновлены', 'count' => count($types)];
-        //return $hotels;
+                // Обработка исключения
+                Log::error('Ошибка Services Room static list: ' . $e->getMessage(), ['exception' => $e]);
+                echo 'Ошибка смотри логи';
+            }
+        
     }
 }

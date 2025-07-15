@@ -9,8 +9,9 @@
 
                 $pay_end_date = Carbon\Carbon::createFromDate($payment['cancellation_penalties']['policies'][0]['end_at'])->format('d.m.Y H:i:s');
 
+                $coef = config('app.main_coef');
                 $penaltPrice = $payment['cancellation_penalties']['policies'][1]['amount_charge'] ?? 0;
-                $penaltyPrice = number_format( ( (float)$penaltPrice  * 0.08) + (float)$penaltPrice, 2, '.', '');
+                $penaltyPrice = number_format( ( (float)$penaltPrice  * $coef) + (float)$penaltPrice, 2, '.', '');
 
             }else{
                 $pay_end_date = '';
@@ -66,6 +67,7 @@
                     <input type="hidden" name="hotel_id" value="{{ $hotel->id }}">
                     <input type="hidden" name="rate_name" value="{{ $rate['room_name'] }}">
                     <input type="hidden" name="room_name" value="{{ $rate['room_data_trans']['main_name'] }}">
+                    <input type="hidden" name="bedTypeDesc" value="{{ $rate['room_data_trans']['bedding_type'] }}">
                     <input type="hidden" name="book_hash" value="{{ $rate['book_hash'] }}">
                     <input type="hidden" name="match_hash" value="{{ $rate['match_hash'] }}">
                     <input type="hidden" name="refundable" value="{{ $payment['cancellation_penalties']['free_cancellation_before'] }}">
@@ -82,7 +84,7 @@
                     <input type="hidden" name="utc"  value="{{ $hotel->utc }}">
                     <input type="hidden" name="etgimage"  value="{{ $tmimage }}">
 
-                    <button class="more">Забронировать</button>
+                    <button class="more" id="order">Забронировать</button>
                 </form>
             </div>
         </div>

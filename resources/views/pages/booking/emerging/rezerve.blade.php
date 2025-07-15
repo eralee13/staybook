@@ -1,7 +1,8 @@
 @extends('layouts.head')
 
 @section('title', 'Бронирование')
-
+@dump($finish)
+@dump($order)
 @section('content')
 
     <div class="page order">
@@ -55,10 +56,13 @@
                     </ul>
                     @if( isset($book->id) ) 
                         <div class="bnt-wrap">
-                            <form action="{{ route('cancel_calculate_tm', $book->id) }}">
+                            <form action="{{ route('cancel_calculate_etg', $book->id) }}">
                                 <input type="hidden" name="number" value="{{ $book->book_token }}">
                                 <button class="more">Отменить бронь</button>
                             </form>
+                            @if($message == 'Бронирование успешно создано!' || $message == 'Этот бронь уже существует!')
+                                <button class="more primary" id="getStatus">Узнать статус брони</button>
+                            @endif
                         </div>
                     @endif
 
@@ -76,7 +80,13 @@
             color: darkblue;
         }
 
-        .page form {
+        .page form{
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+        .page .bnt-wrap {
+            display: inline-flex;
+            gap: 20px;
             margin-top: 50px;
         }
 
@@ -86,5 +96,26 @@
             margin-left: 10px;
         }
     </style>
+
+    {{-- <script>
+        document.getElementById('getStatus').addEventListener('click', function() {
+            fetch('{{ route('get.data') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    param: 'значение'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                // вставь data куда нужно
+            })
+            .catch(error => console.error(error));
+        });
+    </script> --}}
 
 @endsection

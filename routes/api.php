@@ -46,9 +46,9 @@ Route::prefix('API/V1/')->group(function () {
     Route::post('TmRoomType', [RoomStaticListController::class, 'fetchRoomsTypes']);
     
     // emerging
+    Route::post('getETGstatus', [EmergingFormController::class, 'getStatus'])->name('getETGstatus');
     Route::get('EmergingHotelStatic', [EmergingHotelController::class, 'fetchHotelStatic']);
     Route::get('EmergingRegionList', [EmergingRegionController::class, 'fetchRegionStatic']);
     Route::get('EmergingDescTransHotel', [EmergingDescTransHotelController::class, 'fetchDescTranslationData']);
     Route::get('EmergingTest', [EmergingTestController::class, 'fetchTest']);
-    Route::get('EmergingForm', [EmergingFormController::class, 'startProcess']);
 });

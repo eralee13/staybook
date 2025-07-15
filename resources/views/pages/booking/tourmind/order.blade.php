@@ -15,6 +15,11 @@
             </div>
             <div class="row">
                 <div class="col-lg-8 col-md-12 order-xl-1 order-lg-1 order-2">
+                    <div class="clearfix">
+                        <div id="timer" style="color: red;" class="d-flex justify-content-end">
+                            Время на бронирование : &nbsp;<span id="countdown"></span>
+                        </div>
+                    </div>
                     <h5>Ваша поездка</h5>
 
                     <form action="{{ route('book_verify_tm') }}">
@@ -278,5 +283,46 @@
             padding-left: 50px;
         }
     </style>
+
+
+<script>
+
+    let secondsLeft = localStorage.getItem('booking_tm_secondsLeft');
+    console.log(secondsLeft);
+    if (secondsLeft === null) {
+    secondsLeft = 600;
+    } else {
+    secondsLeft = parseInt(secondsLeft);
+    }
+
+    let countdownInterval;
+    let alertShown = false; // флаг
+
+    function formatTime(sec) {
+        let m = Math.floor(sec / 60);
+        let s = sec % 60;
+        return `${m}:${s.toString().padStart(2, '0')}`;
+    }
+
+    function tick() {
+        if (secondsLeft <= 0) {
+            if (!alertShown) {
+                alertShown = true;
+                clearInterval(countdownInterval); // остановить интервал
+                alert("Время бронирования истекло. Пожалуйста, начните заново.");
+                localStorage.removeItem('booking_tm_secondsLeft'); // Очистить данные
+                window.location.href = "{{ route('index') }}";
+            }
+            return;
+        }
+
+        document.getElementById('countdown').innerText = formatTime(secondsLeft);
+        secondsLeft--;
+        localStorage.setItem('booking_tm_secondsLeft', secondsLeft);
+    }
+
+    tick(); // первый вызов сразу
+    countdownInterval = setInterval(tick, 1000);
+</script>
 
 @endsection

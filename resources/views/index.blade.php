@@ -38,9 +38,11 @@
                                         <div class="label stay"><img src="{{route('index')}}/img/marker_out.svg" alt="">
                                         </div>
                                         <select name="city" id="city">
-                                            @foreach($cities as $city)
+                                            <option value="3421-Tegucigalpa">Tegucigalpa</option>
+                                            <option value="3421-Kyiv">Kyiv</option>
+                                            {{-- @foreach($cities as $city)
                                                 <option value="{{ $city->country_id }}-{{ $city->name }}">{{ $city->name }}</option>
-                                            @endforeach
+                                            @endforeach --}}
                                         </select>
                                     </div>
                                 </div>
@@ -540,7 +542,7 @@
         </div>
 
 
-        <div class="places">
+        {{-- <div class="places">
             <div class="container">
                 <div class="row">
                     <div class="col-md-12">
@@ -578,7 +580,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> --}}
 
         <div class="places popular">
             <div class="container">

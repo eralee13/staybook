@@ -69,32 +69,167 @@ class BookingEtgController extends Controller
             // $hotel = Hotel::find($request->hotel_id);
             $emergingOrder = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
             $order = $emergingOrder->startProcess($request);
-            $message = '';
+            $message = ''; $finish = '';
+            // dd($request);
             // dd($order);
-            if ( isset($order['Error']) == true) {
 
-                // session()->flash('Success', 'Бронирование успешно создано!');
-                $message = $order['ErrorMessage'];
-                
-            }elseif( $order['Success'] == 'Этот бронь уже существует!' ){
+            if( isset($order['status'])  == "ok" && isset($order['data']['item_id']) ){
 
-                // session()->flash('Error', $book);
-                $message = 'Этот бронь уже существует!';
-                $book = Book::where('book_token', $request->token)->first();
+                $item_id = $order['data']['item_id'];
+                $order_id = $order['data']['order_id'];
+                $etoken = $order['data']['partner_order_id'];
 
-            }elseif( $order['Success'] == 'CONFIRMED' || $order['Success'] == 'PENDING' ){
+                foreach( $order['data']['payment_types'] as $paytype ){
 
-                // session()->flash('Error', $book);
-                $message = 'Бронирование успешно создано!';
-                $book = Book::where('book_token', $request->token)->first();
+                    // "amount" => "225"
+                    // "currency_code" => "USD"
+                    // "is_need_credit_card_data" => false
+                    // "is_need_cvc" => false
+                    // "recommended_price" => null
+                    // "type" => "deposit" || now
+                        $data = [
+                            'amount' => $paytype['amount'],
+                            'curr' => $paytype['currency_code'],
+                            'type' => $paytype['type'],
+                            'item_id' => $item_id,
+                            'order_id' => $order_id,
+                            'etoken' => $etoken,
+                        ];
 
-            }else {
-                
-                // session()->flash('Error', 'Ошибка при создании бронирования!');
-                $message = 'Ошибка при создании бронирования! Обратитесь в службу поддержки.';
+                    if( $paytype['currency_code'] == 'USD'){
+                        $emergingFinish = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
+                        $finish = $emergingFinish->bookingFinish($request, $data);
+                        // dd($finish);
+
+                        if($finish['status'] == 'ok'){
+                            $message = 'Бронирование успешно создано!';
+                        }
+
+                        if( isset( $finish['error'] ) ){
+
+                            switch ($finish['error']) {
+                                case 'book_hash_not_found':
+                                    $message = "Ошибка тарифа, выберите другой тариф!";
+                                    break;
+
+                                case 'booking_form_expired':
+                                    $message = "Создайте бронь заново!";
+                                    break;
+
+                                case 'chosen_payment_type_was_not_available_on_booking_form':
+                                    $message = "Тип платежа не указан!";
+                                    break;
+
+                                case 'double_booking_finish':
+                                    $message = "Попытка завершить бронирование во второй раз, при этом статус первой попытки не является ошибкой.";
+                                    break;
+
+                                case 'email':
+                                    $message = "Указанный адрес электронной почты недействителен.";
+                                    break;
+
+                                case 'incorrect_chosen_payment_type':
+                                    $message = "Неверное значение поля type";
+                                    break;
+
+                                case 'incorrect_guests_number':
+                                    $message = "Номер взрослого гостя не совпадает с номером взрослого гостя в запросе вызова";
+                                    break;
+
+                                case 'incorrect_children_data':
+                                    $message = "Номер гостя-ребенка не совпадает с номером гостя-ребенка или Возраст детей указан неверно";
+                                    break;
+                                    
+                                case 'incorrect_rooms_number':
+                                    $message = "Номер комнаты не совпадает с номером комнаты в запросе";
+                                    break;
+
+                                case 'insufficient_b2b_balance':
+                                    $message = "Кредитный лимит достигнут. Обратитесь к своему менеджеру по работе с клиентами.";
+                                    break;
+
+                                case 'order_not_found':
+                                    $message = "Заказ не найден";
+                                    break;
+
+                                case 'rate_not_found':
+                                    $message = "Тариф не найден";
+                                    break;
+
+                                case 'return_path_required':
+                                    $message = "Поле return_pathобязательно для заполнения, если тариф, который вы бронируете, содержит payment_typesполе со nowзначением";
+                                    break;
+
+                                case 'unauthorized_group_booking':
+                                    $message = "Попытка сделать запрос с условиями:
+                                            Более 9 бронирований в одном и том же отеле.
+                                            Более 9 бронирований на одни и те же даты.
+                                            В одном запросе.";
+                                    break;
+
+                                case 'arrival_date_differs_from_checkin_date':
+                                    $message = "Дата заезда должна совпадать или быть на следующий день после даты заезда в запросе.";
+                                    break;
+
+                                case 'sandbox_restriction':
+                                    $message = "Попытка забронировать тестовый отель производственной среде.";
+                                    break;
+                                
+                                default:
+                                    $message = $finish['debug']['validation_error'];
+                                    break;
+                            }
+                        }
+                    }
+                }
             }
 
-            return view('pages.booking.emerging.rezerve', compact('book', 'request', 'message'));
+            if ( isset($order['error']) ) {
+                // session()->flash('Success', 'Бронирование успешно создано!');
+                
+                switch ($order['error']) {
+                    case 'double_booking_form':
+                        $message = "Этот бронь уже существует!";
+                        break;
+                        
+                    case 'error_dublicate_local':
+                        $message = "Ошибка при создании брони на стейбук! Пожалуйста, попробуйте позже!";
+                        break;
+
+                    case 'contract_mismatch':
+                        $message = "Попытка сделать бронирование по тарифу, найденному в другом договоре.";
+                        break;
+
+                    case 'duplicate_reservation':
+                        $message = "Попытка сделать новое бронирование с использованием , {$etoken} которое уже используется для контракта ключа API";
+                        break;
+                        
+                    case 'hotel_not_found':
+                        $message = "Отель не найден.";
+                        break;
+
+                    case 'reservation_is_not_allowed':
+                        $message = "Нет разрешения использовать этот вызов для этого контракта. Обратитесь к своему менеджеру по работе с клиентами.";
+                        break;
+
+                    case 'rate_not_found':
+                        $message = "Ставка со book_hashзначением поля не найдена или Значение поля book_hash устарело. Попробуйте создать новый бронь!";
+                        break;
+
+                    case 'sandbox_restriction':
+                        $message = "Попытка забронировать реальный отель в тестовой среде.";
+                        break;
+                    
+                    default:
+                        $message = '';
+                        break;
+                }
+            }
+
+            $book = Book::where('book_token', $request->token)->first();
+            
+
+            return view('pages.booking.emerging.rezerve', compact('book', 'request', 'message', 'finish', 'order'));
         
     }
 
@@ -122,8 +257,8 @@ class BookingEtgController extends Controller
         $room = Room::where('id', $book->room_id)->first();
         $rate = Rate::where('id', $book->rate_id)->first();
             
-            $hotelService = new \App\Services\Tourmind\HotelServices();
-            $cancel = $hotelService->cancelOrder($request, $book);
+            $emergingService = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
+            $cancel = $emergingService->etg_cancel($request);
             $cancelRule = CancellationRule::where('id', $book->cancellation_id)->first();
             $book = Book::where('book_token', $request->number)->first();
             
@@ -139,41 +274,54 @@ class BookingEtgController extends Controller
                     ];
             
             
-           if ( isset($cancel['Error']['ErrorMessage']) ){
+           if ( isset($cancel->status) == 'error' && $cancel->error == 'order_not_found' ){
 
-                $message = $cancel['Error']['ErrorMessage'];
-                Log::channel('emerging')->info('Cancel Order User ID - ', $userInfo);
-                Log::channel('emerging')->info('Cancel Order - ', $cancel);
+                $message = "Заказ выполнен со статусом, отличным от completed или rejected.";
+
+                    Log::channel('emerging')->info('Cancel Order User ID - ', $userInfo);
+                    Log::channel('emerging')->info('Cancel Order - ', $cancel);
         
-            } elseif( isset($cancel['CancelResult']['OrderStatus']) && $cancel['CancelResult']['OrderStatus'] == 'CANCELLED'){
+            } 
+            elseif ( isset($cancel->status) == 'error' && $cancel->error == 'order_not_cancellable' ){
 
-                $cancelFee = $cancel['CancelResult']['CancelFee'];
+                $message = "У вас нет разрешения на отмену невозвратных бронирований. Обратитесь к своему менеджеру по работе с клиентами.";
+
+                    Log::channel('emerging')->info('Cancel Order User ID - ', $userInfo);
+                    Log::channel('emerging')->info('Cancel Order - ', $cancel);
+        
+            }
+            
+            if( isset($cancel->status) == 'ok' ){
+                // dd($cancel);
+                $cancelFee = $cancel->data->amount_payable->amount;
                 $cancelFee = ($cancelFee * $this->coef) + $cancelFee;
-                $curr = $cancel['CancelResult']['CurrencyCode'];
+                $curr = $cancel->data->amount_payable->currency_code;
 
                 Book::where('book_token', $request->number)->update([
                     'status' => 'Cancelled', 
-                    // 'cancel_penalty' => $cancelFee, 
+                    'cancel_penalty' => $cancelFee, 
                     'currency' => $curr
                 ]);
+
                 $book = Book::where('book_token', $request->number)->first();
                 $status = 'Cancelled';
                 
                     $rato = Rate::where('id', $book->rate_id)->get('cancellation_rule_id')->first(); 
                     if ( isset($rato->cancellation_rule_id) ){
-                        // CancellationRule::where('id', $rate->cancellation_rule_id)->update(['penalty_amount' => $cancelFee]);
+                        CancellationRule::where('id', $rato->cancellation_rule_id)->update(['penalty_amount' => $cancelFee]);
                     }
                 
 
                         Log::channel('emerging')->info('Cancel Order User ID - ', $userInfo);
-                        Log::channel('emerging')->info('Cancel Order - ', $cancel);
+                        Log::channel('emerging')->info('Cancel Order - ', (array)$cancel);
 
-                $message = "Ваша бронь отменена";
+                $message = "Ваша бронь отменена!";
 
             }else{
-                $message = $cancel['Error'];
+                // dd($cancel);
+                $message = $cancel->error;
                 Log::channel('emerging')->info('Cancel Order User ID - ', $userInfo);
-                Log::channel('emerging')->info('Cancel Order - ', $cancel);
+                Log::channel('emerging')->info('Cancel Order - ', (array)$cancel);
             }
             
             return view('pages.booking.emerging.confirm', compact(

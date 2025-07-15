@@ -215,11 +215,12 @@ class HotelStaticList
                                 $this->tmApiService->saveRoomImages($hotel->id,  $hotelData['Images'], $room->id, $col = 9);
                             }
                         }
-                    
+                    echo 'Данные успешно обновлены';
                 }
 
             } catch (\Throwable $th) {
                 Log::channel('tourmind')->error('Hotel Static List - Ошибка при получении данных - ' . $th->getMessage());
+                echo 'Ошибка смотри логи';
             }
     
         //     $pageIndex++; // Переход на следующую страницу

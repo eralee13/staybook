@@ -31,6 +31,6 @@ class UpdateRoomStaticList extends Command
 
         $request = new Request(); // Создаём пустой запрос
         $controller->fetchRoomsTypes($request); // Передаём в метод
-        $this->info('Список типов номеров обновлён.');
+        // $this->info('Список типов номеров обновлён.');
     }
 }

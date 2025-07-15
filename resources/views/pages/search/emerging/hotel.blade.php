@@ -146,5 +146,11 @@
                 </div>
             </div>
         @endauth
+    
+        <script>
+            document.getElementById('order').addEventListener('click', function() {
+                localStorage.removeItem('booking_tm_secondsLeft'); // Очистить данные
+            });
+        </script>
 
     @endsection
