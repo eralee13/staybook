@@ -17,8 +17,19 @@ document.addEventListener('DOMContentLoaded', function () {
         schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
         plugins: [resourceTimelinePlugin, interactionPlugin],
         locale: ruLocale,
-        initialView: 'resourceTimelineMonth',
         initialDate: new Date().toISOString().split('T')[0],
+        validRange: {
+            start: new Date().toISOString().split('T')[0]
+        },
+        initialView: 'timelineTwoMonths',
+        views: {
+            timelineTwoMonths: {
+                type: 'resourceTimeline',
+                duration: { months: 2 },
+                slotDuration: { days: 1 },
+            }
+        },
+        slotMinWidth: 80,
         resourceAreaHeaderContent: 'Номера / Тарифы',
         nowIndicator: true,
         height: 'auto',
@@ -151,6 +162,17 @@ document.addEventListener('DOMContentLoaded', function () {
         fetch(`/auth/bookcalendarprice/books/events?hotel_id=${selectedHotel}&start=${selectedStart}&end=${selectedEnd}`)
             .then(res => res.json())
             .then(data => {
+                if (data.warning) {
+                    $('#warning').text(data.warning).show();
+
+                    const alertDiv = document.createElement('header .tabs div');
+                    alertDiv.className = 'alert alert-warning';
+                    alertDiv.innerText = data.warning;
+
+                    // Добавим сообщение перед календарём
+                    const container = document.querySelector('.container-fluid');
+                    container.prepend(alertDiv);
+                }
                 calendar.removeAllEventSources();
                 calendar.setOption('resources', data.resources);
                 calendar.addEventSource(data.events);

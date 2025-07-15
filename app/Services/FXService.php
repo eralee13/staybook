@@ -1,10 +1,10 @@
 <?php
-// app/Services/FXService.php
 
 namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 class FXService
 {
@@ -18,65 +18,106 @@ class FXService
     }
 
     /**
-     * Получить официальные курсы НБ КР (central).
+     * Получить официальные курсы НБ КР (central), с кэшированием.
      *
-     * @return array{usd: float, rub: float, kgs: float}
+     * @return array{usd: float, rub: float, uzs: float|null, kgs: float, kzt: float}
      */
     public function getCentralRates(): array
     {
-        $response = Http::withToken($this->token)
-            ->get("{$this->baseUrl}/central")
-            ->throw();
+        return Cache::remember('fx_central_rates', now()->addMinutes(60), function () {
+            $response = Http::withToken($this->token)
+                ->get("{$this->baseUrl}/central")
+                ->throw();
 
-        $json = $response->json();
-        Log::debug('FX.kg /central raw response', ['body' => $json]);
+            $json = $response->json();
+            Log::debug('FX.kg /central raw response', ['body' => $json]);
 
-        // Ожидаем формат: ['usd'=>'82.00','rub'=>'1.10',…]
-        return [
-            'usd' => isset($json['usd']) && is_numeric($json['usd'])
-                ? (float) $json['usd']
-                : 0.0,
-            'rub' => isset($json['rub']) && is_numeric($json['rub'])
-                ? (float) $json['rub']
-                : 0.0,
-            'kgs' => 1.0,
-        ];
+            return [
+                'usd' => isset($json['usd']) && is_numeric($json['usd']) ? (float) $json['usd'] : 0.0,
+                'rub' => isset($json['rub']) && is_numeric($json['rub']) ? (float) $json['rub'] : 0.0,
+                'uzs' => isset($json['uzs']) && is_numeric($json['uzs']) ? (float) $json['uzs'] : null,
+                'kzt' => isset($json['kzt']) && is_numeric($json['kzt']) ? (float) $json['kzt'] : null,
+                'kgs' => 1.0,
+            ];
+        });
     }
 
     /**
-     * Получить официальные курсы НБ, но пересчитанные так,
-     * чтобы базой была любая из USD/KGS/RUB.
+     * Получить курсы с базой в USD (по умолчанию), пересчитанные в выбранную валюту.
      *
-     * @param  string  $baseCurrency  'USD', 'KGS' или 'RUB'
-     * @return array{usd: float, rub: float, kgs: float}
+     * @param  string  $baseCurrency
+     * @return array<string, float>
      */
-    public function getRatesBaseCentral(string $baseCurrency): array
+    public function getRatesBaseCentral(string $baseCurrency = 'USD'): array
     {
-        $baseCurrency = strtoupper($baseCurrency);
-        $r = $this->getCentralRates();
-        $usdToKgs = $r['usd'];
-        $rubToKgs = $r['rub'];
+        $rates = $this->getCentralRates();
 
-        return match($baseCurrency) {
+        $usd = $rates['usd'] ?? 0;
+        $rub = $rates['rub'] ?? 0;
+        $uzs = $rates['uzs'] ?? null;
+        $kzt = $rates['kzt'] ?? null;
+
+        return match (strtoupper($baseCurrency)) {
             'USD' => [
-                'usd' => 1.0,
-                'kgs' => round($usdToKgs, 4),
-                'rub' => $rubToKgs > 0
-                    ? round($usdToKgs / $rubToKgs, 4)
-                    : 0.0,
+                'USD' => 1.0,
+                'KGS' => round($usd, 4),
+                'RUB' => $rub > 0 ? round($usd / $rub, 4) : 0.0,
+                'UZS' => $uzs > 0 ? round($usd / $uzs, 4) : 0.0,
+                'KZT' => $kzt > 0 ? round($usd / $kzt, 4) : 0.0,
             ],
             'RUB' => [
-                'rub' => 1.0,
-                'kgs' => round($rubToKgs, 4),
-                'usd' => $usdToKgs > 0
-                    ? round($rubToKgs / $usdToKgs, 4)
-                    : 0.0,
+                'USD' => $usd > 0 ? round($rub / $usd, 4) : 0.0,
+                'KGS' => round($rub, 4),
+                'RUB' => 1.0,
+                'UZS' => $uzs > 0 ? round($rub / $uzs, 4) : 0.0,
+                'KZT' => $kzt > 0 ? round($rub / $kzt, 4) : 0.0,
+            ],
+            'UZS' => [
+                'USD' => $usd > 0 && $uzs > 0 ? round($uzs / $usd, 4) : 0.0,
+                'KGS' => $uzs > 0 ? round($uzs, 4) : 0.0,
+                'RUB' => $rub > 0 && $uzs > 0 ? round($uzs / $rub, 4) : 0.0,
+                'KZT' => $kzt > 0 && $uzs > 0 ? round($uzs / $kzt, 4) : 0.0,
+                'UZS' => 1.0,
+            ],
+            'KZT' => [
+                'USD' => $usd > 0 && $kzt > 0 ? round($kzt / $usd, 4) : 0.0,
+                'KGS' => $kzt > 0 ? round($kzt, 4) : 0.0,
+                'RUB' => $rub > 0 && $kzt > 0 ? round($kzt / $rub, 4) : 0.0,
+                'UZS' => $uzs > 0 && $kzt > 0 ? round($kzt / $uzs, 4) : 0.0,
+                'KZT' => 1.0,
             ],
             default => [
-                'kgs' => 1.0,
-                'usd' => round($usdToKgs, 4),
-                'rub' => round($rubToKgs, 4),
+                'USD' => $usd > 0 ? round(1 / $usd, 4) : 0.0,
+                'RUB' => $rub > 0 ? round(1 / $rub, 4) : 0.0,
+                'UZS' => $uzs > 0 ? round(1 / $uzs, 4) : 0.0,
+                'KZT' => $kzt > 0 ? round(1 / $kzt, 4) : 0.0,
+                'KGS' => 1.0,
             ],
         };
+    }
+
+    /**
+     * Конвертация суммы из одной валюты в другую через USD как базу.
+     *
+     * @param float $amount
+     * @param string $from
+     * @param string $to
+     * @return float
+     */
+    public function convert(float $amount, string $from, string $to): float
+    {
+        $from = strtoupper($from);
+        $to = strtoupper($to);
+        $rates = $this->getRatesBaseCentral('USD');
+
+        $rateFrom = $rates[$from] ?? null;
+        $rateTo = $rates[$to] ?? null;
+
+        if (!$rateFrom || !$rateTo || $rateFrom <= 0) {
+            return $amount;
+        }
+
+        $amountInUsd = $from !== 'USD' ? $amount / $rateFrom : $amount;
+        return round($to !== 'USD' ? $amountInUsd * $rateTo : $amountInUsd, 2);
     }
 }

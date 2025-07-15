@@ -4,6 +4,7 @@
 
 @section('content')
 
+    @auth
     <div class="page">
         <div class="container">
             <div class="row">
@@ -14,16 +15,12 @@
                         $hotel = \App\Models\Hotel::where('id', $book->hotel_id)->first();
                         $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
                     @endphp
-                    @if($cancel->is_refundable == true)
-                        <p>
-                            @if(now()->lte($request->cancelTime))
-                                @lang('main.free_cancellation') {{ $request->cancelTime }} (UTC {{ $hotel_utc }}
-                                ).
-                            @endif
-                            @lang('main.cancellation_amount'): {{ $book->cancel_penalty }} {{ $request->currency }}</p>
-                    @else
-                        <p>@lang('main.free_cancellation'). @lang('main.cancellation_amount'): {{ $book->cancel_penalty }} {{ $request->currency }}</p>
-                    @endif
+                    <p>
+                        @if(now()->lte($request->cancelTime))
+                            @lang('main.free_cancellation') {{ $request->cancelTime }} (UTC {{ $hotel_utc }}
+                            ).
+                        @endif
+                        @lang('main.cancellation_amount'): {{ $book->cancel_penalty }} {{ $request->currency }}</p>
                     <form action="{{ route('cancel_confirm') }}">
                         <div class="form-group">
                             <label for="">@lang('main.booking_number')</label>
@@ -36,5 +33,8 @@
             </div>
         </div>
     </div>
+    @else
+        @include('layouts.auth')
+    @endauth
 
 @endsection

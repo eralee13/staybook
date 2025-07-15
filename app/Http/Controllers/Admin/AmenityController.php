@@ -37,6 +37,7 @@ class AmenityController extends Controller
             'hotel_id' => $request->hotel_id,
             'amenities' => implode(', ', $request->services),
         ];
+        dd($params);
         Amenity::create($params);
 
         session()->flash('success', 'Amenity created successfully');

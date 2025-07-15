@@ -15,7 +15,22 @@ class Book extends Model
     protected $fillable = [
         'hotel_id',
         'room_id',
-        'title',
+        'title1',
+        'title2',
+        'title3',
+        'title4',
+        'title5',
+        'title6',
+        'title7',
+        'title8',
+        'child_name',
+        'child_name2',
+        'child_name3',
+        'child_name4',
+        'child_name5',
+        'child_name6',
+        'child_name7',
+        'child_name8',
         'phone',
         'email',
         'comment',
@@ -36,6 +51,8 @@ class Book extends Model
         'user_id',
         'api_type',
         'agent_ref',
+        'allotment',
+        'room_count'
     ];
 
     protected $hidden = [
@@ -63,6 +80,7 @@ class Book extends Model
     {
         return $this->belongsTo(Rate::class);
     }
+
 
 
     public function showStartDate()

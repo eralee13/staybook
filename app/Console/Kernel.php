@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Services\ExelyImportService;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -14,6 +15,7 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
         $schedule->command('fx:update')->hourly();
+        $schedule->command('sync:exely-hotels')->everyTwoHours();
     }
 
     /**

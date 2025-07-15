@@ -24,6 +24,7 @@ return [
     'early_in' => 'Ранний заезд',
     'late_out' => 'Поздний выезд',
     'meal_plans' => 'Виды питания',
+    'count_room' => 'Кол-во номеров',
     'count_adult' => 'Кол-во взрослых',
     'count_child' => 'Кол-во детей',
     'apply' => 'Применить',
@@ -143,4 +144,17 @@ return [
     'lastname' => 'Фамилия',
     'quests' => 'Гости',
     'quest' => 'Гость',
+    'city' => 'Город',
+    'type' => 'Тип',
+    'offline' => 'Оффлайн запрос',
+    'hotel_name' => 'Название отеля',
+    'price_night' => 'Стоимость за ночь',
+    'accommodation_type' => 'Тип размещения',
+    'room_type' => 'Тип номера',
+    'children_age' => 'Возраст детей',
+    'upload_file' => 'Добавить файл',
+    'create_book' => 'Создать заказ',
+    'guests' => 'Гости',
+    'clear' => 'Очистить'
+
 ];

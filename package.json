@@ -18,6 +18,7 @@
         "alpinejs": "^3.14.9",
         "dayjs": "^1.11.13",
         "fullcalendar": "^6.1.17",
+        "nouislider": "^15.8.1",
         "tippy.js": "^6.3.7"
     },
     "name": "staybook-app",

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\FetchExelyAvailabilityJob;
-use App\Models\Meal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -16,6 +15,7 @@ use App\Models\Book;
 use App\Models\Rate;
 use App\Models\Room;
 use App\Models\Hotel;
+use App\Models\Meal;
 
 class BookingCalendarController extends Controller
 {
@@ -25,15 +25,16 @@ class BookingCalendarController extends Controller
             return redirect()->route('index');
         }
 
+        $hotelId = $request->session()->get('hotel_id');
         $hotelId = $request->hotel ?? 14;
         $hotelslist = Hotel::select('id', 'title')->orderBy('title', 'asc')->get();
 
         $startDate = Carbon::now()->startOfDay();
-        $endDate = Carbon::now()->copy()->addMonth()->endOfDay();
+        $endDate = Carbon::now()->copy()->addDays(60)->endOfDay();
 
         $meals = Meal::all()->keyBy('id');
 
-        $books = Book::with('room.rates')
+        Book::with('room.rates')
             ->whereHas('room', fn($q) => $q->where('hotel_id', $hotelId))
             ->whereBetween('arrivalDate', [$startDate, $endDate])
             ->get();
@@ -43,6 +44,22 @@ class BookingCalendarController extends Controller
         $today = now()->startOfDay();
         $tomorrow = now()->addDay()->startOfDay();
 
+        //local
+        foreach ($rooms as $room) {
+            $roomId = 'room_' . $room->id;
+            $resources[] = [
+                'id' => $roomId,
+                'title' => $room->title,
+            ];
+
+            foreach ($room->rates as $rate) {
+                $code = $meals[$rate->meal_id]->code ?? null;
+                $resourceId = $roomId . '_rate_' . $rate->id;
+                $resources[] = [
+                    'id' => $resourceId,
+                    'title' => $rate->title .' - '. ($code ? "({$code})" : ''),
+                    'parentId' => $roomId,
+                ];
         $hotel = Hotel::find($hotelId);
 
 
@@ -74,6 +91,50 @@ class BookingCalendarController extends Controller
                             'parentId' => $roomId,
                         ];
 
+
+                $bookings = Book::where('rate_id', $rate->id)
+                    ->where(function ($q) use ($startDate, $endDate) {
+                        $q->whereBetween('arrivalDate', [$startDate, $endDate])
+                            ->orWhereBetween('departureDate', [$startDate, $endDate])
+                            ->orWhere(function ($q2) use ($startDate, $endDate) {
+                                $q2->where('arrivalDate', '<=', $startDate)
+                                    ->where('departureDate', '>=', $endDate);
+                            });
+                    })
+                    ->get();
+
+                $adultByDate = [];
+
+                foreach ($bookings as $book) {
+                    $arrival = Carbon::parse($book->arrivalDate)->startOfDay();
+                    $departure = Carbon::parse($book->departureDate)->startOfDay();
+
+                    foreach ($arrival->daysUntil($departure) as $date) {
+                        $dateStr = $date->format('Y-m-d');
+                        $adultByDate[$dateStr] = ($adultByDate[$dateStr] ?? $rate->avaibility) + $book->adult;
+                    }
+                }
+
+                $period = $startDate->daysUntil($endDate);
+                foreach ($period as $date) {
+                    $dateStr = $date->format('Y-m-d');
+                    $usedAdults = $adultByDate[$dateStr] ?? 0;
+                    $available = max(0, $rate->availability - $usedAdults);
+
+                    $color = ($available == 0) ? '#d95d5d' : '#39bb43';
+
+                    $events[] = [
+                        'id' => 'local_' . $rate->id . '_' . $dateStr,
+                        'title' => (string) $available,
+                        'start' => $dateStr,
+                        'end' => $dateStr,
+                        'resourceId' => $resourceId,
+                        'backgroundColor' => $color,
+                        'borderColor' => $color,
+                    ];
+                }
+            }
+        }
                         $period = $startDate->daysUntil($endDate);
                         foreach ($period as $date) {
                             $dateStr = $date->format('Y-m-d');
@@ -110,10 +171,51 @@ class BookingCalendarController extends Controller
                 'accept' => 'application/json',
             ])->get($url);
 
-            Log::debug('\uD83D\uDCE4 Exely API call', [
+            // Лог статуса и URL
+            Log::debug('📤 Exely API call', [
                 'url' => $url,
                 'status' => $response->status(),
             ]);
+
+// Проверка тела ответа
+            if (!$response->successful()) {
+                Log::error('❌ Ошибка Exely API', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                return [];
+            }
+
+            $data = $response->json();
+
+            if (empty($data['roomStays'])) {
+                Log::warning('⚠️ Exely вернул пустой roomStays', ['response' => $data]);
+                $exelyEmpty = true;
+            } else {
+                foreach ($data['roomStays'] as $stay) {
+                    $roomId = $stay['roomType']['id'] ?? null;
+                    $rateName = $stay['ratePlan']['name'] ?? 'Unknown';
+                    $availability = $stay['availability'] ?? 0;
+
+                    $room = Room::where('exely_id', $roomId)->first();
+
+                    if (!$room) {
+                        Log::warning('⛔ Комната из Exely не найдена в базе', [
+                            'exely_id' => $roomId,
+                            'rate_name' => $rateName,
+                            'availability' => $availability,
+                        ]);
+                    } else {
+                        Log::info('✅ Найден тариф Exely', [
+                            'room_id' => $roomId,
+                            'rate_name' => $rateName,
+                            'availability' => $availability,
+                            'room_local_id' => $room->id,
+                        ]);
+                    }
+                }
+            }
+
 
             if ($response->successful() && isset($response['roomStays'])) {
                 foreach ($response['roomStays'] as $rateItem) {
@@ -130,6 +232,7 @@ class BookingCalendarController extends Controller
                         'title' => $rateName,
                         'parentId' => $roomId,
                     ];
+
 
                     $period = $startDate->daysUntil($endDate);
                     foreach ($period as $date) {
@@ -192,12 +295,25 @@ class BookingCalendarController extends Controller
 
         Log::debug('Final resources and events', [
             'resources_count' => count($resources),
-            'events_count' => count($events)
+            'events_count' => count($events),
+        ]);
+
+        $eventsCount = count($events);
+        $warning = $eventsCount === 0 ? 'Нет доступных предложений на выбранные даты.' : null;
+
+        Log::debug('⚠️ Warning message evaluation', [
+            'events_count' => $eventsCount,
+            'warning' => $warning,
         ]);
 
         return view('auth.books.index', [
             'resources' => $resources,
             'hotelslist' => $hotelslist,
+            'events' => $events,
+            'request' => $request,
+            'exelyEmpty' => $exelyEmpty ?? false,
+            'warning' => $warning,
+            'hotel' => $hotelId
             'events' => $events,
             'tmhotels' => $tmhotels,
         ]);
@@ -214,7 +330,7 @@ class BookingCalendarController extends Controller
 
         $hotelId = $request->hotel_id;
         $startDate = Carbon::now()->startOfDay();
-        $endDate = Carbon::now()->copy()->endOfMonth();
+        $endDate = Carbon::now()->copy()->addDays(60)->endOfDay();
 
         $hotel = Hotel::find($hotelId);
         $resources = [];
@@ -228,15 +344,36 @@ class BookingCalendarController extends Controller
             $roomQuery->where('hotel_id', $hotelId);
         }
 
-
         $meals = Meal::all()->keyBy('id');
         $rooms = Room::with('rates')->where('hotel_id', $hotelId)->get();
+
         // Локальные тарифы
         foreach ($rooms as $room) {
             $roomId = 'room_' . $room->id;
             $resources[] = ['id' => $roomId, 'title' => $room->title];
 
             foreach ($room->rates as $rate) {
+                $bookings = Book::where('rate_id', $rate->id)
+                    ->where(function ($q) use ($startDate, $endDate) {
+                        $q->whereBetween('arrivalDate', [$startDate, $endDate])
+                            ->orWhereBetween('departureDate', [$startDate, $endDate])
+                            ->orWhere(function ($q2) use ($startDate, $endDate) {
+                                $q2->where('arrivalDate', '<=', $startDate)
+                                    ->where('departureDate', '>=', $endDate);
+                            });
+                    })->get();
+
+                $adultByDate = [];
+                foreach ($bookings as $book) {
+                    $arrival = Carbon::parse($book->arrivalDate)->startOfDay();
+                    $departure = Carbon::parse($book->departureDate)->startOfDay();
+
+                    foreach ($arrival->daysUntil($departure) as $date) {
+                        $dateStr = $date->format('Y-m-d');
+                        $adultByDate[$dateStr] = $book->adult ?? $rate->avaibility;
+                    }
+                }
+
                 $code = $meals[$rate->meal_id]->code ?? null;
                 $resourceId = $roomId . '_rate_' . $rate->id;
                 $resources[] = [
@@ -244,12 +381,17 @@ class BookingCalendarController extends Controller
                     'title' => $rate->title .' - '. ($code ? "({$code})" : ''),
                     'parentId' => $roomId,
                 ];
+
                 foreach ($startDate->daysUntil($endDate) as $date) {
                     $dateStr = $date->format('Y-m-d');
-                    $color = $rate->availability > 0 ? '#39bb43' : '#d95d5d';
+                    $usedAdults = $adultByDate[$dateStr] ?? 0;
+                    $available = max(0, $rate->availability - $usedAdults);
+
+                    $color = ($available == 0) ? '#d95d5d' : '#39bb43';
+
                     $events[] = [
                         'id' => 'local_' . $rate->id . '_' . $dateStr,
-                        'title' => (string) $rate->availability,
+                        'title' => (string) $available,
                         'start' => $dateStr,
                         'end' => $dateStr,
                         'resourceId' => $resourceId,
@@ -279,54 +421,76 @@ class BookingCalendarController extends Controller
 
             Log::debug('📤 Exely API call', ['url' => $url, 'status' => $response->status()]);
 
-            if ($response->successful() && isset($response['roomStays'])) {
-                foreach ($response['roomStays'] as $stay) {
-                    $roomExelyId = $stay['roomType']['id'] ?? null;
-                    $room = $rooms->get($roomExelyId);
-                    if (!$room || empty($stay['availability'])) continue;
+            if (!$response->successful()) {
+                Log::error('❌ Ошибка Exely API', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                return response()->json([
+                    'resources' => [],
+                    'events' => [],
+                    'warning' => 'Exely API вернул ошибку при получении данных.'
+                ]);
+            }
 
-                    $roomId = 'room_' . $room->id;
-                    $rateId = $stay['ratePlan']['id'] ?? $stay['checksum'] ?? Str::uuid();
-                    $resourceId = $roomId . '_rate_' . $rateId;
-                    $rateName = $stay['fullPlacementsName'] ?? $stay['ratePlan']['name'] ?? 'Rate';
+            $data = $response->json();
 
-                    // Добавляем ресурс
-                    if (!collect($resources)->contains('id', $roomId)) {
-                        $resources[] = [
-                            'id' => $roomId,
-                            'title' => $room->title,
-                        ];
-                    }
+            if (empty($data['roomStays'])) {
+                Log::warning('⚠️ Exely вернул пустой roomStays', ['response' => $data]);
 
-                    $resources[] = [
-                        'id' => $resourceId,
-                        'title' => $rateName,
-                        'parentId' => $roomId,
+                return response()->json([
+                    'resources' => [],
+                    'events' => [],
+                    'warning' => 'Exely не вернул доступных тарифов на выбранные даты.'
+                ]);
+            }
+
+            foreach ($data['roomStays'] ?? [] as $stay) {
+                $roomExelyId = $stay['roomType']['id'] ?? null;
+                $room = $rooms->get($roomExelyId);
+                if (!$room || !isset($stay['availability'])) continue;
+
+                $roomId = 'room_' . $room->id;
+                $rateId = $stay['ratePlan']['id'] ?? $stay['checksum'] ?? Str::uuid();
+                $resourceId = $roomId . '_rate_' . $rateId;
+                $rateName = $stay['fullPlacementsName'] ?? $stay['ratePlan']['name'] ?? 'Rate';
+
+                if (!collect($resources)->contains('id', $roomId)) {
+                    $resources[] = ['id' => $roomId, 'title' => $room->title];
+                }
+
+                $resources[] = [
+                    'id' => $resourceId,
+                    'title' => $rateName,
+                    'parentId' => $roomId,
+                ];
+
+                $availability = $stay['availability'];
+
+                foreach ($startDate->daysUntil($endDate->copy()->addDay()) as $date) {
+                    $dateStr = $date->format('Y-m-d');
+                    $color = $availability > 0 ? '#39bb43' : '#d95d5d';
+
+                    $events[] = [
+                        'id' => $resourceId . '_' . $dateStr,
+                        'title' => (string) $availability,
+                        'start' => $dateStr,
+                        'end' => $dateStr,
+                        'resourceId' => $resourceId,
+                        'backgroundColor' => $color,
+                        'borderColor' => $color,
                     ];
-
-                    foreach ($startDate->daysUntil($endDate) as $date) {
-                        $dateStr = $date->format('Y-m-d');
-                        $color = $stay['availability'] > 0 ? '#39bb43' : '#d95d5d';
-
-                        $events[] = [
-                            'id' => $resourceId . '_' . $dateStr,
-                            'title' => (string) $stay['availability'],
-                            'start' => $dateStr,
-                            'end' => $dateStr,
-                            'resourceId' => $resourceId,
-                            'backgroundColor' => $color,
-                            'borderColor' => $color,
-                        ];
-                    }
                 }
             }
         }
 
         Log::debug('Final resources and events', [
-            'resources_count' => count($resources),
             'events_count' => count($events)
         ]);
 
+        $warning = count($events) === 0 ? 'Нет доступных предложений на выбранные даты.' : null;
+
+        // Если есть предупреждение (Exely warning), оно уже возвращено выше. Здесь только обычный ответ.
         return response()->json([
             'resources' => $resources,
             'events' => $events,
@@ -334,10 +498,6 @@ class BookingCalendarController extends Controller
         ]);
     }
 
-    private function fetchExelyAvailability($exelyId, $startDate, $endDate): array
-    {
-        return Cache::get("exely_availability_{$exelyId}", []);
-    }
 
     public function store(Request $request)
     {
@@ -408,7 +568,7 @@ class BookingCalendarController extends Controller
             // ✅ Шаг 5: Создание брони
             $book = Book::create([
                 'book_token' => $token,
-                'title' => '',
+                'title1' => '',
                 'title2' => '',
                 'hotel_id' => $hotelId,
                 'room_id' => $roomId,

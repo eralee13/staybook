@@ -2,6 +2,8 @@
 
 {{-- // Мультиформа создание отеля с номерами и тарифами --}}
 
+{{-- // Мультиформа создание отеля с номерами и тарифами --}}
+
 <div class="page">
     <div class="container">
         <div class="row justify-content-center">
@@ -14,19 +16,19 @@
 
                 <h3>Шаг {{ $step }}</h3>
 
-                    @if($hotelError)
-                        <div class="alert alert-danger">{{ $hotelError}}</div>
-                    @endif
+                @if($hotelError)
+                    <div class="alert alert-danger">{{ $hotelError}}</div>
+                @endif
 
-                        @if($hotelSuccess)
-                            <div class="alert alert-success">{{ $hotelSuccess}}</div>
-                        @endif
+                @if($hotelSuccess)
+                    <div class="alert alert-success">{{ $hotelSuccess}}</div>
+                @endif
 
                 @if ($step == 1)
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for=""class="form-label">@lang('admin.title')</label>
+                                <label for="" class="form-label">@lang('admin.title')</label>
                                 <input type="text" wire:model="title" class="form-control">
                                 @error('title')
                                 <div class="alert alert-danger">{{ $message }}</div>
@@ -86,7 +88,7 @@
                             <div class="form-group">
                                 <label for="address">Адрес EN</label>
                                 <input wire:model="address_en" type="text" class="form-control" name="address_en"/>
-                                 @error('address_en')
+                                @error('address_en')
                                 <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -95,6 +97,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="city">Часовой пояс</label>
+                                <select wire:model="timezone" id="timezone">
                                 <select wire:model="timezone" id="timezone">
                                     <option value="">Выбрать</option>
                                     @foreach($timezones as $timezone)
@@ -110,7 +113,7 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="lat">Широта</label>
-                                        <input wire:model="lat" type="text" class="form-control" id="lat" >
+                                        <input wire:model="lat" type="text" class="form-control" id="lat">
                                         @error('lat')
                                         <div class="alert alert-danger">{{ $message }}</div>
                                         @enderror
@@ -138,7 +141,7 @@
                             </style>
 
                             <!-- Подключение стилей Leaflet -->
-                            <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+                            <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
                             <div wire:ignore id="map" style="height: 450px;"></div>
 
@@ -165,7 +168,7 @@
                                 L.control.scale().addTo(map);
 
                                 // Обработчик клика по карте
-                                map.on('click', function(e) {
+                                map.on('click', function (e) {
                                     var lat = e.latlng.lat;  // Широта
                                     var lng = e.latlng.lng;  // Долгота
 
@@ -174,8 +177,10 @@
                                         map.removeLayer(marker);
                                     }
 
-                                @this.set('lat', lat.toFixed(6));
-                                @this.set('lng', lng.toFixed(6));
+                                @this.set('lat', lat.toFixed(6))
+                                    ;
+                                @this.set('lng', lng.toFixed(6))
+                                    ;
 
                                     // Добавление маркера на выбранную точку
                                     if (lat && lng) {
@@ -257,7 +262,7 @@
                                     <option value="23:00">23:00</option>
                                 </select>
                                 @error('checkin')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
                             </div>
 
@@ -306,7 +311,7 @@
                                     <option value="5">5</option>
                                 </select>
                                 @error('rating')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
                             </div>
 
@@ -345,7 +350,7 @@
                                     <option value="18:00">18:00</option>
                                 </select>
                                 @error('checkout')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
                             </div>
 
@@ -377,20 +382,20 @@
                             </div>
 
                             <div class="form-group">
-                                <label for=""class="form-label">@lang('main.phone')</label>
+                                <label for="" class="form-label">@lang('main.phone')</label>
                                 <input type="tel" id="phone" wire:model="phone" class="phone form-control">
                                 @error('phone')
                                     <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
                             </div>
-                            
-                            
-                            <div class="form-group"  
-                                @can('edit-contact')
-                                    style="display: block;"
-                                @else
-                                    style="display: none;"
-                                @endcan
+
+
+                            <div class="form-group"
+                                 @can('edit-contact')
+                                     style="display: block;"
+                                 @else
+                                     style="display: none;"
+                                    @endcan
                             >
                                 <label for="status" class="form-label">@lang('main.status')</label>
                                 <select wire:model="status">
@@ -398,7 +403,7 @@
                                     <option value="0" selected>Отключен</option>
                                 </select>
                                 @error('status')
-                                    <div class="alert alert-danger">{{ $message }}</div>
+                                <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror
                             </div>
 
@@ -409,12 +414,14 @@
                             <div class="form-group">
                                 <label for="hotel_images" class="form-label">Изображения</label>
                                 <input type="file" wire:model="hotel_images" multiple class="form-control"/>
-                                @error('hotel_images') <div class="alert alert-danger">{{ $message }}</div> @enderror
+                                @error('hotel_images')
+                                <div class="alert alert-danger">{{ $message }}</div> @enderror
 
                                 <div class="mt-2 row gap-2">
                                     @foreach ($hotel_images as $photo)
                                         <div class="col-2">
-                                            <img src="{{ $photo->temporaryUrl() }}" class="h-24 w-full object-cover rounded border" />
+                                            <img src="{{ $photo->temporaryUrl() }}"
+                                                 class="h-24 w-full object-cover rounded border"/>
                                         </div>
                                     @endforeach
                                 </div>
@@ -896,10 +903,10 @@
                         <button wire:click="prevStep" class="more cancel">Назад</button>
                     @endif
 
-                    @if ($step < 5)
+                    @if ($step < 2)
                         <button wire:click="nextStep" class="more">Далее</button>
                     @else
-                        <a href="{{ route('index') }}" class="more">Завершить</a>
+                        <button wire:click="submit" class="more">Завершить</button>
                     @endif
                     <br><br>
                 </div>

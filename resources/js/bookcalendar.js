@@ -13,15 +13,27 @@ let selectedEnd = '';
 document.addEventListener('DOMContentLoaded', function () {
     const calendarEl = document.getElementById('calendar');
 
+    // Получаем параметры из URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const startDate = urlParams.get('start') || new Date().toISOString().split('T')[0];
+
     const calendar = new Calendar(calendarEl, {
         schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
         plugins: [resourceTimelinePlugin, interactionPlugin],
         locale: ruLocale,
-        initialView: 'resourceTimelineMonth',
-        initialDate: new Date().toISOString().split('T')[0],
+        initialDate: startDate,
         validRange: {
             start: new Date().toISOString().split('T')[0]
         },
+        initialView: 'timelineTwoMonths',
+        views: {
+            timelineTwoMonths: {
+                type: 'resourceTimeline',
+                duration: { months: 2 },
+                slotDuration: { days: 1 },
+            }
+        },
+        slotMinWidth: 80,
         resourceAreaHeaderContent: 'Номера / Тарифы',
         nowIndicator: true,
         height: 'auto',
@@ -162,12 +174,19 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             const today = new Date().toISOString().split('T')[0];
             selectedStart = today;
-            selectedEnd = today;
+            selectedEnd = '2025-07-06';
         }
 
         fetch(`/auth/bookcalendar/books/events?hotel_id=${selectedHotel}&start=${selectedStart}&end=${selectedEnd}`)
             .then(res => res.json())
             .then(data => {
+                if (data.warning) {
+                    $('#warning').text(data.warning).show();
+
+                    // Добавим сообщение перед календарём
+                    const container = document.querySelector('.container-fluid');
+                    container.prepend(alertDiv);
+                }
                 calendar.removeAllEventSources();
                 calendar.setOption('resources', data.resources);
                 calendar.addEventSource(data.events);

@@ -4,19 +4,20 @@
 
 @section('content')
     @auth
-        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
 
         <style>
-            .select2-container--default .select2-selection--single{
+            .select2-container--default .select2-selection--single {
                 height: 50px;
                 line-height: 50px;
                 display: block;
             }
-            .select2-container--default .select2-selection--single .select2-selection__rendered{
+            .select2-container--default .select2-selection--single .select2-selection__rendered {
                 line-height: 50px;
             }
         </style>
         
+
         <div class="main-filter">
             <div class="container">
                 <div class="row">
@@ -27,8 +28,11 @@
                                 <a href="{{route('search')}}">@lang('main.hotels_and_rooms')</a>
                             </div>
                             <div class="type-item">
-                                <a href="#">@lang('main.transfer')</a>
+                                <a href="{{ route('offline') }}">@lang('main.offline')</a>
                             </div>
+                            {{--                            <div class="type-item">--}}
+                            {{--                                <a href="#">@lang('main.transfer')</a>--}}
+                            {{--                            </div>--}}
                         </div>
 
                         <form action="{{ route('search') }}" method="GET">
@@ -63,7 +67,7 @@
                                     {{-- Общая сводка (клик открывает окно) --}}
                                     <a href="javascript:void(0)"
                                        id="rooms-summary">
-                                        {{__('main.room')}}: 1, {{__('main.adult')}}: 1, {{__('main.child')}}: 0
+                                        @lang('main.room'): 1, @lang('main.adult'): 1, @lang('main.child'): 0
                                     </a>
 
                                     {{-- Полупрозрачный оверлей --}}
@@ -71,32 +75,32 @@
                                          class="fixed inset-0 bg-black bg-opacity-50 hidden z-40"></div>
 
                                     <div id="rooms-panel">
-                                            <div class="flex justify-between items-center">
-                                                <h3 class="text-lg font-medium">@lang('main.guests_and_rooms')</h3>
-                                                <div class="close-btn">
-                                                    <a href="javascript:void(0)"
-                                                       id="panel-close"
-                                                       class="text-gray-500 hover:text-gray-700 text-xl">&times;</a>
-                                                </div>
-                                            </div>
-
-                                            {{-- Кнопка добавить комнату --}}
-                                            <div class="add-btn">
+                                        <div class="flex justify-between items-center">
+                                            <h3 class="text-lg font-medium">@lang('main.guests_and_rooms')</h3>
+                                            <div class="close-btn">
                                                 <a href="javascript:void(0)"
-                                                   id="add-room"
-                                                   class="inline-block text-blue-600 hover:underline text-sm mb-4">
-                                                    @lang('main.add_room')
-                                                </a>
+                                                   id="panel-close"
+                                                   class="text-gray-500 hover:text-gray-700 text-xl">&times;</a>
                                             </div>
+                                        </div>
 
-                                            {{-- Сюда будут рендериться комнаты --}}
-                                            <div id="rooms-container" class="space-y-4"></div>
+                                        {{-- Кнопка добавить комнату --}}
+                                        <div class="add-btn">
+                                            <a href="javascript:void(0)"
+                                               id="add-room"
+                                               class="inline-block text-blue-600 hover:underline text-sm mb-4">
+                                                @lang('main.add_room')
+                                            </a>
+                                        </div>
 
-                                            <div class="mt-4 text-right">
-                                                <button id="panel-apply"class="more">
-                                                    @lang('main.ready')
-                                                </button>
-                                            </div>
+                                        {{-- Сюда будут рендериться комнаты --}}
+                                        <div id="rooms-container" class="space-y-4"></div>
+
+                                        <div class="mt-4 text-right">
+                                            <button id="panel-apply" class="more">
+                                                @lang('main.ready')
+                                            </button>
+                                        </div>
                                     </div>
 
                                     {{-- Шаблон одной комнаты --}}
@@ -203,7 +207,7 @@
                                                     childrenTotal += +r.querySelector('.count-child').textContent;
                                                 });
                                                 summaryBtn.textContent =
-                                                    `Комнат: ${roomCount}, Взрослых: ${adultsTotal}, Детей: ${childrenTotal}`;
+                                                    `@lang('main.room'): ${roomCount}, @lang('main.adult'): ${adultsTotal}, @lang('main.child'): ${childrenTotal}`;
                                                 summaryBtn.classList.toggle('opacity-50', roomCount >= MAX_ROOMS);
                                                 summaryBtn.classList.toggle('pointer-events-none', roomCount >= MAX_ROOMS);
                                             }
@@ -349,7 +353,8 @@
                                 <div class="col-lg col-6 extra">
                                     <div class="form-group">
                                         <div id="filter">
-                                            <div class="label filter"><img src="{{route('index')}}/img/setting.svg" alt="">
+                                            <div class="label filter"><img src="{{route('index')}}/img/setting.svg"
+                                                                           alt="">
                                                 @lang('main.filters')
                                             </div>
                                             <div class="filter-wrap" id="filter-wrap">
@@ -474,45 +479,28 @@
                                                 <div class="form-group" id="meal">
                                                     <div class="name">@lang('main.meal_plans')</div>
                                                     <div class="row justify-content-center">
-                                                        <div class="col-lg col-md-4 col-4">
-                                                            <div class="itemmm">
-                                                                <input type="radio" name="meal_id" value="1">
-                                                                <label for="">RO</label>
+                                                        @php
+                                                            $meals = \App\Models\Meal::all();
+                                                        @endphp
+                                                        @foreach ($meals as $meal)
+                                                            <div class="col-lg">
+                                                                <div class="itemmm">
+                                                                    <input type="checkbox" name="meal[]"
+                                                                           id="{{ $meal->code }}"
+                                                                           value="{{ $meal->id }}">
+                                                                    <label class="meal-checkbox"
+                                                                           for="{{ $meal->code }}">{{ $meal->code }}</label>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                        <div class="col-lg col-md-4 col-4">
-                                                            <div class="itemmm">
-                                                                <input type="radio" name="meal_id" value="2">
-                                                                <label for="">BB</label>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-lg col-md-4 col-4">
-                                                            <div class="itemmm">
-                                                                <input type="radio" name="meal_id" value="3">
-                                                                <label for="">HB</label>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-lg col-md-4 col-4">
-                                                            <div class="itemmm">
-                                                                <input type="radio" name="meal_id" value="4">
-                                                                <label for="">FB</label>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-lg col-md-4 col-4">
-                                                            <div class="itemmm">
-                                                                <input type="radio" name="meal_id" value="5">
-                                                                <label for="">AI</label>
-                                                            </div>
-                                                        </div>
+                                                        @endforeach
                                                     </div>
                                                 </div>
-                                                {{--                                            <button type="submit" class="more">Найти</button>--}}
                                             </div>
                                         </div>
 
                                     </div>
                                 </div>
-                                <div class="col-lg col-12">
+                                <div class="col-lg col-6">
                                     <div class="form-group">
                                         <button type="submit" class="more"><img src="{{route('index')}}/img/search.svg"
                                                                                 alt=""> @lang('main.find')
@@ -553,6 +541,7 @@
                     @foreach($hotels as $hotel)
                         <div class="col-lg-4 col-md-6">
                             <div class="places-item">
+                                <a href="{{ route('hotel', $hotel->code) }}">
                                     <span class="img-wrap">
                                         @if($hotel->image)
                                             <img src="{{ Storage::url($hotel->image) }}" alt="">
@@ -560,6 +549,7 @@
                                             <img src="{{ route('index')}}/img/noimage.png" alt="">
                                         @endif
                                     </span>
+                                </a>
                                 <div class="text-wrap">
                                     <div class="address">{{ $hotel->city }}</div>
                                     <h5>{{ $hotel->title }}</h5>
@@ -639,6 +629,8 @@
             </div>
         </div>
     @else
-        @include('layouts.auth')
+        <script>
+            window.location.href = "{{ route('extranet') }}";
+        </script>
     @endauth
 @endsection

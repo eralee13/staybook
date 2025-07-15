@@ -9,9 +9,10 @@
             <div class="row">
                 <div class="col-lg-6 offset-lg-3 col-md-12">
                     <div class="login-wrap">
-                        <h4>Войдите или <a href="{{ route('register') }}">зарегистрируйтесь</a></h4>
+                        <h4>@lang('main.login_system')</h4>
+{{--                        <h4>Войдите или <a href="{{ route('register') }}">зарегистрируйтесь</a></h4>--}}
                         <div class="line"></div>
-                        <h5>Добро пожаловать в StayBook</h5>
+                        <h5>@lang('main.welcome')</h5>
                         <form action="{{ route('login') }}" method="post">
                             <div class="form-group">
                                 @error ('email')
@@ -25,11 +26,11 @@
                                 @error ('password')
                                 <div class="alert alert-danger">password</div>
                                 @enderror
-                                <div class="label">Пароль</div>
+                                <div class="label">@lang('main.password')</div>
                                 <input type="password" name="password" id="password" autocomplete="current-password"
                                        value="{{ old('password', isset($user) ? $user->password : null) }}">
                                 <div class="checkbox">
-                                    <input type="checkbox" id="checkbox"><label for="checkbox">Показать пароль</label>
+                                    <input type="checkbox" id="checkbox"><label for="checkbox">@lang('main.show_password')</label>
                                 </div>
                                 <script src="https://code.jquery.com/jquery-3.7.1.min.js"
                                         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
@@ -53,12 +54,11 @@
                                 </style>
                             </div>
                             <div class="line"></div>
-                            <div class="descr">Нажимая кнопку ниже, вы соглашаетесь с <a href="#">политикой
-                                    конфиденциальности</a> и с обработкой данных
+                            <div class="descr">@lang('main.agree_with') <a href="{{ route('privacy') }}">@lang('main.privacy_policy')</a> @lang('main.processing_data')
                             </div>
                             @csrf
                             <div class="btn-wrap">
-                                <button class="more">Войти в систему</button>
+                                <button class="more">@lang('main.login_system')</button>
                             </div>
                         </form>
                     </div>

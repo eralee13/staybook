@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\BookingCalendarPriceController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\HotelController;
 use App\Http\Controllers\Admin\ListbookController;
+use App\Http\Controllers\Admin\OfflineController;
 use App\Http\Controllers\Admin\PDFController;
 use App\Http\Controllers\Admin\UserBookController;
 use App\Http\Controllers\MainController;
@@ -18,6 +19,7 @@ use App\Livewire\HotelRooms;
 use App\Livewire\HotelWizard;
 use App\Livewire\LWTester;
 use Dedoc\Scramble\Scramble;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
 
@@ -39,7 +41,7 @@ Scramble::registerJsonSpecificationRoute(path: 'docs/v1.0.json', api: 'v1.0');
 Scramble::registerJsonSpecificationRoute(path: 'docs/v1.1.json', api: 'v1.1');
 
 Route::middleware('set_locale')->group(function () {
-    Route::group(["prefix" => "auth"], function () {
+    Route::group(["prefix" => "auth", "middleware" => 'auth'], function () {
         Route::resource("hotels", "App\Http\Controllers\Admin\HotelController");
         Route::resource("amenities", "App\Http\Controllers\Admin\AmenityController");
         Route::prefix('bookcalendar')->group(function () {
@@ -92,6 +94,9 @@ Route::middleware('set_locale')->group(function () {
         Route::get('/items/create', HotelWizard::class)->name('hotel.create');
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+        Route::get('/offlines', [OfflineController::class, 'index'])->name('offlines.index');
+        Route::get('/offlines/show/{offline}', [OfflineController::class, 'show'])->name('offlines.show');
+
         Route::get('/userbooks', [UserBookController::class, 'index'])->name('userbooks.index');
         Route::get('/userbooks/show/{book}', [UserBookController::class, 'showBook'])->name('userbooks.show');
         Route::post('/userbooks/cancel/{book}', [UserBookController::class, 'cancel_calculate'])->name('userbooks.cancel_calculate');
@@ -101,10 +106,13 @@ Route::middleware('set_locale')->group(function () {
         Route::get('/userbooks/cancel_confirm', [UserBookController::class, 'cancel_confirm_exely'])->name('userbooks.cancel_confirm_exely');
     });
 
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     require __DIR__ . '/auth.php';
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    });
+
 
     Route::get('/', [PageController::class, 'index'])->name('index');
 
@@ -120,9 +128,9 @@ Route::middleware('set_locale')->group(function () {
     //-----search
     //local
     Route::get('/search', [\App\Http\Controllers\SearchController::class, 'search'])->name('search');
-    Route::get('/hotel/{hotel}', [\App\Http\Controllers\SearchController::class, 'hotel'])->name('hotel');
+    Route::get('/search/hotel/{hotel}', [\App\Http\Controllers\SearchController::class, 'findHotel'])->name('findHotel');
     //exely
-    Route::get('/hotelex', [\App\Http\Controllers\SearchController::class, 'hotel_exely'])->name('hotel_exely');
+    Route::get('/search/hotelex', [\App\Http\Controllers\SearchController::class, 'findHotelExely'])->name('findHotelExely');
 
     //-----booking
     //local
@@ -141,6 +149,7 @@ Route::middleware('set_locale')->group(function () {
 
     //pages
     Route::get('/hotels', [PageController::class, 'hotels'])->name('hotels');
+    Route::get('/hotel/{hotel}', [PageController::class, 'hotel'])->name('hotel');
     Route::get('/about', [PageController::class, 'about'])->name('about');
     Route::get('/contactspage', [PageController::class, 'contactspage'])->name('contactspage');
     Route::get('/companies', [PageController::class, 'companies'])->name('companies');
@@ -150,6 +159,9 @@ Route::middleware('set_locale')->group(function () {
     Route::get('/rules', [PageController::class, 'rules'])->name('rules');
     Route::get('/privacy', [PageController::class, 'privacy'])->name('privacy');
     Route::get('/legal', [PageController::class, 'legal'])->name('legal');
+    Route::get('/extranet', [PageController::class, 'extranet'])->name('extranet');
+    Route::get('/offline', [PageController::class, 'offline_request'])->name('offline');
+    Route::post('/offline_send', [PageController::class, 'offline_send'])->name('offline_send');
 
     //TourMind
     Route::get('/hotel-results', HotelResults::class)->name('hotel.results');
@@ -182,5 +194,13 @@ Route::middleware('set_locale')->group(function () {
     Route::post('book_mail', [MainController::class, 'book_mail'])->name('book_mail');
 
     Route::get('/lwtester', [LWTester::class, 'render'])->name('livewire.lwtester');
+});
+
+Route::get('/clear-cache', function () {
+    Artisan::call('cache:clear');
+    Artisan::call('route:clear');
+    Artisan::call('view:clear');
+    //Artisan::call('web:clear');
+    return "Cache cleared successfully";
 });
 

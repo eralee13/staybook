@@ -20,7 +20,13 @@ class AllBookingController extends Controller
 
     public function index()
     {
-        $books = Book::latest()->paginate(30);
+        //$books = Book::where('api_type', '!=', 'calendar')->latest()->paginate(30);
+        $books = Book::query()->where('api_type', '!=', 'calendar')
+            ->when(request('month'), function ($query) {
+                $query->whereMonth('created_at', request('month'));
+            })
+            ->orderByDesc('created_at')
+            ->paginate(30);
         return view('auth.books.finance.index', compact('books'));
     }
 

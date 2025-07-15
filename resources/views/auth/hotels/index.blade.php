@@ -1,4 +1,4 @@
-@extends('auth.layouts.hotelhead')
+@extends('auth.layouts.master')
 
 @section('title', __('admin.hotels'))
 
@@ -15,15 +15,17 @@
                     </form>
 
                 </div>
+                @can('edit-contact')
                 <div class="col-md-3">
                     <div class="add">
                         <a href="{{ route('hotels.create') }}" class="more"><i class="fa-regular fa-plus"></i>
                             @lang('admin.add_hotel')</a>
                     </div>
                 </div>
+                @endcan
                 <div class="col-md-4">
                     <div class="add">
-                        <a href="{{ route('hotel.create') }}" class="more add">Воспользоваться помощником</a>
+                        <a href="{{ route('hotel.create') }}" class="more add">@lang('admin.use_assistant')</a>
                     </div>
                 </div>
             </div>
@@ -31,7 +33,7 @@
                 <div class="col-md-12">
                     <div id="search_list"></div>
                     @admin
-                        Кол-во отелей: {{ $chotel->count() }}
+                        @lang('admin.count_hotels'): {{ $chotel->count() }}
                     @endadmin
                     <table>
                         <tr>
@@ -48,7 +50,9 @@
                                 <td>
                                     <form action="{{ route('hotels.destroy', $hotel) }}" method="post">
                                         <ul>
-                                            <a href="{{ route('hotels.show', $hotel) }}" class="select-hotel" data-hotel="{{ $hotel->id }}"><img src="{{ route('index') }}/img/icons/eye.svg" alt=""></a>
+                                            @if($hotel->status === 1)
+                                                <a href="{{ route('hotels.show', $hotel) }}" class="select-hotel" data-hotel="{{ $hotel->id }}"><img src="{{ route('index') }}/img/icons/eye.svg" alt=""></a>
+                                            @endif
                                             @csrf
                                             @method('DELETE')
                                             <button onclick="return confirm('Do you want to delete this?');"><img src="{{ route('index') }}/img/icons/trash.svg" alt=""></a></button>
@@ -58,8 +62,6 @@
                             </tr>
                         @endforeach
                     </table>
-
-
                     {{ $hotels->links('pagination::bootstrap-4') }}
                 </div>
             </div>

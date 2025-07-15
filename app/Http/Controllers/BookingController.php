@@ -20,7 +20,7 @@ class BookingController extends Controller
     //local
     public function order(Request $request)
     {
-        //dd($request->all());
+        $startedAt = session('search_started_at');
         $arrival = Carbon::createFromDate($request->arrivalDate)->format('d.m.Y');
         $departure = Carbon::createFromDate($request->departureDate)->format('d.m.Y');
 
@@ -44,35 +44,50 @@ class BookingController extends Controller
         $str = "{$date}-{$part1}-{$part2}";
         $data = [
             'hotel_id' => $request->get('propertyId'),
-            'room_id' => $request->get('roomTypeId'),
-            'rate_id' => $request->get('ratePlanId'),
+            'room_id' => $request->get('room_id'),
+            'rate_id' => $request->get('rate_id'),
             'cancellation_id' => $request->get('cancellation_id'),
             'cancel_penalty' => $request->get('cancelPrice'),
             'arrivalDate' => $request->get('arrivalDate'),
             'departureDate' => $request->get('departureDate'),
-            'currency' => $res->booking->currencyCode ?? '$',
-            'title' => $request->get('firstName'),
+            'currency' => $request->currency ?? '$',
+            'title1' => $request->get('title1'),
+            'title2' => $request->get('title2'),
+            'title3' => $request->get('title3'),
+            'title4' => $request->get('title4'),
+            'title5' => $request->get('title5'),
+            'title6' => $request->get('title6'),
+            'title7' => $request->get('title7'),
+            'title8' => $request->get('title8'),
+            'child_name1' => $request->get('child_name1'),
+            'child_name2' => $request->get('child_name2'),
+            'child_name3' => $request->get('child_name3'),
+            'child_name4' => $request->get('child_name4'),
+            'child_name5' => $request->get('child_name5'),
+            'child_name6' => $request->get('child_name6'),
+            'child_name7' => $request->get('child_name7'),
+            'child_name8' => $request->get('child_name8'),
             'phone' => $request->get('phone'),
             'email' => $request->get('email'),
             'comment' => $request->get('comment'),
-            'adult' => $request->get('adultCount'),
+            'room_count' => $request->get('roomCount'),
+            'adult' => $request->get('adult'),
             'child' => $request->get('child'),
-            'childAges' => implode(',', $request->get('childAges')),
-            'sum' => $request->get('total'),
+            'childages' => implode(',', $request->get('childAges')),
+            'sum' => $request->get('sum'),
             'status' => 'Reserved',
-            'book_token' => $res->booking->number ?? $str,
+            'book_token' => $str,
             'user_id' => Auth::id() ?? '1',
-            'tag' => 'local'
+            'api_type' => 'local'
         ];
         $book = Book::create($data);
-        //Mail::to('myrzabekova@silkwaytravel.kg')->send(new BookMail($book));
-        Log::warning('Бронь создана: ' . $book->id);
-
+        //Mail::to('info@staybook.asia')->send(new BookMail($book));
         if($book){
-                Mail::to('eralee@staybook.asia')->send(new BookMail($book));
+            Log::warning('Бронь создана: ' . $book->id);
+            //Mail::to('info@staybook.asia')->send(new BookMail($book));
             }
 
-        return view('pages.booking.order-reserve', compact('book'));
+        return view('pages.booking.order-reserve', compact('book', 'request'));
     }
 
     public function cancel_calculate(Request $request)
@@ -88,11 +103,10 @@ class BookingController extends Controller
         ]);
 
         $book = Book::where('book_token', $request->number)->first();
-        
-        if($book){
-                Log::warning('Отмена брони: ' . $book->id);
-                Mail::to('eralee@staybook.asia')->send(new BookCancelMail($book));
-            }
+        if ($book) {
+            Log::warning('Отмена брони: ' . $book->id);
+            Mail::to('info@staybook.asia')->send(new BookCancelMail($book));
+        }
         return view('pages.booking.cancel-confirm', compact('book', 'request'));
     }
 
@@ -456,7 +470,7 @@ class BookingController extends Controller
                             'rate_id' => $request->get('ratePlanId'),
                             'currency' => $res->booking->currencyCode,
                             //'rateId' => $request->get('ratePlanId'),
-                            'title' => $request->get('firstName'),
+                            'title1' => $request->get('firstName'),
                             //'title2' => $request->get('roomCount'),
                             'phone' => $request->get('phone'),
                             'email' => $request->get('email'),
@@ -469,7 +483,7 @@ class BookingController extends Controller
                             'user_id' => Auth::id() ?? 1,
                             'tag' => 'exely'
                         ]);
-                        //Mail::to('myrzabekova@silkwaytravel.kg')->send(new BookMail($book));
+                        Mail::to('info@staybook.asia')->send(new BookMail($book));
                         Log::warning('Бронь создана: ' . $book->id);
                     } else {
                         $book = Book::create([
@@ -481,7 +495,7 @@ class BookingController extends Controller
                             'rate_id' => $request->get('ratePlanId'),
                             'currency' => $res->booking->currencyCode,
                             //'rateId' => $request->get('ratePlanId'),
-                            'title' => $request->get('firstName'),
+                            'title1' => $request->get('firstName'),
                             //'title2' => $request->get('roomCount'),
                             'phone' => $request->get('phone'),
                             'email' => $request->get('email'),
@@ -491,9 +505,9 @@ class BookingController extends Controller
                             'status' => 'Reserved',
                             'book_token' => $res->booking->number,
                             'user_id' => Auth::id() ?? 1,
-                            'tag' => 'exely'
+                            'api_type' => 'exely'
                         ]);
-                        Mail::to('myrzabekova@silkwaytravel.kg')->send(new BookMail($book));
+                        Mail::to('info@staybook.asia')->send(new BookMail($book));
                         Log::warning('Бронь создана: ' . $book->id);
                     }
                 }
@@ -548,7 +562,7 @@ class BookingController extends Controller
                     'status' => "Cancelled"
                 ]);
                 Log::warning('Отмена брони: ' . $book->id);
-                Mail::to('myrzabekova@silkwaytravel.kg')->send(new BookCancelMail($book));
+                Mail::to('info@staybook.asia')->send(new BookCancelMail($book));
 
                 return view('pages.booking.exely.cancel-confirm', compact('cancel'));
             }

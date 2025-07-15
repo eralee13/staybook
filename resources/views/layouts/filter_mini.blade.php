@@ -22,6 +22,16 @@
     <link rel="stylesheet" href="{{route('index')}}/css/main.min.css">
     <link rel="stylesheet" href="{{route('index')}}/css/style.css?ver=1.1">
 
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-JWCJ1YQVHX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-JWCJ1YQVHX');
+    </script>
+
 
 </head>
 
@@ -63,7 +73,7 @@
             <div class="col-lg-10 d-xl-block d-lg-block d-none">
                 <div class="wrap">
                     <div class="lang-wrap" id="lang">
-                        <div class="currency">USD</div>
+                        <div class="currency">{{ $fxBase }}</div>
                         <div class="lang">
                             <div class="lang-item">
                                 @if(app()->getLocale() == 'ru')
@@ -79,11 +89,26 @@
                                 <li data-tab="tab-2">@lang('main.language')</li>
                             </ul>
                             <div class="tab-content current" id="tab-1">
-                                <ul>
-{{--                                    <li>KGS Кыргызский сом</li>--}}
-{{--                                    <li>RUB Российский рубль</li>--}}
-                                    <li class="current">USD Американский доллар</li>
+                                <ul class="currency-switcher">
+                                    @foreach(['USD', 'KGS', 'RUB'] as $ccy)
+                                        <li>
+                                            <a class="{{ $fxBase === $ccy ? 'current' : '' }}" href="{{ route('currency.switch', $ccy) }}">
+                                                @if($ccy === 'USD')
+                                                    USD Американский доллар
+                                                @elseif($ccy === 'KGS')
+                                                    KGS Кыргызский сом
+                                                @else
+                                                    RUB Российский рубль
+                                                @endif
+                                            </a>
+                                        </li>
+                                    @endforeach
                                 </ul>
+                                <style>
+                                    header .wrap .lang-wrap .overwrap .tab-content ul li a.current{
+                                        color: #0061ae;
+                                    }
+                                </style>
                             </div>
                             <div class="tab-content" id="tab-2">
                                 <ul>
@@ -107,13 +132,25 @@
                         </ul>
                     </div>
                     <div class="auth">
-                        <a href="{{ route('login') }}"><img src="{{route('index')}}/img/user_w.svg" alt=""> @lang('main.login')</a>
+                        @auth
+                            <a href="{{ route('profile.edit') }}"><img src="{{route('index')}}/img/user_w.svg" alt="">
+                                @lang('main.login')</a>
+                        @else
+                            <a href="{{ route('extranet') }}"><img src="{{route('index')}}/img/user_w.svg" alt="">
+                                @lang('main.login')</a>
+                        @endif
                     </div>
                 </div>
                 <div class="col-lg-10 col-md-9 col-8 d-xl-none d-lg-none d-block">
                     <div class="wrap">
                         <div class="auth">
-                            <a href="{{ route('login') }}"><img src="{{ route('index') }}/img/user_w.svg" alt=""> @lang('main.login')</a>
+                            @auth
+                                <a href="{{ route('profile.edit') }}"><img src="{{route('index')}}/img/user_w.svg" alt="">
+                                    @lang('main.login')</a>
+                            @else
+                                <a href="{{ route('extranet') }}"><img src="{{route('index')}}/img/user_w.svg" alt="">
+                                    @lang('main.login')</a>
+                            @endif
                         </div>
                         <nav>
                             <a href="#" class="toggle-mnu d-xl-none d-lg-none"><span></span></a>
@@ -125,6 +162,35 @@
                         </nav>
 
                     </div>
+                </div>
+            </div>
+            <div class="col-lg-10 col-md-9 col-8 d-xl-none d-lg-none d-block">
+                <div class="wrap">
+                    <div class="auth">
+                        @auth
+                            <a href="{{ route('profile.edit') }}"><img src="{{route('index')}}/img/user_w.svg" alt="">
+                                @lang('main.login')</a>
+                        @else
+                            <a href="{{ route('extranet') }}"><img src="{{route('index')}}/img/user_w.svg" alt="">
+                                @lang('main.login')</a>
+                        @endif
+                    </div>
+                    <nav>
+                        <a href="#" class="toggle-mnu d-xl-none d-lg-none"><span></span></a>
+                        <ul>
+                            <li><a href="{{route('about')}}">@lang('main.about_service')</a></li>
+                            <li><a href="{{route('contactspage')}}">@lang('main.contacts')</a></li>
+                            {{--                                <li><a href="#"><img src="{{route('index')}}/img/kg.svg" alt=""> Кыргыз тили </a></li>--}}
+                            <li @if(session('locale')=='ru')
+                                    current
+                                    @endif><a href="{{ route('locale', 'ru') }}"><img
+                                            src="{{route('index')}}/img/ru.svg" alt=""> Русский</a></li>
+                            <li @if(session('locale')=='en')
+                                    current
+                                    @endif><a href="{{ route('locale', 'en') }}"><img
+                                            src="{{route('index')}}/img/en.svg" alt=""> English</a></li>
+                        </ul>
+                    </nav>
                 </div>
             </div>
         </div>
@@ -216,6 +282,24 @@
         });
     });
 </script>
+
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript" >
+    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(103165450, "init", {
+        clickmap:true,
+        trackLinks:true,
+        accurateTrackBounce:true,
+        webvisor:true
+    });
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/103165450" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
 
 </body>
 

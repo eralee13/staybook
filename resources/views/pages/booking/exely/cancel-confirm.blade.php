@@ -4,6 +4,7 @@
 
 @section('content')
 
+    @auth
     <div class="page">
         <div class="container">
             <div class="row">
@@ -50,5 +51,8 @@
             </div>
         </div>
     </div>
+    @else
+        @include('layouts.auth')
+    @endauth
 
 @endsection

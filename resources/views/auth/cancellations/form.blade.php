@@ -12,59 +12,71 @@
         .admin label {
             display: inline-block;
         }
+
         #policy1, #policy2, #policy3 {
             float: left;
             width: 25px;
             margin-right: 15px;
         }
+
         .policy1, .policy2, .policy3 {
             display: inline-block;
             width: calc(100% - 40px);
         }
     </style>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const radios = document.querySelectorAll('input[name="cancel_policy"]');
+            const penaltyTypeSelect = document.querySelector('select[name="penalty_type"]');
+            const penaltyNightsBlock = document.getElementById('penalty-nights-block');
+            const penaltyAmountBlock = document.getElementById('penalty-amount-block');
 
             function updateVisibility() {
-                document.getElementById('policy-field1').classList.add('d-none');
-                document.getElementById('policy-field2').classList.add('d-none');
-                document.getElementById('policy-field3').classList.add('d-none');
+                const field1 = document.getElementById('policy-field1');
+                const field2 = document.getElementById('policy-field2');
+                const field3 = document.getElementById('policy-field3');
 
-                const selected = document.querySelector('input[name="cancel_policy"]:checked').value;
+                if (field1) field1.classList.add('d-none');
+                if (field2) field2.classList.add('d-none');
+                if (field3) field3.classList.add('d-none');
 
-                if (selected === 'free_until_checkin') {
+                const selectedRadio = document.querySelector('input[name="cancel_policy"]:checked');
+                const selected = selectedRadio ? selectedRadio.value : null;
 
-                    document.getElementById('policy-field1').classList.add('d-none');
-                    document.getElementById('policy-field2').classList.add('d-none');
-                    document.getElementById('policy-field3').classList.add('d-none');
-
-                    // document.querySelector('[name="free_cancellation_days"]').value = '';
-                    // document.querySelector('[name="penalty_type"]').value = '';
-                    // document.querySelector('[name="penalty_amount"]').value = '';
-
-                } else if (selected === 'free_then_penalty') {
-
-                    document.getElementById('policy-field1').classList.remove('d-none');
-                    document.getElementById('policy-field2').classList.remove('d-none');
-                    document.getElementById('policy-field3').classList.remove('d-none');
-
+                if (selected === 'free_then_penalty') {
+                    if (field1) field1.classList.remove('d-none');
+                    if (field2) field2.classList.remove('d-none');
+                    if (field3) field3.classList.remove('d-none');
                 } else if (selected === 'non_refundable') {
-
-                    document.getElementById('policy-field1').classList.add('d-none');
-                    document.getElementById('policy-field2').classList.remove('d-none');
-                    document.getElementById('policy-field3').classList.remove('d-none');
-
-                    // document.querySelector('[name="free_cancellation_days"]').value = '';
-
+                    if (field2) field2.classList.remove('d-none');
+                    if (field3) field3.classList.remove('d-none');
                 }
+
+                updatePenaltyNightsField();
+            }
+
+            function updatePenaltyNightsField() {
+                const showNights = penaltyTypeSelect && penaltyTypeSelect.value === 'night';
+
+                if (penaltyNightsBlock) {
+                    penaltyNightsBlock.classList.toggle('d-none', !showNights);
+                }
+
+                if (penaltyAmountBlock) {
+                    penaltyAmountBlock.classList.toggle('d-none', showNights);
+                }
+            }
+
+            if (penaltyTypeSelect) {
+                penaltyTypeSelect.addEventListener('change', updatePenaltyNightsField);
             }
 
             radios.forEach(radio => {
                 radio.addEventListener('change', updateVisibility);
             });
 
-            // вызвать при загрузке
+            // инициализация при загрузке
             updateVisibility();
         });
     </script>
@@ -97,7 +109,7 @@
                             <div class="col-md-6">
                                 @include('auth.layouts.error', ['fieldname' => 'title'])
                                 <div class="form-group">
-                                    <label for="">Название правила</label>
+                                    <label for="">@lang('admin.title')</label>
                                     <input type="text" name="title" value="{{ old('title', isset($cancellation) ?
                                     $cancellation->title :
                              null) }}">
@@ -107,58 +119,91 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'penalty_type'])
-                                    <label for="">Выберите тариф</label>
+                                    <label for="">@lang('admin.choose') @lang('admin.rate')</label>
                                     <select name="rate_id" id="">
                                         @isset($cancellation)
-                                            <option @if($cancellation->rate_id)
-                                                        selected value="{{ $cancellation->rate_id }}">
-                                                {{ $cancellation->rate->title }}</option>
-                                        @else
-                                            <option>@lang('admin.choose')</option>
-                                        @endif
+                                            @if($cancellation->rate_id && $cancellation->rate)
+                                                <option selected value="{{ $cancellation->rate_id }}">
+                                                    {{ $cancellation->rate->__('title') }}
+                                                </option>
+                                            @else
+                                                <option>@lang('admin.choose')</option>
+                                            @endif
                                         @endisset
                                         @foreach($rates as $rate)
-                                            <option value="{{ $rate->id }}">{{ $rate->title }}</option>
+                                            @php
+                                                $canc = \App\Models\CancellationRule::where('rate_id', $rate->id)->first();
+                                            @endphp
+                                            <option value="{{ $rate->id }}">{{ $rate?->__('title') }}
+                                                - {{ $canc?->__('title') ?? ''}}</option>
                                         @endforeach
                                     </select>
                                 </div>
                             </div>
 
                             <div class="container mt-4">
-                                <h5 class="mb-3">Отмена и штрафы</h5>
+                                <h5 class="mb-3">@lang('admin.cancel_fines')</h5>
 
                                 <div class="form-check mb-3">
-                                    <input class="form-check-input" type="radio" name="cancel_policy" id="policy1" value="free_until_checkin" checked>
+                                    <input class="form-check-input" type="radio" name="cancel_policy" id="policy1"
+                                           value="free_until_checkin"
+                                           {{ old('cancel_policy', $cancellation->cancel_policy ?? '') === 'free_until_checkin' ? 'checked' : '' }} checked>
                                     <label class="policy1 form-check-label" for="policy1">
-                                        <strong>Бесплатная отмена вплоть до времени заезда</strong><br>
-                                        <small class="text-muted">В случае отмены бронирования гостю вернётся полная стоимость или предоплата.</small>
-                                    </label>
-                                </div>
-
-                                <div class="form-check mb-3">
-                                    <input class="form-check-input" type="radio" name="cancel_policy" id="policy2" value="free_then_penalty">
-                                    <label class="policy2 form-check-label" for="policy2">
-                                        <strong>Бесплатная отмена, а затем отмена со штрафом вплоть до времени заезда</strong><br>
+                                        <strong>@lang('admin.free_until_checkin')</strong><br>
                                         <small class="text-muted">
-                                            В случае отмены до указанного времени, стоимость бронирования или предоплаты будет полностью возвращена гостю. 
-                                            Если бронирование отменено позже указанного времени, вы сможете списать штраф.
+                                            @if(app()->getLocale() == 'ru')
+                                                В случае отмены бронирования гостю вернётся полная стоимость или
+                                                предоплата.
+                                            @else
+                                                In case of cancellation, the guest will be refunded either the full
+                                                amount or the prepayment.
+                                            @endif
                                         </small>
                                     </label>
                                 </div>
-
                                 <div class="form-check mb-3">
-                                    <input class="form-check-input" type="radio" name="cancel_policy" id="policy3" value="non_refundable">
+                                    <input class="form-check-input" type="radio" name="cancel_policy" id="policy2"
+                                           value="free_then_penalty"
+                                            {{ old('cancel_policy', $cancellation->cancel_policy ?? '') === 'free_then_penalty' ? 'checked' : '' }}>
+                                    <label class="policy2 form-check-label" for="policy2">
+                                        <strong>@lang('admin.free_then_penalty')</strong><br>
+                                        <small class="text-muted">
+                                            @if(app()->getLocale() == 'ru')
+                                                В случае отмены до указанного времени, стоимость бронирования или
+                                                предоплаты будет полностью возвращена гостю.
+                                                Если бронирование отменено позже указанного времени, вы сможете списать
+                                                штраф.
+                                            @else
+                                                If the cancellation is made before the specified time, the full booking
+                                                amount or prepayment will be refunded to the guest.
+                                                If the cancellation is made after the specified time, you may charge a
+                                                penalty.
+                                            @endif
+                                        </small>
+                                    </label>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="radio" name="cancel_policy"
+                                           id="policy3" {{ old('cancel_policy', $cancellation->cancel_policy ?? '') === 'non_refundable' ? 'checked' : '' }}>
                                     <label class="policy3 form-check-label" for="policy3">
-                                        <strong>Невозвратный тариф</strong><br>
-                                        <small class="text-muted">В случае отмены бронирования с гостя будет удержана полная стоимость бронирования или предоплата.</small>
+                                        <strong>@lang('admin.non_refundable')</strong><br>
+                                        <small class="text-muted">
+                                            @if(app()->getLocale() == 'ru')
+                                                В случае отмены бронирования с гостя будет удержана полная стоимость
+                                                бронирования или предоплата.
+                                            @else
+                                                In case of cancellation, the full booking amount or prepayment will be
+                                                charged to the guest.
+                                            @endif
+                                        </small>
                                     </label>
                                 </div>
                             </div>
 
-                            <div class="col-md-6"  id="policy-field1">
+                            <div class="col-md-6" id="policy-field1">
                                 @include('auth.layouts.error', ['fieldname' => '>free_cancellation_days'])
                                 <div class="form-group">
-                                    <label for="">Количество дней до заезда</label>
+                                    <label for="">@lang('admin.before_checkin')</label>
                                     <input type="number" name="free_cancellation_days" value="{{ old('free_cancellation_days', isset($cancellation) ?
                                     $cancellation->free_cancellation_days :
                              null) }}">
@@ -168,7 +213,7 @@
                             <div class="col-md-6" id="policy-field2">
                                 <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'penalty_type'])
-                                    <label for="">Тип штрафа</label>
+                                    <label for="">@lang('admin.type_fine')</label>
                                     <select name="penalty_type" id="">
                                         @isset($cancellation)
                                             <option @if($cancellation->penalty_type)
@@ -178,37 +223,45 @@
                                             <option>@lang('admin.choose')</option>
                                         @endif
                                         @endisset
-                                        <option value="fixed">Фиксированная сумма</option>
-                                        <option value="percent">Процент от стоимости</option>
-                                        <option value="night">Ночи</option>
+                                        <option value="fixed">@lang('admin.fixed_amount')</option>
+                                        <option value="percent">@lang('admin.percent_from_total')</option>
+                                        <option value="night">@lang('admin.number_nights')</option>
                                     </select>
                                 </div>
                             </div>
 
-                            <div class="col-md-6" id="policy-field3">
+                            <div class="col-md-6 d-none" id="penalty-nights-block">
+                                <div class="form-group">
+                                    <label for="penalty_nights">@lang('admin.number_nights')</label>
+                                    <input type="number" name="penalty_nights" class="form-control"
+                                           value="{{ old('penalty_nights', $cancellation->penalty_nights ?? '') }}">
+                                </div>
+                            </div>
+
+                            <div class="col-md-6" id="penalty-amount-block">
                                 @include('auth.layouts.error', ['fieldname' => 'penalty_amount'])
                                 <div class="form-group">
-                                    <label for="">Сумма размера штрафа</label>
+                                    <label for="">@lang('admin.penalty_fee')</label>
                                     <input type="number" name="penalty_amount" value="{{ old('penalty_amount', isset($cancellation) ?
-                                    $cancellation->penalty_amount : null) }}">
+            $cancellation->penalty_amount : null) }}">
                                 </div>
                             </div>
 
                             <div class="col-md-6">
                                 @include('auth.layouts.error', ['fieldname' => 'description'])
                                 <div class="form-group">
-                                    <label for="">Описание правил отмены</label>
+                                    <label for="">@lang('admin.cancel_descr')</label>
                                     <textarea name="description" rows="3">{{ old('description', isset($cancellation) ?
                                     $cancellation->description : null) }}</textarea>
                                 </div>
                             </div>
-                            
+
                         </div>
                         @csrf
                         <button class="more">@lang('admin.send')</button>
                         <a href="{{url()->previous()}}" class="btn delete cancel">@lang('admin.cancel')</a>
                     </form>
-                    <br><br>
+
                 </div>
             </div>
         </div>

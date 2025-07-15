@@ -12,7 +12,7 @@
                                 $hotel = \App\Models\Hotel::where('exely_id', $request->propertyId)->get();
                                 $hotel = $hotel->first();
                                 $room = \App\Models\Room::where('exely_id', $request->roomTypeId)->get()->first();
-                                $amenities = explode(',', $room->amenities);
+                                $amenities = explode(',', $room->amenities ?? '');
                                 $iconMap = [
                                     'wi-fi'             => 'wifi.svg',
                                     'интернет'          => 'wifi.svg',
@@ -42,42 +42,54 @@
                                     'Минеральная вода' => 'water.svg',
                                 ];
                             @endphp
+
                             <h1>{{ $hotel->city }}</h1>
                             <div class="row">
                                 <div class="col-md-7">
-                                    <div class="fotorama" data-allowfullscreen="true" data-nav="thumbs" data-loop="true"
-                                         data-autoplay="30000">
-                                        @if($hotel->image)
-                                            <img loading="lazy" src="{{ Storage::url($hotel->image) }}" alt="">
-                                        @else
-                                            <img loading="lazy" src="{{ route('index')}}/img/noimage.png" alt="">
-                                        @endif
-                                    </div>
+                                    @if($hotel->image)
+                                        <div class="fotorama" data-allowfullscreen="true" data-nav="thumbs"
+                                             data-loop="true"
+                                             data-autoplay="30000">
+                                            <img src="{{ Storage::url($hotel->image) }}" alt="">
+                                            @if($images)
+                                                @foreach($images as $file)
+                                                    <img loading="lazy" src="{{ Storage::url($file->image)}}" alt="">
+                                                @endforeach
+                                            @endif
+                                        </div>
+                                    @else
+                                        <img loading="lazy" src="{{ route('index')}}/img/noimage.png" alt=""
+                                             style="margin-bottom: 10px">
+                                    @endif
                                 </div>
                             </div>
                             <h3>{{ $hotel->title }}</h3>
                             <div class="address"><img src="{{ route('index') }}/img/marker_in.svg"
                                                       alt=""> {{ $hotel->address }}</div>
-                            <h4>@lang('main.description')</h4>
-                            {!! $hotel->__('description') !!}
-                            <div class="amenities">
-                                <h4>@lang('main.amenities')</h4>
-                                @foreach($amenities as $amenity)
-                                    @php
-                                        $iconFile = 'check.svg';
-                                        foreach ($iconMap as $keyword => $filename) {
-                                            if (mb_stripos($amenity, $keyword) !== false) {
-                                                $iconFile = $filename;
-                                                break;
+                            @if($hotel->description)
+                                <h4>@lang('main.description')</h4>
+                                {!! $hotel->__('description') !!}
+                            @endif
+                            @if(collect($amenities)->filter()->isNotEmpty())
+                                <div class="amenities">
+                                    <h4>@lang('main.amenities')</h4>
+                                    @foreach($amenities as $amenity)
+                                        @php
+                                            $iconFile = 'check.svg';
+                                            foreach ($iconMap as $keyword => $filename) {
+                                                if (mb_stripos($amenity, $keyword) !== false) {
+                                                    $iconFile = $filename;
+                                                    break;
+                                                }
                                             }
-                                        }
-                                    @endphp
-                                    <div class="amenities-item">
-                                        <img src="{{ asset('img/icons/' . $iconFile) }}" alt="{{ $amenity }}">
-                                        <div class="name">{{ $amenity }}</div>
-                                    </div>
-                                @endforeach
-                            </div>
+                                        @endphp
+                                        <div class="amenities-item">
+                                            <img src="{{ asset('img/icons/' . $iconFile) }}" alt="{{ $amenity }}">
+                                            <div class="name">{{ $amenity }}</div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
                             <div class="maps">
                                 <h4>@lang('main.location')</h4>
                                 <script src="https://maps.api.2gis.ru/2.0/loader.js"></script>
@@ -106,156 +118,204 @@
                             <div class="tariffs availabity">
                                 <h4>@lang('main.available')</h4>
                                 <div class="row" style="margin-top: 30px">
-                                    <div class="col-md-3">
-                                        <div class="room">
-                                            @if ($room)
-                                                <img src="{{ Storage::url($room->image) }}" alt="">
-                                            @else
-                                                <img src="{{ route('index') }}/img/noimage.png" alt=""
-                                                     width="100px">
-                                            @endif
-                                            <h5>{{ $room->__('title') }}</h5>
-                                            <div class="amenities">
-                                                <div class="amenities-item">
-                                                    <img src="{{ route('index') }}/img/icons/area.svg" alt="">
-                                                    <div class="name">{{ $room->area }} кв. м</div>
-                                                </div>
-                                                @foreach($amenities as $amenity)
-                                                    @php
-                                                        $iconFile = 'check.svg';
-                                                        foreach ($iconMap as $keyword => $filename) {
-                                                            if (mb_stripos($amenity, $keyword) !== false) {
-                                                                $iconFile = $filename;
-                                                                break;
-                                                            }
-                                                        }
-                                                    @endphp
-                                                    <div class="amenities-item">
-                                                        <img src="{{ asset('img/icons/' . $iconFile) }}" alt="{{ $amenity }}">
-                                                        <div class="name">{{ $amenity }}</div>
+                                    @php
+                                        $groupedRooms = collect($rooms)->groupBy(fn($r) => $r->roomType->id);
+                                    @endphp
+
+                                    @foreach($groupedRooms as $roomTypeId => $roomRates)
+                                        @php
+                                            $roomModel = \App\Models\Room::where('exely_id', $roomTypeId)->first();
+                                            $amenities = explode(',', $roomModel->amenities ?? '');
+                                            $amenities = array_slice($amenities, 0, 8);
+                                        @endphp
+
+                                        <div class="col-md-3">
+                                            <div class="room">
+                                                @if ($roomModel && $roomModel->image)
+                                                    <img src="{{ Storage::url($roomModel->image) }}" alt="">
+                                                @else
+                                                    <img loading="lazy" src="{{ route('index')}}/img/noimage.png"
+                                                         alt="">
+                                                @endif
+                                                @if($roomModel)
+                                                    <h5>{{ $roomModel?->__('title') }}</h5>
+                                                    <div class="amenities">
+                                                        <div class="amenities-item">
+                                                            <img src="{{ route('index') }}/img/icons/area.svg" alt="">
+                                                            <div class="name">{{ $roomModel->area }} кв. м</div>
+                                                        </div>
+                                                        @foreach($amenities as $amenity)
+                                                            @php
+                                                                $iconFile = 'check.svg';
+                                                                foreach ($iconMap as $keyword => $filename) {
+                                                                    if (mb_stripos($amenity, $keyword) !== false) {
+                                                                        $iconFile = $filename;
+                                                                        break;
+                                                                    }
+                                                                }
+                                                            @endphp
+                                                            <div class="amenities-item">
+                                                                <img src="{{ asset('img/icons/' . $iconFile) }}"
+                                                                     alt="{{ $amenity }}">
+                                                                <div class="name">{{ $amenity }}</div>
+                                                            </div>
+                                                        @endforeach
                                                     </div>
-                                                @endforeach
+                                                @endif
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="col-md-9">
-                                        <div class="tariff-wrap">
-                                            <div class="owl-carousel owl-tariffs">
-                                                @foreach($rooms as $room)
-                                                    @php
-                                                        $roomName = \App\Models\Room::where('exely_id', $room->roomType->id)->first();
-                                                           $arrival = \Carbon\Carbon::createFromDate($room->stayDates->arrivalDateTime)->format('d.m.Y H:i');
-                                                           $departure = \Carbon\Carbon::createFromDate($room->stayDates->departureDateTime)->format('d.m.Y H:i');
-                                                           $cancelDate = \Carbon\Carbon::createFromDate($room->cancellationPolicy->freeCancellationDeadlineLocal)->format('d.m.Y H:i');
-                                                            $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
-                                                            $cancel_utc = \Carbon\Carbon::createFromDate($room->cancellationPolicy->freeCancellationDeadlineLocal)->format('P');
+                                        <div class="col-md-9">
+                                            <div class="tariff-wrap">
+                                                <div class="owl-carousel owl-tariffs">
+                                                    @foreach($roomRates as $room)
+                                                        @can('edit-contact')
+                                                            Осталось квот: {{ $room->availability }}
+                                                        @endcan
+                                                        @php
+                                                            $roomName = \App\Models\Room::where('exely_id', $room->roomType->id)->first();
+                                                               $arrival = \Carbon\Carbon::createFromDate($room->stayDates->arrivalDateTime)->format('d.m.Y H:i');
+                                                               $departure = \Carbon\Carbon::createFromDate($room->stayDates->departureDateTime)->format('d.m.Y H:i');
+                                                               $cancelDate = \Carbon\Carbon::createFromDate($room->cancellationPolicy->freeCancellationDeadlineLocal)->format('d.m.Y H:i');
+                                                                $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
+                                                                $cancel_utc = \Carbon\Carbon::createFromDate($room->cancellationPolicy->freeCancellationDeadlineLocal)->format('P');
 
-                                                            $utc   = \Carbon\Carbon::parse($room->cancellationPolicy->freeCancellationDeadlineUtc);
-                                                            $local = \Carbon\Carbon::parse($room->cancellationPolicy->freeCancellationDeadlineLocal . 'Z');
+                                                                $utc   = \Carbon\Carbon::parse($room->cancellationPolicy->freeCancellationDeadlineUtc);
+                                                                $local = \Carbon\Carbon::parse($room->cancellationPolicy->freeCancellationDeadlineLocal . 'Z');
 
-                                                            $hours = $utc->diffInHours($local, false);
-                                                            $offset = sprintf('UTC%+03d:00', $hours);
-                                                    @endphp
-                                                    <div class="tariffs-item">
-                                                        @isset($room->fullPlacementsName)
-                                                            <h5>{{ $room->fullPlacementsName }}</h5>
-                                                        @endisset
-                                                        <div class="dates">
-                                                            @lang('main.check-in'): {{ $arrival }} UTC {{ $hotel_utc }}
-                                                        </div>
-                                                        <div class="dates">
-                                                            @lang('main.check-out'): {{ $departure }} UTC {{ $hotel_utc }}
-                                                        </div>
-                                                        <br>
-                                                        <div class="item meal">
-                                                            <div class="name">{{ $room->mealPlanCode }}</div>
-                                                        </div>
-                                                        <div class="item cancel">
-                                                            <div class="name">@lang('main.cancellation_policy'):
-                                                                @if($room->cancellationPolicy->freeCancellationPossible == true)
-                                                                    @lang('main.free_cancellation') {{ $cancelDate }}
-                                                                    ({{ $offset }}). @lang('main.cancellation_amount'): {{ $room->cancellationPolicy->penaltyAmount }} {{ $room->currencyCode }}
-                                                                @else
-                                                                    @lang('main.cancellation_amount'): {{ $room->cancellationPolicy->penaltyAmount }} {{ $room->currencyCode }}
-                                                                @endif
+                                                                $hours = $utc->diffInHours($local, false);
+                                                                $offset = sprintf('UTC%+03d:00', $hours);
+                                                        @endphp
+                                                        <div class="tariffs-item">
+                                                            @isset($room->fullPlacementsName)
+                                                                <h5>{{ $room->fullPlacementsName }}</h5>
+                                                            @endisset
+                                                            <div class="dates">
+                                                                @lang('main.check-in'): {{ $arrival }}
+                                                                UTC {{ $hotel_utc }}
+                                                            </div>
+                                                            <div class="dates">
+                                                                @lang('main.check-out'): {{ $departure }}
+                                                                UTC {{ $hotel_utc }}
+                                                            </div>
+                                                            <br>
+                                                            <div class="item meal">
+                                                                <div class="name">{{ $room->mealPlanCode }}</div>
+                                                            </div>
+                                                            @php
+                                                                $baseCancelPrice = round($room->cancellationPolicy->penaltyAmount * config('services.main.coef') / 100 + $room->cancellationPolicy->penaltyAmount, 0);
+                                                                $basePrice = round($room->total->priceBeforeTax * config('services.main.coef') / 100 + $room->total->priceBeforeTax, 0);
+
+                                                                $toCurrency = strtoupper($fxBase ?? 'USD');
+
+                                                                $fxRates = [
+                                                                    'USD' => $fxRates['usd'] ?? 1,
+                                                                    'RUB' => $fxRates['rub'] ?? 1,
+                                                                    'KGS' => $fxRates['kgs'] ?? 1,
+                                                                    'UZS' => $fxRates['uzs'] ?? 1,
+                                                                ];
+
+                                                                $symbols = [
+                                                                    'USD' => '$',
+                                                                    'RUB' => '₽',
+                                                                    'KGS' => 'сом',
+                                                                    'UZS' => 'сўм',
+                                                                ];
+
+                                                                $rateTo = $fxRates[$toCurrency] ?? 1;
+                                                                $convertedCancel = app(\App\Services\FXService::class)->convert($baseCancelPrice, $room->currencyCode, $fxBase);
+                                                                $converted = app(\App\Services\FXService::class)->convert($basePrice, $room->currencyCode, $fxBase);
+                                                                $symbol = $symbols[$toCurrency] ?? $toCurrency;
+                                                            @endphp
+                                                            <div class="item cancel">
+                                                                <div class="name">@lang('main.cancellation_policy'):
+                                                                    @if($room->cancellationPolicy->freeCancellationPossible == true)
+                                                                        @lang('main.free_cancellation') {{ $cancelDate }}
+                                                                        ({{ $offset }}
+                                                                        ). @lang('main.cancellation_amount')
+                                                                        : {{ round($convertedCancel) }} {{ $symbol }}
+                                                                    @else
+                                                                        @lang('main.cancellation_amount')
+                                                                        : {{ round($convertedCancel) }} {{ $symbol }}
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                            <div class="item price">{{ round($converted) }} {{ $symbol }}</div>
+                                                            {{--                                                        <div class="nds">Все налоги включены</div>--}}
+                                                            <div class="btn-wrap">
+                                                                <form action="{{ route('order_exely', $room->roomType->id) }}">
+                                                                    <input type="hidden" name="propertyId"
+                                                                           value="{{ $room->propertyId }}">
+                                                                    <input type="hidden" name="arrivalDate"
+                                                                           value="{{ $room->stayDates->arrivalDateTime }}">
+                                                                    <input type="hidden" name="departureDate"
+                                                                           value="{{ $room->stayDates->departureDateTime }}">
+                                                                    <input type="hidden" name="adultCount"
+                                                                           value="{{ $room->guestCount->adultCount }}">
+                                                                    @empty($room->guestCount->childAges)
+
+                                                                    @else
+                                                                        <input type="hidden" name="childAges[]"
+                                                                               value="{{ implode(',', $room->guestCount->childAges) }}">
+                                                                    @endempty
+
+                                                                    <input type="hidden" name="ratePlanId"
+                                                                           value="{{ $room->ratePlan->id }}">
+                                                                    <input type="hidden" name="roomTypeId"
+                                                                           value="{{ $room->roomType->id }}">
+                                                                    <input type="hidden" name="placements"
+                                                                           value="{{ json_encode($room->roomType->placements) }}">
+                                                                    {{--                                        <input type="hidden" name="roomType"--}}
+                                                                    {{--                                               value="{{ $room->roomType->placements[0]->kind }}">--}}
+                                                                    {{--                                        <input type="hidden" name="roomCount"--}}
+                                                                    {{--                                               value="{{ $room->roomType->placements[0]->count }}">--}}
+                                                                    {{--                                        <input type="hidden" name="roomCode"--}}
+                                                                    {{--                                               value="{{ $room->roomType->placements[0]->code }}">--}}
+                                                                    {{--                                        <input type="hidden" name="placementCode"--}}
+                                                                    {{--                                               value="{{ $room->roomType->placements[0]->code }}">--}}
+                                                                    <input type="hidden" name="categoryName"
+                                                                           value="{{ $room->fullPlacementsName }}">
+                                                                    <input type="hidden" name="mealCode"
+                                                                           value="{{ $room->mealPlanCode }}">
+                                                                    <input type="hidden" name="cancelPossible"
+                                                                           value="{{$room->cancellationPolicy->freeCancellationPossible}}">
+                                                                    <input type="hidden" name="cancelUtc"
+                                                                           value="{{$room->cancellationPolicy->freeCancellationDeadlineUtc}}">
+                                                                    <input type="hidden" name="cancelLocal"
+                                                                           value="{{$room->cancellationPolicy->freeCancellationDeadlineLocal}}">
+                                                                    <input type="hidden" name="cancelDate"
+                                                                           value="{{ $cancelDate }}">
+                                                                    <input type="hidden" name="cancelPrice"
+                                                                           value="{{ round($convertedCancel) }}">
+                                                                    <input type="hidden" name="checkSum"
+                                                                           value="{{ $room->checksum }}">
+                                                                    @foreach($room->includedServices as $serv)
+                                                                        <input type="hidden" name="servicesId"
+                                                                               value="{{ $serv->id }}">
+                                                                    @endforeach
+
+                                                                    {{--                                            <input type="hidden" name="servicesQuantity" value="{{  }}">--}}
+                                                                    <input type="hidden" name="hotel"
+                                                                           value="{{ $room->fullPlacementsName }}">
+                                                                    <input type="hidden" name="hotel_id"
+                                                                           value="{{ $room->propertyId }}">
+                                                                    <input type="hidden" name="room_id"
+                                                                           value="{{ $room->roomType->id }}">
+                                                                    <input type="hidden" name="title"
+                                                                           value="{{ $room->fullPlacementsName }}">
+                                                                    <input type="hidden" name="price"
+                                                                           value="{{ round($converted) }}">
+                                                                    <input type="hidden" name="currency"
+                                                                           value="{{ $symbol }}">
+                                                                    <button class="more">@lang('main.book')</button>
+                                                                </form>
                                                             </div>
                                                         </div>
-                                                        <div class="item price">{{ $room->total->priceBeforeTax }} {{ $room->currencyCode }}</div>
-{{--                                                        <div class="nds">Все налоги включены</div>--}}
-                                                        <div class="btn-wrap">
-                                                            <form action="{{ route('order_exely', $room->roomType->id) }}">
-                                                                <input type="hidden" name="propertyId"
-                                                                       value="{{ $room->propertyId }}">
-                                                                <input type="hidden" name="arrivalDate"
-                                                                       value="{{ $room->stayDates->arrivalDateTime }}">
-                                                                <input type="hidden" name="departureDate"
-                                                                       value="{{ $room->stayDates->departureDateTime }}">
-                                                                <input type="hidden" name="adultCount"
-                                                                       value="{{ $room->guestCount->adultCount }}">
-                                                                @empty($room->guestCount->childAges)
+                                                    @endforeach
 
-                                                                @else
-                                                                    <input type="hidden" name="childAges[]"
-                                                                           value="{{ implode(',', $room->guestCount->childAges) }}">
-                                                                @endempty
-
-                                                                <input type="hidden" name="ratePlanId"
-                                                                       value="{{ $room->ratePlan->id }}">
-                                                                <input type="hidden" name="roomTypeId"
-                                                                       value="{{ $room->roomType->id }}">
-                                                                <input type="hidden" name="placements"
-                                                                       value="{{ json_encode($room->roomType->placements) }}">
-                                                                {{--                                        <input type="hidden" name="roomType"--}}
-                                                                {{--                                               value="{{ $room->roomType->placements[0]->kind }}">--}}
-                                                                {{--                                        <input type="hidden" name="roomCount"--}}
-                                                                {{--                                               value="{{ $room->roomType->placements[0]->count }}">--}}
-                                                                {{--                                        <input type="hidden" name="roomCode"--}}
-                                                                {{--                                               value="{{ $room->roomType->placements[0]->code }}">--}}
-                                                                {{--                                        <input type="hidden" name="placementCode"--}}
-                                                                {{--                                               value="{{ $room->roomType->placements[0]->code }}">--}}
-                                                                <input type="hidden" name="categoryName"
-                                                                       value="{{ $room->fullPlacementsName }}">
-                                                                <input type="hidden" name="mealCode"
-                                                                       value="{{ $room->mealPlanCode }}">
-                                                                <input type="hidden" name="cancelPossible"
-                                                                       value="{{$room->cancellationPolicy->freeCancellationPossible}}">
-                                                                <input type="hidden" name="cancelUtc"
-                                                                       value="{{$room->cancellationPolicy->freeCancellationDeadlineUtc}}">
-                                                                <input type="hidden" name="cancelLocal"
-                                                                       value="{{$room->cancellationPolicy->freeCancellationDeadlineLocal}}">
-                                                                <input type="hidden" name="cancelDate"
-                                                                       value="{{ $cancelDate }}">
-                                                                <input type="hidden" name="cancelPrice"
-                                                                       value="{{ $room->cancellationPolicy->penaltyAmount  }}">
-                                                                <input type="hidden" name="checkSum"
-                                                                       value="{{ $room->checksum }}">
-                                                                @foreach($room->includedServices as $serv)
-                                                                    <input type="hidden" name="servicesId"
-                                                                           value="{{ $serv->id }}">
-                                                                @endforeach
-
-                                                                {{--                                            <input type="hidden" name="servicesQuantity" value="{{  }}">--}}
-                                                                <input type="hidden" name="hotel"
-                                                                       value="{{ $room->fullPlacementsName }}">
-                                                                <input type="hidden" name="hotel_id"
-                                                                       value="{{ $room->propertyId }}">
-                                                                <input type="hidden" name="room_id"
-                                                                       value="{{ $room->roomType->id }}">
-                                                                <input type="hidden" name="title"
-                                                                       value="{{ $room->fullPlacementsName }}">
-                                                                <input type="hidden" name="price"
-                                                                       value="{{ $room->total->priceBeforeTax }}">
-                                                                <input type="hidden" name="currency"
-                                                                       value="{{ $room->currencyCode }}">
-                                                                <button class="more">@lang('main.book')</button>
-                                                            </form>
-                                                        </div>
-                                                    </div>
-                                                @endforeach
-
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    @endforeach
 
                                 </div>
 
@@ -266,22 +326,7 @@
                 </div>
             </div>
         @else
-            <div class="page auth">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-lg-8 offset-lg-2 col-md-12">
-                            <div class="img-wrap">
-                                <img src="{{ route('index') }}/img/b2b.jpg" alt="">
-                                <h4>@lang('main.b2b')</h4>
-                            </div>
-                            <div class="alert alert-danger">
-                                <div class="descr">@lang('main.need_auth') <a
-                                            href="{{ route('login') }}">@lang('main.auth')</a></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            @include('layouts.auth')
         @endauth
 
     @endsection

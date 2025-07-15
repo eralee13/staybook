@@ -35,14 +35,14 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="dashboard-item">
-                                    <div class="name">Часовой пояс</div>
+                                    <div class="name">@lang('admin.timezone')</div>
                                     <h5>{{ $hotel->timezone ?? '+06:00' }}
                                     </h5>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="dashboard-item">
-                                    <div class="name">Город</div>
+                                    <div class="name">@lang('admin.city')</div>
                                     <h5>{{ $hotel->city }}
                                     </h5>
                                 </div>

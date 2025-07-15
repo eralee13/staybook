@@ -16,6 +16,8 @@ class Room extends Model
     protected $fillable = [
         'title',
         'title_en',
+        'title_local',
+        'title_local_en',
         'description',
         'description_en',
         'tourmind_id',
@@ -32,16 +34,16 @@ class Room extends Model
         'deleted_at'
     ];
 
-
-    public function book()
-    {
-        return $this->belongsTo(Book::class);
-    }
-
+//    public function rates()
+//    {
+//        return $this->hasMany(Rate::class, 'room_id', 'id');
+//    }
+//
     public function rates()
     {
-        return $this->hasMany(Rate::class, 'room_id', 'id');
+        return $this->hasMany(Rate::class);
     }
+
 
     public function images()
     {

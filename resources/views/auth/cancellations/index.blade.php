@@ -14,7 +14,7 @@
                     @include('auth.layouts.subroom')
                     <div class="row align-items-center aic">
                         <div class="col-md-7">
-                            <h1>Политика отмены</h1>
+                            <h1>@lang('admin.cancel_fines')</h1>
                         </div>
                         <div class="col-md-5">
                             <div class="btn-wrap">
@@ -30,9 +30,8 @@
                             <tr>
                                 <th>ID</th>
                                 <th>@lang('admin.title')</th>
-                                <th>Тип штрафа</th>
-                                <th>Размер штрафа</th>
-                                <th>Тариф</th>
+                                <th>@lang('admin.type_fine')</th>
+                                <th>@lang('admin.rate')</th>
                                 <th>@lang('admin.action')</th>
                             </tr>
                             </thead>
@@ -40,10 +39,17 @@
                             @foreach($rules as $cancellation)
                                 <tr>
                                     <td>{{ $cancellation->id }}</td>
-                                    <td>{{ $cancellation->title }}</td>
-                                    <td>{{ $cancellation->penalty_type }}</td>
-                                    <td>{{ $cancellation->penalty_amount }}</td>
-                                    <td>{{ $cancellation->rate->title ?? '' }}</td>
+                                    <td>{{ $cancellation->__('title') ?? '' }}</td>
+                                    <td>
+                                        @if($cancellation->cancel_policy === 'free_until_checkin')
+                                            @lang('admin.free_until_checkin')
+                                        @elseif($cancellation->cancel_policy === 'free_then_penalty')
+                                            @lang('admin.free_then_penalty')
+                                        @else
+                                            @lang('admin.non_refundable')
+                                        @endif
+                                    </td>
+                                    <td>{{ optional($cancellation->rate)->__('title') }}</td>
                                     <td>
                                         <form action="{{ route('cancellations.destroy', $cancellation) }}" method="post">
                                             <ul>

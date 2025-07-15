@@ -48,7 +48,7 @@
                                             }}"><img src="{{ route('index') }}/img/icons/edit.svg" alt=""></a></li>
                                             @csrf
                                             @method('DELETE')
-                                            <button class="btn delete"><img src="{{ route('index') }}/img/icons/trash.svg" alt=""></a></button>
+                                            <button><img src="{{ route('index') }}/img/icons/trash.svg" alt=""></a></button>
                                         </ul>
                                     </form>
                                 </td>
