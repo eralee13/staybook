@@ -1,8 +1,14 @@
-@extends('auth/layouts.master')
+@extends('layouts.head')
 
 @section('title', 'Забыли пароль?')
 
 @section('content')
+
+    @if (session('status'))
+        <div class="alert alert-success">
+            {{ session('status') }}
+        </div>
+    @endif
 
     <div class="page">
         <div class="container">
@@ -14,6 +20,11 @@
                         <div class="form-group">
                             <label for="">Email</label>
                             <input type="email" name="email">
+                            @error('email')
+                            <div class="alert alert-danger">
+                                {{ $message }}
+                            </div>
+                            @enderror
                         </div>
                         <button class="more">Отправить</button>
                     </form>

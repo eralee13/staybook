@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\ListbookController;
 use App\Http\Controllers\Admin\OfflineController;
 use App\Http\Controllers\Admin\PDFController;
 use App\Http\Controllers\Admin\UserBookController;
+use App\Http\Controllers\API\HotelStar\HotelStarController;
 use App\Http\Controllers\MainController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
@@ -77,6 +78,7 @@ Route::middleware('set_locale')->group(function () {
         Route::resource("roles", "App\Http\Controllers\Admin\RoleController");
         Route::resource("permissions", "App\Http\Controllers\Admin\PermissionController");
         Route::resource("contacts", "App\Http\Controllers\Admin\ContactController");
+        Route::resource("details", "App\Http\Controllers\Admin\ContactController");
 
         Route::get("search", [HotelController::class, 'search']);
         Route::get("searchbook", [ListBookController::class, 'searchbook']);
@@ -129,6 +131,7 @@ Route::middleware('set_locale')->group(function () {
     //local
     Route::get('/search', [\App\Http\Controllers\SearchController::class, 'search'])->name('search');
     Route::get('/search/hotel/{hotel}', [\App\Http\Controllers\SearchController::class, 'findHotel'])->name('findHotel');
+
     //exely
     Route::get('/search/hotelex', [\App\Http\Controllers\SearchController::class, 'findHotelExely'])->name('findHotelExely');
 
@@ -186,8 +189,17 @@ Route::middleware('set_locale')->group(function () {
     Route::get('/book/cancel/etg', [\App\Http\Controllers\BookingEtgController::class, 'cancel_calculate_etg'])->name('cancel_calculate_etg');
     Route::get('/book/cancel/confirm/etg', [\App\Http\Controllers\BookingEtgController::class, 'cancel_confirm_etg'])->name('cancel_confirm_etg');
 
-    //Route::get('/order/{order}', [PageController::class, 'order'])->name('order');
-    Route::get('/testsearch', [PageController::class, 'testsearch'])->name('testsearch');
+    //HotelStar
+    Route::prefix('hotelstar')->group(function () {
+        Route::post('/search', [HotelStarController::class, 'search']);
+        Route::post('/actualize', [HotelStarController::class, 'actualize']);
+        Route::post('/book', [HotelStarController::class, 'book']);
+
+        Route::post('/cancel', [HotelStarController::class, 'cancel']);
+        Route::post('/info', [HotelStarController::class, 'info']);
+        Route::post('/message', [HotelStarController::class, 'sendMessage']);
+        Route::post('/message-list', [HotelStarController::class, 'messageList']);
+    });
 
     //email
     Route::post('contact_mail', [MainController::class, 'contact_mail'])->name('contact_mail');

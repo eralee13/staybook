@@ -134,5 +134,6 @@ return [
     'create_book' => 'Create book',
     'guests' => 'Guests',
     'clear' => 'Clear',
+    'remember' => 'Remember me',
 
 ];

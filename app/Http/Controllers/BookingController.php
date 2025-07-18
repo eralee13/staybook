@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mail\BookCancelMail;
 use App\Mail\BookMail;
 use App\Models\Book;
+use App\Models\Contact;
 use App\Models\Hotel;
 use Carbon\Carbon;
 use Illuminate\Http\Client\RequestException;
@@ -81,11 +82,11 @@ class BookingController extends Controller
             'api_type' => 'local'
         ];
         $book = Book::create($data);
-        //Mail::to('info@staybook.asia')->send(new BookMail($book));
-        if($book){
+        if ($book) {
             Log::warning('Бронь создана: ' . $book->id);
-            //Mail::to('info@staybook.asia')->send(new BookMail($book));
-            }
+            $email = Contact::first()->email;
+            Mail::to($email)->send(new BookMail($book));
+        }
 
         return view('pages.booking.order-reserve', compact('book', 'request'));
     }
@@ -105,7 +106,8 @@ class BookingController extends Controller
         $book = Book::where('book_token', $request->number)->first();
         if ($book) {
             Log::warning('Отмена брони: ' . $book->id);
-            Mail::to('info@staybook.asia')->send(new BookCancelMail($book));
+            $email = Contact::first()->email;
+            Mail::to($email)->send(new BookCancelMail($book));
         }
         return view('pages.booking.cancel-confirm', compact('book', 'request'));
     }
@@ -483,7 +485,8 @@ class BookingController extends Controller
                             'user_id' => Auth::id() ?? 1,
                             'tag' => 'exely'
                         ]);
-                        Mail::to('info@staybook.asia')->send(new BookMail($book));
+                        $email = Contact::first()->email;
+                        Mail::to($email)->send(new BookMail($book));
                         Log::warning('Бронь создана: ' . $book->id);
                     } else {
                         $book = Book::create([
@@ -507,7 +510,8 @@ class BookingController extends Controller
                             'user_id' => Auth::id() ?? 1,
                             'api_type' => 'exely'
                         ]);
-                        Mail::to('info@staybook.asia')->send(new BookMail($book));
+                        $email = Contact::first()->email;
+                        Mail::to($email)->send(new BookMail($book));
                         Log::warning('Бронь создана: ' . $book->id);
                     }
                 }
@@ -562,7 +566,8 @@ class BookingController extends Controller
                     'status' => "Cancelled"
                 ]);
                 Log::warning('Отмена брони: ' . $book->id);
-                Mail::to('info@staybook.asia')->send(new BookCancelMail($book));
+                $email = Contact::first()->email;
+                Mail::to($email)->send(new BookCancelMail($book));
 
                 return view('pages.booking.exely.cancel-confirm', compact('cancel'));
             }

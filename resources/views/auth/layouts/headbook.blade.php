@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title') - StayBook</title>
     <meta name="csrf-token" content="{{ csrf_token() }}"/>
-    <link rel="icon" href="{{route('index')}}/img/favicon.jpg">
-    <link rel="apple-touch-icon" sizes="180x180" href="{{route('index')}}/img/favicon.jpg">
+    <link rel="icon" href="{{route('index')}}/img/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{route('index')}}/img/favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link

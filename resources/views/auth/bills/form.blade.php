@@ -34,40 +34,87 @@
                         <div class="alert alert-danger">{{ $message }}</div>
                         @enderror
                         <input type="hidden" value="{{ $hotel }}" name="hotel_id">
-                        <div class="form-group">
-                            <label for="">@lang('admin.title')</label>
-                            <input type="text" name="title" value="{{ old('title', isset($bill) ? $bill->title :
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="">@lang('admin.title')</label>
+                                    <input type="text" name="title" value="{{ old('title', isset($bill) ? $bill->title :
                              null) }}">
-                        </div>
-                        <div class="form-group">
-                            <label for="">@lang('admin.date')</label>
-                            <input type="date" name="date" value="{{ old('date', isset($bill) ? $bill->date :
-                             null) }}">
-                        </div>
-                        <div class="form-group">
-                            <label for="">@lang('admin.file')</label>
-                            <input type="file" name="file1">
-                        </div>
-                            <div class="form-group">
-                                <label for="">@lang('admin.file') #2</label>
-                                <input type="file" name="file2">
+                                </div>
                             </div>
-                        <div class="form-group">
-                            <label for="">@lang('admin.status')</label>
-                            <select name="status">
-                                @if(isset($bill))
-                                    @if($bill->status == 1)
-                                        <option value="{{$bill->status}}">@lang('admin.active')</option>
-                                        <option value="0">@lang('admin.not_concluded')</option>
-                                    @else
-                                        <option value="{{$bill->status}}">@lang('admin.not_concluded')</option>
-                                        <option value="1">@lang('admin.active')</option>
-                                    @endif
-                                @else
-                                    <option value="1">@lang('admin.active')</option>
-                                    <option value="0">@lang('admin.not_concluded')</option>
-                                @endif
-                            </select>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="">@lang('admin.title') EN</label>
+                                    <input type="text" name="title_en" value="{{ old('title_en', isset($bill) ? $bill->title_en :
+                             null) }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="">Название банка</label>
+                                    <input type="text" name="bank_name" value="{{ old('bank_name', isset($bill) ? $bill->bank_name :
+                             null) }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="">ИНН</label>
+                                    <input type="text" name="bank_inn" value="{{ old('bank_inn', isset($bill) ? $bill->bank_inn :
+                             null) }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="">Р/с</label>
+                                    <input type="text" name="bank_account" value="{{ old('bank_account', isset($bill) ? $bill->bank_account :
+                             null) }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="">БИК</label>
+                                    <input type="text" name="bank_bic" value="{{ old('bank_bic', isset($bill) ? $bill->bank_bic :
+                             null) }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="">Адрес</label>
+                                    <input type="text" name="address" value="{{ old('address', isset($bill) ? $bill->address :
+                             null) }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="">@lang('admin.file')</label>
+                                    <input type="file" name="file1">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="">@lang('admin.file') #2</label>
+                                    <input type="file" name="file2">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="">@lang('admin.status')</label>
+                                    <select name="status">
+                                        @if(isset($bill))
+                                            @if($bill->status == 1)
+                                                <option value="{{$bill->status}}">@lang('admin.active')</option>
+                                                <option value="0">@lang('admin.not_concluded')</option>
+                                            @else
+                                                <option value="{{$bill->status}}">@lang('admin.not_concluded')</option>
+                                                <option value="1">@lang('admin.active')</option>
+                                            @endif
+                                        @else
+                                            <option value="1">@lang('admin.active')</option>
+                                            <option value="0">@lang('admin.not_concluded')</option>
+                                        @endif
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                         @csrf
                         <button class="more">@lang('admin.send')</button>

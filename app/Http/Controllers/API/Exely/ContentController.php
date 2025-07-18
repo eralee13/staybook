@@ -3,14 +3,10 @@
 namespace App\Http\Controllers\API\Exely;
 
 use App\Http\Controllers\Controller;
-use App\Models\CategoryRoom;
 use App\Models\City;
 use App\Models\Hotel;
-use App\Models\Image;
-use App\Models\Page;
 use App\Models\Room;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;

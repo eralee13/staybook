@@ -12,8 +12,8 @@
 
     <!-- Template Basic Images Start -->
     <meta property="og:image" content="path/to/image.jpg">
-    <link rel="icon" href="{{route('index')}}/img/favicon.jpg">
-    <link rel="apple-touch-icon" sizes="180x180" href="{{route('index')}}/img/favicon.jpg">
+    <link rel="icon" href="{{route('index')}}/img/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{route('index')}}/img/favicon.png">
     <!-- Template Basic Images End -->
 
     <!-- Custom Browser Color Start -->

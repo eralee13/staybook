@@ -18,12 +18,36 @@ class HotelController extends Controller
     public function HotelStatic(Request $request)
     {
         $filter = new HotelFilter();
-        $queryItems = $filter->transform($request);//'column', 'operator', 'value'
-        if(count($queryItems) == 0){
-            return new HotelCollection(Hotel::paginate(20));
-        } else {
-            return new HotelCollection(Hotel::where($queryItems)->paginate(20));
+
+        if ($request->header('Content-Type') === 'application/x-ndjson') {
+            $lines = explode("\n", $request->getContent());
+            $parsed = [];
+
+            foreach ($lines as $line) {
+                if (trim($line)) {
+                    $data = json_decode($line, true);
+                    if (is_array($data)) {
+                        $parsed[] = $data;
+                    }
+                }
+            }
+
+            $queryItems = $filter->fromArray($parsed);
+
+            return new HotelCollection(
+                count($queryItems)
+                    ? Hotel::where($queryItems)->paginate(20)
+                    : Hotel::paginate(20)
+            );
         }
+
+        // Стандартный запрос
+        $queryItems = $filter->transform($request);
+        return new HotelCollection(
+            count($queryItems)
+                ? Hotel::where($queryItems)->paginate(20)
+                : Hotel::paginate(20)
+        );
     }
 
     public function show($id){

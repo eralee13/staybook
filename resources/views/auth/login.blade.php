@@ -56,7 +56,16 @@
                             <div class="line"></div>
                             <div class="descr">@lang('main.agree_with') <a href="{{ route('privacy') }}">@lang('main.privacy_policy')</a> @lang('main.processing_data')
                             </div>
+                            <div class="form-group">
+                                <input type="checkbox" id="remember" name="remember">
+                                <label for="remember">@lang('main.remember')</label>
+                            </div>
                             @csrf
+                            @if (Route::has('password.request'))
+                                <a class="btn btn-link" href="{{ route('password.request') }}">
+                                    {{ __('Забыли пароль?') }}
+                                </a>
+                            @endif
                             <div class="btn-wrap">
                                 <button class="more">@lang('main.login_system')</button>
                             </div>

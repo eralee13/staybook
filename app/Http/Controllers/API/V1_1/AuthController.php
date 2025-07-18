@@ -24,14 +24,15 @@ class AuthController extends BaseController
      * @param LoginRequest $request
      * @return JsonResponse
      */
+
     public function login(LoginRequest $request): JsonResponse
     {
         $user = User::where('email', $request->email)->first();
+
         if (! $user || ! Hash::check($request->password, $user->password)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+            return $this->sendError('Unauthorised', ['error' => 'Invalid credentials'], 401);
         }
 
-        // создаём персональный токен
         $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([

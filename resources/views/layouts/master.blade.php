@@ -2,9 +2,9 @@
 <html lang="ru">
 
 <head>
-    <link rel="icon" href="{{route('index')}}/img/favicon.jpg">
+    <link rel="icon" href="{{route('index')}}/img/favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <link rel="apple-touch-icon" sizes="180x180" href="{{route('index')}}/img/favicon.jpg">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{route('index')}}/img/favicon.png">
     <!-- Template Basic Images End -->
 
     <!-- Custom Browsers Color Start -->

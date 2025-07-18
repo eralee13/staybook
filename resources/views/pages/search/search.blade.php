@@ -573,7 +573,6 @@
                                         fn($v) => $v !== ''
                                     );
                                 }
-
                                 // Убедимся, что теперь $childAges — именно массив (например [] или ['1','9'])
                                 if (! is_array($childAges)) {
                                     $childAges = [];
@@ -660,7 +659,6 @@
                                             $rate = \App\Models\Rate::where('hotel_id', $hotel->id)
                                                      ->orderBy('price', 'asc')
                                                      ->first();
-
                                             if ($rate) {
                                                 $сhildAges = [];
                                                     $price_child = 0;
@@ -678,7 +676,6 @@
                                                             }
                                                         }
                                                     }
-
                                                     if ($totalAdults >= 2) {
                                                         $price = ($rate->price2 + $price_child) * 1 * $nights;
                                                     } else {
@@ -699,7 +696,6 @@
                                             </div>
                                         </div>
                                     </div>
-
                                     <div class="col-md-2 order-xl-3 order-lg-3 order-2">
                                         @php
                                             // 1) Исходная цена с коэффициентом
@@ -721,15 +717,13 @@
                                                         $converted = app(\App\Services\FXService::class)->convert($basePrice, $rate->currency ?? 'USD', $fxBase);
                                                         $symbol = $symbols[$toCurrency] ?? $toCurrency;
                                         @endphp
-
-                                        <div class="price">@lang('main.from') {{ number_format($converted, 0, '.', ' ') }}
+                                        <div class="price">@lang('main.from') {{ number_format(round($converted), 0, '.', ' ') }}
                                             {{ $symbol }}
                                         </div>
                                         <div class="night">@lang('main.night')</div>
                                     </div>
                                 </div>
                             </div>
-
                         @elseif($item['source'] === 'exely')
                             @php
                                 $room = $item['roomStay'];
@@ -889,7 +883,7 @@
                                                 $symbol = $symbols[$toCurrency] ?? $toCurrency;
                                             @endphp
 
-                                            @lang('main.from') {{ round($converted) }} {{ $symbol }}</div>
+                                            @lang('main.from') {{ number_format(round($converted), 0, '.', ' ') }} {{ $symbol }}</div>
 
                                         <div class="night">@lang('main.night')</div>
                                     </div>

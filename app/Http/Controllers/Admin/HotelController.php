@@ -9,6 +9,7 @@ use App\Mail\HotelMail;
 use App\Mail\HotelUpdateMail;
 use App\Models\Amenity;
 use App\Models\City;
+use App\Models\Contact;
 use App\Models\Hotel;
 use App\Models\Image;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -17,7 +18,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -26,11 +26,12 @@ class HotelController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('permission:create-hotel|edit-hotel|delete-hotel', ['only' => ['index','show']]);
-        $this->middleware('permission:create-hotel', ['only' => ['create','store']]);
-        $this->middleware('permission:edit-hotel', ['only' => ['edit','update']]);
+        $this->middleware('permission:create-hotel|edit-hotel|delete-hotel', ['only' => ['index', 'show']]);
+        $this->middleware('permission:create-hotel', ['only' => ['create', 'store']]);
+        $this->middleware('permission:edit-hotel', ['only' => ['edit', 'update']]);
         $this->middleware('permission:delete-hotel', ['only' => ['destroy']]);
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -38,9 +39,9 @@ class HotelController extends Controller
     {
         $user = Auth::user()->id;
         $chotel = Hotel::all();
-        if($user != 1 && $user != 3){
+        if ($user != 1 && $user != 3) {
             $hotels = Hotel::where('user_id', $user)->paginate(20);
-        } else{
+        } else {
             $hotels = Hotel::paginate(20);
         }
 
@@ -123,7 +124,8 @@ class HotelController extends Controller
             )
         );
 
-        Mail::to('info@staybook.asia')->send(new HotelMail($request));
+        $email = Contact::first()->email;
+        Mail::to($email)->send(new HotelMail($request));
 
         session()->flash('success', $request->title . ' added');
         return redirect()->route('hotels.index');
@@ -214,7 +216,8 @@ class HotelController extends Controller
                 'rules' => $pathname2,
             ]);
 
-        Mail::to('info@staybook.asia')->send(new HotelUpdateMail($request));
+        $email = Contact::first()->email;
+        Mail::to($email)->send(new HotelUpdateMail($request));
 
         session(['hotel_id' => $request->hotel_id]);
 
@@ -228,11 +231,11 @@ class HotelController extends Controller
     public function destroy(Hotel $hotel)
     {
         $hotel->delete();
-        if($hotel->image){
+        if ($hotel->image) {
             Storage::delete($hotel->image);
         }
         $images = Image::where('hotel_id', $hotel->id)->get();
-        if($images->isNotEmpty()){
+        if ($images->isNotEmpty()) {
             foreach ($images as $image) {
                 Storage::delete($image->image);
             }
@@ -247,7 +250,8 @@ class HotelController extends Controller
         DB::table('rates')->where('hotel_id', $hotel->id)->delete();
         DB::table('amenities')->where('hotel_id', $hotel->id)->delete();
         DB::table('payments')->where('hotel_id', $hotel->id)->delete();
-        Mail::to('info@staybook.asia')->send(new HotelDeleteMail($hotel));
+        $email = Contact::first()->email;
+        Mail::to($email)->send(new HotelDeleteMail($hotel));
         session()->flash('success', 'Property ' . $hotel->title . ' deleted');
         return redirect()->route('hotels.index');
     }
@@ -280,7 +284,7 @@ class HotelController extends Controller
                             <td>
                                 <ul>
                                     <a href="<?php echo route('hotels.show', $row->id) ?>" class="more"><i
-                                            class="fa-regular
+                                                class="fa-regular
                                 fa-pen-to-square"></i> Choose</a>
                                 </ul>
                             </td>

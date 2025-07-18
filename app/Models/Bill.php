@@ -2,14 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Traits\Translatable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Bill extends Model
 {
-
-    protected $fillable = [
-        'title',
-        'hotel_id',
-        'status',
-    ];
+    use HasFactory, Translatable;
+    protected $guarded = [];
 }

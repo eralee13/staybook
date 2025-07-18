@@ -2,58 +2,49 @@
 
 namespace App\Filters\V1;
 
-use App\Filters\ApiFilter;
 use Illuminate\Http\Request;
 
-class HotelFilter extends ApiFilter
+class HotelFilter
 {
     protected $safeParams = [
-        'title' => 'eq',
-        'checkin' => 'eq',
-        'checkout' => 'eq',
-        'address' => 'eq',
-        'email' => 'eq',
-        'phone' => 'eq',
-        'rating' => ['eq', 'lt', 'gt', 'lte'],
-        'lng' => 'eq',
-        'lat' => 'eq',
-        'type' => 'eq'
+        'city' => ['eq'],
+        'rating' => ['eq', 'gt', 'lt'],
+        'type' => ['eq'],
     ];
 
     protected $columnMap = [
+        'city' => 'city',
         'rating' => 'rating',
-    ];
-
-    protected $operatorMap = [
-        'eq' => '=',
-        'lt' => '<',
-        'lte' => '<=',
-        'gte' => '>=',
-        'in' => 'in',
-        'not_in' => 'not in',
-        'gt' => '>'
+        'type' => 'type',
     ];
 
     public function transform(Request $request)
     {
-        $elQuery = [];
+        $query = [];
 
+        // Если обычный JSON-запрос
         foreach ($this->safeParams as $param => $operators) {
-            $query = $request->query($param);
-            if (!isset($query)) {
-                continue;
+            $value = $request->query($param);
+            if ($value !== null) {
+                $query[] = [$this->columnMap[$param], '=', $value];
             }
+        }
 
-            $column = $this->columnMap[$param] ?? $param;
+        return $query;
+    }
 
-            foreach ($operators as $operator) {
-                if (isset($query[$operator])) {
-                    $elQuery[] = [$column, $this->operatorMap[$operator], $query[$operator]];
+    public function fromArray(array $items): array
+    {
+        $query = [];
+
+        foreach ($items as $item) {
+            foreach ($this->safeParams as $param => $operators) {
+                if (isset($item[$param])) {
+                    $query[] = [$this->columnMap[$param], '=', $item[$param]];
                 }
             }
         }
-        return $elQuery;
+
+        return $query;
     }
-
 }
-

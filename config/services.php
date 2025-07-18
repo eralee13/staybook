@@ -45,4 +45,9 @@ return [
         'token' => env('FXKG_API_TOKEN'),
     ],
 
+    'hotelstar' => [
+        'url' => env('HOTELSTAR_API_URL'),
+        'token' => env('HOTELSTAR_API_TOKEN'),
+    ],
+
 ];

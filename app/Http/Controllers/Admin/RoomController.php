@@ -8,6 +8,7 @@ use App\Mail\RoomCreateMail;
 use App\Mail\RoomDeleteMail;
 use App\Mail\RoomUpdateMail;
 use App\Models\CategoryRoom;
+use App\Models\Contact;
 use App\Models\Rate;
 use App\Models\Accommodation;
 use App\Models\Hotel;
@@ -90,7 +91,8 @@ class RoomController extends Controller
             endforeach;
         endif;
 
-        Mail::to('info@staybook.asia')->send(new RoomCreateMail($request));
+        $email = Contact::first()->email;
+        Mail::to($email)->send(new RoomCreateMail($request));
         session()->flash('success', 'Room ' . $request->title . ' created');
         return redirect()->route('rooms.index');
     }
@@ -166,7 +168,8 @@ class RoomController extends Controller
         }
 
         $room->update($params);
-        Mail::to('info@staybook.asia')->send(new RoomUpdateMail($request));
+        $email = Contact::first()->email;
+        Mail::to($email)->send(new RoomUpdateMail($request));
         session()->flash('success', 'Room ' . $request->title . ' updated');
         return redirect()->route('rooms.index');
     }
@@ -188,7 +191,8 @@ class RoomController extends Controller
             }
             DB::table('images')->where('room_id', $room->id)->delete();
         }
-        Mail::to('info@staybook.asia')->send(new RoomDeleteMail($room));
+        $email = Contact::first()->email;
+        Mail::to($email)->send(new RoomDeleteMail($room));
         session()->flash('success', 'Room ' . $room->title . ' deleted');
         return redirect()->route('rooms.index');
     }
