@@ -21,8 +21,8 @@ class BillController extends Controller
     public function index(Request $request)
     {
         $hotel = $request->session()->get('hotel_id');
-        $bills = Bill::where('hotel_id', $hotel)->get();
-        return view('auth.bills.index', compact('bills', 'hotel'));
+        $bill = Bill::where('hotel_id', $hotel)->first();
+        return view('auth.bills.index', compact('bill', 'hotel'));
     }
 
     public function booking(Request $request)

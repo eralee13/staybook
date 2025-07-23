@@ -29,35 +29,7 @@ class Hotel extends Model
         'count'
     ];
 
-    protected $fillable = [
-        'code',
-        'title',
-        'title_en',
-        'description',
-        'description_en',
-        'image',
-        'checkin',
-        'checkout',
-        'phone',
-        'email',
-        'type',
-        'city',
-        'address',
-        'address_en',
-        'lng',
-        'lat',
-        //'early_in',
-        //'late_out',
-        'rating',
-        'top',
-        'user_id',
-        'exely_id',
-        'tourmind_id',
-        'emerging_id',
-        'timezone',
-        'utc',
-        'status'
-    ];
+    protected $guarded = [];
 
     public function rooms()
     {

@@ -30,6 +30,7 @@ class HotelRequest extends FormRequest
             'checkin' => 'required|min:2',
             'checkout' => 'required|min:2',
             'city' => 'required',
+            'currency' => 'required',
             'timezone' => 'required',
             'rating' => 'required|min:1',
             'address' => 'required',

@@ -40,6 +40,7 @@
                             <th>ID</th>
                             <th>@lang('admin.title')</th>
                             <th>@lang('admin.address')</th>
+                            <th>@lang('admin.status')</th>
                             <th>@lang('admin.action')</th>
                         </tr>
                         @foreach($hotels as $hotel)
@@ -47,6 +48,13 @@
                                 <td>{{ $hotel->id }}</td>
                                 <td>{{ $hotel->__('title') }}</td>
                                 <td>{{ $hotel->__('address') }}</td>
+                                <td>
+                                    @if($hotel->status === 1)
+                                        <div class="alert alert-success">@lang('admin.active')</div>
+                                    @else
+                                        <div class="alert alert-danger">@lang('admin.disable')</div>
+                                    @endif
+                                </td>
                                 <td>
                                     <form action="{{ route('hotels.destroy', $hotel) }}" method="post">
                                         <ul>

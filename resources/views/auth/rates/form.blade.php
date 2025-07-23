@@ -122,7 +122,10 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'price'])
-                                    <label for="">@lang('admin.price_for') 1 @lang('main.adult')</label>
+                                    @php
+                                        $hot = \App\Models\Hotel::where('id', $hotel)->first();
+                                    @endphp
+                                    <label for="">@lang('admin.price_for') 1 @lang('main.adult') ({{ $hot->currency }})</label>
                                     <input type="number" name="price" value="{{ old('price', isset($rate) ?
                                 $rate->price : null) }}">
                                 </div>
@@ -130,7 +133,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'price2'])
-                                    <label for="">@lang('admin.price_for') 2 @lang('main.adult')</label>
+                                    <label for="">@lang('admin.price_for') 2 @lang('main.adult') ({{ $hot->currency }})</label>
                                     <input type="number" name="price2" value="{{ old('price2', isset($rate) ?
                                 $rate->price2 : null) }}">
                                 </div>
@@ -138,7 +141,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'price3'])
-                                    <label for="">@lang('admin.price_for') 3 @lang('main.adult')</label>
+                                    <label for="">@lang('admin.price_for') 3 @lang('main.adult') ({{ $hot->currency }})</label>
                                     <input type="number" name="price3" value="{{ old('price3', isset($rate) ?
                                 $rate->price3 : null) }}">
                                 </div>
@@ -146,7 +149,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'price4'])
-                                    <label for="">@lang('admin.price_for') 4 @lang('main.adult')</label>
+                                    <label for="">@lang('admin.price_for') 4 @lang('main.adult') ({{ $hot->currency }})</label>
                                     <input type="number" name="price4" value="{{ old('price4', isset($rate) ?
                                 $rate->price4 : null) }}">
                                 </div>

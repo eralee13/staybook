@@ -135,5 +135,7 @@ return [
     'guests' => 'Guests',
     'clear' => 'Clear',
     'remember' => 'Remember me',
+    'late_checkin' => 'Early checkin',
+    'late_checkout' => 'Late checkout',
 
 ];

@@ -24,24 +24,60 @@ class FXService
      */
     public function getCentralRates(): array
     {
-        $response = Http::withToken($this->token)
-                ->get("{$this->baseUrl}/central")
-                ->throw();
+        $cacheKey = 'fx_central_rates';
 
-            $json = $response->json();
-            //Log::debug('FX.kg /central raw response', ['body' => $json]);
-            Log::debug('FX.kg /central full json', $json);
+        return Cache::remember($cacheKey, now()->addHours(12), function () {
+            try {
+                $response = Http::withToken($this->token)
+                    ->get("{$this->baseUrl}/central");
 
-            return [
-                'usd' => isset($json['usd']) && is_numeric($json['usd']) ? (float) $json['usd'] : 0.0,
-                'rub' => isset($json['rub']) && is_numeric($json['rub']) ? (float) $json['rub'] : 0.0,
-                'uzs' => isset($json['uzs']) && is_numeric($json['uzs']) ? (float) $json['uzs'] : null,
-                'kzt' => isset($json['kzt']) && is_numeric($json['kzt']) ? (float) $json['kzt'] : null,
-                //'cny' => isset($json['cny']) && is_numeric($json['cny']) ? (float) $json['cny'] : null,
-                'cny' => !empty($json['cny']) && is_numeric($json['cny']) ? (float) $json['cny'] : null,
-                'kgs' => 1.0,
-            ];
+                if (!$response->successful()) {
+                    Log::warning('FX.kg ответ неуспешен', [
+                        'status' => $response->status(),
+                        'body' => $response->body(),
+                    ]);
+                    return $this->getFallbackRates();
+                }
+
+                $json = $response->json();
+                Log::debug('FX.kg /central full json', $json);
+
+                return [
+                    'usd' => $this->parseRate($json, 'usd'),
+                    'rub' => $this->parseRate($json, 'rub'),
+                    'uzs' => $this->parseRate($json, 'uzs'),
+                    'kzt' => $this->parseRate($json, 'kzt'),
+                    'cny' => $this->parseRate($json, 'cny'),
+                    'kgs' => 1.0,
+                ];
+            } catch (\Throwable $e) {
+                Log::error('Ошибка получения курсов FX.kg', [
+                    'error' => $e->getMessage(),
+                ]);
+                return $this->getFallbackRates();
+            }
+        });
     }
+
+    private function parseRate(array $json, string $key): ?float
+    {
+        return isset($json[$key]) && is_numeric($json[$key]) ? (float) $json[$key] : null;
+    }
+
+
+    private function getFallbackRates(): array
+    {
+        return [
+            'usd' => 89.5,
+            'rub' => 0.95,
+            'uzs' => 0.0072,
+            'kzt' => 0.19,
+            'cny' => 12.3,
+            'kgs' => 1.0,
+        ];
+    }
+
+
 
     /**
      * Получить курсы с базой в USD (по умолчанию), пересчитанные в выбранную валюту.

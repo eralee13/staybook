@@ -30,6 +30,10 @@
                             <input type="hidden" name="roomTypeId" value="{{ $request->roomTypeId }}">
                             <input type="hidden" name="adultCount" value="{{ $request->adultCount }}">
                             <input type="hidden" name="placements" value="{{ $request->placements }}">
+                            <input type="hidden" name="price" value="{{ $request->price }}">
+                            <input type="hidden" name="cancelPriceSource" value="{{ $request->cancelPriceSource }}">
+                            <input type="hidden" name="currency" value="{{ $request->currency }}">
+                            <input type="hidden" name="source_sym" value="{{ $request->source_sym }}">
                             @if (request()->filled('childAges'))
                                 <input type="hidden" name="childAges[]" value="{{ implode(',', $childs) }}">
                             @endif
@@ -128,12 +132,10 @@
                             {{--                        </div>--}}
                             <div class="line"></div>
                             @if(app()->getLocale() == 'ru')
-                                Нажимая кнопку ниже, я принимаю условия (Правила дома, установленные
-                                хозяином, Основные правила для гостей, Правила StayBook в отношении повторного
-                                бронирования
-                                и возврата средств, Условия частичной предоплаты) и соглашаюсь, что StayBook может
-                                списать
-                                средства с моего способа оплаты, если ответственность за ущерб лежит на мне.
+                                Нажимая кнопку ниже, я принимаю условия (Правила отеля, установленные
+                                отельером, Основные правила для гостей, Правила StayBook в отношении повторного
+                                бронирования и возврата средств, Условия частичной предоплаты) и соглашаюсь, что StayBook может
+                                списать средства с моего способа оплаты, если ответственность за ущерб лежит на мне.
                             @else
                                 By clicking the button below, I accept the terms (House Rules set by the Host, Guest
                                 Code of Conduct, StayBook’s Rebooking and Refund Policy, Partial Prepayment Terms) and
@@ -180,7 +182,7 @@
                                     <div class="total">@lang('main.total')</div>
                                 </div>
                                 <div class="col-md-4">
-                                    <div class="price">{{ $request->price }} {{ $request->currency }}</div>
+                                    <div class="price">{{ $request->sum }} {{ $request->currency }}</div>
                                 </div>
                             </div>
                         </div>

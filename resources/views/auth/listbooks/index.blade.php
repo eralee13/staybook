@@ -124,4 +124,10 @@
         });
     </script>
 
+    <style>
+        .admin .date{
+            margin-top: 0;
+        }
+    </style>
+
 @endsection

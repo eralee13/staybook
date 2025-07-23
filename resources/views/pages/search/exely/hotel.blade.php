@@ -286,6 +286,8 @@
                                                                            value="{{ $cancelDate }}">
                                                                     <input type="hidden" name="cancelPrice"
                                                                            value="{{ round($convertedCancel) }}">
+                                                                    <input type="hidden" name="cancelPriceSource"
+                                                                           value="{{ $room->cancellationPolicy->penaltyAmount }}">
                                                                     <input type="hidden" name="checkSum"
                                                                            value="{{ $room->checksum }}">
                                                                     @foreach($room->includedServices as $serv)
@@ -302,10 +304,14 @@
                                                                            value="{{ $room->roomType->id }}">
                                                                     <input type="hidden" name="title"
                                                                            value="{{ $room->fullPlacementsName }}">
-                                                                    <input type="hidden" name="price"
+                                                                    <input type="hidden" name="sum"
                                                                            value="{{ round($converted) }}">
+                                                                    <input type="hidden" name="price"
+                                                                           value="{{ $room->total->priceBeforeTax }}">
                                                                     <input type="hidden" name="currency"
                                                                            value="{{ $symbol }}">
+                                                                    <input type="hidden" name="source_sym"
+                                                                           value="{{ $room->currencyCode }}">
                                                                     <button class="more">@lang('main.book')</button>
                                                                 </form>
                                                             </div>

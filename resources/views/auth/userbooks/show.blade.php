@@ -7,7 +7,10 @@
     <div class="page admin">
         <div class="container">
             <div class="row">
-                <div class="col-md-12 modal-content">
+                <div class="col-md-3">
+                    @include('auth.layouts.sidebar')
+                </div>
+                <div class="col-md-9 modal-content">
                     <h1>@lang('admin.booking') #{{ $book->id }}</h1>
                     <div class="print">
                         <a href="javascript:window.print();"><i class="fa-regular fa-print"></i>
@@ -20,32 +23,68 @@
                         <div class="dashboard-item">
                             <div class="name">@lang('admin.booking_made_on') {{ $book->created_at }}</div>
                         </div>
-{{--                        <div class="col-md-4">--}}
-{{--                            <div class="dashboard-item">--}}
-{{--                                <div class="name">ID</div>--}}
-{{--                                <span># {{ $book->id }}</span>--}}
-{{--                            </div>--}}
-{{--                        </div>--}}
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="dashboard-item">
-                                <div class="name">@lang('admin.guests')</div>
-                                {{ $book->title1 }}<br>
-                                @isset($book->title2)
-                                    {{ $book->title2 }}<br>
-                                @endisset
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="dashboard-item">
-                                <div class="name">@lang('admin.count')</div>
-                                <div class="div">{{ $book->room_count }} @lang('admin.room')</div>
-                                <div>{{ $book->adult }} @lang('admin.adult')</div>
-                                @if($book->child > 0)
-                                    <div>{{ $book->child }} @lang('admin.child')</div>
+                                @php
+                                    $hotel = \App\Models\Hotel::where('id', $book->hotel_id)->first();
+                                    $room = \App\Models\Room::where('id', $book->room_id)->orWhere('exely_id', $book->room_id)->first();
+                                    $img = \App\Models\Image::where('room_id', $room->id)->first();
+                                    $rate = \App\Models\Rate::where('id', $book->rate_id)->first();
+                                @endphp
+                                @if(!empty($img->image))
+                                    <div class="img"><img src="{{ Storage::url($img->image) }}"></div>
+                                @else
+                                    <div class="img"><img src="{{ route('index') }}/img/noimage.png" alt=""></div>
                                 @endif
                             </div>
+                            <div class="dashboard-item">
+                                <div class="name">@lang('admin.hotel')</div>
+                                <div class="wrap">
+                                    {{ $hotel->title ??  $hotel->title_en ?? ''}} <br>
+                                    <div class="name" style="margin-top: 20px">@lang('admin.room')</div>
+                                    {{ $room->__('title') ?? ''}} <br>
+                                    @if(!empty($rate))
+                                        <div class="name" style="margin-top: 20px">@lang('admin.rate')</div>
+                                        {{ $rate->__('title') ?? ''}} <br>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <div class="dashboard-item">
+                                <div class="name">@lang('admin.dates_of_stay')</div>
+                                {{ $book->showStartDate() }} - {{ $book->showEndDate() }}
+                            </div>
+                            @if($book->checkin_request == 1)
+                                <div class="dashboard-item">
+                                    <div class="name">@lang('admin.late_checkin')</div>
+                                    {{ \Carbon\Carbon::createFromDate($book->checkin_time)->format('H:i') }}
+                                </div>
+                            @endif
+                            @if($book->checkin_request == 1)
+                                <div class="dashboard-item">
+                                    <div class="name">@lang('admin.late_checkout')</div>
+                                    {{ \Carbon\Carbon::createFromDate($book->checkout_time)->format('H:i') }}
+                                </div>
+                            @endif
                         </div>
-                        <div class="col-md-4">
+
+                        <div class="col-md-6">
+                            <div class="dashboard-item">
+                                <div class="name">Token</div>
+                                <span># {{ $book->book_token }}</span>
+                            </div>
+                            <div class="dashboard-item">
+                                <div class="name">@lang('admin.guests')</div>
+                                {{ $book->title }}<br>
+                                {{ $book->child_name }}
+                            </div>
+                            <div class="dashboard-item">
+                                <div class="name">@lang('admin.count')</div>
+                                <div>{{ $book->adult }} @lang('admin.adult')</div>
+                                @if($book->child > 0)
+                                    <div>{{ $book->child }} @lang('admin.child') (возраст: {{$book->childages}})</div>
+                                @endif
+                            </div>
                             <div class="dashboard-item">
                                 <div class="name">@lang('admin.phone')</div>
                                 <div>{{ $book->phone }}</div>
@@ -54,80 +93,78 @@
                                 <div class="name">Email</div>
                                 <div>{{ $book->email }}</div>
                             </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="dashboard-item">
-                                @php
-                                    //$category = \App\Models\Rate::where('room_id', $book->room_id)->firstOrFail();
-                                    $room = \App\Models\Room::where('id', $book->room_id)->orWhere('exely_id', $book->room_id)->first();
-                                    $hotel = \App\Models\Hotel::where('id', $book->hotel_id)->orWhere('exely_id', $book->hotel_id)->first();
-                                @endphp
-
-                                @isset($room->image)
-                                    @if(\Illuminate\Support\Facades\Storage::exists($room->image))
-                                        <div class="img"><img src="{{ Storage::url($room->image) }}"></div>
-                                    @else
-                                        <div class="img"><img src="{{ route('index') }}/img/{{$room->image}}"></div>
-                                    @endif
-                                @endisset
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="dashboard-item">
-                                <div class="name">@lang('admin.hotel')</div>
-                                <div class="wrap">
-                                    {{ $hotel->__('title') }}
-                                    <div class="name" style="margin-top: 20px">@lang('admin.room')</div>
-                                    @isset($room) {{ $room->__('title') }}@endisset <br>
-{{--                                    <div class="name">Тариф:</div> {{ $category->title }}--}}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="dashboard-item">
-                                <div class="name">@lang('admin.dates_of_stay')</div>
-                                {{ $book->showStartDate() }} - {{ $book->showEndDate() }}
-                            </div>
                             <div class="dashboard-item">
                                 <div class="name">@lang('admin.price')</div>
                                 @if($book->sum != 1)
-                                    <div class="title">$ {{ $book->sum }}</div>
+                                    <div class="title">{{ $book->sum }} {{ $book->currency }}</div>
                                 @else
-                                    <div class="title">$ {{ $book->price }}</div>
+                                    <div class="title">{{ $book->price }} {{ $book->currency }}</div>
                                 @endif
+                            </div>
+                            @php
+                                $cancelPossible = \App\Models\CancellationRule::where('rate_id', $rate->id)->firstOrFail();
+                                $freeDate = \Carbon\Carbon::parse($book->arrivalDate)->format('d.m.Y H:i');
+                                $cancel = \App\Models\CancellationRule::where('id', $book->cancellation_id)->firstOrFail();
+                                $cancelDate = \Carbon\Carbon::parse($book->arrivalDate)->subDays($cancel->free_cancellation_days)->format('d.m.Y H:i');
+                                $timezone = \Carbon\Carbon::parse($hotel->timezone)->format('P');
+                            @endphp
+                            <div class="dashboard-item">
+                                <div class="name">@lang('main.cancellation_policy')</div>
+                                <div class="title">
+                                    @if($cancel->cancel_policy === 'free_until_checkin')
+                                        <td>@lang('main.free_cancellation') {{ $freeDate }}
+                                            UTC {{ $timezone }}</td>
+
+                                    @elseif($cancel->cancel_policy === 'free_then_penalty')
+                                        @if(now()->lte($cancelDate))
+                                            @lang('main.free_cancellation') {{ $cancelDate }}
+                                                UTC {{ $timezone }}
+                                        @else
+                                            @lang('main.cancellation_is_not_avaialble')
+                                                .
+                                                @endif
+                                                @lang('main.cancellation_amount')
+                                                : {{ $book->cancel_penalty }} {{ $book->currency }}
+                                            @else
+                                                @lang('main.cancellation_amount')
+                                                    : {{ $book->cancel_penalty }} {{ $book->currency }}
+                                            @endif
+                                </div>
                             </div>
                             <div class="dashboard-item">
                                 <div class="name" style="margin-top: 20px">@lang('admin.status')</div>
-                                <div class="status"><i class="fa-regular fa-money-bill"></i>
-                                    {{ $book->status }}
+                                <div class="status">
+                                    @if($book->status == 'Reserved')
+                                        <span style="color: green">{{ $book->status }}</span>
+                                    @else
+                                        <span style="color: red">{{ $book->status }}</span>
+                                    @endif
                                 </div>
                             </div>
                         </div>
+
                     </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            @php
+                                $lat = old('lat', isset($room->hotel->lat) ? $room->hotel->lat : 42.8746);
+                                $lng = old('lng', isset($room->hotel->lng) ? $room->hotel->lng : 74.6120);
+                                $zoom = 15;
+                                $width = 500;
+                                $height = 180;
 
-                    @isset($hotel)
-                        <div class="row">
-                            <div class="col-md-6">
-                                @php
-                                    $lat = old('lat', isset($hotel->lat) ? $hotel->lat : 42.8746);
-                                    $lng = old('lng', isset($hotel->lng) ? $hotel->lng : 74.6120);
-                                    $zoom = 12;
-                                    $width = 500;
-                                    $height = 180;
+                                // Генерируем URL статического изображения карты
+                                $mapUrl = "https://static-maps.yandex.ru/1.x/?ll=$lng,$lat&size={$width},{$height}&z=$zoom&l=map&pt=$lng,$lat,pm2rdl";
 
-                                    // Генерируем URL статического изображения карты
-                                    $mapUrl = "https://static-maps.yandex.ru/1.x/?ll=$lng,$lat&size={$width},{$height}&z=$zoom&l=map&pt=$lng,$lat,pm2rdl";
+                            @endphp
 
-                                @endphp
-
-                                @if($lat && $lng)
-                                    <img src="{{ $mapUrl }}" alt="Карта" style="width:100%; height: 180px; max-width:480px;">
-                                @else
-                                    <p>Координаты карты не указаны</p>
-                                @endif
-                            </div>
+                            @if($lat && $lng)
+                                <img src="{{ $mapUrl }}" alt="Карта" style="width:100%; height: 180px; max-width:480px;">
+                            @else
+                                <p>Координаты карты не указаны</p>
+                            @endif
                         </div>
-                    @endisset
+                    </div>
                 </div>
             </div>
         </div>

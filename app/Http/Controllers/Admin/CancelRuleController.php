@@ -51,9 +51,9 @@ class CancelRuleController extends Controller
      */
     public function edit(CancellationRule $cancellation, Request $request)
     {
-        $hotel_id = $request->session()->get('hotel_id');
-        $rates = Rate::where('hotel_id', $hotel_id)->get();
-        return view('auth.cancellations.form', compact('cancellation', 'hotel_id', 'rates'));
+        $hotel = $request->session()->get('hotel_id');
+        $rates = Rate::where('hotel_id', $hotel)->get();
+        return view('auth.cancellations.form', compact('cancellation', 'hotel', 'rates'));
     }
 
     /**

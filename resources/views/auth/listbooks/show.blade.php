@@ -23,41 +23,7 @@
                         <div class="dashboard-item">
                             <div class="name">@lang('admin.booking_made_on') {{ $book->created_at }}</div>
                         </div>
-{{--                        <div class="col-md-4">--}}
-{{--                            <div class="dashboard-item">--}}
-{{--                                <div class="name">ID</div>--}}
-{{--                                <span># {{ $book->id }}</span>--}}
-{{--                            </div>--}}
-{{--                        </div>--}}
-                        <div class="col-md-4">
-                            <div class="dashboard-item">
-                                <div class="name">@lang('admin.guests')</div>
-                                {{ $book->title1 }}<br>
-                                @isset($book->title2)
-                                    {{ $book->title2 }}<br>
-                                @endisset
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="dashboard-item">
-                                <div class="name">@lang('admin.count')</div>
-                                <div>{{ $book->adult }} @lang('admin.adult')</div>
-                                @if($book->child > 0)
-                                    <div>{{ $book->child }} @lang('admin.child') (возраст: {{$book->childages}})</div>
-                                @endif
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="dashboard-item">
-                                <div class="name">@lang('admin.phone')</div>
-                                <div>{{ $book->phone }}</div>
-                            </div>
-                            <div class="dashboard-item">
-                                <div class="name">Email</div>
-                                <div>{{ $book->email }}</div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="dashboard-item">
                                 @php
                                     $hotel = \App\Models\Hotel::where('id', $book->hotel_id)->first();
@@ -71,9 +37,6 @@
                                     <div class="img"><img src="{{ route('index') }}/img/noimage.png" alt=""></div>
                                 @endif
                             </div>
-                            
-                        </div>
-                        <div class="col-md-4">
                             <div class="dashboard-item">
                                 <div class="name">@lang('admin.hotel')</div>
                                 <div class="wrap">
@@ -86,23 +49,87 @@
                                     @endif
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-md-4">
+
                             <div class="dashboard-item">
                                 <div class="name">@lang('admin.dates_of_stay')</div>
                                 {{ $book->showStartDate() }} - {{ $book->showEndDate() }}
                             </div>
-{{--                            <div class="dashboard-item">--}}
-{{--                                <div class="name">Кол-во дней:</div>--}}
-{{--                                {{ $numberOfDays }}--}}
-{{--                            </div>--}}
+                            @if($book->checkin_request == 1)
+                                <div class="dashboard-item">
+                                    <div class="name">@lang('admin.late_checkin')</div>
+                                    {{ \Carbon\Carbon::createFromDate($book->checkin_time)->format('H:i') }}
+                                </div>
+                            @endif
+                            @if($book->checkin_request == 1)
+                                <div class="dashboard-item">
+                                    <div class="name">@lang('admin.late_checkout')</div>
+                                    {{ \Carbon\Carbon::createFromDate($book->checkout_time)->format('H:i') }}
+                                </div>
+                            @endif
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="dashboard-item">
+                                <div class="name">Token</div>
+                                <span># {{ $book->book_token }}</span>
+                            </div>
+                            <div class="dashboard-item">
+                                <div class="name">@lang('admin.guests')</div>
+                                {{ $book->title }}<br>
+                                {{ $book->child_name }}
+                            </div>
+                            <div class="dashboard-item">
+                                <div class="name">@lang('admin.count')</div>
+                                <div>{{ $book->adult }} @lang('admin.adult')</div>
+                                @if($book->child > 0)
+                                    <div>{{ $book->child }} @lang('admin.child') (возраст: {{$book->childages}})</div>
+                                @endif
+                            </div>
+                            <div class="dashboard-item">
+                                <div class="name">@lang('admin.phone')</div>
+                                <div>{{ $book->phone }}</div>
+                            </div>
+                            <div class="dashboard-item">
+                                <div class="name">Email</div>
+                                <div>{{ $book->email }}</div>
+                            </div>
                             <div class="dashboard-item">
                                 <div class="name">@lang('admin.price')</div>
                                 @if($book->sum != 1)
-                                    <div class="title">$ {{ $book->sum }}</div>
+                                    <div class="title">{{ $book->sum }} {{ $book->currency }}</div>
                                 @else
-                                    <div class="title">$ {{ $book->price }}</div>
+                                    <div class="title">{{ $book->price }} {{ $book->currency }}</div>
                                 @endif
+                            </div>
+                            @php
+                                $cancelPossible = \App\Models\CancellationRule::where('rate_id', $rate->id)->firstOrFail();
+                                $freeDate = \Carbon\Carbon::parse($book->arrivalDate)->format('d.m.Y H:i');
+                                $cancel = \App\Models\CancellationRule::where('id', $book->cancellation_id)->firstOrFail();
+                                $cancelDate = \Carbon\Carbon::parse($book->arrivalDate)->subDays($cancel->free_cancellation_days)->format('d.m.Y H:i');
+                                $timezone = \Carbon\Carbon::parse($hotel->timezone)->format('P');
+                            @endphp
+                            <div class="dashboard-item">
+                                <div class="name">@lang('main.cancellation_policy')</div>
+                                <div class="title">
+                                    @if($cancel->cancel_policy === 'free_until_checkin')
+                                        <td>@lang('main.free_cancellation') {{ $freeDate }}
+                                            UTC {{ $timezone }}</td>
+
+                                    @elseif($cancel->cancel_policy === 'free_then_penalty')
+                                        @if(now()->lte($cancelDate))
+                                            @lang('main.free_cancellation') {{ $cancelDate }}
+                                            UTC {{ $timezone }}
+                                        @else
+                                            @lang('main.cancellation_is_not_avaialble')
+                                            .
+                                        @endif
+                                        @lang('main.cancellation_amount')
+                                        : {{ $book->cancel_penalty }} {{ $book->currency }}
+                                    @else
+                                        @lang('main.cancellation_amount')
+                                        : {{ $book->cancel_penalty }} {{ $book->currency }}
+                                    @endif
+                                </div>
                             </div>
                             <div class="dashboard-item">
                                 <div class="name" style="margin-top: 20px">@lang('admin.status')</div>
@@ -115,6 +142,7 @@
                                 </div>
                             </div>
                         </div>
+
                     </div>
                     <div class="row">
                         <div class="col-md-6">

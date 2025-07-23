@@ -207,11 +207,11 @@
                                                                     if($request->adultCount >= 2){
                                                                         $sum = ($rate->price2 + $price_child) * $request->adult * $nights;
                                                                         $sum = (config('services.main.coef') * $sum) + $sum;
-                                                                        $converted = app(\App\Services\FXService::class)->convert($sum, $rate->currency ?? 'USD', $fxBase);
+                                                                        $converted = app(\App\Services\FXService::class)->convert($sum, $hotel->currency ?? 'USD', $fxBase);
                                                                     } else {
                                                                         $sum = ($calendarPrice + $price_child) * $request->adult * $nights;
                                                                         $sum = (config('services.main.coef') * $sum) + $sum;
-                                                                        $converted = app(\App\Services\FXService::class)->convert($sum, $rate->currency ?? 'USD', $fxBase);
+                                                                        $converted = app(\App\Services\FXService::class)->convert($sum, $hotel->currency ?? 'USD', $fxBase);
                                                                     }
                                                                 @endphp
 
@@ -325,10 +325,17 @@
                                                                         <input type="hidden"
                                                                                name="cancelPrice"
                                                                                value="{{ round($cancelPrice) }}">
-                                                                        <input type="hidden" name="price"
+                                                                        <input type="hidden"
+                                                                               name="cancelPriceSource"
+                                                                               value="{{ round($baseCancelPrice) }}">
+                                                                        <input type="hidden" name="sum"
                                                                                value="{{ round($converted) }}">
+                                                                        <input type="hidden" name="price"
+                                                                               value="{{ round($basePrice) }}">
                                                                         <input type="hidden" name="currency"
                                                                                value="{{ $symbol }}">
+                                                                        <input type="hidden" name="source_sym"
+                                                                               value="{{ $hotel->currency }}">
                                                                         <button class="more">@lang('main.book')</button>
                                                                     </form>
                                                                 </div>

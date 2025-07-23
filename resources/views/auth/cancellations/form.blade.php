@@ -104,7 +104,7 @@
                         @isset($cancellation)
                             @method('PUT')
                         @endisset
-                        <input type="hidden" value="{{ $hotel_id }}" name="hotel_id">
+                        <input type="hidden" value="{{ $hotel }}" name="hotel_id">
                         <div class="row">
                             <div class="col-md-6">
                                 @include('auth.layouts.error', ['fieldname' => 'title'])
@@ -213,6 +213,9 @@
                             <div class="col-md-6" id="policy-field2">
                                 <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'penalty_type'])
+                                    @php
+                                        $hot = \App\Models\Hotel::where('id', $hotel)->first();
+                                    @endphp
                                     <label for="">@lang('admin.type_fine')</label>
                                     <select name="penalty_type" id="">
                                         @isset($cancellation)
@@ -232,7 +235,7 @@
 
                             <div class="col-md-6 d-none" id="penalty-nights-block">
                                 <div class="form-group">
-                                    <label for="penalty_nights">@lang('admin.number_nights')</label>
+                                    <label for="penalty_nights">@lang('admin.number_nights') ({{ $hot->currency }})</label>
                                     <input type="number" name="penalty_nights" class="form-control"
                                            value="{{ old('penalty_nights', $cancellation->penalty_nights ?? '') }}">
                                 </div>
@@ -241,7 +244,7 @@
                             <div class="col-md-6" id="penalty-amount-block">
                                 @include('auth.layouts.error', ['fieldname' => 'penalty_amount'])
                                 <div class="form-group">
-                                    <label for="">@lang('admin.penalty_fee')</label>
+                                    <label for="">@lang('admin.penalty_fee') ({{ $hot->currency }})</label>
                                     <input type="number" name="penalty_amount" value="{{ old('penalty_amount', isset($cancellation) ?
             $cancellation->penalty_amount : null) }}">
                                 </div>

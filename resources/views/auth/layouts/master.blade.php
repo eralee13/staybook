@@ -137,11 +137,15 @@
 <script>
     $(document).ready(function() {
         $('#cityhot').select2({
-            placeholder: "Выберите город",
+            placeholder: "@lang('admin.choose')",
             allowClear: true
         });
         $('#timezone').select2({
-            placeholder: "Выберите часовой пояс",
+            placeholder: "@lang('admin.choose')",
+            allowClear: true
+        });
+        $('#type').select2({
+            placeholder: "@lang('admin.choose')",
             allowClear: true
         });
     });

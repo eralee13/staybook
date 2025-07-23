@@ -64,7 +64,7 @@ class SearchController extends Controller
             $hotelQuery->where('rating', '>=', $request->rating);
         }
 
-        $local = $hotelQuery->get();
+        $local = $hotelQuery->where('status', 1)->get();
 
         $localHotels = $local
             ->filter(fn($hotel) => empty($hotel->exely_id))

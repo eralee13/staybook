@@ -41,10 +41,10 @@
                                         $offset = sprintf('UTC%+03d:00', $hours);
 
                                         //currency
-                                                                    $baseCancelPrice = round($order->booking->cancellationPolicy->penaltyAmount * config('services.main.coef') / 100 + $order->booking->cancellationPolicy->penaltyAmount, 0);
-                                                                    $basePrice = round($order->booking->total->priceBeforeTax * config('services.main.coef') / 100 + $order->booking->total->priceBeforeTax, 0);
+                                        $baseCancelPrice = round($order->booking->cancellationPolicy->penaltyAmount * config('services.main.coef') / 100 + $order->booking->cancellationPolicy->penaltyAmount, 0);
+                                        $basePrice = round($order->booking->total->priceBeforeTax * config('services.main.coef') / 100 + $order->booking->total->priceBeforeTax, 0);
 
-                                                                    $toCurrency = strtoupper($fxBase ?? 'USD');
+                                        $toCurrency = strtoupper($fxBase ?? 'USD');
 
                                                                     $fxRates = [
                                                                         'USD' => $fxRates['usd'] ?? 1,
@@ -146,10 +146,12 @@
                                             <input type="hidden" name="hotel_id" value="{{ $request->hotel_id }}">
                                             <input type="hidden" name="total"
                                                    value="{{ round($converted) }}">
+                                            <input type="hidden" name="price" value="{{ $request->price }}">
                                             <input type="hidden" name="cancellation"
                                                    value="{{ round($convertedCancel) }}">
-                                            <input type="hidden" name="propertyId"
-                                                   value="{{ $order->booking->propertyId }}">
+                                            <input type="hidden" name="cancelPriceSource" value="{{ $request->cancelPriceSource }}">
+                                            <input type="hidden" name="currency" value="{{ $request->currency }}">
+                                            <input type="hidden" name="source_sym" value="{{ $request->source_sym }}">
                                             <input type="hidden" name="arrivalDate"
                                                    value="{{ $order->booking->roomStays[0]->stayDates->arrivalDateTime }}">
                                             <input type="hidden" name="departureDate"
@@ -199,8 +201,8 @@
                                                 $hotel = \App\Models\Hotel::where('exely_id', $order->alternativeBooking->propertyId)->get()->first();
                                                 $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
                                             //currency
-                                                                    $baseCancelPrice = round($order->alternativeBooking->cancellationPolicy->penaltyAmount * config('services.main.coef') / 100 + $order->alternativeBooking->cancellationPolicy->penaltyAmount, 0);
-                                                                    $basePrice = round($order->alternativeBooking->total->priceBeforeTax * config('services.main.coef') / 100 + $order->alternativeBooking->total->priceBeforeTax, 0);
+                                                $baseCancelPrice = round($order->alternativeBooking->cancellationPolicy->penaltyAmount * config('services.main.coef') / 100 + $order->alternativeBooking->cancellationPolicy->penaltyAmount, 0);
+                                                $basePrice = round($order->alternativeBooking->total->priceBeforeTax * config('services.main.coef') / 100 + $order->alternativeBooking->total->priceBeforeTax, 0);
 
                                                                     $toCurrency = strtoupper($fxBase ?? 'USD');
 

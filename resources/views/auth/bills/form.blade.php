@@ -87,34 +87,42 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="">@lang('admin.file')</label>
-                                    <input type="file" name="file1">
+                                    <input type="file" name="file1" id="pdf-upload" accept="application/pdf">
+                                    @isset($bill->agreement)
+                                        <iframe src="{{ Storage::url($bill->agreement) }}" frameborder="0" height="300" width="100%"></iframe>
+                                    @endisset
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="">@lang('admin.file') #2</label>
                                     <input type="file" name="file2">
+                                    @isset($bill->rules)
+                                        <iframe src="{{ Storage::url($bill->rules) }}" frameborder="0" height="300" width="100%"></iframe>
+                                    @endisset
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="">@lang('admin.status')</label>
-                                    <select name="status">
-                                        @if(isset($bill))
-                                            @if($bill->status == 1)
-                                                <option value="{{$bill->status}}">@lang('admin.active')</option>
-                                                <option value="0">@lang('admin.not_concluded')</option>
+                            @can('edit-contact')
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="">@lang('admin.status')</label>
+                                        <select name="status">
+                                            @if(isset($bill))
+                                                @if($bill->status == 1)
+                                                    <option value="{{$bill->status}}">@lang('admin.active')</option>
+                                                    <option value="0">@lang('admin.not_concluded')</option>
+                                                @else
+                                                    <option value="{{$bill->status}}">@lang('admin.not_concluded')</option>
+                                                    <option value="1">@lang('admin.active')</option>
+                                                @endif
                                             @else
-                                                <option value="{{$bill->status}}">@lang('admin.not_concluded')</option>
                                                 <option value="1">@lang('admin.active')</option>
+                                                <option value="0">@lang('admin.not_concluded')</option>
                                             @endif
-                                        @else
-                                            <option value="1">@lang('admin.active')</option>
-                                            <option value="0">@lang('admin.not_concluded')</option>
-                                        @endif
-                                    </select>
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
+                            @endcan
                         </div>
                         @csrf
                         <button class="more">@lang('admin.send')</button>

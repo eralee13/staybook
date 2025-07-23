@@ -28,7 +28,7 @@ class BookingCalendarController extends Controller
         $hotelslist = Hotel::select('id', 'title')->orderBy('title', 'asc')->get();
 
         $startDate = Carbon::now()->startOfDay();
-        $endDate = Carbon::now()->copy()->addDays(60)->endOfDay();
+        $endDate = Carbon::now()->copy()->addDays(10)->endOfDay();
 
         Book::with('room.rates')
             ->whereHas('room', fn($q) => $q->where('hotel_id', $hotelId))
@@ -43,6 +43,8 @@ class BookingCalendarController extends Controller
 
         $resources = [];
         $events = [];
+
+        Log::warning('123');
 
 
         //local
@@ -130,7 +132,7 @@ class BookingCalendarController extends Controller
                 'status' => $response->status(),
             ]);
 
-// Проверка тела ответа
+            // Проверка тела ответа
             if (!$response->successful()) {
                 Log::error('❌ Ошибка Exely API', [
                     'status' => $response->status(),
@@ -241,7 +243,7 @@ class BookingCalendarController extends Controller
 
         $hotelId = $request->get('hotel_id');
         $startDate = Carbon::now()->startOfDay();
-        $endDate = Carbon::now()->copy()->addDays(60)->endOfDay();
+        $endDate = Carbon::now()->copy()->addDays(10)->endOfDay();
 
         $hotel = Hotel::find($hotelId);
         $resources = [];

@@ -156,6 +156,8 @@ return [
     'create_book' => 'Создать заказ',
     'guests' => 'Гости',
     'clear' => 'Очистить',
-    'remember' => 'Запомнить меня'
+    'remember' => 'Запомнить меня',
+    'late_checkin' => 'Ранний заезд',
+    'late_checkout' => 'Поздний выезд',
 
 ];

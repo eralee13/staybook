@@ -25,7 +25,7 @@ class UserBookController extends Controller
     public function index(Request $request)
     {
         $user = Auth::id();
-        $books = Book::where('user_id', $user)->where('sum', '!=', 0)->get();
+        $books = Book::where('user_id', $user)->where('api_type', '!=', 'calendar')->latest()->get();
         return view('auth.userbooks.index', compact('books'));
     }
 

@@ -38,7 +38,7 @@
                                     </td>
                                     <td>
                                         <div class="title">@lang('admin.guests'):</div>
-                                        <div class="value">{{ $book->title1 }}</div>
+                                        <div class="value">{{ $book->title }}</div>
                                         {{--                                        <div class="count">{{ $book->count }} @lang('admin.adult')</div>--}}
                                         {{--                                        @if($book->countc > 0)--}}
                                         {{--                                            <div class="count">{{ $book->countc }} @lang('admin.child')</div>--}}

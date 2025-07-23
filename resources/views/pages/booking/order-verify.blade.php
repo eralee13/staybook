@@ -18,10 +18,8 @@
                             $rate = \App\Models\Rate::where('id', $request->rate_id)->firstOrFail();
                             $cancelPossible = \App\Models\CancellationRule::where('rate_id', $rate->id)->firstOrFail();
                             $freeDate = \Carbon\Carbon::parse($request->arrivalDate)->format('d.m.Y H:i');
-                            $timezone = \Carbon\Carbon::parse($hotel->timezone)->format('P');
                             $cancel = \App\Models\CancellationRule::where('id', $request->cancellation_id)->firstOrFail();
                             $cancelDate = \Carbon\Carbon::parse($request->arrivalDate)->subDays($cancel->free_cancellation_days)->format('d.m.Y H:i');
-                            $freeDate = \Carbon\Carbon::parse($request->arrivalDate)->format('d.m.Y H:i');
                             $timezone = \Carbon\Carbon::parse($hotel->timezone)->format('P');
                         @endphp
                         <h1>@lang('main.order_confirmation')</h1>
@@ -58,7 +56,7 @@
                             </tr>
                             <tr>
                                 <td>@lang('main.price'):</td>
-                                <td>{{ $request->price }} {{ $request->currency ?? '$' }}</td>
+                                <td>{{ $request->sum }} {{ $request->currency ?? '$' }}</td>
                             </tr>
                             <tr>
                                 <td>@lang('main.cancellation_policy'):</td>
@@ -99,18 +97,18 @@
                             </tr>
                             @if($request->child_name1)
                                 <tr>
-                                    <td>@lang('main.full_name') ребенка:</td>
+                                    <td>@lang('main.full_name') @lang('main.child'):</td>
                                     <td>
                                         @php
-                                            $names = [];
+                                            $ch_names = [];
                                             for ($i = 1; $i <= 8; $i++) {
                                                 $field = 'child_name' . $i;
                                                 if ($request->filled($field)) {
-                                                    $names[] = $request->$field;
+                                                    $ch_names[] = $request->$field;
                                                 }
                                             }
                                         @endphp
-                                        <div class="name">{{ implode(', ', $names) }}</div>
+                                        <div class="name">{{ implode(', ', $ch_names) }}</div>
                                     </td>
                                 </tr>
                             @endif
@@ -126,7 +124,19 @@
                                     <div class="name">{{ $request->email }}</div>
                                 </td>
                             </tr>
-                            @if($request->cooment)
+                            @if($request->checkin_request == 1)
+                                <tr>
+                                    <td>@lang('main.late_checkin')</td>
+                                    <td>{{ $request->checkin_time }}</td>
+                                </tr>
+                            @endif
+                            @if($request->checkout_request == 1)
+                                <tr>
+                                    <td>@lang('main.late_checkout')</td>
+                                    <td>{{ $request->checkout_time }}</td>
+                                </tr>
+                            @endif
+                            @if($request->comment)
                                 <tr>
                                     <td>@lang('main.message'):</td>
                                     <td>{{ $request->comment }}</td>
@@ -136,37 +146,24 @@
 
                         <div class="btn-wrap">
                             <form action="{{ route('book_reserve') }}" method="get">
-                                <input type="hidden" name="propertyId"
-                                       value="{{ $request->propertyId }}">
-                                <input type="hidden" name="sum"
-                                       value="{{ $request->price }}">
-                                <input type="hidden" name="currency" value="{{ $request->currency }}">
+                                <input type="hidden" name="hotel_id" value="{{ $request->propertyId }}">
+                                <input type="hidden" name="sum" value="{{ $request->sum }}">
+                                <input type="hidden" name="price" value="{{ $request->price }}">
                                 <input type="hidden" name="cancellation_id" value="{{ $request->cancellation_id }}">
                                 <input type="hidden" name="cancelPrice" value="{{ $request->cancelPrice }}">
+                                <input type="hidden" name="cancelPriceSource" value="{{ $request->cancelPriceSource }}">
                                 <input type="hidden" name="currency" value="{{ $request->currency }}">
+                                <input type="hidden" name="source_sym" value="{{ $request->source_sym }}">
                                 <input type="hidden" name="arrivalDate"
                                        value="{{ $request->arrivalDate }}">
                                 <input type="hidden" name="departureDate"
                                        value="{{ $request->departureDate }}">
-                                <input type="hidden" name="rate_id"
-                                       value="{{ $request->rate_id }}">
                                 <input type="hidden" name="room_id"
                                        value="{{ $request->room_id }}">
-                                <input type="hidden" name="title1" value="{{ $request->title1 }}">
-                                @for ($i = 2; $i <= 8; $i++)
-                                    @php $field = 'title' . $i; @endphp
-                                    @if($request->filled($field))
-                                        <input type="hidden" name="{{ $field }}" value="{{ $request->$field }}">
-                                    @endif
-                                @endfor
-                                @for ($j = 1; $j <= 8; $j++)
-                                    @php $field2 = 'child_name' . $j; @endphp
-                                    @if($request->filled($field2))
-                                        <input type="hidden" name="{{ $field2 }}" value="{{ $request->$field2 }}">
-                                    @endif
-                                @endfor
-                                <input type="hidden" name="sex" value="Male">
-                                <input type="hidden" name="citizenship" value="KGS">
+                                <input type="hidden" name="rate_id"
+                                       value="{{ $request->rate_id }}">
+                                <input type="hidden" name="title" value="{{ implode(', ', $names) }}">
+                                <input type="hidden" name="child_name" value="{{ implode(', ', $ch_names) }}">
                                 <input type="hidden" name="roomCount" value="{{ $request->roomCount }}">
                                 <input type="hidden" name="adult" value="{{ $request->adult }}">
                                 <input type="hidden" name="child" value="{{ $request->child }}">
@@ -178,6 +175,10 @@
                                        value="{{ $request->phone  }}">
                                 <input type="hidden" name="email"
                                        value="{{ $request->email }}">
+                                <input type="hidden" name="checkin_request" value="{{ $request->checkin_request }}">
+                                <input type="hidden" name="checkout_request" value="{{ $request->checkout_request }}">
+                                <input type="hidden" name="checkin_time" value="{{ $request->checkin_time }}">
+                                <input type="hidden" name="checkout_time" value="{{ $request->checkout_time }}">
                                 <button class="more">@lang('main.confirm')</button>
                             </form>
                         </div>

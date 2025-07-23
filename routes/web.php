@@ -21,6 +21,7 @@ use App\Livewire\HotelWizard;
 use App\Livewire\LWTester;
 use Dedoc\Scramble\Scramble;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
 
@@ -214,5 +215,10 @@ Route::get('/clear-cache', function () {
     Artisan::call('view:clear');
     //Artisan::call('web:clear');
     return "Cache cleared successfully";
+});
+
+Route::get('/log-test', function () {
+    Log::info('Лог работает');
+    return 'OK';
 });
 

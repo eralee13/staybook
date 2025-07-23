@@ -10,7 +10,7 @@
                         src="{{ route('index') }}/img/icons/home.svg" alt=""> @lang('admin.dashboard')</a></li>
             <li @routeactive(
             'hotel*') class="hotel-list"><a href="{{route('hotels.index')}}"><img
-                        src="{{ route('index') }}/img/icons/home.svg" alt=""> @lang('admin.hotels')</a></li>
+                        src="{{ route('index') }}/img/icons/home.svg" alt=""> @lang('admin.hotel')</a></li>
             @if( session()->has('hotel_id') )
                 <li @routeactive(
                 'bookings.index') class="price-list"><a href="{{route('bookcalendar.index')}}"><img
@@ -21,10 +21,10 @@
                             src="{{ route('index') }}/img/money.svg" alt=""> @lang('admin.bookings')</a></li>
                 <li @routeactive('rooms.index') class="room-list"><a href="{{route('rooms.index')}}"><img
                             src="{{ route('index') }}/img/icons/bed.svg" alt=""> @lang('admin.rooms')</a></li>
-            @endif
             <li @routeactive(
             'bills.index')><a href="{{route('bills.index')}}"><img src="{{ route('index') }}/img/icons/file.svg"
                                                                    alt=""> @lang('admin.bills')</a></li>
+            @endif
 
             {{--            <li @routeactive('servic*')><a href="{{ route('amenities.index')}}"><i class="fa-regular--}}
             {{--            fa-bell-concierge"></i> @lang('admin.amenities')</a></li>--}}
