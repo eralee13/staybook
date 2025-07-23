@@ -1,10 +1,30 @@
 @foreach($tmrates as $rate)
     @php
             $price = $rate->TotalPrice ?? 0;
-            $totalPrice = number_format( ($price * 0.08) + $price , 2, '.', '');
-    @endphp
+            $totalPrice = number_format( ($price * config('services.main.coef')) + $price , 2, '.', '');
+            $basePrice = $totalPrice;
+
+            $toCurrency = strtoupper($fxBase ?? 'USD');
+
+            $symbols = [
+                'USD' => '$',
+                'RUB' => '₽',
+                'KGS' => 'сом',
+                'UZS' => 'сўм',
+            ];
+
+            $converted = app(\App\Services\FXService::class)->convert($basePrice, $rate->CurrencyCode, $fxBase);
+            $symbol = $symbols[$toCurrency] ?? $toCurrency;
+
+            $cancelCurrency = $rate->CancelPolicyInfos[0]->CurrencyCode;
+            $cancelAmount = $rate->CancelPolicyInfos[0]->Amount;
+            $cancelAmount = number_format(($cancelAmount * config('services.main.coef')) + $cancelAmount, 2, '.', '');
+            $cancelConverted = app(\App\Services\FXService::class)->convert($cancelAmount, $rate->CurrencyCode, $fxBase);
+            $cancelSymbol = $symbols[$cancelCurrency] ?? $toCurrency;
+        @endphp
 
         <div class="tariffs-item">
+           
             @isset($rate)
                 <h5>{{ $rate->Name }}</h5>
             @endisset
@@ -19,20 +39,21 @@
             
             <div class="item cancel">
 
-                <div class="name">Правила отмены:
+                <div class="name">@lang('main.cancellation_policy'):
                     @if($rate->Refundable == true)
                         {{-- $rate->CancelPolicyInfos[0]->Amount --}}
-                        Бесплатная отмена действует
-                        до {{ $rate->CancelPolicyInfos[0]->From }} UTC {{$hotel->utc}}. 
-                        Сумма аннуляции: {{ $rate->CancelPolicyInfos[0]->CurrencyCode }} {{ $totalPrice }} 
+                        @lang('main.free_cancellation') {{ $rate->CancelPolicyInfos[0]->From }} UTC {{$hotel->utc}}. 
+                        @lang('main.cancellation_amount_tm'): {{ $cancelConverted }} {{ $cancelSymbol }} 
                     @else
-                        Невозвратный тариф.
+                        @lang('main.non_refundable')
                     @endif
                     
                 </div>
             </div>
-            <div class="item price">{{ $rate->CurrencyCode }} {{ $totalPrice }}</div>
-            <div class="nds">Все налоги включены</div>
+            <div class="item price">
+                    {{ round($converted) }} {{ $symbol }}
+            </div>
+            <div class="nds">@lang('main.all_taxes_included')</div>
                 
             <div class="btn-wrap">
 
@@ -68,7 +89,7 @@
                     {{-- <input type="hidden" name="api_name" 
                             value="tourmind"> --}}
 
-                    <button class="more" id="order">Забронировать</button>
+                    <button class="more" id="order">@lang('main.book')</button>
                 </form>
             </div>
         </div>

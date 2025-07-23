@@ -1,8 +1,9 @@
 @extends('layouts.head')
 
 @section('title', 'Бронирование')
-@dump($finish)
 @dump($order)
+@dump($finish)
+@dump($finishStatus)
 @section('content')
 
     <div class="page order">
@@ -60,9 +61,9 @@
                                 <input type="hidden" name="number" value="{{ $book->book_token }}">
                                 <button class="more">Отменить бронь</button>
                             </form>
-                            @if($message == 'Бронирование успешно создано!' || $message == 'Этот бронь уже существует!')
+                            {{-- @if($message == 'Бронирование успешно создано!' || $message == 'Этот бронь уже существует!')
                                 <button class="more primary" id="getStatus">Узнать статус брони</button>
-                            @endif
+                            @endif --}}
                         </div>
                     @endif
 

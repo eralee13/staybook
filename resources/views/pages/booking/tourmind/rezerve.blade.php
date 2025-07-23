@@ -4,60 +4,84 @@
 
 @section('content')
 
+@php
+    $symbols = [
+        'USD' => '$',
+        'RUB' => '₽',
+        'KGS' => 'сом',
+        'UZS' => 'сўм',
+    ];
+@endphp
+
     <div class="page order">
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 col-md-12">
 
-                    @if($message == 'Бронирование успешно создано!' || $message == 'Этот бронь уже существует!')
-                        <h1>Поздравляем!</h1>
+                    @if($key == '1' || $key == '2')
 
+                        <h1>@lang('main.Congratulations')</h1>
                             <div class="alert alert-primary" role="alert">
-                                <strong>{{ $message }}</strong>
+                                <strong>@lang('main.'.$message)</strong>
+                            </div>
+
+                    @elseif($key == '3')
+                    
+                        <h1>@lang('main.Booking is pending')</h1>
+                            <div class="alert alert-primary" role="alert">
+                                <strong>@lang('main.'.$message)</strong>
+                            </div>
+
+                    @elseif($key == '4')
+
+                        <h1>@lang('main.Booking has been cancelled')</h1>
+                            <div class="alert alert-info" role="alert">
+                                <strong>@lang('main.'.$message)</strong>
                             </div>
                     @else
-                        <h1>Ошибка бронирования</h1>
 
+                        <h1>@lang('main.Booking error')</h1>
                             <div class="alert alert-danger" role="alert">
-                                <strong>{{ $message }}</strong>
+                                <strong>@lang('main.'.$message)</strong>
                             </div>
                     @endif
     
                     <ul>
-                        <li>Статус: @lang('main.' . $book->status ?? $message)</li>
-                        <li>Номер брони: {{ $book->id ?? ''}}</li>
-                        <li>ID отеля: {{ $request->hotel_id ?? ''}}</li>
+                        <li>@lang('main.status'): @lang('main.' . $book->status ?? $message)</li>
+                        <li>@lang('main.booking_number'): {{ $book->id ?? ''}}</li>
+                        <li>@lang('main.hotel_id'): {{ $request->hotel_id ?? ''}}</li>
                         <li>
-                            Даты: {{ Carbon\Carbon::createFromDate($request->arrivalDate)->format('d.m.Y') }} {{$hotel->checkin ?? ''}} 
+                            @lang('main.dates'): {{ Carbon\Carbon::createFromDate($request->arrivalDate)->format('d.m.Y') }} {{$hotel->checkin ?? ''}} 
                             - {{ Carbon\Carbon::createFromDate($request->departureDate)->format('d.m.Y') }} {{ $hotel->checkout ?? ''}}
                             (UTC {{ $request->utc }})
                         </li>
+                        <li>@lang('main.price'): {{ round($book->sum) }} {{ $symbols[$book->currency] }}</li>
                         <li>
                             @if($request->refundable == true)
                                 
-                                    Бесплатная отмена действует до {{ \Carbon\Carbon::parse($request->cancelDate)->format('d.m.Y') }} 
+                                    @lang('main.free_cancellation') {{ \Carbon\Carbon::parse($request->cancelDate)->format('d.m.Y') }} 
                                     (UTC {{ $request->utc }})!
                                     
-                                    Иначе размер штрафа: {{ $book->cancel_penalty }} {{ $request->currency ?? '$' }}
+                                    @lang('main.cancellation_amount_tm'): {{ round($book->cancel_penalty) }} {{ $symbols[$book->currency] ?? '$' }}
                             @else
-                                    Невозвратный тариф.
+                                @lang('main.cancellation_is_not_avaialble')
                             @endif
                         <li>
-                            Заказчик: {{ $request->name ? $book->title : '' }}
+                            @lang('main.сustomer'): {{ $request->name ? $book->title : '' }}
                             <ul>
-                                <li>Номер
-                                    телефона: {{ $request->phone ?? '' }}</li>
+                                <li>@lang('main.phone'): {{ $request->phone ?? '' }}</li>
                                 <li>
                                     Email: {{ $request->email ?? '' }}</li>
-                                <li>Комментарий: {{ $request->comment ?? '' }}</li>
+                                <li>@lang('main.comment'): {{ $request->comment ?? '' }}</li>
                             </ul>
                         </li>
                     </ul>
                     @if( isset($book->id) ) 
                         <div class="bnt-wrap">
+                            <button class="more" onclick="window.location.reload()">@lang('main.get_reload')</button>
                             <form action="{{ route('cancel_calculate_tm', $book->id) }}">
                                 <input type="hidden" name="number" value="{{ $book->book_token }}">
-                                <button class="more">Отменить бронь</button>
+                                <button class="more">@lang('main.cancel_booking')</button>
                             </form>
                         </div>
                     @endif

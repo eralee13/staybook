@@ -139,7 +139,7 @@
                             </div>
                             <div class="alert alert-danger">
                                 <div class="descr">@lang('main.need_auth') <a
-                                            href="{{ route('login') }}">@lang('main.auth')</a></div>
+                                    href="{{ route('login') }}">@lang('main.auth')</a></div>
                             </div>
                         </div>
                     </div>

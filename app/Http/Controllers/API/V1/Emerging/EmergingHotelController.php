@@ -219,7 +219,7 @@ class EmergingHotelController extends Controller
             }
 
             // Полный путь для сохранения
-            $filePath = "/hotels/emerging/{$hotelId}/{$fileName}";
+            $filePath = "hotels/emerging/{$hotelId}/{$fileName}";
 
             // Загружаем изображение
             $imageContent = Http::get($imageUrl)->body();
@@ -229,7 +229,7 @@ class EmergingHotelController extends Controller
                 Storage::put($filePath, $imageContent);
             }
 
-            return "/hotels/emerging/{$hotelId}/{$fileName}"; // Путь для хранения в БД
+            return "hotels/emerging/{$hotelId}/{$fileName}"; // Путь для хранения в БД
 
         } catch (\Exception $e) {
             Log::channel('Emerging')->error("Ошибка загрузки изображения saveHotelImage: " . $e->getMessage());

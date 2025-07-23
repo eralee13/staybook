@@ -1,7 +1,8 @@
 @foreach($rates as $rate)
     @php
+            $coef = config('app.main_coef');    
             $price = $rate['payment_options']['payment_types'][0]['amount'] ?? 0;
-            $totalPrice = number_format( ($price * 0.08) + $price , 2, '.', '');
+            $totalPrice = number_format( ($price * $coef ) + $price , 2, '.', '');
             $rooms = $request->input('rooms', []);
             $payment = $rate['payment_options']['payment_types'][0];
 
@@ -9,16 +10,31 @@
 
                 $pay_end_date = Carbon\Carbon::createFromDate($payment['cancellation_penalties']['policies'][0]['end_at'])->format('d.m.Y H:i:s');
 
-                $coef = config('app.main_coef');
+                
                 $penaltPrice = $payment['cancellation_penalties']['policies'][1]['amount_charge'] ?? 0;
                 $penaltyPrice = number_format( ( (float)$penaltPrice  * $coef) + (float)$penaltPrice, 2, '.', '');
 
             }else{
                 $pay_end_date = '';
-                $penaltyPrice = '';
+                $penaltyPrice = 0;
             }
-    @endphp
 
+            $toCurrency = strtoupper($fxBase ?? 'USD');
+
+            $symbols = [
+                'USD' => '$',
+                'RUB' => '₽',
+                'KGS' => 'сом',
+                'UZS' => 'сўм',
+            ];
+
+            $converted = app(\App\Services\FXService::class)->convert($totalPrice, $payment['currency_code'], $fxBase);
+            $symbol = $symbols[$toCurrency] ?? $toCurrency;
+
+            $cancelConverted = app(\App\Services\FXService::class)->convert($penaltyPrice, $payment['currency_code'], $fxBase);
+            
+    @endphp
+    
         <div class="tariffs-item">
             @isset($rate)
                 <h5>{{ $rate['room_name'] }}</h5>
@@ -38,15 +54,14 @@
                     @if($payment['cancellation_penalties']['free_cancellation_before'] == true)
                         Бесплатная отмена действует
                         до {{ $pay_end_date }} UTC {{$hotel->utc}}. <br>
-                        Сумма аннуляции: {{ $payment['currency_code'] }} {{ $payment['cancellation_penalties']['policies'][0]['amount_charge'] }}. <br>
-                        Иначе штраф: {{ $payment['currency_code'] }} {{ $penaltyPrice }}.
+                        Иначе штраф:  {{ round($cancelConverted ) }} {{ $symbol }}
                     @else
                         Невозвратный тариф.
                     @endif
                     
                 </div>
             </div>
-            <div class="item price">{{ $payment['currency_code'] }} {{ $totalPrice }}</div>
+            <div class="item price"> {{ round($converted) }} {{ $symbol }}</div>
             <div class="nds">Все налоги включены</div>
                 
             <div class="btn-wrap">
@@ -76,9 +91,9 @@
                     <input type="hidden" name="cancelPriceAnullation"
                             value="{{ $payment['cancellation_penalties']['policies'][0]['amount_charge'] }}">
                     <input type="hidden" name="cancelPrice"
-                            value="{{ $penaltyPrice }}">
+                            value="{{ $cancelConverted }}">
                     <input type="hidden" name="price" value="{{ $price }}">
-                    <input type="hidden" name="totalPrice" value="{{ $totalPrice }}">
+                    <input type="hidden" name="totalPrice" value="{{ $converted }}">
                     <input type="hidden" name="currency" 
                             value="{{ $rate['payment_options']['payment_types'][0]['currency_code'] }}">
                     <input type="hidden" name="utc"  value="{{ $hotel->utc }}">

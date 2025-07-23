@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\log;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\BookCancelMail;
+use App\Mail\BookMail;
 use DateTimeZone;
 use DateTime;
 use App\Models\Book;
@@ -45,9 +48,6 @@ class BookingTmController extends Controller
 
     public function order_tm(Request $request)
     {
-        // if (!session()->has('booking_tm_timer_start')) {
-        //     session(['booking_tm_timer_start' => now()]);
-        // }
 
         //dd($request->all());
         $arrival = Carbon::createFromDate($request->arrivalDate)->format('d.m.Y');
@@ -74,36 +74,80 @@ class BookingTmController extends Controller
 
     public function book_reserve_tm(Request $request)
     {
-       
-            // $hotel = Hotel::find($request->hotel_id);
-            $hotelService = new \App\Services\Tourmind\HotelServices();
-            $order = $hotelService->createOrder($request);
-            $message = '';
-            // dd($order);
-            if ( isset($order['Error']) == true) {
+            try {
+                // $hotel = Hotel::find($request->hotel_id);
+                $hotelService = new \App\Services\Tourmind\HotelServices();
+                $order = $hotelService->createOrder($request);
+                $message = ''; $key;
+                // dd($order);
+                if ( isset($order['Error']) == true) {
 
-                // session()->flash('Success', 'Бронирование успешно создано!');
-                $message = $order['ErrorMessage'];
-                
-            }elseif( $order['Success'] == 'Этот бронь уже существует!' ){
+                    $message = $order['ErrorMessage'];
+                    $key = '5';
+                    
+                }elseif( $order['Success'] == 'CONFIRMED'){
 
-                // session()->flash('Error', $book);
-                $message = 'Этот бронь уже существует!';
-                $book = Book::where('book_token', $request->token)->first();
+                    $message = 'Booking successfully created';
+                    $key = '1';
+                }
+                elseif( $order['Success'] == 'Этот бронь уже существует!' ){
 
-            }elseif( $order['Success'] == 'CONFIRMED' || $order['Success'] == 'PENDING' ){
+                    $message = 'This booking already exists';
+                    $key = '2';
 
-                // session()->flash('Error', $book);
-                $message = 'Бронирование успешно создано!';
-                $book = Book::where('book_token', $request->token)->first();
+                }elseif( $order['Success'] == 'PENDING' ){
 
-            }else {
-                
-                // session()->flash('Error', 'Ошибка при создании бронирования!');
-                $message = 'Ошибка при создании бронирования! Обратитесь в службу поддержки.';
+
+                    $orderStatus = $hotelService->getOneSearchOrder($book->agent_ref);
+
+                    if ( $orderStatus['Success'] == 'CONFIRMED' ){
+
+                        Book::where('book_token', $this->token)
+                        ->update([
+                            'status' => $order['OrderInfo']['OrderStatus'],
+                            // 'rezervation_id' => $order['OrderInfo']['ReservationID']
+                        ]);
+
+                        $message = 'Booking successfully created';
+                        $key = '1';
+                        
+                    }else{
+
+                        Book::where('book_token', $this->token)
+                        ->update([
+                            'status' => $order['OrderInfo']['OrderStatus'],
+                            // 'rezervation_id' => $order['OrderInfo']['ReservationID']
+                        ]);
+
+
+                            if( $order['OrderInfo']['OrderStatus'] == 'PENDING' ){
+
+                                $message = 'Booking is pending confirmation from the hotel';
+                                $key = '3';
+                                
+                            }elseif( $order['OrderInfo']['OrderStatus'] == 'CANCELLED' ){
+
+                                $message = 'Booking has been cancelled';
+                                $key = '4';
+
+                            }
+                        
+                    }
+
+                }else {
+
+                    $message = 'Error later or contact us';
+                    $key = '5';
+                }
+
+            } catch (\Throwable $th) {
+                $message = 'Error later or contact us! ';
+                Log::channel('tourmind')->info('Create Order Catch - ', $th->getMessage());
             }
 
-            return view('pages.booking.tourmind.rezerve', compact('book', 'request', 'message'));
+            $book = Book::where('book_token', $request->token)->first();
+
+            return view('pages.booking.tourmind.rezerve', compact('book', 'request', 'message', 'key'));
         
     }
 
@@ -154,10 +198,10 @@ class BookingTmController extends Controller
                 Log::channel('tourmind')->info('Cancel Order User ID - ', $userInfo);
                 Log::channel('tourmind')->info('Cancel Order - ', $cancel);
         
-            } elseif( isset($cancel['CancelResult']['OrderStatus']) && $cancel['CancelResult']['OrderStatus'] == 'CANCELLED'){
+            } elseif( isset($cancel['CancelResult']['OrderStatus']) && $cancel['CancelResult']['OrderStatus'] == 'CANCELLED' && $book->status != 'Cancelled' ){
 
-                $cancelFee = $cancel['CancelResult']['CancelFee'];
-                $cancelFee = ($cancelFee * $this->coef) + $cancelFee;
+                // $cancelFee = $cancel['CancelResult']['CancelFee'];
+                // $cancelFee = ($cancelFee * $this->coef) + $cancelFee;
                 $curr = $cancel['CancelResult']['CurrencyCode'];
                 $thisdate = Carbon::now()->format('Y-m-d H:i:s');
 
@@ -165,9 +209,13 @@ class BookingTmController extends Controller
                     'status' => 'Cancelled', 
                     'cancel_date' => $thisdate, 
                     // 'cancel_penalty' => $cancelFee, 
-                    'currency' => $curr
+                    // 'currency' => $curr
                 ]);
+
                 $book = Book::where('book_token', $request->number)->first();
+
+                Mail::to('info@staybook.asia')->send(new BookCancelMail($book));
+
                 $status = 'Cancelled';
                 
                     $rato = Rate::where('id', $book->rate_id)->get('cancellation_rule_id')->first(); 

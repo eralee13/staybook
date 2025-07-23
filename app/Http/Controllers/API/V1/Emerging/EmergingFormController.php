@@ -267,7 +267,7 @@ class EmergingFormController extends Controller
             ->post($this->url . '/hotel/order/booking/form/', [
                 "partner_order_id" => $request->token,
                 "book_hash" => $request->book_hash,
-                "language" => "en",
+                "language" => $language,
                 "user_ip" => $request->ip(),
             ]);
 
@@ -396,7 +396,7 @@ class EmergingFormController extends Controller
                             'title' => $request->rate_name ?? '',
                             'title_en' => $request->rate_name ?? '',
                             'desc_en' => null,
-                            'bed_type' => $request->bedTypeDesc,
+                            'bed_type' => $request->bedTypeDesc ?? '',
                             'meal_id' => $mappingMeals[$request->meal_id] ?? '',
                             'allotment' => null,
                             'adult' => $adults ?? 1,
@@ -563,26 +563,19 @@ class EmergingFormController extends Controller
     }
     
     public function getStatus(Request $request){
-        // Например, получаем что-то из запроса
-        $param = $request->input('param');
 
         $response = Http::withBasicAuth($this->keyId, $this->apiKey)
             ->withHeaders([
                 'Content-Type' => 'application/json',
             ])
-            ->post($this->url . '/hotel/order/info/', [
+            ->post($this->url . '/hotel/order/booking/finish/status/', [
 
-                "partner_order_id" => $request->number 
+                "partner_order_id" => $request->token 
                 
             ]);
 
-        // Логика — получаем данные из базы
-        $data = SomeModel::where('field', $param)->get();
-
         // Возвращаем JSON
-        return response()->json([
-            'success' => true,
-            'data' => $data,
-        ]);
+        return $response->json();
+
     }
 }

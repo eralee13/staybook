@@ -4,31 +4,40 @@
 
 @section('content')
 
+@php
+    $symbols = [
+        'USD' => '$',
+        'RUB' => '₽',
+        'KGS' => 'сом',
+        'UZS' => 'сўм',
+    ];
+@endphp
+
     <div class="page">
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 col-md-12">
-                    <h1 data-aos="fade-up" data-aos-duration="2000">Ваша бронь отменена</h1>
-                    <div class="alert alert-danger">Статус: @lang('main.' . $book->status)</div>
+                    <h1 data-aos="fade-up" data-aos-duration="2000">@lang('main.booking_cancelled')</h1>
+                    <div class="alert alert-danger">@lang('main.status'): @lang('main.' . $book->status)</div>
 
                     <ul>
-                        <li>Номер брони: {{ $book->id }}</li>
+                        <li>@lang('main.booking_number'): {{ $book->id }}</li>
                         {{--                            <li>Дата отмены: {{ $cancel_date }}</li>--}}
                         <li>
                             @if(isset($cancelRule->is_refundable) && $cancelRule->is_refundable == true)
-                                <td>Бесплатная отмена действует до {{ $cancelRule->end_date }} (UTC {{ $hotel->utc }}). Размер
-                                    штрафа: {{ $book->cancel_penalty }} {{ $book->currency ?? '$' }}</td>
+                                <td>@lang('main.free_cancellation') {{ $cancelRule->end_date }} (UTC {{ $hotel->utc }}). 
+                                    @lang('main.cancellation_amount_tm'): {{ round($book->cancel_penalty) }} {{ $symbols[$book->currency] ?? '$' }}</td>
                             @else
-                                Возможность бесплатной отмены отсутствует. Размер штрафа: {{ $book->cancel_penalty }} {{ $book->currency ?? 'CNY' }}
+                                @lang('main.non_refundable'): {{ $book->cancel_penalty }} {{ $symbols[$book->currency] ?? '$' }}
                             @endif
-                        <li>Отель: {{ $hotel->title }}</li>
-                        <li>Дата заеда/выезда: {{ $arrival }} {{ $hotel->checkin }} - {{ $departure }} {{ $hotel->checkout }} (UTC {{ $hotel->utc }})</li>
-                        <li>Тип комнаты: {{ $room->title ?? ''}}</li>
-                        <li>Тариф: {{ $rate->title ?? ''}}</li>
-                        <li>Кол-во гостей: {{ $book->adult ?? ''}}</li>
+                        <li>@lang('main.hotel'): {{ $hotel->title }}</li>
+                        <li>@lang('main.date_checkin/checkout'): {{ $arrival }} {{ $hotel->checkin }} - {{ $departure }} {{ $hotel->checkout }} (UTC {{ $hotel->utc }})</li>
+                        <li>@lang('main.room_type'): {{ $room->title ?? ''}}</li>
+                        <li>@lang('main.rate'): {{ $rate->title ?? ''}}</li>
+                        <li>@lang('main.quests'): {{ $book->adult ?? ''}}</li>
                     </ul>
 
-                    <a href="{{ route('index') }}" class="more btn">На главную</a>
+                    <a href="{{ route('index') }}" class="more btn">@lang('main.go_home')</a>
                 </div>
             </div>
         </div>

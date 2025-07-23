@@ -10,11 +10,13 @@ class FXService
 {
     protected string $baseUrl;
     protected string $token;
+    protected string $base;
 
     public function __construct()
     {
         $this->baseUrl = config('services.fxkg.url');   // https://data.fx.kg/api/v1
         $this->token   = config('services.fxkg.token');
+        $this->base = 'KGS';
     }
 
     /**
@@ -37,6 +39,7 @@ class FXService
                 'rub' => isset($json['rub']) && is_numeric($json['rub']) ? (float) $json['rub'] : 0.0,
                 'uzs' => isset($json['uzs']) && is_numeric($json['uzs']) ? (float) $json['uzs'] : null,
                 'kzt' => isset($json['kzt']) && is_numeric($json['kzt']) ? (float) $json['kzt'] : null,
+                'cny' => isset($json['cny']) && is_numeric($json['cny']) ? (float) $json['cny'] : null,
                 'kgs' => 1.0,
             ];
         });
@@ -56,6 +59,7 @@ class FXService
         $rub = $rates['rub'] ?? 0;
         $uzs = $rates['uzs'] ?? null;
         $kzt = $rates['kzt'] ?? null;
+        $cny = $rates['cny'] ?? null;
 
         return match (strtoupper($baseCurrency)) {
             'USD' => [
@@ -86,6 +90,13 @@ class FXService
                 'UZS' => $uzs > 0 && $kzt > 0 ? round($kzt / $uzs, 4) : 0.0,
                 'KZT' => 1.0,
             ],
+            'CNY' => [
+                'USD' => $usd > 0 ? round($usd, 4) : 0.0,
+                'KGS' => 1.0,
+                'RUB' => $rub > 0 && $cny > 0 ? round($rub, 4) : 0.0,
+                'UZS' => $uzs > 0 && $cny > 0 ? round($uzs, 4) : 0.0,
+                'CNY' => $cny > 0 ? round($cny, 4) : 0.0,
+            ],
             default => [
                 'USD' => $usd > 0 ? round(1 / $usd, 4) : 0.0,
                 'RUB' => $rub > 0 ? round(1 / $rub, 4) : 0.0,
@@ -108,16 +119,34 @@ class FXService
     {
         $from = strtoupper($from);
         $to = strtoupper($to);
-        $rates = $this->getRatesBaseCentral('USD');
-
+        $rates = $this->getRatesBaseCentral($from);
+        // dd($rates);
         $rateFrom = $rates[$from] ?? null;
         $rateTo = $rates[$to] ?? null;
 
-        if (!$rateFrom || !$rateTo || $rateFrom <= 0) {
-            return $amount;
-        }
 
-        $amountInUsd = $from !== 'USD' ? $amount / $rateFrom : $amount;
-        return round($to !== 'USD' ? $amountInUsd * $rateTo : $amountInUsd, 2);
+        if ($from == 'CNY'){
+            if (!$rateFrom || !$rateTo || $rateFrom <= 0 || $rateTo <= 0) {
+                return $amount;
+            }
+
+            // FROM → BASE
+            $amountInBase = $from === $this->base ? $amount : $amount * $rateFrom;
+
+            // BASE → TO
+            $converted = $to === $this->base ? $amountInBase : $amountInBase / $rateTo;
+
+            return round($converted, 0);
+
+        }else{
+
+            if (!$rateFrom || !$rateTo || $rateFrom <= 0) {
+                return $amount;
+            }
+
+            $amountInUsd = $from !== 'USD' ? $amount / $rateFrom : $amount;
+            return round($to !== 'USD' ? $amountInUsd * $rateTo : $amountInUsd, 2);
+        }
+        
     }
 }

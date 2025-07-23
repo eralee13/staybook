@@ -4,6 +4,28 @@
 
 @section('content')
 
+@php
+    $rooms = $request->input('rooms', []);
+        $totalAdults    = 0;
+        $allChildAges   = [];
+        $roomCount=0;
+        $childs = 0;
+
+            foreach ($rooms as $room) {
+                $roomCount++;
+                // Взрослые
+                $totalAdults += (int) ($room['adults'] ?? 0);
+
+                // Возрасты детей (если есть) собираем в единый массив
+                if (!empty($room['childAges']) && is_array($room['childAges'])) {
+                    foreach ($room['childAges'] as $age) {
+                        $allChildAges[] = (int) $age;
+                        $childs++;
+                    }
+                }
+            }
+@endphp
+
     <div class="page order">
         <div class="container">
             <div class="row">
@@ -53,7 +75,7 @@
                         <input type="hidden" name="currency"  value="{{ $request->currency }}">
                         <input type="hidden" name="utc" value="{{ $request->utc }}">
                         <input type="hidden" name="price" value="{{ $request->price }}">
-                        <input type="hidden" name="sum" value="{{ number_format( ($request->price * 0.08) + $request->price, 2, '.', '') }}">
+                        <input type="hidden" name="sum" value="{{ $request->totalPrice }}">
                        
 
                         <div class="row">
@@ -67,13 +89,13 @@
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <div class="label">Гости</div>
-                                    <input type="text" value="{{ $request->adult }}" readonly>
+                                    <input type="text" value="{{ $totalAdults }}" readonly>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
                                     <label for="">Кол-во детей</label>
-                                    <input type="text" value="{{ $request->child }}" readonly>
+                                    <input type="text" value="{{ $childs }}" readonly>
                                 </div>
                             </div>
 
@@ -163,7 +185,7 @@
                                 <h5>Варианты оплаты</h5>
                                 <div class="method-item current">
                                     <div class="name">Оплатить
-                                        сейчас {{ number_format($request->totalPrice, 2, '.', '') }} {{ $request->currency ?? '$' }}</div>
+                                        сейчас {{ round($request->totalPrice) }} {{ $request->currency ?? '$' }}</div>
                                 </div>
                                 {{--                                <div class="method-item">--}}
                                 {{--                                    <div class="name">Оплатите часть сейчас, а остаток внесите позже--}}
@@ -249,9 +271,8 @@
                                         
                                     Бесплатная отмена действует до {{ $request->cancelDate }} 
                                     UTC {{$request->utc}}. <br>
-                                    Сумма аннуляции: {{ $request->currency }} {{ $request->cancelPriceAnullation }}. <br>
                                         
-                                        Иначе размер штрафа: {{ $request->cancelPrice }} {{ $request->currency ?? '$' }}
+                                        Иначе размер штрафа: {{ round($request->cancelPrice) }} {{ $request->currency ?? '$' }}
                                     @else
                                         Невозвратный тариф.
                                     @endif
@@ -265,7 +286,7 @@
                                 <div class="total">Итого</div>
                             </div>
                             <div class="col-md-4">
-                                <div class="price">{{ number_format($request->totalPrice, 2, '.', '') }} {{ $request->currency ?? '$'}}</div>
+                                <div class="price">{{ round($request->totalPrice) }} {{ $request->currency ?? '$'}}</div>
                             </div>
                         </div>
                     </div>

@@ -81,7 +81,7 @@
                         </tr>
                         <tr>
                             <td>Стоимость:</td>     
-                            <td>{{ $request->sum }} {{ $request->currency ?? '$' }}</td>
+                            <td>{{ round($request->sum) }} {{ $request->currency ?? '$' }}</td>
                         </tr>
                         <tr>
                             <td>Правило отмены:</td>
@@ -90,10 +90,8 @@
                                     
                                         Бесплатная отмена действует до {{ \Carbon\Carbon::parse($request->cancelDate)->format('d.m.Y') }} 
                                         (UTC {{ $request->utc }})
-                                        
-                                        Сумма аннуляции: {{ $request->currency }} {{ $request->cancelPriceAnullation }}. <br>
-                                        
-                                        Иначе размер штрафа: {{ $request->currency ?? '$' }} {{ $request->cancelPrice }} 
+                                       
+                                        Иначе размер штрафа:  {{ round($request->cancelPrice) }} {{ $request->currency ?? '$' }}
                                         
                                 @else
                                         Невозвратный тариф.

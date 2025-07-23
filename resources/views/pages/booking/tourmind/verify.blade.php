@@ -10,40 +10,40 @@
                 <div class="col-lg-12 col-md-12">
                     <div class="clearfix">
                         <div id="timer" style="color: red;" class="d-flex justify-content-end">
-                            Время на бронирование : &nbsp;<span id="countdown"></span>
+                            @lang('main.time_booking') : &nbsp;<span id="countdown"></span>
                         </div>
                     </div>
 
-                    <h1>Подтверждение заказа</h1>
+                    <h1>@lang('main.order_confirmation')</h1>
                     <table>
                         <tr>
-                            <td>Отель:</td>
+                            <td>@lang('main.hotel'):</td>
                             <td>{{ $hotel->title_en }}</td>
                         </tr>
                         <tr>
-                            <td>Тип комнаты:</td>
+                            <td>@lang('main.room_type'):</td>
                             <td>{{ $request->room_name }}</td>
                         </tr>
                         <tr>
-                            <td>Тариф:</td>
+                            <td>@lang('main.rate'):</td>
                             <td>{{ $request->rate_name }}</td>
                         </tr>
                         <tr>
-                            <td>Кол-во взрослых:</td>
+                            <td>@lang('main.count_adult'):</td>
                             <td>{{ $request->adult }}</td>
                         </tr>
                         <tr>
-                            <td>Кол-во детей:</td>
+                            <td>@lang('main.count_child'):</td>
                             <td>{{ $request->child }}</td>
                             {{--                                    <td>{{ implode(',', explode($order->booking->roomStays[0]->guestCount->childAges)) }}</td>--}}
                             {{--                                    <td>{{ count($order->booking->roomStays[0]->guestCount->guestCount->childAges) }}</td>--}}
                         </tr>
                         <tr>
-                            <td>Кол-во номеров:</td>
+                            <td>@lang('main.count_room'):</td>
                             <td>{{ $request->roomCount }}</td>
                         </tr>
                         <tr>
-                            <td>Даты:</td>
+                            <td>@lang('main.dates'):</td>
                             <td>
                                 @if (!empty($request->arrivalDate))
                                     {{ \Carbon\Carbon::parse($request->arrivalDate)->format('d.m.Y') }}
@@ -57,31 +57,51 @@
                             </td>
                         </tr>
                         <tr>
-                            <td>Стоимость:</td>     
-                            <td>{{ $request->sum }} {{ $request->currency ?? '$' }}</td>
+                            <td>@lang('main.price'):</td>     
+                            <td>
+                                @php
+                                    $basePrice = $request->sum;
+                                    $toCurrency = strtoupper($fxBase ?? 'USD');
+
+                                    $symbols = [
+                                        'USD' => '$',
+                                        'RUB' => '₽',
+                                        'KGS' => 'сом',
+                                        'UZS' => 'сўм',
+                                    ];
+
+                                    $converted = app(\App\Services\FXService::class)->convert($basePrice, $request->currency, $fxBase);
+                                    $symbol = $symbols[$toCurrency] ?? $toCurrency;
+
+                                    $cancelConverted = app(\App\Services\FXService::class)->convert($request->cancelPrice, $request->currency, $fxBase);
+                                    $cancelSymbol = $symbols[$toCurrency] ?? $toCurrency;
+                                @endphp
+                                
+                                {{ round($converted) }} {{ $symbol }}
+                            </td>
                         </tr>
                         <tr>
-                            <td>Правило отмены:</td>
+                            <td>@lang('main.cancel_rule'):</td>
                             <td>
                                 @if($request->refundable == true)
                                     
-                                        Бесплатная отмена действует до {{ \Carbon\Carbon::parse($request->cancelDate)->format('d.m.Y') }} 
+                                        @lang('main.free_cancellation') {{ \Carbon\Carbon::parse($request->cancelDate)->format('d.m.Y') }} 
                                         (UTC {{ $request->utc }})
                                         
-                                        Размер штрафа: {{ $request->cancelPrice }} {{ $request->currency ?? '$' }}
+                                        @lang('main.cancellation_amount_tm'): {{ $cancelConverted }} {{ $cancelSymbol ?? '$' }}
                                 @else
-                                        Невозвратный тариф.
+                                        @lang('main.non_refundable')
                                 @endif
                             </td>
                         </tr>
                         <tr>
-                            <td>ФИО:</td>
+                            <td>@lang('main.fio'):</td>
                             <td>
                                 <div class="name">{{ $request->name }}</div>
                             </td>
                         </tr>
                         <tr>
-                            <td>Номер телефона:</td>
+                            <td>@lang('main.phone'):</td>
                             <td>
                                 <div class="name">{{ $request->phone }}</div>
                             </td>
@@ -93,7 +113,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td>Комментарий:</td>
+                            <td>@lang('main.comment'):</td>
                             <td>{{ $request->comment }}</td>
                         </tr>
                     </table>
@@ -125,6 +145,7 @@
                         <input type="hidden" name="currency"  value="{{ $request->currency }}">
                         <input type="hidden" name="utc" value="{{ $request->utc }}">
                         <input type="hidden" name="price" value="{{ $request->price }}">
+                        <input type="hidden" name="source_sym" value="{{ $toCurrency }}">
                         <input type="hidden" name="sum" value="{{ $request->sum }}">
                         <input type="hidden" name="api_name" value="TM">
                         <input type="hidden" name="token" value="{{ $token }}">
@@ -141,7 +162,7 @@
                         <input type="hidden" name="paxlname3" value="{{ $request->paxlname3 }}">
                         <input type="hidden" name="paxfname4" value="{{ $request->paxfname4 }}">
                         <input type="hidden" name="paxlname4" value="{{ $request->paxlname4 }}">
-                        <button class="more" id="booking">Подтвердить</button>
+                        <button class="more" id="booking">@lang('main.confirm')</button>
                     </form>
                 </div>
             </div>

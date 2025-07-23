@@ -18,6 +18,8 @@ use App\Models\Room;
 use App\Models\Hotel;
 use App\Models\Image;
 use App\Models\CancellationRule;
+use App\Models\Meal;
+
 
 class BookingEtgController extends Controller
 {
@@ -69,7 +71,7 @@ class BookingEtgController extends Controller
             // $hotel = Hotel::find($request->hotel_id);
             $emergingOrder = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
             $order = $emergingOrder->startProcess($request);
-            $message = ''; $finish = '';
+            $message = ''; $finish = ''; $finishStatus='';
             // dd($request);
             // dd($order);
 
@@ -106,6 +108,9 @@ class BookingEtgController extends Controller
                         }
 
                         if( isset( $finish['error'] ) ){
+
+                            $emergingStatus = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
+                            $finishStatus = $emergingStatus->getStatus($request);
 
                             switch ($finish['error']) {
                                 case 'book_hash_not_found':
@@ -185,8 +190,10 @@ class BookingEtgController extends Controller
             }
 
             if ( isset($order['error']) ) {
-                // session()->flash('Success', 'Бронирование успешно создано!');
                 
+                $emergingStatus = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
+                $finishStatus = $emergingStatus->getStatus($request);
+
                 switch ($order['error']) {
                     case 'double_booking_form':
                         $message = "Этот бронь уже существует!";
@@ -229,7 +236,7 @@ class BookingEtgController extends Controller
             $book = Book::where('book_token', $request->token)->first();
             
 
-            return view('pages.booking.emerging.rezerve', compact('book', 'request', 'message', 'finish', 'order'));
+            return view('pages.booking.emerging.rezerve', compact('book', 'request', 'message', 'finish', 'order', 'finishStatus'));
         
     }
 

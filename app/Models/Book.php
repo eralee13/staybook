@@ -15,6 +15,7 @@ class Book extends Model
     protected $fillable = [
         'hotel_id',
         'room_id',
+        'title',
         'title1',
         'title2',
         'title3',
@@ -38,6 +39,7 @@ class Book extends Model
         'child',
         'childages',
         'price',
+        'source_sym',
         'sum',
         'arrivalDate',
         'departureDate',
@@ -55,6 +57,8 @@ class Book extends Model
         'room_count'
     ];
 
+    protected $guarded = [];
+
     protected $hidden = [
         'created_at',
         'updated_at',
@@ -62,7 +66,6 @@ class Book extends Model
         'tag',
         'status',
         'price',
-        'title2',
         'count'
     ];
 

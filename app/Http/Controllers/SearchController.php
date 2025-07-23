@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\City;
-use App\Models\Image;
-use App\Models\Room;
-use App\Models\Hotel;
 use App\Services\FXService;
 use Carbon\Carbon;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Models\City;
+use App\Models\Image;
+use App\Models\Room;
+use App\Models\Hotel;
+use App\Models\Meal;
 
 class SearchController extends Controller
 {
@@ -100,85 +101,85 @@ class SearchController extends Controller
 
         // ######## Emerging API ########
 
-        //    $emerSearch = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
-        //    $emerHotels = $emerSearch->EmergingGetHotels($request);
-        // //    dd($emerHotels['data']['hotels']);
+           $emerSearch = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
+           $emerHotels = $emerSearch->EmergingGetHotels($request);
+        //    dd($emerHotels['data']['hotels']);
 
-        //    if( isset($emerHotels['data']['hotels']) ){
+           if( isset($emerHotels['data']['hotels']) ){
 
-        //        $filteredHotels = array_filter($emerHotels['data']['hotels'], function ($hotel) {
-        //            return isset($hotel['localData']['id']);
-        //        });
-        //        // dd($filteredHotels);
-        //        $hotels['hotels'] = array_map(function ($hotel) {
-        //            // dd($hotel);
-        //            $rate = $hotel['rates'][0];
-        //            $price = (float)$rate['payment_options']['payment_types'][0]['amount'] ?? 0;
-        //            $totalPrice = number_format( ($price * $this->coef) + $price , 2, '.', '');
+               $filteredHotels = array_filter($emerHotels['data']['hotels'], function ($hotel) {
+                   return isset($hotel['localData']['id']);
+               });
+               // dd($filteredHotels);
+               $hotels['hotels'] = array_map(function ($hotel) {
+                   // dd($hotel);
+                   $rate = $hotel['rates'][0];
+                   $price = (float)$rate['payment_options']['payment_types'][0]['amount'] ?? 0;
+                   $totalPrice = number_format( ($price * $this->coef) + $price , 2, '.', '');
 
-        //            return [
-        //                'apiName' => 'ETG',
-        //                'apiHotelId' => $hotel['hid'],
-        //                'hid' => $hotel['localData']['id'] ?? '',
-        //                'code' => $hotel['localData']['code'] ?? '',
-        //                'title' => $hotel['localData']['title'] ?? '',
-        //                'title_en' => $hotel['localData']['title_en'] ?? '',
-        //                'rating' => $hotel['localData']['rating'] ?? '',
-        //                'city' => $hotel['localData']['city'] ?? '',
-        //                'amenities' => $hotel['localData']['amenity']['services'] ?? '',
-        //                'images' => $hotel['localData']['images'] ?? [],
-        //                'price' => $price ?? 0,
-        //                'totalPrice' => $totalPrice ?? 0,
-        //                'currency' => $rate['payment_options']['payment_types'][0]['currency_code'] ?? 0,
-        //                'match_hash' => $rate['match_hash'] ?? 0,
-        //            ];
-        //        }, $filteredHotels);
+                   return [
+                       'apiName' => 'ETG',
+                       'apiHotelId' => $hotel['hid'],
+                       'hid' => $hotel['localData']['id'] ?? '',
+                       'code' => $hotel['localData']['code'] ?? '',
+                       'title' => $hotel['localData']['title'] ?? '',
+                       'title_en' => $hotel['localData']['title_en'] ?? '',
+                       'rating' => $hotel['localData']['rating'] ?? '',
+                       'city' => $hotel['localData']['city'] ?? '',
+                       'amenities' => $hotel['localData']['amenity']['services'] ?? '',
+                       'images' => $hotel['localData']['images'] ?? [],
+                       'price' => $price ?? 0,
+                       'totalPrice' => $totalPrice ?? 0,
+                       'currency' => $rate['payment_options']['payment_types'][0]['currency_code'] ?? 0,
+                       'match_hash' => $rate['match_hash'] ?? 0,
+                   ];
+               }, $filteredHotels);
 
-        //        $results = json_decode(json_encode($hotels));
-        //    }
+               $results = json_decode(json_encode($hotels));
+           }
 
 
         // ######## End Emerging API ########
 
 
-        // ***** Start Tourmind api *****
+        // ***** Start Tourmind API *****
 
-        $hotelService = new \App\Services\Tourmind\HotelServices();
-        $tmhotels = $hotelService->tmGetHotels($request);
-        // dd($tmhotels);
+        // $hotelService = new \App\Services\Tourmind\HotelServices();
+        // $tmhotels = $hotelService->tmGetHotels($request);
+        // // dd($tmhotels);
 
-        if ( isset($tmhotels['Hotels']) ){
+        // if ( isset($tmhotels['Hotels']) ){
 
-            $filteredHotels = array_filter($tmhotels['Hotels'], function ($hotel) {
-                return isset($hotel['localData']['id']);
-            });
-            $hotels['hotels'] = array_map(function ($hotel) {
-                $rate = $hotel['RoomTypes'][0]['RateInfos'][0];
-                $price = $rate['TotalPrice'] ?? 0;
-                $totalPrice = number_format( ($price * $this->coef) + $price , 2, '.', '');
+        //     $filteredHotels = array_filter($tmhotels['Hotels'], function ($hotel) {
+        //         return isset($hotel['localData']['id']);
+        //     });
+        //     $hotels['hotels'] = array_map(function ($hotel) {
+        //         $rate = $hotel['RoomTypes'][0]['RateInfos'][0];
+        //         $price = $rate['TotalPrice'] ?? 0;
+        //         $totalPrice = number_format( ($price * $this->coef) + $price , 2, '.', '');
 
-                return [
-                    'apiName' => 'TM',
-                    'apiHotelId' => $hotel['HotelCode'],
-                    'hid' => $hotel['localData']['id'] ?? '',
-                    'code' => $hotel['localData']['code'] ?? '',
-                    'title' => $hotel['localData']['title'] ?? '',
-                    'title_en' => $hotel['localData']['title_en'] ?? '',
-                    'rating' => $hotel['localData']['rating'] ?? '',
-                    'city' => $hotel['localData']['city'] ?? '',
-                    'amenities' => $hotel['localData']['amenity']['services'] ?? '',
-                    'images' => $hotel['localData']['images'] ?? [],
-                    'price' => $rate['TotalPrice'] ?? 0,
-                    'totalPrice' => $totalPrice ?? 0,
-                    'currency' => $rate['CurrencyCode'] ?? 0,
-                ];
-            }, $filteredHotels);
+        //         return [
+        //             'apiName' => 'TM',
+        //             'apiHotelId' => $hotel['HotelCode'],
+        //             'hid' => $hotel['localData']['id'] ?? '',
+        //             'code' => $hotel['localData']['code'] ?? '',
+        //             'title' => $hotel['localData']['title'] ?? '',
+        //             'title_en' => $hotel['localData']['title_en'] ?? '',
+        //             'rating' => $hotel['localData']['rating'] ?? '',
+        //             'city' => $hotel['localData']['city'] ?? '',
+        //             'amenities' => $hotel['localData']['amenity']['services'] ?? '',
+        //             'images' => $hotel['localData']['images'] ?? [],
+        //             'price' => $rate['TotalPrice'] ?? 0,
+        //             'totalPrice' => $totalPrice ?? 0,
+        //             'currency' => $rate['CurrencyCode'] ?? 0,
+        //         ];
+        //     }, $filteredHotels);
 
-            $results = json_decode(json_encode($hotels));
-            // dd($results->hotels);
-        }
+        //     $results = json_decode(json_encode($hotels));
+        //     // dd($results->hotels);
+        // }
 
-        // ***** end Tourmind api *****
+        // ***** End Tourmind API *****
 
 
         if (!empty($propertyIds)) {
@@ -235,6 +236,7 @@ class SearchController extends Controller
 
         return view('pages.search.search', [
             'allHotels' => $allHotels,
+            'results' => $results,
             'fxBase' => $fxBase,
             'fxRates' => $fxRates,
             'request' => $request,

@@ -55,10 +55,10 @@
                                 <div class="address">
                                     <img src="{{ route('index') }}/img/marker_in.svg" alt=""> {{ $hotel->address_en }}
                                 </div>
-                            <h4>Описание</h4>
+                            <h4>@lang('main.description')</h4>
                             {{$hotel->description_en}}
                             <div class="amenities">
-                                <h4>Услуги и удобства</h4>
+                                <h4>@lang('main.amenities')</h4>
                                 
                                 @if( isset($amenities) )
                                     @foreach($amenities as $amenity)
@@ -117,7 +117,7 @@
                     <div class="row">
                         <div class="col-md-12">
                             <div class="tariffs availabity">
-                                <h4>Доступные варианты</h4>
+                                <h4>@lang('main.available')</h4>
 
                                 @include('pages.search.tourmind.rooms', ['tmroom' => $tmroom, 'tmimages' => $tmimages])
                                 

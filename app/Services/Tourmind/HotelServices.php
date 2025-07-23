@@ -1,14 +1,17 @@
 <?php
 
 namespace App\Services\Tourmind;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 use DateTimeZone;
 use DateTime;
+use App\Mail\BookCancelMail;
+use App\Mail\BookMail;
 use App\Services\Tourmind\TmApiService;
 use App\Models\Hotel;
 use App\Models\CancellationRule;
@@ -530,7 +533,7 @@ class HotelServices
     public function createOrder(Request $request){
 
         $check = $this->checkRoomRate($request);
-        // dd($check);
+        //dd($check);
         $mrate = '';
         if ( isset($check->Hotels[0]->RoomTypes[0]->RateInfos[0]->CancelPolicyInfos[0]->Amount) ){
             $mrate = $check->Hotels[0]->RoomTypes[0]->RateInfos[0];
@@ -540,7 +543,7 @@ class HotelServices
             $this->rateName = $mrate->Name ?? '';
             $this->penaltyPrice = number_format(($mrate->CancelPolicyInfos[0]->Amount * $this->coef) + $mrate->CancelPolicyInfos[0]->Amount, 2, '.', '') ?? 0;
             $this->endDate = $mrate->CancelPolicyInfos[0]->From ?? null;
-            $this->bedTypeDesc = $mrate->BedTypeDesc ?? '';
+            $this->bedTypeDesc = $mrate->bedTypeDesc;
         }else{
             // dd($check);
             $mrate = $check->Hotels[0]->RoomTypes[0]->RateInfos[0];
@@ -550,8 +553,17 @@ class HotelServices
             $this->penaltyPrice = number_format(($mrate->TotalPrice * $this->coef) + $mrate->TotalPrice, 2, '.', '') ?? 0;
             $this->endDate = $request->cancelDate ?? null;
             $this->rateName = $request->rate_name ?? '';
-            $this->bedTypeDesc = $request->rate_name ?? '';
+            $this->bedTypeDesc = $request->rate_name;
         }
+
+                $basePrice = (float) $request->sum;
+                $toCurrency = strtoupper($request->source_sym ?? 'USD');
+
+                $converted = app(\App\Services\FXService::class)->convert($basePrice, $this->currency, $request->source_sym);
+                $symbol = $toCurrency;
+
+                $cancelConverted = app(\App\Services\FXService::class)->convert((float) $this->penaltyPrice, $this->currency, $toCurrency);
+                $cancelSymbol = $toCurrency;
         
         // dd($mrate);
 
@@ -683,13 +695,15 @@ class HotelServices
                 for ($i = 1; $i <= $request->roomCount; $i++) {
                     $fname = $request->input('paxfname' . ($i > 1 ? $i : ''));
                     $lname = $request->input('paxlname' . ($i > 1 ? $i : ''));
+                        
+                    $fullName = trim("$fname $lname");
                     
-                    if ($fname || $lname) {
-                        $this->guestsall[] = trim("$fname $lname");
+                    if ($fullName) {
+                        $this->guestsall[] = $fullName;
                     }
                 }
             
-
+                
                     $guests = implode(',', $this->guestsall ?? []);
                     
                     $childAges = implode(',', $request->childAges ?? []);
@@ -705,7 +719,9 @@ class HotelServices
                     // Форматируем результат
                     $utcdatetime = $utcdatetime->format('Y-m-d H:i:s');
 
-            
+                
+                
+
                     
                 $ruleid;
                 if ($request->refundable == true){
@@ -717,7 +733,7 @@ class HotelServices
                             "is_refundable" => 1,
                             "free_cancellation_days" => 0,
                             "penalty_type" => 'fixed',  
-                            "penalty_amount" => $this->penaltyPrice ?? 0,
+                            "penalty_amount" => $cancelConverted, //$this->penaltyPrice ?? 0,
                             "end_date" => $this->endDate ?? null,
                             "description" => '',
                             "hotel_id" => $request->hotel_id,
@@ -734,7 +750,7 @@ class HotelServices
                             "is_refundable" => 0,
                             "free_cancellation_days" => 0,
                             "penalty_type" => 'fixed',  
-                            "penalty_amount" => $this->penaltyPrice ?? 0,
+                            "penalty_amount" => $cancelConverted, //$this->penaltyPrice ?? 0,
                             "end_date" => null,
                             "description" => '',
                             "hotel_id" => $request->hotel_id,
@@ -744,14 +760,6 @@ class HotelServices
                     $ruleid = $rule->id ?? null;
                 }
 
-                    $title; $titlen;
-                    if ($this->mealid == 1){
-                        $title = 'Тариф без питания';
-                        $titlen = 'Tariff without meals';
-                    }elseif ($this->mealid == 2){
-                        $title = 'Тариф с завтраком';
-                        $titlen = 'Tariff with breakfast';
-                    }
 
                     $totalPrice = number_format(($this->price * $this->coef) + $this->price,2 ,'.', '');
                     
@@ -765,24 +773,24 @@ class HotelServices
                             'title' => $mrate->Name ?? '',
                             'title_en' => $mrate->Name ?? '',
                             'desc_en' => null,
-                            'bed_type' => $this->bedTypeDesc,
+                            'bed_type' => $this->bedTypeDesc ?? $request->rate_name,
                             'meal_id' => $this->mealid,
                             'allotment' => null,
                             'adult' => $request->adult ?? 1,
                             'child' => $request->child ?? 0,
                             'children_allowed' => 0,
                             'free_children_age' => 0,
-                            'currency' => $this->currency,
+                            'currency' => $symbol, //$this->currency,
                             'price' => $this->price,
                             'price2' => null,
                             'child_extra_fee' => 0,
                             'availability' => 0,
-                            'total_price' => $totalPrice,
+                            'total_price' => $converted, //$totalPrice,
                             'cancellation_rule_id' => $ruleid ?? null,
                             
                         ]
                     );
-
+                    
                     $book = Book::firstOrCreate(
                         [
                             'book_token' => $this->token,
@@ -800,11 +808,12 @@ class HotelServices
                             'child' => $request->child,
                             'childages' => $childAges ?? '',
                             'price' => $this->price,
-                            'sum' => $totalPrice,
+                            'source_sym' => $this->currency ?? $request->currency ?? 'CNY',
+                            'sum' => $converted,
                             'utc' => $request->utc,
                             'cancellation_id' => $ruleid,
-                            'cancel_penalty' => $this->penaltyPrice,
-                            'currency' => $this->currency,
+                            'cancel_penalty' => $cancelConverted,
+                            'currency' => $symbol,
                             'cancel_date' => $utcdatetime,
                             'arrivalDate' => $request->arrivalDate,
                             'departureDate' => $request->departureDate,
@@ -841,21 +850,26 @@ class HotelServices
             Log::channel('tourmind')->info('CreateOrder 528 - ', $payload);
             Log::channel('tourmind')->info('CreateOrder 528 - ', $order);
             
-            if( isset($order['OrderInfo']['ReservationID']) ){
+            if( isset($order['OrderInfo']['OrderStatus']) == 'CONFIRMED' ){
     
-                Book::where('book_token', $this->token)
-                    ->update([
-                        'status' => $order['OrderInfo']['OrderStatus'],
-                        // 'rezervation_id' => $order['OrderInfo']['ReservationID']
-                    ]);
-                    
-                
-                    // return "Бронирование успешно создано!"; // Статус - {$order['OrderInfo']['OrderStatus']}";
-                    return ['Success' => "{$order['OrderInfo']['OrderStatus']}"];
+                $message = $order['OrderInfo']['OrderStatus'];
 
-                // session()->flash('success', "Бронирование успешно создано! Статус - {$order['OrderInfo']['OrderStatus']}");
-                // return redirect()->route('booking.success');
+                    Book::where('book_token', $this->token)
+                        ->update([
+                            'status' => $order['OrderInfo']['OrderStatus'],
+                            // 'rezervation_id' => $order['OrderInfo']['ReservationID']
+                        ]);
+
+                    $book = Book::where('book_token', $request->token)->first();
+
+                        Mail::to('info@staybook.asia')->send(new BookMail($book));
+
+                return ['Success' => "{$order['OrderInfo']['OrderStatus']}"];
     
+            }elseif($order['OrderInfo']['OrderStatus'] != 'FAILED'){
+
+                return ['Error' => "{$order['OrderInfo']['OrderStatus']}"];
+                
             }else{
     
                 return ['Error' => true, 'ErrorMessage' => $order['Error']['ErrorMessage']];
@@ -903,65 +917,36 @@ class HotelServices
         
     }
 
-    public function getOneSearchOrder(){
-
-        $userId = Auth::id();
-
-        //$countryCodes = $this->tmApiService->getCountryCodes();
-
-        // foreach ($countryCodes as $countryCode) {
+    public function getOneSearchOrder($AgentRefID){
             
-            $payload = [
-                "AgentRefID" => "swt[$userId]",
-                "RequestHeader" => [
-                    "AgentCode" => "tms_test",
-                    "Password" => "tms_test",
-                    "UserName" => "tms_test",
-                    "RequestTime" => now()->format('Y-m-d H:i:s')
-                ]
-            ];
-    
-            $response = Http::withHeaders([
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json'
-            ])->post("{$this->baseUrl}/SearchOrder", $payload);
-    
-            if ($response->failed()) {
-                return ['error' => 'SearchOrder Ошибка при запросе к API', 'status' => $response->status()];
+           try {
+                $payload = [
+                    "AgentRefID" => $AgentRefID,
+                    "RequestHeader" => [
+                        "AgentCode" => $this->tm_agent_code,
+                        "Password" => $this->tm_password,
+                        "UserName" => $this->tm_user_name,
+                        "RequestTime" => now()->format('Y-m-d H:i:s')
+                    ]
+                ];
+            
+                $response = Http::withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json'
+                ])->post("{$this->baseUrl}/SearchOrder", $payload);
+
+                if ($response->failed()) {
+                    return ['Error' => "TM SearchOrder Ошибка при запросе к API"];
+                }
+
+                return $response->json();
+
+            } catch (\Throwable $th) {
+                
+                Log::channel('tourmind')->info('CreateOrder 946 - ', $response->json());
+                return ["Error" => "TM SearchOrder Ошибка при запросе к API: " . $th->getMessage()];
+                
             }
-
-            $data = $response->json();
-            //$regions = $data['RegionListResult']['Regions'] ?? [];
-            
-            // foreach($regions as $region){
-
-            //     try {
-            //         DB::table('cities')->updateOrInsert(
-            //             ['country_id' => $region['RegionID']], // Условие проверки
-            //             [
-            //                 'name' => $region['Name'],
-            //                 'country_id' => (int)$region['RegionID'],
-            //                 'country_code' => (string)$region['CountryCode'],
-            //             ]
-            //         );
-                    
-            //     } catch (Exception $e) {
-            //         // Обработка исключения
-            //         Log::error('Ошибка: ' . $e->getMessage(), ['exception' => $e]);
-
-            //         // Возвращаем JSON с ошибкой
-            //         // return response()->json([
-            //         //     'error' => true,
-            //         //     'message' => 'Произошла ошибка на сервере',
-            //         //     'details' => $e->getMessage() // Можно скрыть в продакшене
-            //         // ], 500);
-            //     }
-            // }
-
-        // }
-           
-        // return ['message' => 'Данные обновлены', 'count' => count($regions)];
-        return $data;
     }
 
     public function getUtcOffsetByCountryCode($CountryCode){

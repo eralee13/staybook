@@ -2,21 +2,18 @@
 
 namespace App\Livewire;
 
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Facades\Session;
+use App\Models\CancellationRule;
 use Livewire\Component;
 use Livewire\WithFileUploads;
-use App\Models\Amenity;
-use App\Models\Hotel;
-use App\Models\Image;
-use App\Models\Meal;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Hotel;
 use App\Models\Room;
 use App\Models\Rate;
-use App\Models\CancellationRule;
+use App\Models\Meal;
+use App\Models\Image;
+use App\Models\Amenity;
 
+// Мультиформа создание отеля с номерами и тарифами
 
 class HotelWizard extends Component
 {
@@ -33,7 +30,11 @@ class HotelWizard extends Component
     public $rule_name, $is_refundable, $free_cancellation_days, $penalty_type, $penalty_amount, $descr,  $ruleError;
     public $meals = [];
     public $hotel_images = [];
-    public $services = [], $services_en = [];
+    public $rooms = [];
+    public $rates = [];
+    public $rules = [];
+    public $room_images = [];
+    public $services = [], $services_en = [], $room_services = [], $room_services_en = [];
     public $hotel_id = '';
     public $cancel_policy = "free_until_checkin", $status;    
     public $freeCancelBlock = false;
@@ -42,13 +43,13 @@ class HotelWizard extends Component
 
     protected function rules()
     {
+
         if ($this->step == 1) {
             return [
                 'title' => 'required|string',
                 'title_en' => 'required|string',
                 'type' => 'required|string',
                 'city' => 'required|string',
-                'timezone' => 'required|string',
                 'timezone' => 'required|string',
                 'address' => 'required|string',
                 'address_en' => 'required|string',
@@ -147,7 +148,10 @@ class HotelWizard extends Component
 
     public function nextStep()
     {
-        $this->validate();
+
+        if ($this->step == 1 || $this->step == 2 || $this->step == 5) {
+
+            $this->validate();
 
         }
 
@@ -160,8 +164,10 @@ class HotelWizard extends Component
 
         $this->step++;
 
-        if ($this->step == 2) {
+        if ($this->step == 3) {
+
             $this->createHotel();
+
         }
 
         if ($this->step == 4 && $this->hotel_id) {
@@ -174,7 +180,6 @@ class HotelWizard extends Component
     {
         $this->step--;
     }
-
 
     public function firstRoom()
     {
@@ -206,11 +211,12 @@ class HotelWizard extends Component
 
     }
 
-    
     public function createHotel()
     {
         try {
+
             if (empty($this->hotel_id)) {
+
                 $hotel = Hotel::create([
                     'user_id' => Auth::id(),
                     'code' => '',
@@ -232,27 +238,36 @@ class HotelWizard extends Component
                 ]);
 
                 if ($this->services) {
+
                     Amenity::create([
                         'hotel_id' => $hotel->id,
                         'title' => 'Services',
                         'services_en' => implode(',', $this->services),
+                        // 'services_en' => implode(',', $this->services_en),
                     ]);
+
                 }
 
                 if ($this->hotel_images) {
+
                     foreach ($this->hotel_images as $image) {
                         $path = $image->store('hotels/' . $hotel->id, 'public');
+
                         Image::create([
                             'hotel_id' => $hotel->id,
+                            // 'room_id' => null,
+                            // 'category' => null,
+                            // 'caption' => null,
                             'image' => $path,
                         ]);
                     }
                 }
 
                 $this->hotel_id = $hotel->id;
-                //$this->hotelSuccess = 'Отель успешно добавлен! Пожалуйста ожидайте подтверждения!';
+                $this->hotelSuccess = 'Отель успешно добавлен! Пожалуйста продолжайте добавлять номера';
                 $this->hotelError = '';
             }
+
         } catch (\Throwable $th) {
             $this->hotelError = 'Ошибка при добавлении отеля: ' . $th->getMessage();
         }

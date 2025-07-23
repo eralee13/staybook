@@ -3,13 +3,41 @@
 @section('title', 'Забронировать')
 
 @section('content')
+ @php
+    $basePrice = $request->totalPrice;
+
+    $toCurrency = strtoupper($fxBase ?? 'USD');
+
+    $fxRates = [
+        'USD' => $fxRates['usd'] ?? 1,
+        'RUB' => $fxRates['rub'] ?? 1,
+        'KGS' => $fxRates['kgs'] ?? 1,
+        'UZS' => $fxRates['uzs'] ?? 1,
+    ];
+
+    $symbols = [
+        'USD' => '$',
+        'RUB' => '₽',
+        'KGS' => 'сом',
+        'UZS' => 'сўм',
+    ];
+
+    $rateTo = $fxRates[$toCurrency] ?? 1;
+    $converted = app(\App\Services\FXService::class)->convert($basePrice, $request->currency, $fxBase);
+    $symbol = $symbols[$toCurrency] ?? $toCurrency;
+
+    $cancelTotal = number_format(($request->cancelPrice  * config('services.main.coef')) + $request->cancelPrice, 2, '.', '');
+    $cancelConverted = app(\App\Services\FXService::class)->convert($cancelTotal, $request->currency, $fxBase);
+    $cancelSymbol = $symbols[$toCurrency] ?? $toCurrency;
+
+@endphp
 
     <div class="page order">
         <div class="container">
             <div class="row">
                 <div class="col-md-12">
                     <h3><a href="search.html"><img src="{{ route('index') }}/img/icons/arrow-left.svg" alt=""></a>
-                        Подтвердите и оплатите
+                        @lang('main.confirm_and_pay')
                     </h3>
                 </div>
             </div>
@@ -17,10 +45,10 @@
                 <div class="col-lg-8 col-md-12 order-xl-1 order-lg-1 order-2">
                     <div class="clearfix">
                         <div id="timer" style="color: red;" class="d-flex justify-content-end">
-                            Время на бронирование : &nbsp;<span id="countdown"></span>
+                            @lang('main.time_booking') : &nbsp;<span id="countdown"></span>
                         </div>
                     </div>
-                    <h5>Ваша поездка</h5>
+                    <h5>@lang('main.trip')</h5>
 
                     <form action="{{ route('book_verify_tm') }}">
                         <input type="hidden" name="arrivalDate" value="{{ $request->arrivalDate }}">
@@ -44,37 +72,37 @@
                         <input type="hidden" name="rate_code" value="{{ $request->rate_code }}">
                         <input type="hidden" name="refundable" value="{{ $request->refundable }}">
                         <input type="hidden" name="cancelDate" value="{{ $request->cancelDate }}">
-                        <input type="hidden" name="cancelPrice" value="{{ number_format(($request->cancelPrice  * 0.08) + $request->cancelPrice, 2, '.', '') }}">
+                        <input type="hidden" name="cancelPrice" value="{{ number_format(($request->cancelPrice  * config('services.main.coef')) + $request->cancelPrice, 2, '.', '') }}">
                         <input type="hidden" name="currency"  value="{{ $request->currency }}">
                         <input type="hidden" name="utc" value="{{ $request->utc }}">
                         <input type="hidden" name="price" value="{{ $request->price }}">
-                        <input type="hidden" name="sum" value="{{ number_format( ($request->price * 0.08) + $request->price, 2, '.', '') }}">
+                        <input type="hidden" name="sum" value="{{ number_format( ($request->price * config('services.main.coef')) + $request->price, 2, '.', '') }}">
                         <input type="hidden" name="api_name" value="TM">
 
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <div class="label">ФИО</div>
+                                    <div class="label">@lang('main.fio')</div>
                                     <input type="text" name="name" placeholder="Асанов А.А."
                                            value="{{ Auth::user()->name }}" required>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <div class="label">Гости</div>
+                                    <div class="label">@lang('main.count_adult')</div>
                                     <input type="text" value="{{ $request->adult }}" readonly>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <label for="">Кол-во детей</label>
+                                    <label for="">@lang('main.count_child')</label>
                                     <input type="text" value="{{ $request->child }}" readonly>
                                 </div>
                             </div>
 
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="">Номер телефона</label>
+                                    <label for="">@lang('main.phone')</label>
                                     <input type="text" name="phone" id="phone" value="{{ Auth::user()->phone }}"
                                            required>
                                     <div id="output"></div>
@@ -89,8 +117,8 @@
                             <div class="col-md-12">
                                 <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'comment'])
-                                    <label for="">Комментарий</label>
-                                    <textarea name="comment" rows="3">Ваш комментарий</textarea>
+                                    <label for="">@lang('main.comment')</label>
+                                    <textarea name="comment" rows="3">@lang('main.comment')</textarea>
                                 </div>
                             </div>
                             
@@ -155,10 +183,10 @@
                         <div class="line"></div>
                         <div class="row">
                             <div class="col-md-12">
-                                <h5>Варианты оплаты</h5>
+                                <h5>@lang('main.payment_options')</h5>
                                 <div class="method-item current">
-                                    <div class="name">Оплатить
-                                        сейчас {{ number_format($request->totalPrice, 2, '.', '') }} {{ $request->currency ?? '$' }}</div>
+                                    <div class="name">@lang('main.pay_now') {{ round($converted) }} {{ $symbol }}
+                                    </div>
                                 </div>
                                 {{--                                <div class="method-item">--}}
                                 {{--                                    <div class="name">Оплатите часть сейчас, а остаток внесите позже--}}
@@ -170,7 +198,7 @@
                             <div class="col-md-12">
                                 <div class="row payment-wrap">
                                     <div class="col-md-6">
-                                        <h5>Оплата</h5>
+                                        <h5>@lang('main.payment')</h5>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="payment">
@@ -191,7 +219,7 @@
                                 </div>
                                 <div class="payment-type">
                                     <select name="" class="payment_type" id="">
-                                        <option value="">Выбрать способ оплаты</option>
+                                        <option value="">@lang('main.select_pay_type')</option>
                                         <option value="">Balance</option>
                                         <option value="">Mega</option>
                                         <option value="">Optima</option>
@@ -207,7 +235,7 @@
                             средства с моего способа оплаты, если ответственность за ущерб лежит на мне.
                         </div>
                         <div class="btn-wrap">
-                            <button class="more" id="saveBtn">Подтвердить и оплатить</button>
+                            <button class="more" id="saveBtn">@lang('main.confirm_and_paye')</button>
                         </div>
                     </form>
                 </div>
@@ -232,21 +260,21 @@
                                 @endif
                             </div>
                             <div class="col-md-8">
-                                <div class="descr">Отель: {{ $hotel->title }}</div>
-                                <div class="descr">Номер: {{ $request->room_name }}</div>
-                                <div class="descr">Тариф: {{ $request->rate_name }}</div>
-                                <div class="date">Время заезда/выезда: {{ $arrival }} {{ $hotel->checkin }}
+                                <div class="descr">@lang('main.hotel'): {{ $hotel->title }}</div>
+                                <div class="descr">@lang('main.phone')Номер: {{ $request->room_name }}</div>
+                                <div class="descr">@lang('main.rate')Тариф: {{ $request->rate_name }}</div>
+                                <div class="date">@lang('main.check-in/check-out'): {{ $arrival }} {{ $hotel->checkin }}
                                     - {{ $departure }} {{ $hotel->checkout }} (UTC {{ $request->utc }})
                                 </div>
-                                <div class="cancel">Правила отмены:
+                                
+                                <div class="cancel">@lang('main.cancellation_policy'):
                                     @if($request->refundable == true)
-                                        
-                                            Бесплатная отмена действует до {{ \Carbon\Carbon::parse($request->cancelDate)->format('d.m.Y') }}
+                                            @lang('main.free_cancellation') {{ \Carbon\Carbon::parse($request->cancelDate)->format('d.m.Y') }}
                                             (UTC {{ $request->utc }})
                                         
-                                        Размер штрафа: {{ number_format(($request->cancelPrice  * 0.08) + $request->cancelPrice, 2, '.', '')}} {{ $request->currency ?? '$' }}
+                                        @lang('main.cancellation_amount_tm'): {{ round($cancelConverted) }} {{ $cancelSymbol }}
                                     @else
-                                        Невозвратный тариф.
+                                        @lang('main.non_refundable')
                                     @endif
                                 </div>
                             </div>
@@ -266,10 +294,10 @@
                         <div class="line"></div>
                         <div class="row mt">
                             <div class="col-md-8">
-                                <div class="total">Итого</div>
+                                <div class="total">@lang('main.total')</div>
                             </div>
                             <div class="col-md-4">
-                                <div class="price">{{ number_format($request->totalPrice, 2, '.', '') }} {{ $request->currency ?? '$'}}</div>
+                                <div class="price">{{ round($converted) }} {{ $symbol }}</div>
                             </div>
                         </div>
                     </div>

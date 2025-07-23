@@ -16,7 +16,7 @@
                     <form action="{{ route('cancel_confirm_etg') }}">
                         <div class="form-group">
                             <label for="">Номер брони</label>
-                            <input type="text" value="{{ $request->number }}" name="number">
+                            <input type="text" readonly value="{{ $request->number }}" name="number">
                         </div>
                         <input type="hidden" name="amount" value="{{ $book->cancel_penalty }}">
                         <button class="more">Отменить</button>
