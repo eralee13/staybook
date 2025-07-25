@@ -137,5 +137,6 @@ return [
     'remember' => 'Remember me',
     'late_checkin' => 'Early checkin',
     'late_checkout' => 'Late checkout',
+    'welcome_log' => 'Welcome'
 
 ];

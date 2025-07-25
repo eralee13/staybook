@@ -46,7 +46,7 @@
                                     </td>
                                     <td>
                                         <div class="title">@lang('admin.count'):</div>
-                                        <div class="value">{{ $book->room_count }} ном. {{ $book->adult }} взрос. @if($book->child) {{ $book->child }} дет.@endif</div>
+                                        <div class="value">{{ $book->room_count }} @lang('admin.room') {{ $book->adult }} @lang('admin.adult') @if($book->child) {{ $book->child }} дет.@endif</div>
                                     </td>
                                     <td>
                                         <div class="title">@lang('admin.be_paid')</div>
@@ -74,11 +74,11 @@
                                     @endphp
                                     <td>
                                         <div class="title">@lang('admin.hotel')</div>
-                                        <div class="value">{{ $hotel->title }}</div>
+                                        <div class="value">{{ $hotel->__('title') }}</div>
                                     </td>
                                     <td>
                                         <div class="title">@lang('admin.city')</div>
-                                        <div class="value">{{ $hotel->city }}</div>
+                                        <div class="value">{{ $hotel->__('city') }}</div>
                                     </td>
                                     @php
                                         $cancel = \App\Models\CancellationRule::find($book->cancellation_id);

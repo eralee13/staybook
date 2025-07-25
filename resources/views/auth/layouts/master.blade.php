@@ -41,11 +41,10 @@
             </div>
             <div class="col-md-9">
                 <div class="profile">
-                    <a href="{{ route('profile.edit') }}">@lang('admin.profile')</a>
+                    <a href="{{ route('profile.edit') }}">@lang('main.welcome_log') {{ \Illuminate\Support\Facades\Auth::user()->name }}</a>
                 </div>
                 <div class="wrap">
                     <div class="lang-wrap" id="lang">
-{{--                        <div class="currency">KGS</div>--}}
                         <div class="lang">
                             <div class="lang-item">
                                 @if(app()->getLocale() == 'ru')

@@ -120,7 +120,7 @@
                         <div class="auth">
                             @auth
                             <a href="{{ route('profile.edit') }}"><img src="{{route('index')}}/img/user_w.svg" alt="">
-                                @lang('main.login')</a>
+                                @lang('main.welcome_log') {{ \Illuminate\Support\Facades\Auth::user()->name }}</a>
                             @else
                                 <a href="{{ route('extranet') }}"><img src="{{route('index')}}/img/user_w.svg" alt="">
                                     @lang('main.login')</a>
@@ -133,7 +133,7 @@
                         <div class="auth">
                             @auth
                                 <a href="{{ route('profile.edit') }}"><img src="{{route('index')}}/img/user_w.svg" alt="">
-                                    @lang('main.login')</a>
+                                    @lang('main.welcome_log') {{ \Illuminate\Support\Facades\Auth::user()->name }}</a>
                             @else
                                 <a href="{{ route('extranet') }}"><img src="{{route('index')}}/img/user_w.svg" alt="">
                                     @lang('main.login')</a>

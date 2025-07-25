@@ -71,4 +71,9 @@ class Hotel extends Model
     {
         return $this->hasMany(Image::class, 'hotel_id'); // или belongsTo, в зависимости от структуры
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

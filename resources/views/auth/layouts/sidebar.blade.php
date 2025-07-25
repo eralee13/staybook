@@ -6,8 +6,10 @@
     {{--    @endphp--}}
     <ul>
         @can('edit-hotel')
+            @if( session()->has('hotel_id') )
             <li @routeactive('dashboard*') class="hotel-list"><a href="{{route('dashboard')}}"><img
                         src="{{ route('index') }}/img/icons/home.svg" alt=""> @lang('admin.dashboard')</a></li>
+            @endif
             <li @routeactive(
             'hotel*') class="hotel-list"><a href="{{route('hotels.index')}}"><img
                         src="{{ route('index') }}/img/icons/home.svg" alt=""> @lang('admin.hotel')</a></li>

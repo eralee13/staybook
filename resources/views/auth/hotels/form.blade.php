@@ -8,6 +8,14 @@
 
 @section('content')
 
+    <style>
+        .admin .img-wrap img {
+            max-width: 100%;
+            height: 12vh;
+            object-fit: cover;
+            width: 100%;
+        }
+    </style>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
     <div class="page admin">
         <div class="container">
@@ -30,14 +38,11 @@
                     >
                         @isset($hotel)
                             @method('PUT')
-                        @endisset
-                        @php
-                            $user = \Illuminate\Support\Facades\Auth::user()->id;
-                        @endphp
-                        @if($user != 1 && $user != 3)
+                        @else
                             <input type="hidden" name="user_id" value="{{ \Illuminate\Support\Facades\Auth::user()
                             ->id }}">
-                        @endif
+                        @endisset
+
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -109,9 +114,19 @@
                                         <div class="form-group">
                                             <label for="">@lang('admin.property_currency')</label>
                                             <select name="currency" id="currency">
-                                                <option value="">@lang('admin.choose')</option>
-                                                <option value="USD" {{ old('currency') == 'USD' ? 'selected' : '' }}>USD</option>
-                                                <option value="KGS" {{ old('currency') == 'KGS' ? 'selected' : '' }}>KGS</option>
+                                                @isset($hotel)
+                                                    <option @if($hotel->currency)
+                                                                selected>
+                                                        {{ $hotel->currency }}@endif</option>
+                                                @else
+                                                    <option>@lang('admin.choose')</option>
+                                                @endisset
+                                                <option value="USD" {{ old('currency') == 'USD' ? 'selected' : '' }}>
+                                                    USD
+                                                </option>
+                                                <option value="KGS" {{ old('currency') == 'KGS' ? 'selected' : '' }}>
+                                                    KGS
+                                                </option>
                                             </select>
                                             @include('auth.layouts.error', ['fieldname' => 'currency'])
                                         </div>
@@ -207,7 +222,7 @@
                                                         selected>
                                                 {{ $hotel->checkout }}</option>
                                         @else
-                                            <option>Выбрать</option>
+                                            <option>@lang('admin.choose')</option>
                                         @endif
                                         @endisset
                                         @for ($hour = 01; $hour <= 13; $hour++)
@@ -391,10 +406,111 @@
                                 </div>
                             </div>
 
+                            <style>
+                                .img-item {
+                                    border: 1px solid #e0e0e0;
+                                    padding: 10px;
+                                    margin-bottom: 20px;
+                                    border-radius: 10px;
+                                    background-color: #fafafa;
+                                    text-align: center;
+                                    transition: box-shadow 0.3s;
+                                }
+
+                                .img-item:hover {
+                                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+                                }
+
+                                .img-item img {
+                                    max-width: 100%;
+                                    border-radius: 6px;
+                                    object-fit: cover;
+                                    height: 120px;
+                                }
+
+                                .pretty-checkbox {
+                                    position: relative;
+                                    padding-left: 30px;
+                                    cursor: pointer;
+                                    user-select: none;
+                                    font-size: 14px;
+                                    display: inline-block;
+                                    margin-top: 10px;
+                                }
+
+                                .pretty-checkbox input[type="checkbox"] {
+                                    position: absolute;
+                                    opacity: 0;
+                                    cursor: pointer;
+                                }
+
+                                .pretty-checkbox .checkmark {
+                                    position: absolute;
+                                    top: 0;
+                                    left: 0;
+                                    height: 20px;
+                                    width: 20px;
+                                    background-color: #eee;
+                                    border-radius: 4px;
+                                    transition: background-color 0.3s;
+                                    border: 1px solid #ccc;
+                                }
+
+                                .pretty-checkbox:hover input ~ .checkmark {
+                                    background-color: #d6f1ff;
+                                }
+
+                                .pretty-checkbox input:checked ~ .checkmark {
+                                    background-color: #00bcd4;
+                                    border-color: #00bcd4;
+                                }
+
+                                .pretty-checkbox .checkmark:after {
+                                    content: "";
+                                    position: absolute;
+                                    display: none;
+                                }
+
+                                .pretty-checkbox input:checked ~ .checkmark:after {
+                                    display: block;
+                                }
+
+                                .pretty-checkbox .checkmark:after {
+                                    left: 6px;
+                                    top: 2px;
+                                    width: 6px;
+                                    height: 12px;
+                                    border: solid white;
+                                    border-width: 0 2px 2px 0;
+                                    transform: rotate(45deg);
+                                }
+                            </style>
+
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="">@lang('admin.images')</label>
                                     <input type="file" name="images[]" multiple="true">
+                                    @isset($images)
+                                        <div class="img-wrap">
+                                            <div class="row">
+                                                @isset($images)
+                                                    @foreach($images as $image)
+                                                        <div class="col-md-4">
+                                                            <div class="img-item">
+                                                                <img src="{{ Storage::url($image->image) }}" alt="">
+                                                                <label class="pretty-checkbox">
+                                                                    <input type="checkbox" name="delete_images[]"
+                                                                           value="{{ $image->id }}">
+                                                                    <span class="checkmark"></span>
+                                                                    Удалить
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                @endisset
+                                            </div>
+                                        </div>
+                                    @endisset
                                 </div>
                             </div>
 
@@ -406,6 +522,39 @@
                             {{--                                    $hotel->top : null) }}">--}}
                             {{--                                </div>--}}
                             {{--                            </div>--}}
+
+                            <div class="amenities">
+                                @foreach($serviceCategories as $category => $services)
+                                    <div class="row">
+                                        <h5 class="col-md-12 mt-3">{{ $category }}</h5>
+
+                                        @foreach($services as $service)
+                                            @php
+                                                $inputId = Str::slug($service);
+                                                $checked = in_array($service, old('services', $amenities ?? []));
+                                            @endphp
+
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <input type="checkbox"
+                                                           id="{{ $inputId }}"
+                                                           name="services[]"
+                                                           value="{{ $service }}"
+                                                            {{ $checked ? 'checked' : '' }}>
+                                                    <label for="{{ $inputId }}">{{ $service }}</label>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            <style>
+                                .amenities label{
+                                    display: inline-block;
+                                }
+                            </style>
+
                             @can('edit-contact')
                                 <div class="col-md-6">
                                     <div class="form-group">
@@ -432,30 +581,6 @@
                         <button class="more">@lang('admin.send')</button>
                         <a href="{{url()->previous()}}" class="btn delete cancel">@lang('admin.cancel')</a>
                     </form>
-
-                    <div class="img-wrap">
-                        <div class="row">
-                            <label for="">Все изображения</label>
-                            @isset($images)
-                                @foreach($images as $image)
-                                    <div class="col-md-2">
-                                        <div class="img-item">
-                                            <img src="{{ Storage::url($image->image) }}" alt="">
-                                            <form action="{{ route('images.destroy', $image) }}"
-                                                  method="post">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button class="btn delete"
-                                                        onclick="return confirm('Do you want to delete this?');"><i
-                                                            class="fa-regular
-                                                    fa-trash"></i></button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            @endisset
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

@@ -39,7 +39,9 @@ class HotelRequest extends FormRequest
             'lng' => 'required|min:5',
             'phone' => 'required|min:5',
             'email' => 'required|min:5',
-            'image' => 'image|mimes:jpg,bmp,png,svg,jpeg,webp|max:3000'
+            'image' => 'image|mimes:jpg,bmp,png,svg,jpeg,webp|max:3000',
+            'services' => 'nullable|array',
+            'services.*' => 'string|max:255',
         ];
         return $rules;
     }

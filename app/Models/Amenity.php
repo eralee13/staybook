@@ -13,6 +13,10 @@ class Amenity extends Model
         'updated_at'
     ];
 
+    protected $casts = [
+        'services' => 'array'
+    ];
+
     /**
      * @return HasOne
      */

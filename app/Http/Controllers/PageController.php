@@ -23,7 +23,7 @@ class PageController extends Controller
 {
     public function index()
     {
-        $hotels = Hotel::where('tourmind_id', null)->latest()->limit(9)->get();
+        $hotels = Hotel::where('tourmind_id', null)->where('status', 1)->latest()->limit(9)->get();
         $cities = City::orderBy('title', 'asc')->get();
         $tomorrow = Carbon::tomorrow()->format('Y-m-d');
         //hotelstar

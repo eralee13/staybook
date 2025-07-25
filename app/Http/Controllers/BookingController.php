@@ -78,7 +78,7 @@ class BookingController extends Controller
         if ($book) {
             Log::warning('Бронь создана: ' . $book->id);
             $email = Contact::first()->email;
-            //Mail::to($email)->send(new BookMail($book));
+            Mail::to($email)->send(new BookMail($book));
         }
 
         return view('pages.booking.order-reserve', compact('book', 'request'));

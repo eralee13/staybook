@@ -13,7 +13,7 @@
                 <img src="{{ route('index')  }}/img/logo.svg" alt="Logo" style="width:
                         140px !important; height: 45px !important">
             </div>
-            <h2>@lang('mail.hotel_admin.subject_delete', ['title' => $hotel->title])</h2>
+            <h2>@lang('mail.hotel_user.subject')</h2>
         </td>
     </tr>
 
@@ -21,12 +21,21 @@
         <td style="padding: 20px;">
             <table width="100%" style="margin-bottom: 15px;">
                 <tr>
-                    <td>@lang('mail.hotel_admin.title', ['title' => $hotel->title])</td>
+                    <td>@lang('mail.hotel_user.greeting', ['name' => $hotel->user->name])</td>
                 </tr>
                 <tr>
-                    <td>@lang('mail.hotel_admin.deleted_by', ['user' =>  \Illuminate\Support\Facades\Auth::user()->name, 'email' =>  \Illuminate\Support\Facades\Auth::user()->email])</td>
+                    <td>@lang('admin.hotel') ID: {{ $hotel->id }}</td>
+                </tr>
+                <tr>
+                    <td>@lang('mail.hotel_user.body', ['title' => $hotel->title])</td>
                 </tr>
             </table>
+
+            <hr style="border: none; border-top: 1px solid #ccc;">
+
+            <p>@lang('mail.hotel_user.signature')</p>
         </td>
     </tr>
+
 </table>
+

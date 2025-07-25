@@ -13,7 +13,7 @@
                 <img src="{{ route('index')  }}/img/logo.svg" alt="Logo" style="width:
                         140px !important; height: 45px !important">
             </div>
-            <h2>@lang('mail.hotel_admin.subject_delete', ['title' => $hotel->title])</h2>
+            <h2>@lang('mail.hotel_admin.subject', ['title' => $hotel->title])</h2>
         </td>
     </tr>
 
@@ -24,9 +24,18 @@
                     <td>@lang('mail.hotel_admin.title', ['title' => $hotel->title])</td>
                 </tr>
                 <tr>
-                    <td>@lang('mail.hotel_admin.deleted_by', ['user' =>  \Illuminate\Support\Facades\Auth::user()->name, 'email' =>  \Illuminate\Support\Facades\Auth::user()->email])</td>
+                    <td>@lang('mail.hotel_user.activated')</td>
+                </tr>
+                <tr>
+                    <td>@lang('mail.hotel_user.available')</td>
                 </tr>
             </table>
+
+            <hr style="border: none; border-top: 1px solid #ccc;">
+
+            <div style="text-align: center; margin-top: 25px;">
+                <a href="{{ route('hotels.edit', $hotel->id) }}" style="display: inline-block; background-color: #0061ae; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: bold;">@lang('mail.hotel_admin.link')</a>
+            </div>
         </td>
     </tr>
 </table>

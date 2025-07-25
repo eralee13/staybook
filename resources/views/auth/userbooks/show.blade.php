@@ -40,7 +40,7 @@
                             <div class="dashboard-item">
                                 <div class="name">@lang('admin.hotel')</div>
                                 <div class="wrap">
-                                    {{ $hotel->title ??  $hotel->title_en ?? ''}} <br>
+                                    {{ $hotel->__('title') }} <br>
                                     <div class="name" style="margin-top: 20px">@lang('admin.room')</div>
                                     {{ $room->__('title') ?? ''}} <br>
                                     @if(!empty($rate))

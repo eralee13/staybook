@@ -71,14 +71,14 @@
                                     @else
                                         <td>@lang('main.cancellation_is_not_avaialble')
                                             .
-                                    @endif
-                                    @lang('main.cancellation_amount')
-                                    : {{ $request->cancelPrice }} {{ $request->currency }}</td>
-                                @else
-                                    <td>@lang('main.cancellation_amount')
-                                        : {{ $request->cancelPrice }} {{ $request->currency }}
-                                    </td>
-                                @endif
+                                            @endif
+                                            @lang('main.cancellation_amount')
+                                            : {{ $request->cancelPrice }} {{ $request->currency }}</td>
+                                        @else
+                                            <td>@lang('main.cancellation_amount')
+                                                : {{ $request->cancelPrice }} {{ $request->currency }}
+                                            </td>
+                                        @endif
                             </tr>
                             <tr>
                                 <td>@lang('main.full_name'):</td>
@@ -163,7 +163,9 @@
                                 <input type="hidden" name="rate_id"
                                        value="{{ $request->rate_id }}">
                                 <input type="hidden" name="title" value="{{ implode(', ', $names) }}">
-                                <input type="hidden" name="child_name" value="{{ implode(', ', $ch_names) }}">
+                                @if($request->child_name1)
+                                    <input type="hidden" name="child_name" value="{{ implode(', ', $ch_names) }}">
+                                @endif
                                 <input type="hidden" name="roomCount" value="{{ $request->roomCount }}">
                                 <input type="hidden" name="adult" value="{{ $request->adult }}">
                                 <input type="hidden" name="child" value="{{ $request->child }}">

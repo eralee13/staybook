@@ -159,5 +159,6 @@ return [
     'remember' => 'Запомнить меня',
     'late_checkin' => 'Ранний заезд',
     'late_checkout' => 'Поздний выезд',
+    'welcome_log' => 'Добро пожаловать'
 
 ];

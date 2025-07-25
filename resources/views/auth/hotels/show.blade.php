@@ -3,6 +3,16 @@
 @section('title', $hotel->__('title'))
 
 @section('content')
+
+    <style>
+        .admin .images img {
+            max-width: 100%;
+            height: 20vh;
+            object-fit: cover;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+    </style>
     @php
         $role = \Spatie\Permission\Models\Role::where('id', 3)->first();
     @endphp
@@ -75,37 +85,29 @@
                             <div class="col-md-3">
                                 <div class="dashboard-item">
                                     <div class="name">@lang('admin.rating')</div>
-                                    @if($hotel->rating == 2)
-                                        <i class="fa-regular fa-star"></i>
-                                        <i class="fa-regular fa-star"></i>
-                                    @elseif($hotel->rating == 3)
+                                   @if($hotel->rating == 4)
                                         <i class="fa-regular fa-star"></i>
                                         <i class="fa-regular fa-star"></i>
                                         <i class="fa-regular fa-star"></i>
-                                    @elseif($hotel->rating == 4)
+                                        <i class="fa-regular fa-star"></i>
+                                    @elseif($hotel->rating == 5)
+                                        <i class="fa-regular fa-star"></i>
                                         <i class="fa-regular fa-star"></i>
                                         <i class="fa-regular fa-star"></i>
                                         <i class="fa-regular fa-star"></i>
                                         <i class="fa-regular fa-star"></i>
                                     @else
-                                        <i class="fa-regular fa-star"></i>
-                                        <i class="fa-regular fa-star"></i>
-                                        <i class="fa-regular fa-star"></i>
-                                        <i class="fa-regular fa-star"></i>
-                                        <i class="fa-regular fa-star"></i>
+                                       @lang('admin.norating')
                                     @endif
                                 </div>
                             </div>
                         </div>
                         <div class="row" style="margin-top: 30px">
-                            <div class="col-md-11">
+                            <div class="col-md-12">
                                 <div class="dashboard-item">
                                     <div class="name">@lang('admin.amenities')</div>
                                     <h6>{{ $hotel->amenity->services ?? '' }}</h6>
                                 </div>
-                            </div>
-                            <div class="col-md-1">
-                                <a href="{{ route('amenities.edit', $amenity) }}"><img src="{{ route('index') }}/img/icons/edit.svg" alt=""></a>
                             </div>
                         </div>
                         <div class="row">
@@ -144,11 +146,6 @@
                                                     @endisset
                                                 </div>
                                             </div>
-                                            <style>
-                                                .admin img {
-                                                    max-width: 100%;
-                                                }
-                                            </style>
                                         </div>
                                     </div>
                                 </div>
@@ -281,20 +278,6 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="dashboard-item">
-                                    <div class="name">@lang('admin.amenities')</div>
-                                    <h6>{{ $hotel->service->services }}</h6>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="dashboard-item">
-                                    <div class="name">@lang('admin.payment')</div>
-                                    <h6>{{ $hotel->payment->payments }}</h6>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="dashboard-item">
                                     <div class="name">@lang('admin.description')</div>
                                     <div class="descr">{!! $hotel->__('description') !!}</div>
                                 </div>
@@ -312,11 +295,6 @@
                                                     </div>
                                                 @endforeach
                                             @endisset
-                                            <style>
-                                                .admin img {
-                                                    max-width: 100%;
-                                                }
-                                            </style>
                                         </div>
                                     </div>
                                 </div>
