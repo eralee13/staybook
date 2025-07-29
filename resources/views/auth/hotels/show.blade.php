@@ -120,7 +120,11 @@
                                     <div class="images">
                                         <div class="row">
                                             <div class="col-md-3">
-                                                <img loading="lazy" src="{{ Storage::url($hotel->image) }}" alt="">
+                                                @if($hotel->image)
+                                                    <img loading="lazy" src="{{ Storage::url($hotel->image) }}" alt="">
+                                                @else
+                                                    <img src="{{ route('index') }}/img/noimage.png" alt="">
+                                                @endif
                                             </div>
                                             <div class="img-wrap">
                                                 <div class="row">

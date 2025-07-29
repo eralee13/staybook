@@ -43,9 +43,13 @@ class HotelController extends Controller
     {
         $user = Auth::user()->id;
         $chotel = Hotel::all();
-        if ($user != 1 && $user != 3) {
+        if (Auth::user()->hasRole('admin')) {
             $hotels = Hotel::where('user_id', $user)->latest()->paginate(20);
-        } else {
+        }
+        elseif (Auth::user()->hasRole('manager')) {
+            $hotels = Hotel::where('user_id', $user)->latest()->paginate(20);
+        }
+        else {
             $hotels = Hotel::latest()->paginate(20);
         }
 
