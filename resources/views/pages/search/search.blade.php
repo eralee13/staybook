@@ -31,8 +31,8 @@
                                                                      alt="">
                                         </div>
                                         <select name="city" id="city" required>
-                                            <option value="378-Amsterdam" selected>Amsterdam</option>
                                             <option value="{{ $request->city }}">{{ $request->city }}</option>
+                                            <option value="378-Amsterdam" >Amsterdam</option>
                                             @foreach($cities as $city)
                                                 <option value="{{ $city->country_id }}-{{ $city->name }}">{{ $city->name }}</option>
                                             @endforeach
