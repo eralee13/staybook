@@ -34,7 +34,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-12">
-                    <h3><a href="search.html"><img src="{{ route('index') }}/img/icons/arrow-left.svg" alt=""></a>
+                    <h3><a href="javascript:history.back()"><img src="{{ route('index') }}/img/icons/arrow-left.svg" alt=""></a>
                         @lang('main.confirm_and_pay')
                     </h3>
                 </div>
@@ -124,17 +124,18 @@
                                 @for ($i = 0; $i < $request->adult; $i++)
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="paxfname">@lang('main.fio')</label>
+                                            <label for="paxfname">@lang('main.fio') #{{$i+1}}</label>
                                             <input type="text" name="paxfname{{$i}}" required>
                                         </div>
                                     </div>
                                 @endfor
 
-                                <h5>@lang('main.count_child')</h5>
+                                
                                 @for ($i = 0; $i < $request->child; $i++)
+                                <h5>@lang('main.count_child')</h5>
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="paxlname">@lang('main.fio')</label>
+                                            <label for="paxlname">@lang('main.fio') #{{$i+1}}</label>
                                             <input type="text" name="child_name{{$i}}" required>
                                         </div>
                                     </div>

@@ -30,7 +30,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-12">
-                    <h3><a href="search.html"><img src="{{ route('index') }}/img/icons/arrow-left.svg" alt=""></a>
+                    <h3><a href="javascript:history.back()"><img src="{{ route('index') }}/img/icons/arrow-left.svg" alt=""></a>
                         @lang('main.confirm_and_pay')
                     </h3>
                 </div>

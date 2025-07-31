@@ -43,7 +43,7 @@
                     @if($rate->Refundable == true)
                         {{-- $rate->CancelPolicyInfos[0]->Amount --}}
                         @lang('main.free_cancellation') {{ $rate->CancelPolicyInfos[0]->From }} UTC {{$hotel->utc}}. 
-                        @lang('main.cancellation_amount_tm'): {{ $cancelConverted }} {{ $cancelSymbol }} 
+                        @lang('main.cancellation_amount_tm'): {{ round($cancelConverted) }} {{ $cancelSymbol }} 
                     @else
                         @lang('main.non_refundable')
                     @endif
