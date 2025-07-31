@@ -144,40 +144,40 @@ class SearchController extends Controller
 
         // ***** Start Tourmind API *****
 
-        // $hotelService = new \App\Services\Tourmind\HotelServices();
-        // $tmhotels = $hotelService->tmGetHotels($request);
-        // // dd($tmhotels);
+            // $hotelService = new \App\Services\Tourmind\HotelServices();
+            // $tmhotels = $hotelService->tmGetHotels($request);
+            // // dd($tmhotels);
 
-        // if ( isset($tmhotels['Hotels']) ){
+            // if ( isset($tmhotels['Hotels']) ){
 
-        //     $filteredHotels = array_filter($tmhotels['Hotels'], function ($hotel) {
-        //         return isset($hotel['localData']['id']);
-        //     });
-        //     $hotels['hotels'] = array_map(function ($hotel) {
-        //         $rate = $hotel['RoomTypes'][0]['RateInfos'][0];
-        //         $price = $rate['TotalPrice'] ?? 0;
-        //         $totalPrice = number_format( ($price * $this->coef) + $price , 2, '.', '');
+            //     $filteredHotels = array_filter($tmhotels['Hotels'], function ($hotel) {
+            //         return isset($hotel['localData']['id']);
+            //     });
+            //     $hotels['hotels'] = array_map(function ($hotel) {
+            //         $rate = $hotel['RoomTypes'][0]['RateInfos'][0];
+            //         $price = $rate['TotalPrice'] ?? 0;
+            //         $totalPrice = number_format( ($price * $this->coef) + $price , 2, '.', '');
 
-        //         return [
-        //             'apiName' => 'TM',
-        //             'apiHotelId' => $hotel['HotelCode'],
-        //             'hid' => $hotel['localData']['id'] ?? '',
-        //             'code' => $hotel['localData']['code'] ?? '',
-        //             'title' => $hotel['localData']['title'] ?? '',
-        //             'title_en' => $hotel['localData']['title_en'] ?? '',
-        //             'rating' => $hotel['localData']['rating'] ?? '',
-        //             'city' => $hotel['localData']['city'] ?? '',
-        //             'amenities' => $hotel['localData']['amenity']['services'] ?? '',
-        //             'images' => $hotel['localData']['images'] ?? [],
-        //             'price' => $rate['TotalPrice'] ?? 0,
-        //             'totalPrice' => $totalPrice ?? 0,
-        //             'currency' => $rate['CurrencyCode'] ?? 0,
-        //         ];
-        //     }, $filteredHotels);
+            //         return [
+            //             'apiName' => 'TM',
+            //             'apiHotelId' => $hotel['HotelCode'],
+            //             'hid' => $hotel['localData']['id'] ?? '',
+            //             'code' => $hotel['localData']['code'] ?? '',
+            //             'title' => $hotel['localData']['title'] ?? '',
+            //             'title_en' => $hotel['localData']['title_en'] ?? '',
+            //             'rating' => $hotel['localData']['rating'] ?? '',
+            //             'city' => $hotel['localData']['city'] ?? '',
+            //             'amenities' => $hotel['localData']['amenity']['services'] ?? '',
+            //             'images' => $hotel['localData']['images'] ?? [],
+            //             'price' => $rate['TotalPrice'] ?? 0,
+            //             'totalPrice' => $totalPrice ?? 0,
+            //             'currency' => $rate['CurrencyCode'] ?? 0,
+            //         ];
+            //     }, $filteredHotels);
 
-        //     $results = json_decode(json_encode($hotels));
-        //     // dd($results->hotels);
-        // }
+            //     $results = json_decode(json_encode($hotels));
+            //     // dd($results->hotels);
+            // }
 
         // ***** End Tourmind API *****
 

@@ -76,16 +76,17 @@
                             </ul>
                         </li>
                     </ul>
-                    @if( isset($book->id) ) 
+                    <style>.bnt-wrap{display: flex; gap: 20px; margin-top: 50px;} .bnt-wrap form{margin-top: 0!important;}</style>   
                         <div class="bnt-wrap">
-                            <button class="more" onclick="window.location.reload()">@lang('main.get_reload')</button>
-                            <form action="{{ route('cancel_calculate_tm', $book->id) }}">
-                                <input type="hidden" name="number" value="{{ $book->book_token }}">
-                                <button class="more">@lang('main.cancel_booking')</button>
-                            </form>
+                            <button class="more" onclick="window.location.reload()">@lang('main.check_status')</button>
+                            @if( isset($book->id) ) 
+                                <form action="{{ route('cancel_calculate_tm', $book->id) }}">
+                                    <input type="hidden" name="number" value="{{ $book->book_token }}">
+                                    <button class="more">@lang('main.cancel_booking')</button>
+                                </form>
+                            @endif
                         </div>
-                    @endif
-
+            
                 </div>
             </div>
         </div>

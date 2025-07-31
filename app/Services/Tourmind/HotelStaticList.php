@@ -80,7 +80,6 @@ class HotelStaticList
                 $pageCount = $data['HotelStaticListResult']['Pagination']['PageCount'] ?? 1;
                 
                 // Log::channel('tourmind')->info('Hotel Static List - ', $data);
-
                 
                 foreach ($hotels as $hotelData) {
                     $AmenitiesHotel = collect($hotelData['AmenitiesHotel'] ?? [])->pluck('name')
@@ -215,8 +214,9 @@ class HotelStaticList
                                 $this->tmApiService->saveRoomImages($hotel->id,  $hotelData['Images'], $room->id, $col = 9);
                             }
                         }
-                    echo 'Данные успешно обновлены';
+                    
                 }
+                echo 'Данные ' .count($hotels). ' Отелей успешно обновлены';
 
             } catch (\Throwable $th) {
                 Log::channel('tourmind')->error('Hotel Static List - Ошибка при получении данных - ' . $th->getMessage());
@@ -228,7 +228,7 @@ class HotelStaticList
         // } while ($pageIndex <= $pageCount); // Пока не загрузим все страницы
     
         //return ['message' => 'Данные обновлены', 'count' => count($hotels)];
-            return $room;
+            // return $room;
     }
 
 }

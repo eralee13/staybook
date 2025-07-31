@@ -60,7 +60,7 @@
                             <div class="amenities">
                                 <h4>@lang('main.amenities')</h4>
                                 
-                                @if( isset($amenities) )
+                                @if( !empty($amenities[0]) )
                                     @foreach($amenities as $amenity)
                                     @php
                                         $iconFile = 'check.svg';

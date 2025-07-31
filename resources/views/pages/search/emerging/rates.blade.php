@@ -49,20 +49,19 @@
                 </div>
             
             <div class="item cancel">
-                <div class="name">Правила отмены:
+                <div class="name">@lang('main.cancellation_policy'):
 
                     @if($payment['cancellation_penalties']['free_cancellation_before'] == true)
-                        Бесплатная отмена действует
-                        до {{ $pay_end_date }} UTC {{$hotel->utc}}. <br>
-                        Иначе штраф:  {{ round($cancelConverted ) }} {{ $symbol }}
+                        @lang('main.free_cancellation') {{ $pay_end_date }} UTC {{$hotel->utc}}. <br>
+                        @lang('main.cancellation_amount_tm'):  {{ round($cancelConverted ) }} {{ $symbol }}
                     @else
-                        Невозвратный тариф.
+                        @lang('main.non_refundable')
                     @endif
                     
                 </div>
             </div>
             <div class="item price"> {{ round($converted) }} {{ $symbol }}</div>
-            <div class="nds">Все налоги включены</div>
+            <div class="nds">@lang('main.all_taxes_included')</div>
                 
             <div class="btn-wrap">
 
@@ -99,7 +98,7 @@
                     <input type="hidden" name="utc"  value="{{ $hotel->utc }}">
                     <input type="hidden" name="etgimage"  value="{{ $tmimage }}">
 
-                    <button class="more" id="order">Забронировать</button>
+                    <button class="more" id="order">@lang('main.book')</button>
                 </form>
             </div>
         </div>

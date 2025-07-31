@@ -17,8 +17,15 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 col-md-12">
-                    <h1 data-aos="fade-up" data-aos-duration="2000">@lang('main.booking_cancelled')</h1>
-                    <div class="alert alert-danger">@lang('main.status'): @lang('main.' . $book->status)</div>
+                    
+                    @if($book->status == 'Cancelled')
+                        <h1 data-aos="fade-up" data-aos-duration="2000">@lang('main.booking_cancelled')</h1>
+                        <div class="alert alert-success">@lang('main.status'): @lang('main.' . $book->status)</div>
+                    @else
+                        <h1 data-aos="fade-up" data-aos-duration="2000">@lang('main.error_book_not_cancelled')</h1>
+                        <p>@lang('main.error_book_not_cancelled_description')</p>
+                        <div class="alert alert-danger">@lang('main.status'): @lang('main.' . $book->status)</div>
+                    @endif
 
                     <ul>
                         <li>@lang('main.booking_number'): {{ $book->id }}</li>

@@ -31,6 +31,7 @@
                                                                      alt="">
                                         </div>
                                         <select name="city" id="city" required>
+                                            <option value="378-Amsterdam" selected>Amsterdam</option>
                                             <option value="{{ $request->city }}">{{ $request->city }}</option>
                                             @foreach($cities as $city)
                                                 <option value="{{ $city->country_id }}-{{ $city->name }}">{{ $city->name }}</option>
@@ -958,31 +959,29 @@
                                     <div class="col-md-5 order-xl-1 order-lg-1 order-1">
                                         <div class="img-wrap">
                                             <div class="row">
-                                                <div class="col-md-6">
-                                                    <div class="main">
-                                                        @if( isset($hotel->images[0]->image) )
-                                                            <img src="{{ Storage::url($hotel->images[0]->image) }}" alt="">
-                                                        @else
-                                                            <img src="{{ asset('img/no-image.png') }}" alt="">
-                                                        @endif
+                                                @if( isset($hotel->images[0]->image) )
+                                                    <div class="col-md-6">
+                                                        <div class="main">
+                                                                <img src="{{ Storage::url($hotel->images[0]->image) }}" alt="">
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="primary">
-                                                        @if( isset($hotel->images[1]->image) )
-                                                            <img src="{{ Storage::url($hotel->images[1]->image) }}" alt="">
-                                                        @else
-                                                            <img src="{{ asset('img/no-image.png') }}" alt="">
-                                                        @endif
+                                                    <div class="col-md-6">
+                                                        <div class="primary">
+                                                            @if( isset($hotel->images[1]->image) )
+                                                                <img src="{{ Storage::url($hotel->images[1]->image) }}" alt="">
+                                                            @endif
+                                                        </div>
+                                                        <div class="primary">
+                                                            @if( isset($hotel->images[2]->image) )
+                                                                <img src="{{ Storage::url($hotel->images[2]->image) }}" alt="">
+                                                            @endif
+                                                        </div>
                                                     </div>
-                                                    <div class="primary">
-                                                        @if( isset($hotel->images[2]->image) )
-                                                            <img src="{{ Storage::url($hotel->images[2]->image) }}" alt="">
-                                                        @else
-                                                            <img src="{{ asset('img/no-image.png') }}" alt="">
-                                                        @endif
+                                                @else
+                                                    <div class="col-md-12">
+                                                        <img src="{{ asset('img/noimage.png') }}" alt="">
                                                     </div>
-                                                </div>
+                                                @endif
                                             </div>
                                         </div>
                                     </div>
@@ -991,6 +990,7 @@
                                             {{ $hotel->title_en }} 
                                             &#9733; {{ $hotel->rating }}
                                         </h4>
+                                        @if( !empty($amenities[0]) )
                                         <div class="amenities">
                                             @foreach($amenities as $amenity)
                                                 @php
@@ -1009,6 +1009,7 @@
                                                 </div>
                                             @endforeach
                                         </div>
+                                        @endif
                                         <div class="btn-wrap">
                                             @if( $hotel->apiName == 'TM')
 

@@ -71,7 +71,7 @@ class RegionList
 
         // }
 
-           echo 'Данные успешно обновлены';
+           echo 'Данные ' .count($regions). ' Регионов успешно обновлены';
 
         } catch (Exception $e) {
 

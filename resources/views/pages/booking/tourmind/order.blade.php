@@ -5,9 +5,7 @@
 @section('content')
  @php
     $basePrice = $request->totalPrice;
-
     $toCurrency = strtoupper($fxBase ?? 'USD');
-
     $fxRates = [
         'USD' => $fxRates['usd'] ?? 1,
         'RUB' => $fxRates['rub'] ?? 1,
@@ -60,12 +58,12 @@
                         <input type="hidden" name="adult" value="{{ $request->adult }}">
                         <input type="hidden" name="child" value="{{ $request->child }}">
                         <input type="hidden" name="roomCount" value="{{ $request->roomCount }}">
-                        @if( isset($request->childAges))
-                            @foreach($request->childAges as $age)
-                                <input type="hidden" name="childAges[]"
-                                    value="{{ $age }}">
-                            @endforeach
-                        @endif
+                            @if( isset($request->childAges) )
+                                @foreach($request->childAges as $age)
+                                    <input type="hidden" name="childAges[]"
+                                        value="{{ $age }}">
+                                @endforeach
+                            @endif
                         <input type="hidden" name="room_name" value="{{ $request->room_name }}">
                         <input type="hidden" name="RoomTypeCode" value="{{ $request->RoomTypeCode }}">
                         <input type="hidden" name="rate_name" value="{{ $request->rate_name }}">
@@ -123,76 +121,38 @@
                             </div>
                             
                                 <h5>@lang('main.quests')</h5>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="paxfname">@lang('main.firstname')</label>
-                                        <input type="text" name="paxfname" placeholder="" required>
+                                @for ($i = 0; $i < $request->adult; $i++)
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="paxfname">@lang('main.fio')</label>
+                                            <input type="text" name="paxfname{{$i}}" required>
+                                        </div>
                                     </div>
-                                </div>
+                                @endfor
 
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="paxlname">@lang('main.lastname')</label>
-                                        <input type="text" name="paxlname" placeholder="" required>
+                                <h5>@lang('main.count_child')</h5>
+                                @for ($i = 0; $i < $request->child; $i++)
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="paxlname">@lang('main.fio')</label>
+                                            <input type="text" name="child_name{{$i}}" required>
+                                        </div>
                                     </div>
-                                </div>
-                            @if( $request->roomCount == 2)
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="paxfname2">@lang('main.firstname')</label>
-                                        <input type="text" name="paxfname2" placeholder="" required>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="paxlname2">@lang('main.lastname')</label>
-                                        <input type="text" name="paxlname2" placeholder="" required>
-                                    </div>
-                                </div>
-                            @elseif( $request->roomCount == 3)
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="paxfname3">@lang('main.firstname')</label>
-                                        <input type="text" name="paxfname3" placeholder="" required>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="paxlname3">@lang('main.lastname')</label>
-                                        <input type="text" name="paxlname3" placeholder="" required>
-                                    </div>
-                                </div>
-                            @elseif( $request->roomCount == 4)
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="paxfname4">@lang('main.firstname')</label>
-                                        <input type="text" name="paxfname4" placeholder="" required>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="paxlname4">@lang('main.lastname')</label>
-                                        <input type="text" name="paxlname4" placeholder="" required>
-                                    </div>
-                                </div>
-                            @endif
+                                @endfor
                         </div>
-                        <div class="line"></div>
+                        {{-- <div class="line"></div>
                         <div class="row">
                             <div class="col-md-12">
                                 <h5>@lang('main.payment_options')</h5>
                                 <div class="method-item current">
                                     <div class="name">@lang('main.pay_now') {{ round($converted) }} {{ $symbol }}
                                     </div>
-                                </div>
+                                </div> --}}
                                 {{--                                <div class="method-item">--}}
                                 {{--                                    <div class="name">Оплатите часть сейчас, а остаток внесите позже--}}
                                 {{--                                        36,000 сом к оплате сегодня, 36,000 сом — 01 мар. 2025 г.</div>--}}
                                 {{--                                </div>--}}
-                            </div>
+                            {{-- </div>
                         </div>
                         <div class="row">
                             <div class="col-md-12">
@@ -227,12 +187,9 @@
                                     </select>
                                 </div>
                             </div>
-                        </div>
+                        </div> --}}
                         <div class="line"></div>
-                        <div class="descr">Нажимая кнопку ниже, я принимаю условия (Правила дома, установленные
-                            хозяином, Основные правила для гостей, Правила StayBook в отношении повторного бронирования
-                            и возврата средств, Условия частичной предоплаты) и соглашаюсь, что StayBook может списать
-                            средства с моего способа оплаты, если ответственность за ущерб лежит на мне.
+                        <div class="descr">@lang('main.order_description')
                         </div>
                         <div class="btn-wrap">
                             <button class="more" id="saveBtn">@lang('main.confirm_and_paye')</button>

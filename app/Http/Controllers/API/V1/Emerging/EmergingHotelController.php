@@ -63,7 +63,7 @@ class EmergingHotelController extends Controller
 
         // Шаг 1: Скачиваем файл во временное хранилище
         $zstPath = storage_path('app\partner_feed_en_v3.jsonl.zst');
-        $jsonlPath = storage_path('app\partner_hotels_en.jsonl');
+        $jsonlPath = storage_path('app/partner_hotels_en.jsonl');
         $zstdExe = 'D:\OSPanel\tools\zstd\zstd.exe';
 
         // file_put_contents($zstPath, file_get_contents($url));
@@ -92,8 +92,11 @@ class EmergingHotelController extends Controller
            
             $data = json_decode($line, true);
 
-            if ($data['hid'] == 8473727) {
-                
+            if ($data['region']['name'] == 'China' && $data['kind'] == 'hotel') {
+                //if ($data['hid'] == 8473727) {
+
+                // file_put_contents(storage_path('app\testov.jsonl'), json_encode($data, JSON_PRETTY_PRINT));
+
                 $hotels[] = $data;
 
                 $amenitiesHotel = collect($data['amenity_groups'])

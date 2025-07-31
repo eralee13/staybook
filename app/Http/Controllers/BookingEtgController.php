@@ -67,11 +67,14 @@ class BookingEtgController extends Controller
 
     public function book_reserve_etg(Request $request)
     {
-       
+            $message = ''; $finish = ''; $finishStatus='';
             // $hotel = Hotel::find($request->hotel_id);
+            $emergingPrebook = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
+            $preBook = $emergingPrebook->preBook($request);
+            
             $emergingOrder = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
             $order = $emergingOrder->startProcess($request);
-            $message = ''; $finish = ''; $finishStatus='';
+            
             // dd($request);
             // dd($order);
 
@@ -110,7 +113,7 @@ class BookingEtgController extends Controller
                         if( isset( $finish['error'] ) ){
 
                             $emergingStatus = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
-                            $finishStatus = $emergingStatus->getStatus($request);
+                            $finishStatus = $emergingStatus->finishStatus($request);
 
                             switch ($finish['error']) {
                                 case 'book_hash_not_found':
@@ -192,7 +195,7 @@ class BookingEtgController extends Controller
             if ( isset($order['error']) ) {
                 
                 $emergingStatus = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
-                $finishStatus = $emergingStatus->getStatus($request);
+                $finishStatus = $emergingStatus->finishStatus($request);
 
                 switch ($order['error']) {
                     case 'double_booking_form':
@@ -236,7 +239,7 @@ class BookingEtgController extends Controller
             $book = Book::where('book_token', $request->token)->first();
             
 
-            return view('pages.booking.emerging.rezerve', compact('book', 'request', 'message', 'finish', 'order', 'finishStatus'));
+            return view('pages.booking.emerging.rezerve', compact('book', 'request', 'message', 'preBook', 'finish', 'order', 'finishStatus'));
         
     }
 
@@ -286,7 +289,7 @@ class BookingEtgController extends Controller
                 $message = "Заказ выполнен со статусом, отличным от completed или rejected.";
 
                     Log::channel('emerging')->info('Cancel Order User ID - ', $userInfo);
-                    Log::channel('emerging')->info('Cancel Order - ', $cancel);
+                    Log::channel('emerging')->info('Cancel Order - ', [$cancel]);
         
             } 
             elseif ( isset($cancel->status) == 'error' && $cancel->error == 'order_not_cancellable' ){
@@ -294,11 +297,11 @@ class BookingEtgController extends Controller
                 $message = "У вас нет разрешения на отмену невозвратных бронирований. Обратитесь к своему менеджеру по работе с клиентами.";
 
                     Log::channel('emerging')->info('Cancel Order User ID - ', $userInfo);
-                    Log::channel('emerging')->info('Cancel Order - ', $cancel);
+                    Log::channel('emerging')->info('Cancel Order - ', [$cancel]);
         
             }
             
-            if( isset($cancel->status) == 'ok' ){
+            if( isset($cancel->status) && $cancel->status == 'ok' ){
                 // dd($cancel);
                 $cancelFee = $cancel->data->amount_payable->amount;
                 $cancelFee = ($cancelFee * $this->coef) + $cancelFee;

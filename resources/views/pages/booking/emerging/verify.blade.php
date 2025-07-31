@@ -33,40 +33,40 @@
 
                     <div class="clearfix">
                         <div id="timer" style="color: red;" class="d-flex justify-content-end">
-                            Время на бронирование : &nbsp;<span id="countdown"></span>
+                            @lang('main.time_booking') : &nbsp;<span id="countdown"></span>
                         </div>
                     </div>
 
-                    <h1>Подтверждение заказа</h1>
+                    <h1>@lang('main.order_confirmation')</h1>
                     <table>
                         <tr>
-                            <td>Отель:</td>
+                            <td>@lang('main.hotel'):</td>
                             <td>{{ $hotel->title_en }}</td>
                         </tr>
                         <tr>
-                            <td>Тип комнаты:</td>
+                            <td>@lang('main.room_type'):</td>
                             <td>{{ $request->room_name }}</td>
                         </tr>
                         <tr>
-                            <td>Тариф:</td>
+                            <td>@lang('main.rate'):</td>
                             <td>{{ $request->rate_name }}</td>
                         </tr>
                         <tr>
-                            <td>Кол-во взрослых:</td>
+                            <td>@lang('main.count_adult'):</td>
                             <td>{{ $totalAdults }}</td>
                         </tr>
                         <tr>
-                            <td>Кол-во детей:</td>
+                            <td>@lang('main.count_child'):</td>
                             <td>{{ $childs }}</td>
                             {{--                                    <td>{{ implode(',', explode($order->booking->roomStays[0]->guestCount->childAges)) }}</td>--}}
                             {{--                                    <td>{{ count($order->booking->roomStays[0]->guestCount->guestCount->childAges) }}</td>--}}
                         </tr>
                         <tr>
-                            <td>Кол-во номеров:</td>
+                            <td>@lang('main.count_room'):</td>
                             <td>{{ $roomCount }}</td>
                         </tr>
                         <tr>
-                            <td>Даты:</td>
+                            <td>@lang('main.dates'):</td>
                             <td>
                                 @if (!empty($request->arrivalDate))
                                     {{ \Carbon\Carbon::parse($request->arrivalDate)->format('d.m.Y') }}
@@ -80,32 +80,32 @@
                             </td>
                         </tr>
                         <tr>
-                            <td>Стоимость:</td>     
+                            <td>@lang('main.price'):</td>     
                             <td>{{ round($request->sum) }} {{ $request->currency ?? '$' }}</td>
                         </tr>
                         <tr>
-                            <td>Правило отмены:</td>
+                            <td>@lang('main.cancel_rule'):</td>
                             <td>
                                 @if($request->refundable == true)
                                     
-                                        Бесплатная отмена действует до {{ \Carbon\Carbon::parse($request->cancelDate)->format('d.m.Y') }} 
+                                        @lang('main.free_cancellation') {{ \Carbon\Carbon::parse($request->cancelDate)->format('d.m.Y') }} 
                                         (UTC {{ $request->utc }})
                                        
-                                        Иначе размер штрафа:  {{ round($request->cancelPrice) }} {{ $request->currency ?? '$' }}
+                                        @lang('main.cancellation_amount_tm'):  {{ round($request->cancelPrice) }} {{ $request->currency ?? '$' }}
                                         
                                 @else
-                                        Невозвратный тариф.
+                                        @lang('main.non_refundable')
                                 @endif
                             </td>
                         </tr>
                         <tr>
-                            <td>ФИО:</td>
+                            <td>@lang('main.fio'):</td>
                             <td>
                                 <div class="name">{{ $request->name }} {{ $request->lastname }}</div>
                             </td>
                         </tr>
                         <tr>
-                            <td>Номер телефона:</td>
+                            <td>@lang('main.phone'):</td>
                             <td>
                                 <div class="name">{{ $request->phone }}</div>
                             </td>
@@ -117,7 +117,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td>Комментарий:</td>
+                            <td>@lang('main.comment'):</td>
                             <td>{{ $request->comment }}</td>
                         </tr>
                     </table>
@@ -156,15 +156,15 @@
                         <input type="hidden" name="comment" value="{{ $request->comment }}">
                         <input type="hidden" name="phone" value="{{ $request->phone }}">
                         <input type="hidden" name="email" value="{{ $request->email }}">
-                        <input type="hidden" name="paxfname" value="{{ $request->paxfname }}">
-                        <input type="hidden" name="paxlname" value="{{ $request->paxlname }}">
-                        <input type="hidden" name="paxfname2" value="{{ $request->paxfname2 }}">
-                        <input type="hidden" name="paxlname2" value="{{ $request->paxlname2 }}">
-                        <input type="hidden" name="paxfname3" value="{{ $request->paxfname3 }}">
-                        <input type="hidden" name="paxlname3" value="{{ $request->paxlname3 }}">
-                        <input type="hidden" name="paxfname4" value="{{ $request->paxfname4 }}">
-                        <input type="hidden" name="paxlname4" value="{{ $request->paxlname4 }}">
-                        <button class="more">Подтвердить</button>
+  
+                            @for ($i = 0; $i < $totalAdults; $i++)
+                                <input type="hidden" name="paxfname{{$i}}" value="{{ $request->input('paxfname' . $i) }}">
+                            @endfor
+                            @for ($i = 0; $i < $childs; $i++)
+                                <input type="hidden" name="child_name{{$i}}" value="{{ $request->input('child_name' . $i) }}">
+                            @endfor
+
+                        <button class="more">@lang('main.confirm')</button>
                     </form>
                 </div>
             </div>

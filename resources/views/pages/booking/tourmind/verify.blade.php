@@ -154,14 +154,14 @@
                         <input type="hidden" name="comment" value="{{ $request->comment }}">
                         <input type="hidden" name="phone" value="{{ $request->phone }}">
                         <input type="hidden" name="email" value="{{ $request->email }}">
-                        <input type="hidden" name="paxfname" value="{{ $request->paxfname }}">
-                        <input type="hidden" name="paxlname" value="{{ $request->paxlname }}">
-                        <input type="hidden" name="paxfname2" value="{{ $request->paxfname2 }}">
-                        <input type="hidden" name="paxlname2" value="{{ $request->paxlname2 }}">
-                        <input type="hidden" name="paxfname3" value="{{ $request->paxfname3 }}">
-                        <input type="hidden" name="paxlname3" value="{{ $request->paxlname3 }}">
-                        <input type="hidden" name="paxfname4" value="{{ $request->paxfname4 }}">
-                        <input type="hidden" name="paxlname4" value="{{ $request->paxlname4 }}">
+
+                            @for ($i = 0; $i < $request->adult; $i++)
+                                <input type="hidden" name="paxfname{{$i}}" value="{{ $request->input('paxfname' . $i) }}">
+                            @endfor
+                            @for ($i = 0; $i < $request->child; $i++)
+                                <input type="hidden" name="child_name{{$i}}" value="{{ $request->input('child_name' . $i) }}">
+                            @endfor
+
                         <button class="more" id="booking">@lang('main.confirm')</button>
                     </form>
                 </div>

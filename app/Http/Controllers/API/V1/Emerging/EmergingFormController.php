@@ -22,7 +22,7 @@ class EmergingFormController extends Controller
 {
     public $keyId, $apiKey, $url;
     public $hotelDetail, $hotelLocalData, $hotels;
-    public $guestsall;
+    public $guestsall, $childs_name;
 
     public function __construct()
     {
@@ -187,6 +187,23 @@ class EmergingFormController extends Controller
             return $response->json();
 
     }
+
+    public function preBook(Request $request){
+
+        $response = Http::withBasicAuth($this->keyId, $this->apiKey)
+            ->withHeaders([
+                'Content-Type' => 'application/json',
+            ])
+            ->post($this->url . '/hotel/prebook/', [
+
+                "hash" => $request->book_hash 
+                
+            ]);
+
+        // Возвращаем JSON
+        return $response->json();
+
+    }
     
     public function startProcess(Request $request)
     {   
@@ -318,18 +335,30 @@ class EmergingFormController extends Controller
                 
             }
 
-                for ($i = 1; $i <= $roomCount; $i++) {
-                    $fname = $request->input('paxfname' . ($i > 1 ? $i : ''));
-                    $lname = $request->input('paxlname' . ($i > 1 ? $i : ''));
+                for ($i = 0; $i <= $adults; $i++) {
+                    $fname = $request->input('paxfname' . $i);
+                    // $lname = $request->input('paxlname' . ($i > 1 ? $i : ''));
                     
-                    if ($fname || $lname) {
-                        $this->guestsall[] = trim("$fname $lname");
+                    $fullName = trim($fname);
+
+                    if ($fullName) {
+                        $this->guestsall[] = trim($fname);
                     }
                 }
-            
-
-                    $guests = implode(',', $this->guestsall ?? []);
+                
+                for ($i = 0; $i <= $childs; $i++) {
+                    $fio = $request->input('child_name' . $i);
+                    // $lname = $request->input('paxlname' . ($i > 1 ? $i : ''));
                     
+                    $fullName = trim($fio);
+
+                    if ($fullName) {
+                        $this->childs_name[] = trim($fio);
+                    }
+                }
+                
+                    $guests = implode(',', $this->guestsall ?? []);
+                    $childsName = implode(',', $this->childs_name ?? []);
                     $childAges = implode(',', $allChildAges ?? []);
 
                     // $offset = str_replace('UTC', '', $this->utc); // '+3'
@@ -419,7 +448,8 @@ class EmergingFormController extends Controller
                             'book_token' => $etoken,
                         ],
                         [
-                            'title' => $guests,
+                            'title' => $guests ?? '',
+                            'child_name' => $childsName ?? '',
                             'title2' => '',
                             'hotel_id' => $request->hotel_id,
                             'room_id' => $room->id ?? null,
@@ -562,7 +592,7 @@ class EmergingFormController extends Controller
 
     }
     
-    public function getStatus(Request $request){
+    public function finishStatus(Request $request){
 
         $response = Http::withBasicAuth($this->keyId, $this->apiKey)
             ->withHeaders([

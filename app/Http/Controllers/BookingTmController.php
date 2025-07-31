@@ -97,14 +97,27 @@ class BookingTmController extends Controller
 
                 }elseif( $order['Success'] == 'PENDING' ){
 
+                    $orderStatus = '';
+                    $attempt = 0;
 
-                    $orderStatus = $hotelService->getOneSearchOrder($book->agent_ref);
+                        do {
+                            $orderStatus = $hotelService->getOneSearchOrder($book->agent_ref);
+
+                            if ($orderStatus['Success'] === 'CONFIRMED') {
+                                break;
+                            }
+
+                            sleep(1);
+                            $attempt++;
+
+                        } while ($attempt < 10);
+
 
                     if ( $orderStatus['Success'] == 'CONFIRMED' ){
 
                         Book::where('book_token', $this->token)
                         ->update([
-                            'status' => $order['OrderInfo']['OrderStatus'],
+                            'status' => ucfirst($orderStatus['OrderInfo']['OrderStatus']),
                             // 'rezervation_id' => $order['OrderInfo']['ReservationID']
                         ]);
 
@@ -115,7 +128,7 @@ class BookingTmController extends Controller
 
                         Book::where('book_token', $this->token)
                         ->update([
-                            'status' => $order['OrderInfo']['OrderStatus'],
+                            'status' => ucfirst($order['OrderInfo']['OrderStatus']),
                             // 'rezervation_id' => $order['OrderInfo']['ReservationID']
                         ]);
 
@@ -141,7 +154,7 @@ class BookingTmController extends Controller
                 }
 
             } catch (\Throwable $th) {
-                $message = 'Error later or contact us! ';
+                $message = 'Error later or contact us!';
                 Log::channel('tourmind')->info('Create Order Catch - ', $th->getMessage());
             }
 

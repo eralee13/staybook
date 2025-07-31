@@ -28,8 +28,7 @@ class FXService
     {
         return Cache::remember('fx_central_rates', now()->addMinutes(60), function () {
             $response = Http::withToken($this->token)
-                ->get("{$this->baseUrl}/central")
-                ->throw();
+                ->get("{$this->baseUrl}/central");
 
             $json = $response->json();
             Log::debug('FX.kg /central raw response', ['body' => $json]);

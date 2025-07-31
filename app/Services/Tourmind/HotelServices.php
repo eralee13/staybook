@@ -27,7 +27,7 @@ class HotelServices
     public $roomCount = 1;
     public $pricemin;
     public $pricemax, $coef;
-    public $user, $guestsall, $paxfname, $paxlname;
+    public $user, $guestsall, $paxfname, $paxlname, $childs_name;
     public $price, $currency, $penaltyPrice, $endDate, $mealid, $bedTypeDesc, $rateName;
 
     public function __construct()
@@ -692,20 +692,30 @@ class HotelServices
                 
             }
 
-                for ($i = 1; $i <= $request->roomCount; $i++) {
-                    $fname = $request->input('paxfname' . ($i > 1 ? $i : ''));
-                    $lname = $request->input('paxlname' . ($i > 1 ? $i : ''));
+                for ($i = 0; $i <= $request->adult; $i++) {
+                    $fname = $request->input('paxfname' . $i);
+                    // $lname = $request->input('paxlname' . ($i > 1 ? $i : ''));
                         
-                    $fullName = trim("$fname $lname");
+                    $fullName = trim($fname);
                     
                     if ($fullName) {
                         $this->guestsall[] = $fullName;
                     }
                 }
-            
+                
+                for ($i = 0; $i <= $request->child; $i++) {
+                    $fio = $request->input('child_name' . $i);
+                    // $lname = $request->input('paxlname' . ($i > 1 ? $i : ''));
+                        
+                    $fullName = trim($fio);
+                    
+                    if ($fullName) {
+                        $this->childs_name[] = $fullName;
+                    }
+                }
                 
                     $guests = implode(',', $this->guestsall ?? []);
-                    
+                    $childsName = implode(',', $this->childs_name ?? []);
                     $childAges = implode(',', $request->childAges ?? []);
 
                     // $offset = str_replace('UTC', '', $this->utc); // '+3'
@@ -796,7 +806,8 @@ class HotelServices
                             'book_token' => $this->token,
                         ],
                         [
-                            'title' => $guests,
+                            'title' => $guests ?? '',
+                            'child_name' => $childsName ?? '',
                             'title2' => '',
                             'hotel_id' => $request->hotel_id,
                             'room_id' => $room->id ?? null,
@@ -856,7 +867,7 @@ class HotelServices
 
                     Book::where('book_token', $this->token)
                         ->update([
-                            'status' => $order['OrderInfo']['OrderStatus'],
+                            'status' => ucfirst($order['OrderInfo']['OrderStatus']),
                             // 'rezervation_id' => $order['OrderInfo']['ReservationID']
                         ]);
 
@@ -947,6 +958,25 @@ class HotelServices
                 return ["Error" => "TM SearchOrder Ошибка при запросе к API: " . $th->getMessage()];
                 
             }
+    }
+
+    public function updateBookStatuses(){
+
+        $books = Book::where('api_type', 'tourmind')
+            ->whereIn('status', ['Pending', 'Failed'])
+            ->get('book_token','agent_ref');
+
+        foreach ($books as $book) {
+
+            $order = $this->getOneSearchOrder($book->agent_ref);
+
+            if( isset($order['OrderInfo']['OrderStatus']) ){
+
+                Book::where('book_token', $book->book_token)
+                    ->update(['status' => ucfirst( $order['OrderInfo']['OrderStatus'] )]);
+            }
+        }
+        
     }
 
     public function getUtcOffsetByCountryCode($CountryCode){

@@ -83,7 +83,7 @@ class RoomStaticList
 
             }
 
-            echo 'Данные успешно обновлены';
+            echo 'Данные ' .count($types). ' Типы номеров успешно обновлены';
             
         } catch (Exception $e) {
 
