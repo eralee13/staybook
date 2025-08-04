@@ -415,7 +415,7 @@ class EmergingFormController extends Controller
                     $ruleid = $rule->id ?? null;
                 }
 
-                    $totalPrice = number_format(($request->price * $this->coef) + $request->price, 2, '.', '');
+                    $totalPrice = number_format(($request->price / $this->coef), 2, '.', '');
                     
                     $rate = Rate::Create(
                         [

@@ -541,7 +541,7 @@ class HotelServices
             $this->currency = $mrate->CurrencyCode ?? 'CNY';
             $this->mealid = $mrate->MealInfo->MealType ?? '1';
             $this->rateName = $mrate->Name ?? '';
-            $this->penaltyPrice = number_format(($mrate->CancelPolicyInfos[0]->Amount * $this->coef) + $mrate->CancelPolicyInfos[0]->Amount, 2, '.', '') ?? 0;
+            $this->penaltyPrice = number_format(($mrate->CancelPolicyInfos[0]->Amount / $this->coef), 2, '.', '') ?? 0;
             $this->endDate = $mrate->CancelPolicyInfos[0]->From ?? null;
             $this->bedTypeDesc = $mrate->bedTypeDesc;
         }else{
@@ -550,7 +550,7 @@ class HotelServices
             $this->price = $request->price;
             $this->currency = $request->currency ?? 'CNY';
             $this->mealid = $request->mealid ?? '1';
-            $this->penaltyPrice = number_format(($mrate->TotalPrice * $this->coef) + $mrate->TotalPrice, 2, '.', '') ?? 0;
+            $this->penaltyPrice = number_format(($mrate->TotalPrice / $this->coef), 2, '.', '') ?? 0;
             $this->endDate = $request->cancelDate ?? null;
             $this->rateName = $request->rate_name ?? '';
             $this->bedTypeDesc = $request->rate_name;
@@ -771,7 +771,7 @@ class HotelServices
                 }
 
 
-                    $totalPrice = number_format(($this->price * $this->coef) + $this->price,2 ,'.', '');
+                    $totalPrice = number_format(($this->price / $this->coef),2 ,'.', '');
                     
                     $rate = Rate::UpdateOrCreate(
                         [

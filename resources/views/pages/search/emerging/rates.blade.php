@@ -2,7 +2,7 @@
     @php
             $coef = config('app.main_coef');    
             $price = $rate['payment_options']['payment_types'][0]['amount'] ?? 0;
-            $totalPrice = number_format( ($price * $coef ) + $price , 2, '.', '');
+            $totalPrice = number_format( ($price / $coef ) , 2, '.', '');
             $rooms = $request->input('rooms', []);
             $payment = $rate['payment_options']['payment_types'][0];
 
@@ -12,7 +12,7 @@
 
                 
                 $penaltPrice = $payment['cancellation_penalties']['policies'][1]['amount_charge'] ?? 0;
-                $penaltyPrice = number_format( ( (float)$penaltPrice  * $coef) + (float)$penaltPrice, 2, '.', '');
+                $penaltyPrice = number_format( ( (float)$penaltPrice  / $coef), 2, '.', '');
 
             }else{
                 $pay_end_date = '';

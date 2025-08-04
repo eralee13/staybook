@@ -20,13 +20,13 @@
                         <h1>@lang('main.Congratulations')</h1>
 
                             <div class="alert alert-primary" role="alert">
-                                <strong>{{ $message }}</strong>
+                                <strong>@lang('main.'.$message)</strong>
                             </div>
                     @else
                         <h1>@lang('main.Booking error')</h1>
 
                             <div class="alert alert-danger" role="alert">
-                                <strong>{{ $message }}</strong>
+                                <strong>@lang('main.'.$message)</strong>
                             </div>
                     @endif
     

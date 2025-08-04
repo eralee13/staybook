@@ -67,6 +67,9 @@ class BookingEtgController extends Controller
 
     public function book_reserve_etg(Request $request)
     {
+        try {
+            //code...
+        
             $message = ''; $finish = ''; $finishStatus='';
             // $hotel = Hotel::find($request->hotel_id);
             $emergingPrebook = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
@@ -115,78 +118,7 @@ class BookingEtgController extends Controller
                             $emergingStatus = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
                             $finishStatus = $emergingStatus->finishStatus($request);
 
-                            switch ($finish['error']) {
-                                case 'book_hash_not_found':
-                                    $message = "Ошибка тарифа, выберите другой тариф!";
-                                    break;
-
-                                case 'booking_form_expired':
-                                    $message = "Создайте бронь заново!";
-                                    break;
-
-                                case 'chosen_payment_type_was_not_available_on_booking_form':
-                                    $message = "Тип платежа не указан!";
-                                    break;
-
-                                case 'double_booking_finish':
-                                    $message = "Попытка завершить бронирование во второй раз, при этом статус первой попытки не является ошибкой.";
-                                    break;
-
-                                case 'email':
-                                    $message = "Указанный адрес электронной почты недействителен.";
-                                    break;
-
-                                case 'incorrect_chosen_payment_type':
-                                    $message = "Неверное значение поля type";
-                                    break;
-
-                                case 'incorrect_guests_number':
-                                    $message = "Номер взрослого гостя не совпадает с номером взрослого гостя в запросе вызова";
-                                    break;
-
-                                case 'incorrect_children_data':
-                                    $message = "Номер гостя-ребенка не совпадает с номером гостя-ребенка или Возраст детей указан неверно";
-                                    break;
-                                    
-                                case 'incorrect_rooms_number':
-                                    $message = "Номер комнаты не совпадает с номером комнаты в запросе";
-                                    break;
-
-                                case 'insufficient_b2b_balance':
-                                    $message = "Кредитный лимит достигнут. Обратитесь к своему менеджеру по работе с клиентами.";
-                                    break;
-
-                                case 'order_not_found':
-                                    $message = "Заказ не найден";
-                                    break;
-
-                                case 'rate_not_found':
-                                    $message = "Тариф не найден";
-                                    break;
-
-                                case 'return_path_required':
-                                    $message = "Поле return_pathобязательно для заполнения, если тариф, который вы бронируете, содержит payment_typesполе со nowзначением";
-                                    break;
-
-                                case 'unauthorized_group_booking':
-                                    $message = "Попытка сделать запрос с условиями:
-                                            Более 9 бронирований в одном и том же отеле.
-                                            Более 9 бронирований на одни и те же даты.
-                                            В одном запросе.";
-                                    break;
-
-                                case 'arrival_date_differs_from_checkin_date':
-                                    $message = "Дата заезда должна совпадать или быть на следующий день после даты заезда в запросе.";
-                                    break;
-
-                                case 'sandbox_restriction':
-                                    $message = "Попытка забронировать тестовый отель производственной среде.";
-                                    break;
-                                
-                                default:
-                                    $message = $finish['debug']['validation_error'];
-                                    break;
-                            }
+                            $message = $finish['error'];
                         }
                     }
                 }
@@ -197,49 +129,17 @@ class BookingEtgController extends Controller
                 $emergingStatus = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
                 $finishStatus = $emergingStatus->finishStatus($request);
 
-                switch ($order['error']) {
-                    case 'double_booking_form':
-                        $message = "Этот бронь уже существует!";
-                        break;
-                        
-                    case 'error_dublicate_local':
-                        $message = "Ошибка при создании брони на стейбук! Пожалуйста, попробуйте позже!";
-                        break;
-
-                    case 'contract_mismatch':
-                        $message = "Попытка сделать бронирование по тарифу, найденному в другом договоре.";
-                        break;
-
-                    case 'duplicate_reservation':
-                        $message = "Попытка сделать новое бронирование с использованием , {$etoken} которое уже используется для контракта ключа API";
-                        break;
-                        
-                    case 'hotel_not_found':
-                        $message = "Отель не найден.";
-                        break;
-
-                    case 'reservation_is_not_allowed':
-                        $message = "Нет разрешения использовать этот вызов для этого контракта. Обратитесь к своему менеджеру по работе с клиентами.";
-                        break;
-
-                    case 'rate_not_found':
-                        $message = "Ставка со book_hashзначением поля не найдена или Значение поля book_hash устарело. Попробуйте создать новый бронь!";
-                        break;
-
-                    case 'sandbox_restriction':
-                        $message = "Попытка забронировать реальный отель в тестовой среде.";
-                        break;
-                    
-                    default:
-                        $message = '';
-                        break;
-                }
+                $message = $order['error'];
             }
+
+        } catch (\Throwable $th) {
+            Log::channel('emerging')->info('Create Order Catch - ', $th->getMessage());
+        }
 
             $book = Book::where('book_token', $request->token)->first();
             
 
-            return view('pages.booking.emerging.rezerve', compact('book', 'request', 'message', 'preBook', 'finish', 'order', 'finishStatus'));
+        return view('pages.booking.emerging.rezerve', compact('book', 'request', 'message', 'preBook', 'finish', 'order', 'finishStatus'));
         
     }
 
@@ -286,7 +186,7 @@ class BookingEtgController extends Controller
             
            if ( isset($cancel->status) == 'error' && $cancel->error == 'order_not_found' ){
 
-                $message = "Заказ выполнен со статусом, отличным от completed или rejected.";
+                $message = "book_status_completed_rejected";
 
                     Log::channel('emerging')->info('Cancel Order User ID - ', $userInfo);
                     Log::channel('emerging')->info('Cancel Order - ', [$cancel]);
@@ -294,7 +194,7 @@ class BookingEtgController extends Controller
             } 
             elseif ( isset($cancel->status) == 'error' && $cancel->error == 'order_not_cancellable' ){
 
-                $message = "У вас нет разрешения на отмену невозвратных бронирований. Обратитесь к своему менеджеру по работе с клиентами.";
+                $message = "user_not_book_cancellable";
 
                     Log::channel('emerging')->info('Cancel Order User ID - ', $userInfo);
                     Log::channel('emerging')->info('Cancel Order - ', [$cancel]);

@@ -1,7 +1,7 @@
 @foreach($tmrates as $rate)
     @php
             $price = $rate->TotalPrice ?? 0;
-            $totalPrice = number_format( ($price * config('services.main.coef')) + $price , 2, '.', '');
+            $totalPrice = number_format( ($price / config('services.main.coef')) , 2, '.', '');
             $basePrice = $totalPrice;
 
             $toCurrency = strtoupper($fxBase ?? 'USD');
@@ -18,7 +18,7 @@
 
             $cancelCurrency = $rate->CancelPolicyInfos[0]->CurrencyCode;
             $cancelAmount = $rate->CancelPolicyInfos[0]->Amount;
-            $cancelAmount = number_format(($cancelAmount * config('services.main.coef')) + $cancelAmount, 2, '.', '');
+            $cancelAmount = number_format(($cancelAmount / config('services.main.coef')), 2, '.', '');
             $cancelConverted = app(\App\Services\FXService::class)->convert($cancelAmount, $rate->CurrencyCode, $fxBase);
             $cancelSymbol = $symbols[$cancelCurrency] ?? $toCurrency;
         @endphp

@@ -24,7 +24,7 @@
     $converted = app(\App\Services\FXService::class)->convert($basePrice, $request->currency, $fxBase);
     $symbol = $symbols[$toCurrency] ?? $toCurrency;
 
-    $cancelTotal = number_format(($request->cancelPrice  * config('services.main.coef')) + $request->cancelPrice, 2, '.', '');
+    $cancelTotal = number_format(($request->cancelPrice  / config('services.main.coef')), 2, '.', '');
     $cancelConverted = app(\App\Services\FXService::class)->convert($cancelTotal, $request->currency, $fxBase);
     $cancelSymbol = $symbols[$toCurrency] ?? $toCurrency;
 
@@ -70,11 +70,11 @@
                         <input type="hidden" name="rate_code" value="{{ $request->rate_code }}">
                         <input type="hidden" name="refundable" value="{{ $request->refundable }}">
                         <input type="hidden" name="cancelDate" value="{{ $request->cancelDate }}">
-                        <input type="hidden" name="cancelPrice" value="{{ number_format(($request->cancelPrice  * config('services.main.coef')) + $request->cancelPrice, 2, '.', '') }}">
+                        <input type="hidden" name="cancelPrice" value="{{ number_format(($request->cancelPrice  / config('services.main.coef')), 2, '.', '') }}">
                         <input type="hidden" name="currency"  value="{{ $request->currency }}">
                         <input type="hidden" name="utc" value="{{ $request->utc }}">
                         <input type="hidden" name="price" value="{{ $request->price }}">
-                        <input type="hidden" name="sum" value="{{ number_format( ($request->price * config('services.main.coef')) + $request->price, 2, '.', '') }}">
+                        <input type="hidden" name="sum" value="{{ number_format( ($request->price / config('services.main.coef')), 2, '.', '') }}">
                         <input type="hidden" name="api_name" value="TM">
 
                         <div class="row">

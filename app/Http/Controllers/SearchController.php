@@ -27,6 +27,12 @@ class SearchController extends Controller
         $cities = City::whereNull('country_id')->orderBy('title')->get();
         $fxBase = session('currency', 'USD');
         $fxRates = app(\App\Services\FXService::class)->getRatesBaseCentral();
+        $symbols = [
+                'USD' => '$',
+                'RUB' => '₽',
+                'KGS' => 'сом',
+                'UZS' => 'сўм',
+            ];
 
         $rooms = $request->input('rooms', []);
         $totalAdults = 0;
@@ -111,38 +117,47 @@ class SearchController extends Controller
                    return isset($hotel['localData']['id']);
                });
                // dd($filteredHotels);
-               $hotels['hotels'] = array_map(function ($hotel) {
+               $hotels['hotels'] = array_map(function ($hotel) use ($fxBase, $fxRates, $symbols) {
                    // dd($hotel);
                    $rate = $hotel['rates'][0];
                    $price = (float)$rate['payment_options']['payment_types'][0]['amount'] ?? 0;
-                   $totalPrice = number_format( ($price * $this->coef) + $price , 2, '.', '');
+                   $totalPrice = number_format( ($price / $this->coef) , 2, '.', '');
+
+                   $toCurrency = strtoupper($fxBase ?? 'USD');
+                    
+                        $rateTo = $fxRates[$toCurrency] ?? 1;
+                        $converted = app(\App\Services\FXService::class)->convert($totalPrice, $rate['CurrencyCode'], $fxBase);
+                        $symbol = $symbols[$toCurrency] ?? $toCurrency;
 
                    return [
-                       'apiName' => 'ETG',
-                       'apiHotelId' => $hotel['hid'],
-                       'hid' => $hotel['localData']['id'] ?? '',
-                       'code' => $hotel['localData']['code'] ?? '',
-                       'title' => $hotel['localData']['title'] ?? '',
-                       'title_en' => $hotel['localData']['title_en'] ?? '',
-                       'rating' => $hotel['localData']['rating'] ?? '',
-                       'city' => $hotel['localData']['city'] ?? '',
-                       'amenities' => $hotel['localData']['amenity']['services'] ?? '',
-                       'images' => $hotel['localData']['images'] ?? [],
-                       'price' => $price ?? 0,
-                       'totalPrice' => $totalPrice ?? 0,
-                       'currency' => $rate['payment_options']['payment_types'][0]['currency_code'] ?? 0,
-                       'match_hash' => $rate['match_hash'] ?? 0,
+                        'apiName' => 'ETG',
+                        'apiHotelId' => $hotel['hid'],
+                        'hid' => $hotel['localData']['id'] ?? '',
+                        'code' => $hotel['localData']['code'] ?? '',
+                        'title' => $hotel['localData']['title'] ?? '',
+                        'title_en' => $hotel['localData']['title_en'] ?? '',
+                        'rating' => $hotel['localData']['rating'] ?? '',
+                        'city' => $hotel['localData']['city'] ?? '',
+                        'amenities' => $hotel['localData']['amenity']['services'] ?? '',
+                        'images' => $hotel['localData']['images'] ?? [],
+                        'lat' => $hotel['localData']['lat'] ?? '',
+                        'lng' => $hotel['localData']['lng'] ?? '',
+                        'price' => $price ?? 0,
+                        'totalPrice' => $totalPrice ?? 0,
+                        'currency' => $rate['payment_options']['payment_types'][0]['currency_code'] ?? 0,
+                        'match_hash' => $rate['match_hash'] ?? 0,
+                        'conv_total' => round($converted) ?? 0,
+                        'conv_symbol' => $symbol,
                    ];
                }, $filteredHotels);
 
                $results = json_decode(json_encode($hotels));
            }
 
-
         // ######## End Emerging API ########
 
 
-        // ***** Start Tourmind API *****
+        // ######## Start Tourmind API ########
 
             $hotelService = new \App\Services\Tourmind\HotelServices();
             $tmhotels = $hotelService->tmGetHotels($request);
@@ -153,10 +168,16 @@ class SearchController extends Controller
                 $filteredHotels = array_filter($tmhotels['Hotels'], function ($hotel) {
                     return isset($hotel['localData']['id']);
                 });
-                $hotels['hotels'] = array_map(function ($hotel) {
+                $hotels['hotels'] = array_map(function ($hotel) use ($fxBase, $fxRates, $symbols) {
                     $rate = $hotel['RoomTypes'][0]['RateInfos'][0];
                     $price = $rate['TotalPrice'] ?? 0;
-                    $totalPrice = number_format( ($price * $this->coef) + $price , 2, '.', '');
+                    $totalPrice = number_format( ($price / $this->coef) , 2, '.', '');
+
+                    $toCurrency = strtoupper($fxBase ?? 'USD');
+
+                        $rateTo = $fxRates[$toCurrency] ?? 1;
+                        $converted = app(\App\Services\FXService::class)->convert($totalPrice, $rate['CurrencyCode'], $fxBase);
+                        $symbol = $symbols[$toCurrency] ?? $toCurrency;
 
                     return [
                         'apiName' => 'TM',
@@ -169,9 +190,13 @@ class SearchController extends Controller
                         'city' => $hotel['localData']['city'] ?? '',
                         'amenities' => $hotel['localData']['amenity']['services'] ?? '',
                         'images' => $hotel['localData']['images'] ?? [],
+                        'lat' => $hotel['localData']['lat'] ?? '',
+                        'lng' => $hotel['localData']['lng'] ?? '',
                         'price' => $rate['TotalPrice'] ?? 0,
                         'totalPrice' => $totalPrice ?? 0,
                         'currency' => $rate['CurrencyCode'] ?? 0,
+                        'conv_total' => round($converted) ?? 0,
+                        'conv_symbol' => $symbol,
                     ];
                 }, $filteredHotels);
 
@@ -179,7 +204,7 @@ class SearchController extends Controller
                 // dd($results->hotels);
             }
 
-        // ***** End Tourmind API *****
+        // ######## End Tourmind API ########
 
 
         if (!empty($propertyIds)) {
