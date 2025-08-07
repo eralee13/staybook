@@ -121,11 +121,12 @@
                                 </div>
                             </div>
                             
+                            {{-- map quests --}}
                                 <h5>@lang('main.quests')</h5>
                                 @for ($i = 0; $i < $totalAdults; $i++)
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="paxfname">@lang('main.fio')</label>
+                                            <label for="paxfname">@lang('main.fio') #{{$i+1}}</label>
                                             <input type="text" name="paxfname{{$i}}" required>
                                         </div>
                                     </div>
@@ -135,7 +136,7 @@
                                 @for ($i = 0; $i < $childs; $i++)
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="paxlname">@lang('main.fio')</label>
+                                            <label for="paxlname">@lang('main.fio') #{{$i+1}}</label>
                                             <input type="text" name="child_name{{$i}}" required>
                                         </div>
                                     </div>

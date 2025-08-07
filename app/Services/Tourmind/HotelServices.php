@@ -634,6 +634,7 @@ class HotelServices
                             ];
                                 
                         }else{
+                            
                             $paxList[] = [
                                 "FirstName" => $request->paxfname,
                                 "LastName" => $request->paxlname,

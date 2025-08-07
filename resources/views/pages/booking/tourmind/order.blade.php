@@ -120,6 +120,7 @@
                                 </div>
                             </div>
                             
+                            {{-- map quests --}}
                                 <h5>@lang('main.quests')</h5>
                                 @for ($i = 0; $i < $request->adult; $i++)
                                     <div class="col-md-6">

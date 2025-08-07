@@ -98,7 +98,7 @@ class BookingEtgController extends Controller
                         $data = [
                             'amount' => $paytype['amount'],
                             'curr' => $paytype['currency_code'],
-                            'type' => $paytype['type'],
+                            'type' => 'deposit', // $paytype['type'], // deposit, now
                             'item_id' => $item_id,
                             'order_id' => $order_id,
                             'etoken' => $etoken,

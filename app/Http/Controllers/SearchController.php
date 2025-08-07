@@ -118,15 +118,15 @@ class SearchController extends Controller
                });
                // dd($filteredHotels);
                $hotels['hotels'] = array_map(function ($hotel) use ($fxBase, $fxRates, $symbols) {
-                   // dd($hotel);
+                //    dd($hotel);
                    $rate = $hotel['rates'][0];
                    $price = (float)$rate['payment_options']['payment_types'][0]['amount'] ?? 0;
                    $totalPrice = number_format( ($price / $this->coef) , 2, '.', '');
 
                    $toCurrency = strtoupper($fxBase ?? 'USD');
-                    
+                        $thiscurr = $rate['payment_options']['payment_types'][0]['currency_code'] ?? 'USD';
                         $rateTo = $fxRates[$toCurrency] ?? 1;
-                        $converted = app(\App\Services\FXService::class)->convert($totalPrice, $rate['CurrencyCode'], $fxBase);
+                        $converted = app(\App\Services\FXService::class)->convert($totalPrice, $thiscurr, $fxBase);
                         $symbol = $symbols[$toCurrency] ?? $toCurrency;
 
                    return [

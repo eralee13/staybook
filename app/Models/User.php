@@ -29,7 +29,8 @@ class User extends Authenticatable
         'bank_bic',
         'address',
         'password',
-        'is_admin'
+        'is_admin',
+        'hotel_id',
     ];
 
     /**

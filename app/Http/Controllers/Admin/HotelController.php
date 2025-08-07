@@ -11,6 +11,7 @@ use App\Models\Amenity;
 use App\Models\City;
 use App\Models\Hotel;
 use App\Models\Image;
+use Spatie\Permission\Models\Role;
 use Barryvdh\DomPDF\Facade\Pdf;
 use DateTimeZone;
 use Illuminate\Http\Request;
@@ -135,11 +136,17 @@ class HotelController extends Controller
     public function show(Request $request, Hotel $hotel)
     {
         $users = Auth::user();
+        $roles = Role::pluck('name')->all();
         $images = Image::where('hotel_id', $hotel->id)->get();
         $request->session()->put('hotel_id', $hotel->id);
         $amenity = Amenity::firstOrFail();
+        $hotelUsers = DB::table('users')
+            // ->join('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+            // ->where('model_has_roles.role_id', 3)
+            ->where('users.hotel_id', $hotel->id)
+            ->get();
         //dd($request->session()->get('hotel_id'));
-        return view('auth.hotels.show', compact('hotel', 'users', 'images', 'amenity'));
+        return view('auth.hotels.show', compact('hotel', 'users', 'images', 'amenity', 'hotelUsers', 'roles'));
     }
 
     /**

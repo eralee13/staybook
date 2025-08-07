@@ -519,7 +519,7 @@ class EmergingFormController extends Controller
 
                     $paxList = [];
 
-                        for ($i = 0; $i < $roomCount; $i++) {
+                        for ($i = 0; $i < $adults; $i++) {
                             $j = $i + 1;
 
                             if($j > 1){
@@ -527,22 +527,20 @@ class EmergingFormController extends Controller
                                 $paxList[] = [
                                     "first_name" => $request->{'paxfname' . $j},
                                     "last_name" => $request->{'paxlname' . $j},
+                                    'is_child' => 0,
                                 ];
                                     
                             }else{
                                 $paxList[] = [
                                     "first_name" => $request->paxfname,
                                     "last_name" => $request->paxlname,
+                                    'is_child' => 0,
                                 ];
                             }
                             
                         }
 
-        $response = Http::withBasicAuth($this->keyId, $this->apiKey)
-            ->withHeaders([
-                'Content-Type' => 'application/json',
-            ])
-            ->post($this->url . '/hotel/order/booking/finish/', [
+        $payload = [
                 "user" => [
                         "email" => $request->email, 
                         "comment" => $request->comment, 
@@ -570,8 +568,14 @@ class EmergingFormController extends Controller
                                     "amount" => $data['amount'], 
                                     "currency_code" => $data['curr'] 
                                 ], 
-            ]);
+                            ];
 
+        $response = Http::withBasicAuth($this->keyId, $this->apiKey)
+            ->withHeaders([
+                'Content-Type' => 'application/json',
+            ])
+            ->post($this->url . '/hotel/order/booking/finish/', $payload);
+                
         return $response->json();
 
     }
