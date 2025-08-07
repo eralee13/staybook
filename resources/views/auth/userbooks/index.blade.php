@@ -27,6 +27,8 @@
                                             <div class="title"># @lang('admin.order') Exelly</div>
                                             <div class="value">{{ $book->book_token }}</div>
                                         </td>
+                                    @else
+                                        <td></td>
                                     @endif
                                     <td>
                                         <div class="title">@lang('admin.status'):</div>
@@ -49,10 +51,6 @@
                                         <div class="value">{{ $book->room_count }} @lang('admin.room') {{ $book->adult }} @lang('admin.adult') @if($book->child) {{ $book->child }} дет.@endif</div>
                                     </td>
                                     <td>
-                                        <div class="title">@lang('admin.be_paid')</div>
-                                        <div class="value">{{ $book->sum }} {{ $book->currency ?? '$' }}</div>
-                                    </td>
-                                    <td>
                                         <div class="title">@lang('admin.date_creation'):</div>
                                         @php
                                             $date = \Carbon\Carbon::createFromDate($book->created_at)->format('d.m.Y H:i')
@@ -62,12 +60,12 @@
                                 </tr>
                                 <tr>
                                     <td>
-                                        <div class="title">@lang('admin.checkin'):</div>
-                                        <div class="value">{{ $book->showStartDate() }}</div>
+                                        <div class="title">@lang('admin.be_paid')</div>
+                                        <div class="value">{{ $book->sum }} {{ $book->currency ?? '$' }}</div>
                                     </td>
                                     <td>
-                                        <div class="title">@lang('admin.checkout'):</div>
-                                        <div class="value">{{ $book->showEndDate() }}</div>
+                                        <div class="title">@lang('admin.checkin') / @lang('admin.checkout'):</div>
+                                        <div class="value">{{ $book->showStartDate() }} - {{ $book->showEndDate() }}</div>
                                     </td>
                                     @php
                                         $hotel = \App\Models\Hotel::where('id', $book->hotel_id)->orWhere('exely_id', $book->hotel_id)->first();

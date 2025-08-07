@@ -181,7 +181,6 @@
 
                                                                 $utc   = \Carbon\Carbon::parse($room->cancellationPolicy->freeCancellationDeadlineUtc);
                                                                 $local = \Carbon\Carbon::parse($room->cancellationPolicy->freeCancellationDeadlineLocal . 'Z');
-
                                                                 $hours = $utc->diffInHours($local, false);
                                                                 $offset = sprintf('UTC%+03d:00', $hours);
                                                         @endphp
@@ -202,28 +201,24 @@
                                                                 <div class="name">{{ $room->mealPlanCode }}</div>
                                                             </div>
                                                             @php
-                                                                $baseCancelPrice = round($room->cancellationPolicy->penaltyAmount * config('services.main.coef') / 100 + $room->cancellationPolicy->penaltyAmount, 0);
-                                                                $basePrice = round($room->total->priceBeforeTax * config('services.main.coef') / 100 + $room->total->priceBeforeTax, 0);
+                                                                $baseCancelPrice = round($room->cancellationPolicy->penaltyAmount * config('services.main.coef') + $room->cancellationPolicy->penaltyAmount);
+                                                                $brutPrice = round($room->total->priceBeforeTax / 0.92);
 
                                                                 $toCurrency = strtoupper($fxBase ?? 'USD');
-
-                                                                $fxRates = [
-                                                                    'USD' => $fxRates['usd'] ?? 1,
-                                                                    'RUB' => $fxRates['rub'] ?? 1,
-                                                                    'KGS' => $fxRates['kgs'] ?? 1,
-                                                                    'UZS' => $fxRates['uzs'] ?? 1,
-                                                                ];
-
                                                                 $symbols = [
                                                                     'USD' => '$',
                                                                     'RUB' => '₽',
                                                                     'KGS' => 'сом',
                                                                     'UZS' => 'сўм',
                                                                 ];
+                                                                $symbol = $symbols[$toCurrency] ?? $toCurrency;
 
                                                                 $rateTo = $fxRates[$toCurrency] ?? 1;
+
                                                                 $convertedCancel = app(\App\Services\FXService::class)->convert($baseCancelPrice, $room->currencyCode, $fxBase);
-                                                                $converted = app(\App\Services\FXService::class)->convert($basePrice, $room->currencyCode, $fxBase);
+                                                                $netConv = app(\App\Services\FXService::class)->convert($room->total->priceBeforeTax, $room->currencyCode, $fxBase);
+                                                                $brutConv = app(\App\Services\FXService::class)->convert($brutPrice, $room->currencyCode, $fxBase);
+
                                                                 $symbol = $symbols[$toCurrency] ?? $toCurrency;
                                                             @endphp
                                                             <div class="item cancel">
@@ -239,7 +234,13 @@
                                                                     @endif
                                                                 </div>
                                                             </div>
-                                                            <div class="item price">{{ round($converted) }} {{ $symbol }}</div>
+                                                            <div class="item price">
+                                                                @can('edit-contact')
+                                                                    <small style="font-size: 12px">NET: {{ round($netConv) }} {{ $symbol }}</small>
+                                                                    <br>
+                                                                @endcan
+                                                                {{ round($brutConv) }} {{ $symbol }}
+                                                            </div>
                                                             {{--                                                        <div class="nds">Все налоги включены</div>--}}
                                                             <div class="btn-wrap">
                                                                 <form action="{{ route('order_exely', $room->roomType->id) }}">
@@ -252,7 +253,6 @@
                                                                     <input type="hidden" name="adultCount"
                                                                            value="{{ $room->guestCount->adultCount }}">
                                                                     @empty($room->guestCount->childAges)
-
                                                                     @else
                                                                         <input type="hidden" name="childAges[]"
                                                                                value="{{ implode(',', $room->guestCount->childAges) }}">
@@ -305,9 +305,9 @@
                                                                     <input type="hidden" name="title"
                                                                            value="{{ $room->fullPlacementsName }}">
                                                                     <input type="hidden" name="sum"
-                                                                           value="{{ round($converted) }}">
+                                                                           value="{{ round($brutConv) }}">
                                                                     <input type="hidden" name="price"
-                                                                           value="{{ $room->total->priceBeforeTax }}">
+                                                                           value="{{ round($room->total->priceBeforeTax) }}">
                                                                     <input type="hidden" name="currency"
                                                                            value="{{ $symbol }}">
                                                                     <input type="hidden" name="source_sym"

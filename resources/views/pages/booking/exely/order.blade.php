@@ -15,6 +15,8 @@
                         </h3>
                     </div>
                 </div>
+
+
                 <div class="row">
                     <div class="col-lg-8 col-md-12 order-xl-1 order-lg-1 order-2">
                         <h5>@lang('main.trip')</h5>
@@ -30,8 +32,10 @@
                             <input type="hidden" name="roomTypeId" value="{{ $request->roomTypeId }}">
                             <input type="hidden" name="adultCount" value="{{ $request->adultCount }}">
                             <input type="hidden" name="placements" value="{{ $request->placements }}">
-                            <input type="hidden" name="price" value="{{ $request->price }}">
-                            <input type="hidden" name="cancelPriceSource" value="{{ $request->cancelPriceSource }}">
+                            <input type="hidden" name="net_price" value="{{ $request->price }}">
+                            <input type="hidden" name="brut_price" value="{{ $request->sum }}">
+                            <input type="hidden" name="cancel_net_price" value="{{ $request->cancelPriceSource }}">
+                            <input type="hidden" name="cancel_brut_price" value="{{ $request->cancelPrice }}">
                             <input type="hidden" name="currency" value="{{ $request->currency }}">
                             <input type="hidden" name="source_sym" value="{{ $request->source_sym }}">
                             @if (request()->filled('childAges'))
@@ -40,13 +44,37 @@
                             <input type="hidden" name="checkSum" value="{{ $request->checkSum }}">
                             <input type="hidden" name="servicesId" value="{{ $request->servicesId }}">
                             <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <div class="label">@lang('main.full_name')</div>
-                                        <input type="text" name="name" placeholder="Асанов А.А."
-                                               value="{{ Auth::user()->name }}" required>
+                                @for ($i = 1; $i <= $request->adultCount; $i++)
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <div class="label">
+                                                @if($i === 1)
+                                                    @lang('main.full_name')
+                                                @else
+                                                    #{{ $i }} @lang('main.full_name')
+                                                @endif
+                                            </div>
+                                            <input type="text" name="title{{ $i }}" placeholder="Асанов А.А."
+                                                   value="{{ $i === 1 && Auth::check() ? Auth::user()->name : '' }}"
+                                                   required>
+                                        </div>
                                     </div>
-                                </div>
+                                @endfor
+                                @for ($i = 1; $i <= count($childs); $i++)
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <div class="label">
+                                                @if($i === 1)
+                                                    @lang('main.full_name') @lang('main.child')
+                                                @else
+                                                    #{{ $i }} @lang('main.full_name') @lang('main.child')
+                                                @endif
+                                            </div>
+                                            <input type="text" name="child_name{{ $i }}" placeholder="Усенов У.У."
+                                                   required>
+                                        </div>
+                                    </div>
+                                @endfor
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <div class="label">@lang('main.count_adult')</div>
@@ -63,7 +91,6 @@
                                         @endif
                                     </div>
                                 </div>
-
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="">@lang('main.phone')</label>
@@ -142,7 +169,11 @@
                                 agree that StayBook may charge my payment method if I am responsible for any damage.
                             @endif
                             <div class="btn-wrap">
-                                <button class="more" id="saveBtn">@lang('main.confirm')</button>
+                                @hasrole('Demo')
+                                    <div class="alert alert-danger">Доступ ограничен</div>
+                                @else
+                                    <button class="more" id="saveBtn">@lang('main.confirm')</button>
+                                @endhasrole
                             </div>
                         </form>
                     </div>
@@ -181,6 +212,7 @@
                                 <div class="col-md-8">
                                     <div class="total">@lang('main.total')</div>
                                 </div>
+
                                 <div class="col-md-4">
                                     <div class="price">{{ $request->sum }} {{ $request->currency }}</div>
                                 </div>

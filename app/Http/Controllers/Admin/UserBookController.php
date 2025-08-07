@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Mail\BookCancelMail;
 use App\Models\Book;
+use App\Models\Contact;
 use Carbon\Carbon;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
@@ -46,7 +47,8 @@ class UserBookController extends Controller
         $books = Book::where('user_id', $user)->where('status', 'Reserved')->get();
         Book::where('id', $book->id)->update(['status' => 'Cancelled']);
         Log::warning('Отмена брони: ' . $book->id);
-        Mail::to('info@staybook.asia')->send(new BookCancelMail($book));
+        $email = Contact::first()->email;
+        Mail::to($email)->send(new BookCancelMail($book));
         session()->flash('success', 'Booking ' . $request->title . ' is cancelled');
         return redirect()->route('auth.userbooks.index', compact('books'));
     }
@@ -82,12 +84,16 @@ class UserBookController extends Controller
                     "reason" => "Booking cancellation",
                     "expectedPenaltyAmount" => $request->amount
                 ]);
-
             if ($response->successful()) {
                 $cancel = $response->object();
+                $book = Book::where('book_token', $request->number)->first();
+                $book->where('book_token', $request->number)->update([
+                    'status' => "Cancelled"
+                ]);
                 Book::where('id', $book->id)->update(['status' => 'Cancelled']);
                 Log::warning('Отмена брони: ' . $book->id);
-                Mail::to('info@staybook.asia')->send(new BookCancelMail($book));
+                $email = Contact::first()->email;
+                Mail::to($email)->send(new BookCancelMail($book));
                 return view('auth.userbooks.cancel-confirm-exely', compact('cancel'));
             } else {
                 Log::warning('Запрос завершился ошибкой: ' . $response->status());
@@ -96,7 +102,6 @@ class UserBookController extends Controller
 
         } catch (RequestException $e) {
             Log::error('Ошибка запроса: ' . $e->getMessage());
-
             return response()->json(['error' => 'Сервис временно недоступен'], 503);
         }
     }
@@ -115,7 +120,6 @@ class UserBookController extends Controller
         
             }
              elseif( isset($res['CancelResult']['OrderStatus']) && $res['CancelResult']['OrderStatus'] == 'CANCELLED'){
-
                 $cancelFee = $res['CancelResult']['CancelFee'];
                 $curr = $res['CancelResult']['CurrencyCode'];
 

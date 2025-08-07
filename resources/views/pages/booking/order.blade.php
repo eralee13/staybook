@@ -35,8 +35,7 @@
                             <input type="hidden" name="cancellation_id" value="{{ $request->cancellation_id }}">
                             <input type="hidden" name="cancelDate" value="{{ $request->cancelDate }}">
                             <input type="hidden" name="cancelPrice" value="{{ $request->cancelPrice }}">
-                            <input type="hidden" name="cancelPriceSource"
-                                   value="{{ round($request->cancelPriceSource) }}">
+                            <input type="hidden" name="cancelPriceSource" value="{{ round($request->cancelPriceSource) }}">
                             <input type="hidden" name="price" value="{{ $request->price }}">
                             <input type="hidden" name="sum" value="{{ round($request->sum) }}">
                             <input type="hidden" name="currency" value="{{ $request->currency }}">
@@ -218,7 +217,11 @@
                                 @endif
                             </div>
                             <div class="btn-wrap">
-                                <button class="more" id="saveBtn">@lang('main.confirm')</button>
+                                @hasrole('Demo')
+                                <div class="alert alert-danger">Доступ ограничен</div>
+                                @else
+                                    <button class="more" id="saveBtn">@lang('main.confirm')</button>
+                                    @endhasrole
                             </div>
                         </form>
                     </div>

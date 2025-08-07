@@ -86,6 +86,11 @@ Route::middleware('set_locale')->group(function () {
         //Route::get("/book/exelyshow/{book}", [ListBookController::class, 'exelyshow'])->name('book.exelyshow');
         Route::get("/listbooks", [ListBookController::class, 'index'])->name('listbooks.index');
         Route::get("/listbooks/show/{book}", [ListBookController::class, 'show'])->name('listbooks.show');
+        Route::post('/listbooks/cancel/{book}', [ListBookController::class, 'cancel_calculate'])->name('listbooks.cancel_calculate');
+        Route::post('/listbooks/cancel_confirm', [ListBookController::class, 'cancel_confirm'])->name('listbooks.cancel_confirm');
+        //exely
+        Route::post('/listbooks/cancel_exely/{book}', [ListBookController::class, 'cancel_calculate_exely'])->name('listbooks.cancel_calculate_exely');
+        Route::get('/listbooks/cancel_confirm', [ListBookController::class, 'cancel_confirm_exely'])->name('listbooks.cancel_confirm_exely');
 
         //finance role
         Route::get("/allbooks", [AllBookingController::class, 'index'])->name('allbooks.index');

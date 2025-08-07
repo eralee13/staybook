@@ -5,7 +5,6 @@
 @section('content')
     @auth
         <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
-
         <style>
             .select2-container--default .select2-selection--single {
                 height: 50px;
@@ -17,7 +16,7 @@
             }
         </style>
 
-        <div class="main-filter">
+        <div class="main-filter" style="padding-bottom: 20px">
             <div class="container">
                 <div class="row">
                     <div class="col-md-12">
@@ -41,6 +40,7 @@
                                         <div class="label stay"><img src="{{route('index')}}/img/marker_out.svg" alt="">
                                         </div>
                                         <select name="city" id="city">
+{{--                                            <option value="Самарканд">Самарканд</option>--}}
                                             <option value="Бишкек">Бишкек</option>
                                             @foreach($cities as $city)
                                                 <option value="{{ $city->title }}">{{ $city->title }}</option>
@@ -508,20 +508,20 @@
                             </div>
                         </form>
 
-                        <div class="property-list">
-                            <div class="property-list-item">
-                                <a href="#">
-                                    <img src="{{route('index')}}/img/hotel.svg" alt="">
-                                    <div class="name">@lang('main.hotels')</div>
-                                </a>
-                            </div>
-                            <div class="property-list-item">
-                                <a href="#">
-                                    <img src="{{route('index')}}/img/rooms.svg" alt="">
-                                    <div class="name">@lang('main.rooms')</div>
-                                </a>
-                            </div>
-                        </div>
+{{--                        <div class="property-list">--}}
+{{--                            <div class="property-list-item">--}}
+{{--                                <a href="#">--}}
+{{--                                    <img src="{{route('index')}}/img/hotel.svg" alt="">--}}
+{{--                                    <div class="name">@lang('main.hotels')</div>--}}
+{{--                                </a>--}}
+{{--                            </div>--}}
+{{--                            <div class="property-list-item">--}}
+{{--                                <a href="#">--}}
+{{--                                    <img src="{{route('index')}}/img/rooms.svg" alt="">--}}
+{{--                                    <div class="name">@lang('main.rooms')</div>--}}
+{{--                                </a>--}}
+{{--                            </div>--}}
+{{--                        </div>--}}
                     </div>
                 </div>
             </div>

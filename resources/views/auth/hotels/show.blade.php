@@ -37,6 +37,14 @@
                             </div>
                         </div>
                         <div class="row">
+                            @if($hotel->type)
+                                <div class="col-md-3">
+                                    <div class="dashboard-item">
+                                        <div class="name">@lang('admin.property_type')</div>
+                                        <h5>{{ $hotel->type }}</h5>
+                                    </div>
+                                </div>
+                            @endif
                             <div class="col-md-3">
                                 <div class="dashboard-item">
                                     <div class="name">@lang('admin.title')</div>
@@ -46,15 +54,13 @@
                             <div class="col-md-3">
                                 <div class="dashboard-item">
                                     <div class="name">@lang('admin.timezone')</div>
-                                    <h5>{{ $hotel->timezone ?? '+06:00' }}
-                                    </h5>
+                                    <h5>{{ $hotel->timezone ?? '+06:00' }}</h5>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="dashboard-item">
                                     <div class="name">@lang('admin.city')</div>
-                                    <h5>{{ $hotel->city }}
-                                    </h5>
+                                    <h5>{{ $hotel->city }}</h5>
                                 </div>
                             </div>
                             <div class="col-md-3">
@@ -70,6 +76,14 @@
                                     <h5>{{ $hotel->id }}</h5>
                                 </div>
                             </div>
+                            @if($hotel->currency)
+                                <div class="col-md-3">
+                                    <div class="dashboard-item">
+                                        <div class="name">@lang('main.currency')</div>
+                                        <h5>{{ $hotel->currency }}</h5>
+                                    </div>
+                                </div>
+                            @endif
                             <div class="col-md-3">
                                 <div class="dashboard-item">
                                     <div class="name">@lang('admin.checkin')</div>
@@ -85,7 +99,7 @@
                             <div class="col-md-3">
                                 <div class="dashboard-item">
                                     <div class="name">@lang('admin.rating')</div>
-                                   @if($hotel->rating == 4)
+                                    @if($hotel->rating == 4)
                                         <i class="fa-regular fa-star"></i>
                                         <i class="fa-regular fa-star"></i>
                                         <i class="fa-regular fa-star"></i>
@@ -97,25 +111,29 @@
                                         <i class="fa-regular fa-star"></i>
                                         <i class="fa-regular fa-star"></i>
                                     @else
-                                       @lang('admin.norating')
+                                        @lang('admin.norating')
                                     @endif
                                 </div>
                             </div>
                         </div>
-                        <div class="row" style="margin-top: 30px">
-                            <div class="col-md-12">
-                                <div class="dashboard-item">
-                                    <div class="name">@lang('admin.amenities')</div>
-                                    <h6>{{ $hotel->amenity->services ?? '' }}</h6>
+                        @isset($hotel->amenity->services)
+                            <div class="row" style="margin-top: 30px">
+                                <div class="col-md-12">
+                                    <div class="dashboard-item">
+                                        <div class="name">@lang('admin.amenities')</div>
+                                        <h6>{{ $hotel->amenity->services ?? '' }}</h6>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        @endisset
                         <div class="row">
                             <div class="col-md-12">
-                                <div class="dashboard-item">
-                                    <div class="name">@lang('admin.description')</div>
-                                    <div class="descr">{!! $hotel->__('description') !!}</div>
-                                </div>
+                                @if($hotel->description)
+                                    <div class="dashboard-item">
+                                        <div class="name">@lang('admin.description')</div>
+                                        <div class="descr">{!! $hotel->__('description') !!}</div>
+                                    </div>
+                                @endif
                                 <div class="dashboard-item">
                                     <div class="images">
                                         <div class="row">

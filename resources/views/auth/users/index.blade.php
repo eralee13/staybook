@@ -37,7 +37,7 @@
                                 <td>{{ $user->name }}</td>
                                 <td>
                                     @forelse ($user->getRoleNames() as $role)
-                                        <span class="badge bg-primary">{{ $role }}</span>
+                                        <div class="alert alert-success">{{ $role }}</div>
                                     @empty
                                     @endforelse
                                 </td>

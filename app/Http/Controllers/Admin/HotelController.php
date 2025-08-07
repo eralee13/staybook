@@ -43,10 +43,7 @@ class HotelController extends Controller
     {
         $user = Auth::user()->id;
         $chotel = Hotel::all();
-        if (Auth::user()->hasRole('admin')) {
-            $hotels = Hotel::where('user_id', $user)->latest()->paginate(20);
-        }
-        elseif (Auth::user()->hasRole('manager')) {
+        if (Auth::user()->hasRole('Hotel')) {
             $hotels = Hotel::where('user_id', $user)->latest()->paginate(20);
         }
         else {
@@ -415,7 +412,9 @@ class HotelController extends Controller
 
         unset($params['image']);
         if ($request->has('image')) {
-            Storage::delete($hotel->image);
+            if($hotel->image){
+                Storage::delete($hotel->image);
+            }
             $params['image'] = $request->file('image')->store('hotels');
         }
 
@@ -450,9 +449,9 @@ class HotelController extends Controller
             endforeach;
         }
 
-        if ($hotel->status == 0 && $request->input('status') == 1) {
-            Mail::to($hotel->user->email)->send(new HotelActivatedMail($hotel));
-        }
+//        if ($hotel->status == 0 && $request->input('status') == 1) {
+//            Mail::to($hotel->user->email)->send(new HotelActivatedMail($hotel));
+//        }
 
         $hotel->update($params);
 

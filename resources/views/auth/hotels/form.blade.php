@@ -15,6 +15,13 @@
             object-fit: cover;
             width: 100%;
         }
+        .output{
+            color: red;
+            font-size: 12px;
+        }
+        .output.agree{
+            color: green;
+        }
     </style>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
     <div class="page admin">

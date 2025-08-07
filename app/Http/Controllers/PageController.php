@@ -14,9 +14,6 @@ use App\Models\City;
 use App\Models\Contact;
 use App\Models\Page;
 use App\Models\Hotel;
-use App\Services\FXService;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class PageController extends Controller

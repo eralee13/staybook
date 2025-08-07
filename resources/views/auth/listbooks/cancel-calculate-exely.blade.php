@@ -22,7 +22,7 @@
                     @else
                         <h1>@lang('main.booking_cancellation')</h1>
                         <p>@lang('main.cancellation_amount'): {{ $calc->penaltyAmount }} {{ $request->currency }}</p>
-                        <form action="{{ route('userbooks.cancel_confirm') }}">
+                        <form action="{{ route('listbooks.cancel_confirm') }}">
                             <div class="form-group">
                                 <label for="">@lang('main.booking_number')</label>
                                 <input type="text" value="{{ $book->book_token }}" name="number">

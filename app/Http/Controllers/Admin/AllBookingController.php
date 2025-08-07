@@ -25,7 +25,7 @@ class AllBookingController extends Controller
             ->when(request('month'), function ($query) {
                 $query->whereMonth('created_at', request('month'));
             })
-            ->orderByDesc('created_at')
+            ->latest()
             ->paginate(30);
         return view('auth.books.finance.index', compact('books'));
     }

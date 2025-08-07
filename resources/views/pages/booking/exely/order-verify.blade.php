@@ -39,33 +39,9 @@
                                         $hours = $utc->diffInHours($local, false);
                                         // формат UTC±HH:00
                                         $offset = sprintf('UTC%+03d:00', $hours);
-
-                                        //currency
-                                        $baseCancelPrice = round($order->booking->cancellationPolicy->penaltyAmount * config('services.main.coef') / 100 + $order->booking->cancellationPolicy->penaltyAmount, 0);
-                                        $basePrice = round($order->booking->total->priceBeforeTax * config('services.main.coef') / 100 + $order->booking->total->priceBeforeTax, 0);
-
-                                        $toCurrency = strtoupper($fxBase ?? 'USD');
-
-                                                                    $fxRates = [
-                                                                        'USD' => $fxRates['usd'] ?? 1,
-                                                                        'RUB' => $fxRates['rub'] ?? 1,
-                                                                        'KGS' => $fxRates['kgs'] ?? 1,
-                                                                        'UZS' => $fxRates['uzs'] ?? 1,
-                                                                    ];
-
-                                                                    $symbols = [
-                                                                        'USD' => '$',
-                                                                        'RUB' => '₽',
-                                                                        'KGS' => 'сом',
-                                                                        'UZS' => 'сўм',
-                                                                    ];
-
-                                                                    $rateTo = $fxRates[$toCurrency] ?? 1;
-                                                                    $convertedCancel = app(\App\Services\FXService::class)->convert($baseCancelPrice, $order->booking->currencyCode, $fxBase);
-                                                                    $converted = app(\App\Services\FXService::class)->convert($basePrice, $order->booking->currencyCode, $fxBase);
-                                                                    $symbol = $symbols[$toCurrency] ?? $toCurrency;
                                     @endphp
                                     <h1>@lang('main.order_confirmation')</h1>
+
                                     <table>
                                         <tr>
                                             <td>@lang('main.hotel'):</td>
@@ -73,17 +49,17 @@
                                         </tr>
                                         <tr>
                                             <td>@lang('main.price'):</td>
-                                            <td>{{ round($converted) }} {{ $symbol }}</td>
+                                            <td>{{ $request->brut_price }} {{ $request->currency }}</td>
                                         </tr>
                                         <tr>
                                             <td>@lang('main.cancellation_policy'):</td>
                                             @if($cancelPossible->freeCancellationPossible == true)
                                                 <td>@lang('main.free_cancellation') {{ $cancelLocal }} ({{ $offset }}).
                                                     @lang('main.cancellation_amount')
-                                                    : {{ round($convertedCancel) }} {{ $symbol }}</td>
+                                                    : {{ $request->cancel_brut_price }} {{ $request->currency }}</td>
                                             @else
                                                 <td>@lang('main.cancellation_amount')
-                                                    : {{ round($convertedCancel) }} {{ $symbol }}</td>
+                                                    : {{ $request->cancel_brut_price }} {{ $request->currency }}</td>
                                             @endif
                                         </tr>
 
@@ -91,9 +67,16 @@
                                             <tr>
                                                 <td>@lang('main.full_name'):</td>
                                                 <td>
-
                                                     @foreach($room->guests as $guest)
                                                         <div class="name">{{ $guest->firstName }}</div>
+                                                    @endforeach
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>@lang('main.full_name') @lang('main.child'):</td>
+                                                <td>
+                                                    @foreach($room->guests as $guest)
+                                                        <div class="name">{{ $guest->middleName }}</div>
                                                     @endforeach
                                                 </td>
                                             </tr>
@@ -119,11 +102,19 @@
                                             </tr>
                                             <tr>
                                                 <td>@lang('main.count_child'):</td>
-                                                <td>
-                                                    @if (request()->filled('childAges'))
-                                                        {{ count($room->guestCount->childAges) }}
-                                                    @else
-                                                        0
+                                                @php
+                                                    $childAgesInput = (array) $request->input('childAges', []);
+                                                $childAges = collect($childAgesInput)
+                                                    ->flatMap(fn($ageString) => explode(',', $ageString)) // "2,4" → ["2", "4"]
+                                                    ->map(fn($age) => (int) trim($age))                   // убираем пробелы и делаем числа
+                                                    ->filter(fn($age) => $age > 0)                        // убираем пустые/нулевые
+                                                    ->values()                                            // пересобираем индексы
+                                                    ->toArray();
+
+                                                $count = count($childAges);
+                                                @endphp
+                                                <td>{{ $childCount }} @if($count > 0)
+                                                        (@lang('main.age'): {{ implode(', ', $childAges) }}
                                                     @endif</td>
                                                 {{--                                    <td>{{ implode(',', explode($order->booking->roomStays[0]->guestCount->childAges)) }}</td>--}}
                                                 {{--                                    <td>{{ count($order->booking->roomStays[0]->guestCount->guestCount->childAges) }}</td>--}}
@@ -144,12 +135,12 @@
                                             <input type="hidden" name="propertyId"
                                                    value="{{ $order->booking->propertyId }}">
                                             <input type="hidden" name="hotel_id" value="{{ $request->hotel_id }}">
-                                            <input type="hidden" name="total"
-                                                   value="{{ round($converted) }}">
-                                            <input type="hidden" name="price" value="{{ $request->price }}">
-                                            <input type="hidden" name="cancellation"
-                                                   value="{{ round($convertedCancel) }}">
-                                            <input type="hidden" name="cancelPriceSource" value="{{ $request->cancelPriceSource }}">
+                                            <input type="hidden" name="brut_price" value="{{ $request->brut_price }}">
+                                            <input type="hidden" name="net_price" value="{{ $request->net_price }}">
+                                            <input type="hidden" name="cancel_brut_price"
+                                                   value="{{ round($request->cancel_brut_price) }}">
+                                            <input type="hidden" name="cancel_net_price"
+                                                   value="{{ $request->cancel_net_price }}">
                                             <input type="hidden" name="currency" value="{{ $request->currency }}">
                                             <input type="hidden" name="source_sym" value="{{ $request->source_sym }}">
                                             <input type="hidden" name="arrivalDate"
@@ -164,18 +155,17 @@
                                                    value="{{ $order->booking->roomStays[0]->roomType->placements[0]->code }}">
                                             <input type="hidden" name="firstName"
                                                    value="{{ $order->booking->roomStays[0]->guests[0]->firstName }}">
-                                            <input type="hidden" name="lastName"
-                                                   value="{{ $order->booking->roomStays[0]->guests[0]->lastName }}">
+                                            <input type="hidden" name="middleName"
+                                                   value="{{ $order->booking->roomStays[0]->guests[0]->middleName }}">
                                             <input type="hidden" name="sex" value="Male">
                                             <input type="hidden" name="citizenship" value="KGS">
                                             <input type="hidden" name="placements"
                                                    value="{{ json_encode($order->booking->roomStays[0]->roomType->placements) }}">
                                             <input type="hidden" name="adultCount"
                                                    value="{{ $order->booking->roomStays[0]->guestCount->adultCount }}">
-                                            @if (request()->filled('childAges'))
-                                                <input type="hidden" name="childAges[]"
-                                                       value="{{ implode(',', $order->booking->roomStays[0]->guestCount->childAges) }}">
-                                            @endif
+                                            <input type="hidden" name="child" value="{{ $childCount }}">
+                                            <input type="hidden" name="childAges"
+                                                   value="{{ implode(', ', $childAges) }}">
                                             <input type="hidden" name="createBookingToken"
                                                    value="{{ $order->booking->createBookingToken }}">
                                             <input type="hidden" name="checkSum"
@@ -186,7 +176,11 @@
                                                    value="{{ $order->booking->customer->contacts->phones[0]->phoneNumber }}">
                                             <input type="hidden" name="email"
                                                    value="{{ $order->booking->customer->contacts->emails[0]->emailAddress }}">
-                                            <button class="more">@lang('main.confirm')</button>
+                                            @hasrole('Demo')
+                                            <div class="alert alert-danger">Доступ ограничен</div>
+                                            @else
+                                                <button class="more">@lang('main.confirm')</button>
+                                                @endhasrole
                                         </form>
                                     </div>
                                 @else
@@ -203,7 +197,6 @@
                                             //currency
                                                 $baseCancelPrice = round($order->alternativeBooking->cancellationPolicy->penaltyAmount * config('services.main.coef') / 100 + $order->alternativeBooking->cancellationPolicy->penaltyAmount, 0);
                                                 $basePrice = round($order->alternativeBooking->total->priceBeforeTax * config('services.main.coef') / 100 + $order->alternativeBooking->total->priceBeforeTax, 0);
-
                                                                     $toCurrency = strtoupper($fxBase ?? 'USD');
 
                                                                     $fxRates = [
@@ -226,11 +219,11 @@
                                                                     $symbol = $symbols[$toCurrency] ?? $toCurrency;
 
                                             @endphp
-                                            <td>{{ $hotel->title }}</td>
+                                            <td>{{ $hotel->__('title') }}</td>
                                         </tr>
                                         <tr>
                                             <td>@lang('main.price'):</td>
-                                            <td>{{ round($converted)  }} {{ $symbol }}</td>
+                                            <td>{{ round($request->brut_price)  }} {{ $request->currency }}</td>
                                         </tr>
                                         <tr>
                                             @php
@@ -280,13 +273,7 @@
                                             <tr>
                                                 <td>@lang('main.count_child'):</td>
                                                 {{--                                        {{ implode(',', $room->guestCount->childAges) }}--}}
-                                                <td>
-                                                    @if (request()->filled('childAges'))
-                                                        {{ count($room->guestCount->childAges) }}
-                                                    @else
-                                                        0
-                                                    @endif
-                                                </td>
+                                                <td>{{ $childCount }}</td>
                                             </tr>
                                             <tr>
                                                 <td>@lang('main.room'):</td>
@@ -297,7 +284,17 @@
                                                 <td>
                                                     <ul>
                                                         @foreach($room->guests as $guest)
-                                                            <li>{{ $guest->firstName }} {{ $guest->lastName }}</li>
+                                                            <li>{{ $guest->firstName }}</li>
+                                                        @endforeach
+                                                    </ul>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>@lang('main.full_name') @lang('main.child'):</td>
+                                                <td>
+                                                    <ul>
+                                                        @foreach($room->guests as $guest)
+                                                            <li>{{ $guest->middleName }}</li>
                                                         @endforeach
                                                     </ul>
                                                 </td>
@@ -312,10 +309,10 @@
                                         <form action="{{ route('book_reserve_exely') }}" method="get">
                                             <input type="hidden" name="propertyId"
                                                    value="{{ $order->alternativeBooking->propertyId }}">
-                                            <input type="hidden" name="total"
+                                            <input type="hidden" name="brut_price"
                                                    value="{{ round($converted) }}">
                                             {{--                            <input type="hidden" name="taxes" value="{{ $order->booking->total->taxes }}">--}}
-                                            <input type="hidden" name="cancellation"
+                                            <input type="hidden" name="cancel_brut_price"
                                                    value="{{ round($convertedCancel) }}">
                                             <input type="hidden" name="propertyId"
                                                    value="{{ $order->alternativeBooking->propertyId }}">
@@ -331,8 +328,8 @@
                                                    value="{{ $order->alternativeBooking->roomStays[0]->roomType->placements[0]->code }}">
                                             <input type="hidden" name="firstName"
                                                    value="{{ $order->alternativeBooking->roomStays[0]->guests[0]->firstName }}">
-                                            <input type="hidden" name="lastName"
-                                                   value="{{ $order->alternativeBooking->roomStays[0]->guests[0]->lastName }}">
+                                            <input type="hidden" name="middleName"
+                                                   value="{{ $order->alternativeBooking->roomStays[0]->guests[0]->middleName }}">
                                             <input type="hidden" name="sex" value="Male">
                                             <input type="hidden" name="citizenship" value="KGS">
                                             <input type="hidden" name="placements"
@@ -353,7 +350,11 @@
                                                    value="{{ $order->alternativeBooking->customer->contacts->phones[0]->phoneNumber }}">
                                             <input type="hidden" name="email"
                                                    value="{{ $order->alternativeBooking->customer->contacts->emails[0]->emailAddress }}">
-                                            <button class="more">@lang('main.confirm')</button>
+                                            @hasrole('Demo')
+                                                <div class="alert alert-danger">Доступ ограничен</div>
+                                            @else
+                                                <button class="more">@lang('main.confirm')</button>
+                                            @endhasrole
                                         </form>
                                     </div>
                                 @endif

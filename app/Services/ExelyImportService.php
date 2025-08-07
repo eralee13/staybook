@@ -61,78 +61,106 @@ class ExelyImportService
 
     protected function importHotel($property)
     {
-        $imagePath = null;
+        $fields = [
+            'title' => $property->name,
+            'title_en' => $property->name,
+            'code' => Str::slug($property->name),
+            'rating' => $property->stars ?? null,
+            'city' => $property->contactInfo->address->cityName,
+            'address' => $property->contactInfo->address->addressLine,
+            'address_en' => $property->contactInfo->address->addressLine,
+            'lat' => $property->contactInfo->address->latitude,
+            'lng' => $property->contactInfo->address->longitude,
+            'phone' => $property->contactInfo->phones[0]->phoneNumber ?? '',
+            'email' => $property->contactInfo->emails[0] ?? '',
+            'checkin' => $property->policy->checkInTime ?? null,
+            'checkout' => $property->policy->checkOutTime ?? null,
+            'early_in' => '',
+            'late_out' => '',
+            'timezone' => $property->timeZone->id ?? null,
+            'status' => 1,
+        ];
+
+        // Только если description не пустой
+        if (!empty($property->description)) {
+            $fields['description'] = $property->description;
+            $fields['description_en'] = $property->description;
+        }
+
+        // Удобства (amenities)
+        $amenities = collect($property->amenities ?? [])->pluck('name')->filter()->implode(',');
+        if (!empty($amenities)) {
+            $fields['amenities'] = $amenities;
+        }
+
+        // Загрузка изображения, если оно есть
         if (!empty($property->images)) {
             $url = $property->images[0]->url;
             try {
                 $imageContents = file_get_contents($url);
                 $filename = 'hotels/' . Str::uuid() . '.jpg';
                 Storage::disk('public')->put($filename, $imageContents);
-                $imagePath = $filename;
+                $fields['image'] = $filename;
             } catch (\Exception $e) {
-                $imagePath = null;
+                // Не записываем image, если ошибка
             }
         }
 
         return Hotel::updateOrCreate(
             ['exely_id' => $property->id],
-            [
-                'title' => $property->name,
-                'title_en' => $property->name,
-                'code' => Str::slug($property->name),
-                'description' => $property->description,
-                'description_en' => $property->description,
-                'image' => $imagePath,
-                'rating' => $property->stars ?? null,
-                'city' => $property->contactInfo->address->cityName,
-                'address' => $property->contactInfo->address->addressLine,
-                'address_en' => $property->contactInfo->address->addressLine,
-                'lat' => $property->contactInfo->address->latitude,
-                'lng' => $property->contactInfo->address->longitude,
-                'phone' => $property->contactInfo->phones[0]->phoneNumber ?? '',
-                'email' => $property->contactInfo->emails[0] ?? '',
-                'checkin' => $property->policy->checkInTime ?? null,
-                'checkout' => $property->policy->checkOutTime ?? null,
-                'early_in' => '',
-                'late_out' => '',
-                'timezone' => $property->timeZone->id ?? null,
-                'status' => 1,
-            ]
+            $fields
         );
     }
 
     protected function importRooms($property, $hotel)
     {
         foreach ($property->roomTypes ?? [] as $room) {
-            $imagePath = 'images/no-image.png';
+            $fields = [
+                'title' => $room->name,
+                'title_en' => $room->name,
+                'code' => Str::slug($room->name),
+                'hotel_id' => $hotel->id,
+                'status' => 1,
+            ];
+
+            // Загрузка изображения, если есть
             if (!empty($room->images[0]->url)) {
                 try {
                     $imageContents = file_get_contents($room->images[0]->url);
                     $ext = pathinfo(parse_url($room->images[0]->url, PHP_URL_PATH), PATHINFO_EXTENSION);
                     $filename = 'rooms/' . Str::uuid() . '.' . ($ext ?: 'jpg');
                     Storage::disk('public')->put($filename, $imageContents);
-                    $imagePath = $filename;
+                    $fields['image'] = $filename;
                 } catch (\Exception $e) {
+                    // Не добавляем image
                 }
             }
 
-            $amenities = collect($room->amenities ?? [])->pluck('name')->implode(',');
+            // Description
+            if (!empty($room->description)) {
+                $fields['description'] = $room->description;
+                $fields['description_en'] = $room->description;
+            }
+
+            // Площадь (area)
+            if (!empty($room->size->value)) {
+                $fields['area'] = $room->size->value;
+            }
+
+            // Категория (если есть)
+            if (!empty($room->categoryName)) {
+                $fields['category_id'] = $room->categoryName;
+            }
+
+            // Удобства (amenities)
+            $amenities = collect($room->amenities ?? [])->pluck('name')->filter()->implode(',');
+            if (!empty($amenities)) {
+                $fields['amenities'] = $amenities;
+            }
 
             Room::updateOrCreate(
                 ['exely_id' => $room->id],
-                [
-                    'title' => $room->name,
-                    'title_en' => $room->name,
-                    'code' => Str::slug($room->name),
-                    'description' => $room->description,
-                    'description_en' => $room->description,
-                    'area' => $room->size->value ?? null,
-                    'image' => $imagePath,
-                    'hotel_id' => $hotel->id,
-                    'category_id' => $room->categoryName ?? null,
-                    'amenities' => $amenities,
-                    'status' => 1,
-                ]
+                $fields
             );
         }
     }

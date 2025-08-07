@@ -181,7 +181,11 @@
                                 <input type="hidden" name="checkout_request" value="{{ $request->checkout_request }}">
                                 <input type="hidden" name="checkin_time" value="{{ $request->checkin_time }}">
                                 <input type="hidden" name="checkout_time" value="{{ $request->checkout_time }}">
-                                <button class="more">@lang('main.confirm')</button>
+                                @hasrole('Demo')
+                                <div class="alert alert-danger">Доступ ограничен</div>
+                                @else
+                                    <button class="more">@lang('main.confirm')</button>
+                                    @endhasrole
                             </form>
                         </div>
                     </div>

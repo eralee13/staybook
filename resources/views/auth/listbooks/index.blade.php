@@ -81,12 +81,35 @@
                                         </div>
                                     </td>
                                     <td>
-
-                                            <ul>
-                                                <a href="{{ route('listbooks.show', $book)}}"><img src="{{ route('index') }}/img/icons/eye.svg" alt=""></a>
-
-                                            </ul>
-
+                                        @if($book->api_type == 'local')
+                                            <form action="{{ route('listbooks.cancel_calculate', $book) }}"
+                                                  method="post">
+                                                <ul>
+                                                    <a href="{{ route('listbooks.show', $book)}}"><img
+                                                                src="{{ route('index') }}/img/icons/eye.svg" alt=""></a>
+                                                    @csrf
+                                                    @if($book->status == 'Reserved')
+                                                        <button class="btn delete"
+                                                                onclick="return confirm('Do you want to cancel this?');">
+                                                            @lang('admin.cancel_btn')</button>
+                                                    @endif
+                                                </ul>
+                                            </form>
+                                        @else
+                                            <form action="{{ route('listbooks.cancel_calculate_exely', $book) }}"
+                                                  method="post">
+                                                <ul>
+                                                    <a href="{{ route('listbooks.show', $book)}}"><img
+                                                                src="{{ route('index') }}/img/icons/eye.svg" alt=""></a>
+                                                    @csrf
+                                                    @if($book->status == 'Reserved')
+                                                        <button class="btn delete"
+                                                                onclick="return confirm('Do you want to cancel this?');">
+                                                            Отменить</button>
+                                                    @endif
+                                                </ul>
+                                            </form>
+                                        @endif
                                     </td>
                                 </tr>
                             @endforeach

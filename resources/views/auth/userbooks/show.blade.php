@@ -26,7 +26,7 @@
                         <div class="col-md-6">
                             <div class="dashboard-item">
                                 @php
-                                    $hotel = \App\Models\Hotel::where('id', $book->hotel_id)->first();
+                                    $hotel = \App\Models\Hotel::where('id', $book->hotel_id)->orWhere('exely_id', $book->hotel_id)->first();
                                     $room = \App\Models\Room::where('id', $book->room_id)->orWhere('exely_id', $book->room_id)->first();
                                     $img = \App\Models\Image::where('room_id', $room->id)->first();
                                     $rate = \App\Models\Rate::where('id', $book->rate_id)->first();
@@ -40,7 +40,7 @@
                             <div class="dashboard-item">
                                 <div class="name">@lang('admin.hotel')</div>
                                 <div class="wrap">
-                                    {{ $hotel->__('title') }} <br>
+                                    {{ $hotel->title }} <br>
                                     <div class="name" style="margin-top: 20px">@lang('admin.room')</div>
                                     {{ $room->__('title') ?? ''}} <br>
                                     @if(!empty($rate))
@@ -102,35 +102,44 @@
                                 @endif
                             </div>
                             @php
-                                $cancelPossible = \App\Models\CancellationRule::where('rate_id', $rate->id)->firstOrFail();
-                                $freeDate = \Carbon\Carbon::parse($book->arrivalDate)->format('d.m.Y H:i');
-                                $cancel = \App\Models\CancellationRule::where('id', $book->cancellation_id)->firstOrFail();
-                                $cancelDate = \Carbon\Carbon::parse($book->arrivalDate)->subDays($cancel->free_cancellation_days)->format('d.m.Y H:i');
+                                if(isset($rate)){
+                                    $cancelPossible = \App\Models\CancellationRule::where('rate_id', $rate->id)->first();
+                                    $freeDate = \Carbon\Carbon::parse($book->arrivalDate)->format('d.m.Y H:i');
+                                    $cancel = \App\Models\CancellationRule::where('id', $book->cancellation_id)->first();
+                                    $cancelDate = \Carbon\Carbon::parse($book->arrivalDate)->subDays($cancel->free_cancellation_days)->format('d.m.Y H:i');
+                                }
                                 $timezone = \Carbon\Carbon::parse($hotel->timezone)->format('P');
                             @endphp
-                            <div class="dashboard-item">
-                                <div class="name">@lang('main.cancellation_policy')</div>
-                                <div class="title">
-                                    @if($cancel->cancel_policy === 'free_until_checkin')
-                                        <td>@lang('main.free_cancellation') {{ $freeDate }}
-                                            UTC {{ $timezone }}</td>
+                            @isset($rate)
+                                <div class="dashboard-item">
+                                    <div class="name">@lang('main.cancellation_policy')</div>
+                                    <div class="title">
+                                        @if($cancel->cancel_policy === 'free_until_checkin')
+                                            <td>@lang('main.free_cancellation') {{ $freeDate }}
+                                                UTC {{ $timezone }}</td>
 
-                                    @elseif($cancel->cancel_policy === 'free_then_penalty')
-                                        @if(now()->lte($cancelDate))
-                                            @lang('main.free_cancellation') {{ $cancelDate }}
+                                        @elseif($cancel->cancel_policy === 'free_then_penalty')
+                                            @if(now()->lte($cancelDate))
+                                                @lang('main.free_cancellation') {{ $cancelDate }}
                                                 UTC {{ $timezone }}
-                                        @else
-                                            @lang('main.cancellation_is_not_avaialble')
-                                                .
-                                                @endif
-                                                @lang('main.cancellation_amount')
-                                                : {{ $book->cancel_penalty }} {{ $book->currency }}
                                             @else
-                                                @lang('main.cancellation_amount')
-                                                    : {{ $book->cancel_penalty }} {{ $book->currency }}
+                                                @lang('main.cancellation_is_not_avaialble')
+                                                .
                                             @endif
+                                            @lang('main.cancellation_amount')
+                                            : {{ $book->cancel_penalty }} {{ $book->currency }}
+                                        @else
+                                            @lang('main.cancellation_amount')
+                                            : {{ $book->cancel_penalty }} {{ $book->currency }}
+                                        @endif
+                                    </div>
                                 </div>
-                            </div>
+                            @else
+                                <div class="dashboard-item">
+                                    <div class="name">@lang('main.cancellation_amount')</div>
+                                    <div class="title">{{ $book->cancel_penalty }} {{ $book->currency }}</div>
+                                </div>
+                            @endisset
                             <div class="dashboard-item">
                                 <div class="name" style="margin-top: 20px">@lang('admin.status')</div>
                                 <div class="status">
@@ -147,9 +156,9 @@
                     <div class="row">
                         <div class="col-md-6">
                             @php
-                                $lat = old('lat', isset($room->hotel->lat) ? $room->hotel->lat : 42.8746);
-                                $lng = old('lng', isset($room->hotel->lng) ? $room->hotel->lng : 74.6120);
-                                $zoom = 15;
+                                $lat = old('lat', isset($hotel->lat) ? $hotel->lat : 42.8746);
+                                $lng = old('lng', isset($hotel->lng) ? $hotel->lng : 74.6120);
+                                $zoom = 13;
                                 $width = 500;
                                 $height = 180;
 

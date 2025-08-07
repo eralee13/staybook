@@ -8,6 +8,16 @@
 
 @section('content')
 
+    <style>
+        .output{
+            color: red;
+            font-size: 12px;
+        }
+        .output.agree{
+            color: green;
+        }
+    </style>
+
     <div class="page admin">
         <div class="container">
             <div class="row">
@@ -68,7 +78,6 @@
                                     <select class="form-select @error('roles') is-invalid @enderror" aria-label="Roles"
                                             id="roles" name="roles[]">
                                         @forelse ($roles as $role)
-
                                             @if ($role!='Super Admin')
                                                 <option value="{{ $role }}" {{ in_array($role, $userRoles ?? []) ? 'selected' : '' }}>
                                                     {{ $role }}
@@ -85,41 +94,43 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="">Название банка</label>
-                                    <input type="text" name="bank_name" value="{{ old('bank_name', isset
-                            ($user) ? $user->bank_name : null) }}">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="">ИНН</label>
-                                    <input type="text" name="bank_inn" value="{{ old('bank_inn', isset
-                            ($user) ? $user->bank_inn : null) }}">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="">Р/с</label>
-                                    <input type="text" name="bank_account" value="{{ old('bank_account', isset
-                            ($user) ? $user->bank_account : null) }}">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="">БИК</label>
-                                    <input type="text" name="bank_bic" value="{{ old('bank_bic', isset
-                            ($user) ? $user->bank_bic : null) }}">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="">Адрес</label>
-                                    <input type="text" name="address" value="{{ old('address', isset
-                            ($user) ? $user->address : null) }}">
-                                </div>
-                            </div>
+{{--                            @role('hotel')--}}
+{{--                            <div class="col-md-6">--}}
+{{--                                <div class="form-group">--}}
+{{--                                    <label for="">Название банка</label>--}}
+{{--                                    <input type="text" name="bank_name" value="{{ old('bank_name', isset--}}
+{{--                            ($user) ? $user->bank_name : null) }}">--}}
+{{--                                </div>--}}
+{{--                            </div>--}}
+{{--                            <div class="col-md-6">--}}
+{{--                                <div class="form-group">--}}
+{{--                                    <label for="">ИНН</label>--}}
+{{--                                    <input type="text" name="bank_inn" value="{{ old('bank_inn', isset--}}
+{{--                            ($user) ? $user->bank_inn : null) }}">--}}
+{{--                                </div>--}}
+{{--                            </div>--}}
+{{--                            <div class="col-md-6">--}}
+{{--                                <div class="form-group">--}}
+{{--                                    <label for="">Р/с</label>--}}
+{{--                                    <input type="text" name="bank_account" value="{{ old('bank_account', isset--}}
+{{--                            ($user) ? $user->bank_account : null) }}">--}}
+{{--                                </div>--}}
+{{--                            </div>--}}
+{{--                            <div class="col-md-6">--}}
+{{--                                <div class="form-group">--}}
+{{--                                    <label for="">БИК</label>--}}
+{{--                                    <input type="text" name="bank_bic" value="{{ old('bank_bic', isset--}}
+{{--                            ($user) ? $user->bank_bic : null) }}">--}}
+{{--                                </div>--}}
+{{--                            </div>--}}
+{{--                            <div class="col-md-6">--}}
+{{--                                <div class="form-group">--}}
+{{--                                    <label for="">Адрес</label>--}}
+{{--                                    <input type="text" name="address" value="{{ old('address', isset--}}
+{{--                            ($user) ? $user->address : null) }}">--}}
+{{--                                </div>--}}
+{{--                            </div>--}}
+{{--                            @endrole--}}
                         </div>
                         <div class="row">
                             <div class="col-md-6">

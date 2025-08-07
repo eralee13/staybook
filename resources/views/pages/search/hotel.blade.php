@@ -168,8 +168,8 @@
                                                 @if($room->rates->isEmpty())
                                                     <p class="text-muted">
                                                         @if(app()->getLocale() == 'ru')
-                                                        Нет доступных тарифов для этих дат и
-                                                        гостей
+                                                            Нет доступных тарифов для этих дат и
+                                                            гостей
                                                         @else
                                                             No available rates for the selected dates and guests
                                                         @endif
@@ -225,9 +225,7 @@
                                                                     @php
                                                                         $baseCancelPrice = round($cancel->penalty_amount ?? 1 * config('services.main.coef') / 100 + $cancel->penalty_amount ?? 1, 0);
                                                                         $basePrice = round($sum * config('services.main.coef') / 100 + $sum, 0);
-
                                                                         $toCurrency = strtoupper($fxBase ?? 'USD');
-
                                                                         $symbols = [
                                                                             'USD' => '$',
                                                                             'RUB' => '₽',
@@ -340,6 +338,7 @@
                                                                     </form>
                                                                 </div>
                                                             </div>
+
                                                         @endforeach
 
                                                     </div>

@@ -67,8 +67,8 @@ class BookingController extends Controller
             'comment' => $request->get('comment'),
             'book_token' => $str,
             'user_id' => Auth::id() ?? '1',
-            'checkin_request' => $request->get('checkin_request'),
-            'checkout_request' => $request->get('checkout_request'),
+            'checkin_request' => $request->get('checkin_request') ?? 0,
+            'checkout_request' => $request->get('checkout_request') ?? 0,
             'checkin_time' => $request->get('checkin_time'),
             'checkout_time' => $request->get('checkout_time'),
             'api_type' => 'local',
@@ -143,6 +143,31 @@ class BookingController extends Controller
 
             $childAges = array_map('intval', $request->input('childAges', []));
 
+            $childAgesInput = (array) $request->input('childAges', []);
+
+            $childCount = collect($childAgesInput)
+                ->flatMap(fn($ages) => explode(',', $ages)) // "1,6" → ["1", "6"]
+                ->map(fn($age) => (int) trim($age))         // убираем пробелы и делаем числа
+                ->filter(fn($age) => $age > 0)              // убираем пустые
+                ->count();
+
+
+            $titles = [];
+            for ($i = 1; $i <= 8; $i++) {
+                if (!empty($request["title{$i}"])) {
+                    $titles[] = trim($request["title{$i}"]);
+                }
+            }
+            $fullName = implode(', ', $titles);
+
+            $childNames = [];
+            for ($i = 1; $i <= 8; $i++) {
+                if (!empty($request["child_name{$i}"])) {
+                    $childNames[] = trim($request["child_name{$i}"]);
+                }
+            }
+            $childName = implode(', ', $childNames);
+
             if (request()->filled('childAges')) {
                 $main_array = [
                     "booking" => [
@@ -162,9 +187,9 @@ class BookingController extends Controller
                                 ],
                                 "guests" => [
                                     [
-                                        "firstName" => $request->get("name"),
-                                        "lastName" => $request->get("name"),
-                                        "middleName" => $request->get("name"),
+                                        "firstName" => $fullName,
+                                        "lastName" => '-',
+                                        "middleName" => $childName,
                                         "citizenship" => "KGS",
                                         "sex" => "Male"
                                     ]
@@ -179,9 +204,9 @@ class BookingController extends Controller
                         ],
                         "services" => [],
                         "customer" => [
-                            "firstName" => $request->get("name"),
-                            "lastName" => $request->get("name"),
-                            "middleName" => $request->get("name"),
+                            "firstName" => $fullName,
+                            "lastName" => '-',
+                            "middleName" => $childName,
                             "citizenship" => "KGS",
                             "contacts" => [
                                 "phones" => [
@@ -221,9 +246,9 @@ class BookingController extends Controller
                                 ],
                                 "guests" => [
                                     [
-                                        "firstName" => $request->get("name"),
-                                        "lastName" => $request->get("name"),
-                                        "middleName" => $request->get("name"),
+                                        "firstName" => $fullName,
+                                        "lastName" => $fullName,
+                                        "middleName" => $fullName,
                                         "citizenship" => "KGS",
                                         "sex" => "Male"
                                     ]
@@ -238,9 +263,9 @@ class BookingController extends Controller
                         ],
                         "services" => [],
                         "customer" => [
-                            "firstName" => $request->get("name"),
-                            "lastName" => $request->get("name"),
-                            "middleName" => $request->get("name"),
+                            "firstName" => $fullName,
+                            "lastName" => $fullName,
+                            "middleName" => $fullName,
                             "citizenship" => "KGS",
                             "contacts" => [
                                 "phones" => [
@@ -263,20 +288,17 @@ class BookingController extends Controller
                     ]
                 ];
             }
-            //dd($main_array);
+
             $response = Http::timeout(60)
                 ->withHeaders(['x-api-key' => config('services.exely.key'), 'accept' => 'application/json'])
                 ->post(config('services.exely.base_url') . 'reservation/v1/bookings/verify', $main_array);
-            //dd($response->object());
             $order = $response->object();
-            //dd($order);
 
             if (!isset($order->errors)) {
-                return view('pages.booking.exely.order-verify', compact('order', 'request'));
+                return view('pages.booking.exely.order-verify', compact('order', 'request', 'childCount'));
             } else {
-                //dd('error');
                 Log::warning('Запрос завершился ошибкой: ' . $response->status());
-                return view('pages.booking.exely.order-verify', compact('order', 'request'));
+                return view('pages.booking.exely.order-verify', compact('order', 'request', 'childCount'));
             }
         } catch (RequestException $e) {
             Log::error('Ошибка запроса: ' . $e->getMessage());
@@ -305,9 +327,14 @@ class BookingController extends Controller
                 ];
             }
 
-            $childAges = array_map('intval', $request->input('childAges', []));
+            $childAgesRaw = $request->input('childAges', []);
 
-            if (request()->filled('childAges')) {
+            if (is_string($childAgesRaw)) {
+                $childAgesRaw = explode(',', $childAgesRaw);
+            }
+            $childAges = array_map('intval', (array) $childAgesRaw);
+
+            if ($childAges) {
                 $array = [
                     "booking" => [
                         "propertyId" => $request->get("propertyId"),
@@ -327,8 +354,8 @@ class BookingController extends Controller
                                 "guests" => [
                                     [
                                         "firstName" => $request->get("firstName"),
-                                        "lastName" => $request->get("lastName"),
-                                        "middleName" => $request->get("firstName"),
+                                        "lastName" => '-',
+                                        "middleName" => $request->get("middleName"),
                                         "citizenship" => "KGS",
                                         "sex" => $request->get("sex"),
                                     ]
@@ -338,16 +365,12 @@ class BookingController extends Controller
                                     "childAges" => $childAges,
                                 ],
                                 "checksum" => $request->get("checkSum"),
-                                "services" => [
-                                ],
                             ]
-                        ],
-                        "services" => [
                         ],
                         "customer" => [
                             "firstName" => $request->get("firstName"),
-                            "lastName" => $request->get("lastName"),
-                            "middleName" => $request->get("firstName"),
+                            "lastName" => '-',
+                            "middleName" => $request->get("middleName"),
                             "citizenship" => "KGS",
                             "contacts" => [
                                 "phones" => [
@@ -396,8 +419,8 @@ class BookingController extends Controller
                                 "guests" => [
                                     [
                                         "firstName" => $request->get("firstName"),
-                                        "lastName" => $request->get("lastName"),
-                                        "middleName" => $request->get("firstName"),
+                                        "lastName" => '-',
+                                        "middleName" => $request->get("middleName"),
                                         "citizenship" => "KGS",
                                         "sex" => $request->get("sex"),
                                     ]
@@ -407,16 +430,12 @@ class BookingController extends Controller
                                     "childAges" => [],
                                 ],
                                 "checksum" => $request->get("checkSum"),
-                                "services" => [
-                                ],
                             ]
-                        ],
-                        "services" => [
                         ],
                         "customer" => [
                             "firstName" => $request->get("firstName"),
-                            "lastName" => $request->get("lastName"),
-                            "middleName" => $request->get("firstName"),
+                            "lastName" =>  '-',
+                            "middleName" => $request->get("middleName"),
                             "citizenship" => "KGS",
                             "contacts" => [
                                 "phones" => [
@@ -450,7 +469,6 @@ class BookingController extends Controller
                 ->withHeaders(['x-api-key' => config('services.exely.key'), 'accept' => 'application/json'])
                 ->post(config('services.exely.base_url') . 'reservation/v1/bookings', $array);
 
-
             // Проверка на успешность
             if ($response->successful()) {
                 $res = $response->object();
@@ -461,39 +479,26 @@ class BookingController extends Controller
                             'room_id' => $request->get('roomTypeId'),
                             'arrivalDate' => $request->get('arrivalDate'),
                             'departureDate' => $request->get('departureDate'),
-                            'cancellation' => $res->booking->cancellationPolicy->penaltyAmount,
+                            //'cancellation_id' => '',
+                            'cancel_penalty' => $res->booking->cancellationPolicy->penaltyAmount,
+                            'cancel_price_source' => $request->cancel_net_price,
                             'rate_id' => $request->get('ratePlanId'),
-                            'currency' => $res->booking->currencyCode,
-                            'title' => implode(', ', array_filter([
-                                $request->get('firstName'),
-                                $request->get('title2'),
-                                $request->get('title3'),
-                                $request->get('title4'),
-                                $request->get('title5'),
-                                $request->get('title6'),
-                                $request->get('title7'),
-                                $request->get('title8'),
-                            ])),
-                            'child_name' => implode(', ', array_filter([
-                                $request->get('child_name1'),
-                                $request->get('child_name2'),
-                                $request->get('child_name3'),
-                                $request->get('child_name4'),
-                                $request->get('child_name5'),
-                                $request->get('child_name6'),
-                                $request->get('child_name7'),
-                                $request->get('child_name8'),
-                            ])),
+                            'currency' => $request->currency,
+                            'source_sym' => $request->source_sym,
+                            'title' => $request->firstName,
+                            'child_name' => $request->middleName,
                             'phone' => $request->get('phone'),
                             'email' => $request->get('email'),
                             'comment' => $request->get('comment'),
                             'adult' => $request->get('adultCount'),
-                            'child' => implode($request->get("childAges")),
-                            'sum' => $request->get('total'),
+                            'child' => $request->child,
+                            'childAges' => $request->childAges,
+                            'sum' => $request->get('brut_price'),
+                            'price' => $request->get('net_price'),
                             'status' => 'Reserved',
                             'book_token' => $res->booking->number,
                             'user_id' => Auth::id() ?? 1,
-                            'tag' => 'exely'
+                            'api_type' => 'exely'
                         ]);
                         $email = Contact::first()->email;
                         Mail::to($email)->send(new BookMail($book));
@@ -504,34 +509,22 @@ class BookingController extends Controller
                             'room_id' => $request->get('roomTypeId'),
                             'arrivalDate' => $request->get('arrivalDate'),
                             'departureDate' => $request->get('departureDate'),
-                            'cancellation' => $res->booking->cancellationPolicy->penaltyAmount,
+                            //'cancellation_id' => '',
+                            'cancel_penalty' => $res->booking->cancellationPolicy->penaltyAmount,
+                            'cancel_price_source' => $request->cancel_net_price,
                             'rate_id' => $request->get('ratePlanId'),
-                            'currency' => $res->booking->currencyCode,
-                            'title' => implode(', ', array_filter([
-                                $request->get('firstName'),
-                                $request->get('title2'),
-                                $request->get('title3'),
-                                $request->get('title4'),
-                                $request->get('title5'),
-                                $request->get('title6'),
-                                $request->get('title7'),
-                                $request->get('title8'),
-                            ])),
-                            'child_name' => implode(', ', array_filter([
-                                $request->get('child_name1'),
-                                $request->get('child_name2'),
-                                $request->get('child_name3'),
-                                $request->get('child_name4'),
-                                $request->get('child_name5'),
-                                $request->get('child_name6'),
-                                $request->get('child_name7'),
-                                $request->get('child_name8'),
-                            ])),
+                            'currency' => $request->currency,
+                            'source_sym' => $request->source_sym,
+                            'title' => $request->firstName,
+                            'child_name' => $request->middleName,
                             'phone' => $request->get('phone'),
                             'email' => $request->get('email'),
                             'comment' => $request->get('comment'),
                             'adult' => $request->get('adultCount'),
-                            'sum' => $request->get('total'),
+                            'child' => $request->child,
+                            'childAges' => $request->childAges,
+                            'sum' => $request->get('brut_price'),
+                            'price' => $request->get('net_price'),
                             'status' => 'Reserved',
                             'book_token' => $res->booking->number,
                             'user_id' => Auth::id() ?? 1,
@@ -542,9 +535,9 @@ class BookingController extends Controller
                         Log::warning('Бронь создана: ' . $book->id);
                     }
                 }
-                return view('pages.booking.exely.order-reserve', compact('res'));
+                return view('pages.booking.exely.order-reserve', compact('res','request'));
             } else {
-                Log::warning('Запрос завершился ошибкой: ' . $response->status());
+                Log::warning('Запрос на бронь завершился ошибкой: ' . $response->status());
                 return view('errors.400', compact('response'));
             }
 
@@ -595,13 +588,10 @@ class BookingController extends Controller
                 Log::warning('Отмена брони: ' . $book->id);
                 $email = Contact::first()->email;
                 Mail::to($email)->send(new BookCancelMail($book));
-
                 return view('pages.booking.exely.cancel-confirm', compact('cancel'));
             }
-
         } catch (RequestException $e) {
             Log::error('Ошибка запроса: ' . $e->getMessage());
-
             return response()->json(['error' => 'Сервис временно недоступен'], 503);
         }
     }

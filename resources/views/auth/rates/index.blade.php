@@ -29,7 +29,11 @@
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
                                     <td>{{ $rate->__('title') ?? '' }}</td>
-                                    <td>{{ $rate->room->__('title') ?? '' }}</td>
+                                    @isset($rate->room)
+                                        <td>{{ $rate->room->__('title') ?? '' }}</td>
+                                    @else
+                                        <td></td>
+                                    @endif
                                     <td>{{ $rate->meal->code ?? '' }}</td>
                                     <td>
                                         <form action="{{ route('rates.destroy', $rate) }}" method="post">
@@ -38,7 +42,9 @@
                                             }}"><img src="{{ route('index') }}/img/icons/edit.svg" alt=""></a></li>
                                                 @csrf
                                                 @method('DELETE')
-                                                <button onclick="return confirm('Do you want to delete this?');"><img src="{{ route('index') }}/img/icons/trash.svg" alt=""></button>
+                                                <button onclick="return confirm('Do you want to delete this?');"><img
+                                                            src="{{ route('index') }}/img/icons/trash.svg" alt="">
+                                                </button>
                                             </ul>
                                         </form>
                                     </td>

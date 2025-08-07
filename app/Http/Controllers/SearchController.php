@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Log;
 
 class SearchController extends Controller
 {
+
+
     public function search(Request $request)
     {
         $cities = City::whereNull('country_id')->orderBy('title')->get();
@@ -65,22 +67,19 @@ class SearchController extends Controller
         }
 
         $local = $hotelQuery->where('status', 1)->get();
-
         $localHotels = $local
             ->filter(fn($hotel) => empty($hotel->exely_id))
             ->map(function ($hotel) use ($fxRates) {
-                $minRate = $hotel->rates->min('price') ?? 0;
+                $minRate = (float) $hotel->rates->min('price') ?? 0;
                 $currency = $hotel->rates->first()?->currency ?? 'USD';
                 $rateFrom = $fxRates[$currency] ?? 1;
                 $priceUsd = $rateFrom > 0 ? $minRate / $rateFrom : $minRate;
-
                 return [
                     'source' => 'local',
                     'hotel' => $hotel,
                     'price' => round($priceUsd, 2),
                 ];
             });
-
         $propertyIds = $local
             ->pluck('exely_id')
             ->filter()
@@ -131,16 +130,31 @@ class SearchController extends Controller
 
         $allHotels = $localHotels->concat($exelyHotels)->sortBy('price')->values();
 
-        //dd($fxRates);
+        if ($request->filled('title')) {
+            $search = mb_strtolower($request->title);
 
-        //dd($allHotels->pluck('price'));
+            $allHotels = $allHotels->filter(function ($item) use ($search) {
+                $title = $item['hotel']->title ?? '';
+                return str_contains(mb_strtolower($title), $search);
+            })->values();
+        }
+
+
+//        if ($request->filled('title')) {
+//            $hotelQuery->where('title', 'like', '%' . $request->title . '%');
+//        }
 
         if ($request->sort === 'lowest_price') {
             $allHotels = $allHotels->sortBy('price')->values();
         } elseif ($request->sort === 'highest_price') {
             $allHotels = $allHotels->sortByDesc('price')->values();
         }
-
+//        } elseif ($request->sort === 'title_asc') {
+//            $allHotels = $allHotels->sortBy(fn($h) => mb_strtolower($h['hotel']->title ?? ''))->values();
+//        }
+//        elseif ($request->sort === 'title_desc') {
+//            $allHotels = $allHotels->sortByDesc(fn($h) => mb_strtolower($h['hotel']->title ?? ''))->values();
+//        }
 
         return view('pages.search.search', [
             'allHotels' => $allHotels,
@@ -154,6 +168,7 @@ class SearchController extends Controller
 
     public function findHotel($code, Request $request)
     {
+        $cities = City::whereNull('country_id')->orderBy('title')->get();
         $hotel = Hotel::where('code', $code)->first();
         $images = Image::where('hotel_id', $hotel->id)->get();
         //$hotel = Hotel::cacheFor(now()->addHours(2))->where('code', $code)->first();
@@ -175,7 +190,6 @@ class SearchController extends Controller
                 $q->whereIn('meal_id', $request->meal);
             }
 
-            // Показать только те тарифы, у которых нет бронирования
             if ($request->filled('arrivalDate') && $request->filled('departureDate')) {
                 $startTime = $request->arrivalDate;
                 $endTime = $request->departureDate;
@@ -192,23 +206,22 @@ class SearchController extends Controller
                         });
                 });
             }
-        }])->where('hotel_id', $hotel->id);
 
-        $rooms = $query->get()->filter(function ($room) {
-            return $room->rates->isNotEmpty();
-        });
+            $q->orderBy('price', 'asc'); // сортировка тарифов внутри комнаты
+        }])
+            ->where('hotel_id', $hotel->id)
+            ->withMin('rates', 'price') // добавляем минимальную цену тарифа
+            ->orderBy('rates_min_price', 'asc'); // сортировка комнат по минимальной цене тарифа
 
+        $rooms = $query->get()->filter(fn($room) => $room->rates->isNotEmpty());
 
-        if ($hotel->exely_id != null) {
-            return view('pages.search.hotel', compact('hotel', 'arrival', 'departure', 'adult', 'count_day', 'request', 'rooms', 'images'));
-        } else {
-            return view('pages.search.hotel', compact('hotel', 'arrival', 'departure', 'adult', 'count_day', 'request', 'rooms', 'images'));
-        }
+        return view('pages.search.hotel', compact('hotel', 'arrival', 'departure', 'adult', 'count_day', 'request', 'rooms', 'images', 'cities'));
     }
 
     //exely
     public function findHotelExely(Request $request)
     {
+        $cities = City::whereNull('country_id')->orderBy('title')->get();
         // ✅ Валидация входных параметров
         $request->validate([
             'propertyId' => 'required|string',
@@ -219,9 +232,13 @@ class SearchController extends Controller
         ]);
 
         // ✅ Очистка массива childAges от пустых значений
-        $childAgesInput = (array)$request->input('childAges', []);
-        $childs = array_filter($childAgesInput, fn($age) => trim($age) !== '');
-        $childs = array_map('intval', $childs); // безопасное преобразование в числа
+        $childAgesInput = (array) $request->input('childAges', []);
+        $childs = collect($childAgesInput)
+            ->flatMap(fn($ageString) => explode(',', $ageString)) // разбиваем строку "2, 3" на ["2", " 3"]
+            ->map(fn($age) => (int) trim($age))                   // убираем пробелы и делаем числа
+            ->filter(fn($age) => $age > 0)                        // фильтруем пустые/нулевые
+            ->values()                                            // пересобираем индексы
+            ->toArray();
 
         // ✅ Параметры запроса
         $params = [
@@ -263,7 +280,6 @@ class SearchController extends Controller
                 'request' => $request,
             ]);
         }
-
         // ✅ Сортировка по цене
         $rooms = collect($data->roomStays)
             ->sortBy('total.priceBeforeTax')

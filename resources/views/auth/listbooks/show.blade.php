@@ -17,7 +17,8 @@
                             @lang('admin.print')</a>
                     </div>
                     <div class="download">
-                        <a href="{{ route('pdf', $book->id) }}"><i class="fa-regular fa-download"></i> @lang('admin.download')</a>
+                        <a href="{{ route('pdf', $book->id) }}"><i
+                                    class="fa-regular fa-download"></i> @lang('admin.download')</a>
                     </div>
                     <div class="row wrap">
                         <div class="dashboard-item">
@@ -102,12 +103,15 @@
                                 @endif
                             </div>
                             @php
-                                $cancelPossible = \App\Models\CancellationRule::where('rate_id', $rate->id)->firstOrFail();
-                                $freeDate = \Carbon\Carbon::parse($book->arrivalDate)->format('d.m.Y H:i');
-                                $cancel = \App\Models\CancellationRule::where('id', $book->cancellation_id)->firstOrFail();
-                                $cancelDate = \Carbon\Carbon::parse($book->arrivalDate)->subDays($cancel->free_cancellation_days)->format('d.m.Y H:i');
+                                if(isset($rate)){
+                                    $cancelPossible = \App\Models\CancellationRule::where('rate_id', $rate->id)->first();
+                                    $freeDate = \Carbon\Carbon::parse($book->arrivalDate)->format('d.m.Y H:i');
+                                    $cancel = \App\Models\CancellationRule::where('id', $book->cancellation_id)->first();
+                                    $cancelDate = \Carbon\Carbon::parse($book->arrivalDate)->subDays($cancel->free_cancellation_days)->format('d.m.Y H:i');
+                                }
                                 $timezone = \Carbon\Carbon::parse($hotel->timezone)->format('P');
                             @endphp
+                            @isset($rate)
                             <div class="dashboard-item">
                                 <div class="name">@lang('main.cancellation_policy')</div>
                                 <div class="title">
@@ -131,6 +135,7 @@
                                     @endif
                                 </div>
                             </div>
+                            @endisset
                             <div class="dashboard-item">
                                 <div class="name" style="margin-top: 20px">@lang('admin.status')</div>
                                 <div class="status">
@@ -159,7 +164,8 @@
                             @endphp
 
                             @if($lat && $lng)
-                                <img src="{{ $mapUrl }}" alt="Карта" style="width:100%; height: 180px; max-width:480px;">
+                                <img src="{{ $mapUrl }}" alt="Карта"
+                                     style="width:100%; height: 180px; max-width:480px;">
                             @else
                                 <p>Координаты карты не указаны</p>
                             @endif

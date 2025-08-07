@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'head' => 'Stop settling for convenience. Work for profit.',
+    'head' => 'StayBook — direct access to hotels in Central Asia and the Caucasus for B2B partners',
     'hotels_and_rooms' => 'Hotels and rooms',
     'transfer' => 'Transfer',
     'checkin' => 'Checkin',
@@ -137,6 +137,7 @@ return [
     'remember' => 'Remember me',
     'late_checkin' => 'Early checkin',
     'late_checkout' => 'Late checkout',
-    'welcome_log' => 'Welcome'
+    'welcome_log' => 'Welcome',
+    'not_hotel' => 'No hotels available'
 
 ];
