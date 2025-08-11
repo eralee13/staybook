@@ -112,6 +112,16 @@ Route::middleware('set_locale')->group(function () {
         //exely
         Route::post('/userbooks/cancel_exely/{book}', [UserBookController::class, 'cancel_calculate_exely'])->name('userbooks.cancel_calculate_exely');
         Route::get('/userbooks/cancel_confirm', [UserBookController::class, 'cancel_confirm_exely'])->name('userbooks.cancel_confirm_exely');
+
+        Route::post('/users/store-user-hotel', [\App\Http\Controllers\Admin\UserController::class, 'storeHotel'])->name('users.createHotelUsers');
+        Route::get('/list-users-hotel', [\App\Http\Controllers\Admin\UserController::class, 'listHotel'])->name('users.listHotel');
+        Route::get('/edit-hotel/{user}/editHotelUser', [\App\Http\Controllers\Admin\UserController::class, 'editHotelUser'])->name('users.editHotelUser');
+        Route::match(['put', 'patch'], 'auth/update-user-hotel/{user}', [\App\Http\Controllers\Admin\UserController::class, 'updateHotel'])->name('users.updateHotel');
+        Route::get('/create-user-hotel', [\App\Http\Controllers\Admin\UserController::class, 'createView'])->name('users.createView');
+        Route::post('/create-hotel-user', [\App\Http\Controllers\Admin\UserController::class, 'createHotel'])->name('users.createHotel');
+        Route::delete('/delete-user-hotel/{user}', [\App\Http\Controllers\Admin\UserController::class, 'destroyHotel'])->name('users.destroyHotel');
+
+        
     });
 
     require __DIR__ . '/auth.php';

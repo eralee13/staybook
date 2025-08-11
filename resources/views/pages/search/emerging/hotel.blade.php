@@ -4,7 +4,6 @@
     {{-- @dump($request) --}}
     @section('content')
         @php
-
             $amenities = explode(',', $hotel->amenity->services ?? '');
             // $amenities = array_slice($amenities, 0, 8);
             $iconMap = [
@@ -55,12 +54,13 @@
                                 <div class="address">
                                     <img src="{{ route('index') }}/img/marker_in.svg" alt=""> {{ $hotel->address_en }}
                                 </div>
-                            <h4>Описание</h4>
+                            <h4>@lang('main.description')</h4>
                             {{$hotel->description_en}}
                             <div class="amenities">
-                                <h4>Услуги и удобства</h4>
+                                <h4>@lang('main.amenities')</h4>
                                 
-                                @if( isset($amenities) )
+                                @if( !empty($amenities[0]) )
+
                                     @foreach($amenities as $amenity)
                                     @php
                                         $iconFile = 'check.svg';
@@ -119,7 +119,7 @@
                     <div class="row">
                         <div class="col-md-12">
                             <div class="tariffs availabity">
-                                <h4>Доступные варианты</h4>
+                                <h4>@lang('main.available')</h4>
 
                                 @include('pages.search.emerging.rooms', ['etgroom' => $etgroom, 'tmimages' => $tmimages])
                                 
@@ -139,12 +139,18 @@
                             </div>
                             <div class="alert alert-danger">
                                 <div class="descr">@lang('main.need_auth') <a
-                                            href="{{ route('login') }}">@lang('main.auth')</a></div>
+                                    href="{{ route('login') }}">@lang('main.auth')</a></div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         @endauth
+    
+        <script>
+            document.getElementById('order').addEventListener('click', function() {
+                localStorage.removeItem('booking_etg_secondsLeft'); // Очистить данные
+            });
+        </script>
 
     @endsection

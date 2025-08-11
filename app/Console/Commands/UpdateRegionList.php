@@ -31,6 +31,6 @@ class UpdateRegionList extends Command
 
         $request = new Request(); // Создаём пустой запрос
         $controller->fetchRegions($request); // Передаём в метод
-        $this->info('Список регионов обновлён.');
+        // $this->info('Список регионов обновлён.');
     }
 }

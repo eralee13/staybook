@@ -1,14 +1,17 @@
 <?php
 
 namespace App\Services\Tourmind;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 use DateTimeZone;
 use DateTime;
+use App\Mail\BookCancelMail;
+use App\Mail\BookMail;
 use App\Services\Tourmind\TmApiService;
 use App\Models\Hotel;
 use App\Models\CancellationRule;
@@ -23,8 +26,8 @@ class HotelServices
     public $hotels, $hotelDetail, $hotelLocalData, $tmid, $token, $result;
     public $roomCount = 1;
     public $pricemin;
-    public $pricemax;
-    public $user, $guestsall, $paxfname, $paxlname;
+    public $pricemax, $coef;
+    public $user, $guestsall, $paxfname, $paxlname, $childs_name;
     public $price, $currency, $penaltyPrice, $endDate, $mealid, $bedTypeDesc, $rateName;
 
     public function __construct()
@@ -34,14 +37,37 @@ class HotelServices
         $this->tm_agent_code = config('app.tm_agent_code');
         $this->tm_user_name = config('app.tm_user_name');
         $this->tm_password = config('app.tm_password');
+        $this->coef = config('app.main_coef');
+        $this->mealTypesApi = [
+                        1 => 'No Breakfast',
+                        2 => 'Breakfast',
+                        3 => 'Lunch',
+                        4 => 'Dinner',
+                        5 => 'Lunch and Dinner',
+                        6 => 'HalfBoard',
+                        7 => 'FullBoard',
+                        8 => 'AllInclusive',
+                        9 => 'SelfCatering',
+                    ];
 
+        // соответствие: meal_id (с сайта) => MealType (в API)
+        $this->MealTypeMap = [
+            1 => 1, // Room Only         => No Breakfast
+            2 => 2, // Bed & Breakfast   => Breakfast
+            3 => 6, // Half Board        => HalfBoard
+            4 => 7, // Full Board        => FullBoard
+            5 => 8, // All Inclusive     => AllInclusive
+        ];
+        
     }
 
     public function tmGetHotels(Request $request){
 
         // tourmind get data hotels
         // get local hotels filtereble
-        $query = Hotel::where('city', $request->city);
+        $expl = explode('-', $request->city);
+
+        $query = Hotel::where('city', $expl[1]);
         $query->where('tourmind_id', '!=', '');
 
         if ($request->rating){
@@ -53,11 +79,6 @@ class HotelServices
         // if ($this->early_out){
         //     $query->where('early_out', '>=', $this->early_out);   
         // }
-            
-        // $query->with('amenity');
-        // $this->hotelLocalData = $query->get()
-        //     ->mapWithKeys(fn($hotel) => [$hotel->tourmind_id => $hotel])
-        //     ->toArray();w
         
         $query->with(['images', 'amenity']);
         $this->hotelLocalData = $query->get()
@@ -67,7 +88,7 @@ class HotelServices
 
 
             // get tm local ids
-        $hoteles = Hotel::where('city', $request->city);
+        $hoteles = Hotel::where('city', $expl[1]);
 
         if ($request->rating){
             $hoteles->where('rating', '=', (int)$request->rating);   
@@ -101,76 +122,72 @@ class HotelServices
             }
             unset($hotele); // Разрываем ссылку, чтобы избежать проблем
             
-            
+
+
 
             // orderby prices, food, cancelled
-            $this->hotelDetail['Hotels'] = array_map(function ($hoteli) {
+            $this->hotelDetail['Hotels'] = array_values(array_filter(array_map(function ($hoteli) use ($request) {
                 if (empty($hoteli['RoomTypes'])) {
-                    return null; // Убираем отель, если у него нет номеров
+                    return null;
                 }
-            
-                $hotelHasValidRoomType = false;
+
+                $filteredRoomTypes = [];
                 $lowestRate = null;
                 $lowestRateRoomType = null;
-            
-                foreach ($hoteli['RoomTypes'] as &$roomType) {
-                    // Фильтруем тарифы по цене, отмене и питанию
-                    $roomType['RateInfos'] = array_filter($roomType['RateInfos'], function ($rateInfo) {
+
+                foreach ($hoteli['RoomTypes'] as $roomType) {
+                    // Фильтрация тарифов
+                    $roomType['RateInfos'] = array_filter($roomType['RateInfos'], function ($rateInfo) use ($request) {
                         $price = (float) $rateInfo['TotalPrice'];
                         $minPrice = $this->pricemin != null ? (float) $this->pricemin : null;
                         $maxPrice = $this->pricemax != null ? (float) $this->pricemax : null;
-            
-                        // Фильтр по цене
-                        if ($minPrice != null && $price < $minPrice) {
+
+                        if ($minPrice !== null && $price < $minPrice) {
                             return false;
                         }
-                        if ($maxPrice != null && $price > $maxPrice) {
+                        if ($maxPrice !== null && $price > $maxPrice) {
                             return false;
                         }
 
-                        // Фильтр по отмене (если $this->cancelled == true, оставляем только Refundable == true)
-                    //    if ($this->cancelled == true) {
-                    //        if (!isset($rateInfo['Refundable']) || $rateInfo['Refundable'] != true) {
-                    //            return false;
-                    //        }
-                    //    }
-            
-                        // Фильтр по питанию (если $this->food == true, оставляем только MealInfo['MealType'] == "1")
-                        if ( !empty($this->meal) ) {
-                            if (!isset($rateInfo['MealInfo']['MealType']) || $rateInfo['MealInfo']['MealType'] != $this->meal) {
+                        // Фильтр по питанию
+                        if (!empty($request->meal_id)) {
+                            $expectedMealType = $this->MealTypeMap[$request->meal_id] ?? null;
+
+                            if (
+                                !$expectedMealType ||
+                                !isset($rateInfo['MealInfo']['MealType']) ||
+                                (int)$rateInfo['MealInfo']['MealType'] !== (int)$expectedMealType
+                            ) {
                                 return false;
                             }
                         }
-            
+
                         return true;
                     });
-            
-                    // Если после фильтрации остались тарифы
+
+                    // Оставляем только номера, у которых остались тарифы
                     if (!empty($roomType['RateInfos'])) {
-                        $hotelHasValidRoomType = true;
-            
-                        // Находим минимальную цену в этом номере
+                        $filteredRoomTypes[] = $roomType;
+
+                        // Ищем минимальную цену
                         $lowestRateInRoom = min(array_column($roomType['RateInfos'], 'TotalPrice'));
-            
-                        // Сохраняем номер с самым дешевым тарифом
-                        if ($lowestRate == null || $lowestRateInRoom < $lowestRate) {
+
+                        if ($lowestRate === null || $lowestRateInRoom < $lowestRate) {
                             $lowestRate = $lowestRateInRoom;
                             $lowestRateRoomType = $roomType;
                         }
                     }
                 }
-                unset($roomType);
-            
-                // Если после фильтрации у отеля нет номеров, удаляем его
-                if (!$hotelHasValidRoomType || $lowestRateRoomType == null) {
-                    return null;
+
+                if (empty($filteredRoomTypes) || $lowestRateRoomType === null) {
+                    return null; // Исключаем отель
                 }
-            
-                // Оставляем только один номер с минимальным тарифом
+
+                // Сохраняем только один RoomType с минимальной ценой
                 $hoteli['RoomTypes'] = [$lowestRateRoomType];
-            
                 return $hoteli;
-            }, $this->hotelDetail['Hotels']);
+            }, $this->hotelDetail['Hotels'])));
+
             
             // Фильтруем массив отелей, удаляя пустые элементы
             $this->hotelDetail['Hotels'] = array_values(array_filter($this->hotelDetail['Hotels']));
@@ -221,6 +238,7 @@ class HotelServices
             });
 
         }
+
         return $this->hotelDetail;
         // dd($this->hotelDetail);
         // dd($this->hotelLocalData);
@@ -385,6 +403,72 @@ class HotelServices
         }
     }
 
+    public function getOneDetailForCalendar(Request $request, $hotel)
+    {
+
+            // $query = Hotel::where('id', $hotelid)->get('tourmind_id')->first();
+            $id = $hotel->tourmind_id;
+
+            // RequestHeader (заголовки запроса)
+            $requestHeader = [
+                    "AgentCode" => $this->tm_agent_code,
+                    "Password" => $this->tm_password,
+                    "UserName" => $this->tm_user_name,
+                    "RequestTime" => now()->format('Y-m-d H:i:s')
+                ];
+
+            // Основные параметры запроса (без заголовков и PaxRooms)
+            $mainParams = [
+                "CheckIn" => date('Y-m-10'),
+                "CheckOut" => date('Y-m-d', strtotime('+1 months')),
+                "HotelCodes" => [(int) $id],
+                "IsDailyPrice" => false,
+                //"Nationality" => $this->citizen ?? "EN",
+            ];
+
+            // PaxRooms (информация о размещении гостей)
+            $paxRooms = [
+                    [
+                        "Adults" => 1,
+                        "RoomCount" => 1,
+                    ]
+                ];
+
+            
+            // Объединение всех частей в один массив
+            $payload = array_merge($mainParams, [
+                "PaxRooms" => $paxRooms,  // Убеждаемся, что PaxRooms — это массив массивов
+                "RequestHeader" => $requestHeader  // Просто вставляем массив RequestHeader
+            ]);
+            // dd($payload);
+
+        try {
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json'
+            ])->post("{$this->baseUrl}/HotelDetail", $payload);
+
+            if ($response->failed()) {
+                // $this->bookingSuccess = 'Result HotelDetail Ошибка при запросе к API';
+                session()->flash('error', 'Result TM HotelDetail Ошибка при запросе к API');
+            }
+    
+            if ( isset($response['Error']['ErrorMessage']) ){
+                // $this->bookingSuccess = $response['Error']['ErrorMessage'];
+                session()->flash('error', $response['Error']['ErrorMessage']);
+            }
+            
+            // dd($response);
+            // $this->bookingSuccess .= print_r($payload, 1);
+
+            return json_decode($response->body());
+
+        } catch (\Throwable $th) {
+            // $this->bookingSuccess = "Ошибка при запросе к API или недоступен Hotel result hotelDetail";
+            session()->flash('error', 'Ошибка при запросе к API TM');
+        }
+    }
+
     public function checkRoomRate(Request $request){
 
         $tmid = Hotel::where('id', $request->hotel_id)->get('tourmind_id')->first();
@@ -449,7 +533,7 @@ class HotelServices
     public function createOrder(Request $request){
 
         $check = $this->checkRoomRate($request);
-        // dd($check);
+        //dd($check);
         $mrate = '';
         if ( isset($check->Hotels[0]->RoomTypes[0]->RateInfos[0]->CancelPolicyInfos[0]->Amount) ){
             $mrate = $check->Hotels[0]->RoomTypes[0]->RateInfos[0];
@@ -457,22 +541,31 @@ class HotelServices
             $this->currency = $mrate->CurrencyCode ?? 'CNY';
             $this->mealid = $mrate->MealInfo->MealType ?? '1';
             $this->rateName = $mrate->Name ?? '';
-            $this->penaltyPrice = number_format(($mrate->CancelPolicyInfos[0]->Amount * 0.08) + $mrate->CancelPolicyInfos[0]->Amount, 2, '.', '') ?? 0;
+            $this->penaltyPrice = number_format(($mrate->CancelPolicyInfos[0]->Amount / $this->coef), 2, '.', '') ?? 0;
             $this->endDate = $mrate->CancelPolicyInfos[0]->From ?? null;
-            $this->bedTypeDesc = $mrate->BedTypeDesc ?? '';
+            $this->bedTypeDesc = $mrate->bedTypeDesc;
         }else{
             // dd($check);
             $mrate = $check->Hotels[0]->RoomTypes[0]->RateInfos[0];
             $this->price = $request->price;
             $this->currency = $request->currency ?? 'CNY';
             $this->mealid = $request->mealid ?? '1';
-            $this->penaltyPrice = number_format(($mrate->TotalPrice * 0.08) + $mrate->TotalPrice, 2, '.', '') ?? 0;
+            $this->penaltyPrice = number_format(($mrate->TotalPrice / $this->coef), 2, '.', '') ?? 0;
             $this->endDate = $request->cancelDate ?? null;
             $this->rateName = $request->rate_name ?? '';
-            $this->bedTypeDesc = $request->rate_name ?? '';
+            $this->bedTypeDesc = $request->rate_name;
         }
+
+                $basePrice = (float) $request->sum;
+                $toCurrency = strtoupper($request->source_sym ?? 'USD');
+
+                $converted = app(\App\Services\FXService::class)->convert($basePrice, $this->currency, $request->source_sym);
+                $symbol = $toCurrency;
+
+                $cancelConverted = app(\App\Services\FXService::class)->convert((float) $this->penaltyPrice, $this->currency, $toCurrency);
+                $cancelSymbol = $toCurrency;
         
-        // dd($check);
+        // dd($mrate);
 
             $userId = Auth::id();
             $this->user = auth()->user();
@@ -541,6 +634,7 @@ class HotelServices
                             ];
                                 
                         }else{
+                            
                             $paxList[] = [
                                 "FirstName" => $request->paxfname,
                                 "LastName" => $request->paxlname,
@@ -570,6 +664,7 @@ class HotelServices
         
             // dd($payload);
             // die;
+            
             // local create order
 
         $existbook = Book::where('book_token', $this->token)->first();
@@ -598,18 +693,30 @@ class HotelServices
                 
             }
 
-                for ($i = 1; $i <= $request->roomCount; $i++) {
-                    $fname = $request->input('paxfname' . ($i > 1 ? $i : ''));
-                    $lname = $request->input('paxlname' . ($i > 1 ? $i : ''));
+                for ($i = 0; $i <= $request->adult; $i++) {
+                    $fname = $request->input('paxfname' . $i);
+                    // $lname = $request->input('paxlname' . ($i > 1 ? $i : ''));
+                        
+                    $fullName = trim($fname);
                     
-                    if ($fname || $lname) {
-                        $this->guestsall[] = trim("$fname $lname");
+                    if ($fullName) {
+                        $this->guestsall[] = $fullName;
                     }
                 }
-            
-
-                    $guests = implode(',', $this->guestsall ?? []);
+                
+                for ($i = 0; $i <= $request->child; $i++) {
+                    $fio = $request->input('child_name' . $i);
+                    // $lname = $request->input('paxlname' . ($i > 1 ? $i : ''));
+                        
+                    $fullName = trim($fio);
                     
+                    if ($fullName) {
+                        $this->childs_name[] = $fullName;
+                    }
+                }
+                
+                    $guests = implode(',', $this->guestsall ?? []);
+                    $childsName = implode(',', $this->childs_name ?? []);
                     $childAges = implode(',', $request->childAges ?? []);
 
                     // $offset = str_replace('UTC', '', $this->utc); // '+3'
@@ -623,7 +730,9 @@ class HotelServices
                     // Форматируем результат
                     $utcdatetime = $utcdatetime->format('Y-m-d H:i:s');
 
-            
+                
+                
+
                     
                 $ruleid;
                 if ($request->refundable == true){
@@ -635,7 +744,7 @@ class HotelServices
                             "is_refundable" => 1,
                             "free_cancellation_days" => 0,
                             "penalty_type" => 'fixed',  
-                            "penalty_amount" => $this->penaltyPrice ?? 0,
+                            "penalty_amount" => $cancelConverted, //$this->penaltyPrice ?? 0,
                             "end_date" => $this->endDate ?? null,
                             "description" => '',
                             "hotel_id" => $request->hotel_id,
@@ -652,7 +761,7 @@ class HotelServices
                             "is_refundable" => 0,
                             "free_cancellation_days" => 0,
                             "penalty_type" => 'fixed',  
-                            "penalty_amount" => $this->penaltyPrice ?? 0,
+                            "penalty_amount" => $cancelConverted, //$this->penaltyPrice ?? 0,
                             "end_date" => null,
                             "description" => '',
                             "hotel_id" => $request->hotel_id,
@@ -662,16 +771,8 @@ class HotelServices
                     $ruleid = $rule->id ?? null;
                 }
 
-                    $title; $titlen;
-                    if ($this->mealid == 1){
-                        $title = 'Тариф без питания';
-                        $titlen = 'Tariff without meals';
-                    }elseif ($this->mealid == 2){
-                        $title = 'Тариф с завтраком';
-                        $titlen = 'Tariff with breakfast';
-                    }
 
-                    $totalPrice = number_format(($this->price * 0.08) + $this->price,2 ,'.', '');
+                    $totalPrice = number_format(($this->price / $this->coef),2 ,'.', '');
                     
                     $rate = Rate::UpdateOrCreate(
                         [
@@ -680,33 +781,34 @@ class HotelServices
                             'room_id' => $room->id,
                         ],
                         [
-                            'title' => $mrate['Name'] ?? '',
-                            'title_en' => $mrate['Name'] ?? '',
+                            'title' => $mrate->Name ?? '',
+                            'title_en' => $mrate->Name ?? '',
                             'desc_en' => null,
-                            'bed_type' => $this->bedTypeDesc,
+                            'bed_type' => $this->bedTypeDesc ?? $request->rate_name,
                             'meal_id' => $this->mealid,
                             'allotment' => null,
                             'adult' => $request->adult ?? 1,
                             'child' => $request->child ?? 0,
                             'children_allowed' => 0,
                             'free_children_age' => 0,
-                            'currency' => $this->currency,
+                            'currency' => $symbol, //$this->currency,
                             'price' => $this->price,
                             'price2' => null,
                             'child_extra_fee' => 0,
                             'availability' => 0,
-                            'total_price' => $totalPrice,
+                            'total_price' => $converted, //$totalPrice,
                             'cancellation_rule_id' => $ruleid ?? null,
                             
                         ]
                     );
-
+                    
                     $book = Book::firstOrCreate(
                         [
                             'book_token' => $this->token,
                         ],
                         [
-                            'title' => $guests,
+                            'title' => $guests ?? '',
+                            'child_name' => $childsName ?? '',
                             'title2' => '',
                             'hotel_id' => $request->hotel_id,
                             'room_id' => $room->id ?? null,
@@ -718,11 +820,12 @@ class HotelServices
                             'child' => $request->child,
                             'childages' => $childAges ?? '',
                             'price' => $this->price,
-                            'sum' => $totalPrice,
+                            'source_sym' => $this->currency ?? $request->currency ?? 'CNY',
+                            'sum' => $converted,
                             'utc' => $request->utc,
                             'cancellation_id' => $ruleid,
-                            'cancel_penalty' => $this->penaltyPrice,
-                            'currency' => $this->currency,
+                            'cancel_penalty' => $cancelConverted,
+                            'currency' => $symbol,
                             'cancel_date' => $utcdatetime,
                             'arrivalDate' => $request->arrivalDate,
                             'departureDate' => $request->departureDate,
@@ -759,21 +862,26 @@ class HotelServices
             Log::channel('tourmind')->info('CreateOrder 528 - ', $payload);
             Log::channel('tourmind')->info('CreateOrder 528 - ', $order);
             
-            if( isset($order['OrderInfo']['ReservationID']) ){
+            if( isset($order['OrderInfo']['OrderStatus']) == 'CONFIRMED' ){
     
-                Book::where('book_token', $this->token)
-                    ->update([
-                        'status' => $order['OrderInfo']['OrderStatus'],
-                        // 'rezervation_id' => $order['OrderInfo']['ReservationID']
-                    ]);
-                    
-                
-                    // return "Бронирование успешно создано!"; // Статус - {$order['OrderInfo']['OrderStatus']}";
-                    return ['Success' => "{$order['OrderInfo']['OrderStatus']}"];
+                $message = $order['OrderInfo']['OrderStatus'];
 
-                // session()->flash('success', "Бронирование успешно создано! Статус - {$order['OrderInfo']['OrderStatus']}");
-                // return redirect()->route('booking.success');
+                    Book::where('book_token', $this->token)
+                        ->update([
+                            'status' => ucfirst($order['OrderInfo']['OrderStatus']),
+                            // 'rezervation_id' => $order['OrderInfo']['ReservationID']
+                        ]);
+
+                    $book = Book::where('book_token', $request->token)->first();
+
+                        Mail::to('info@staybook.asia')->send(new BookMail($book));
+
+                return ['Success' => "{$order['OrderInfo']['OrderStatus']}"];
     
+            }elseif($order['OrderInfo']['OrderStatus'] != 'FAILED'){
+
+                return ['Error' => "{$order['OrderInfo']['OrderStatus']}"];
+                
             }else{
     
                 return ['Error' => true, 'ErrorMessage' => $order['Error']['ErrorMessage']];
@@ -818,6 +926,57 @@ class HotelServices
                 return ["Error" => "TM CancelOrder Ошибка при запросе к API: " . $th->getMessage()];
                 // throw new \Exception("TM CancelOrder Ошибка при запросе к API: " . $th->getMessage(), 0, $th);
            }
+        
+    }
+
+    public function getOneSearchOrder($AgentRefID){
+            
+           try {
+                $payload = [
+                    "AgentRefID" => $AgentRefID,
+                    "RequestHeader" => [
+                        "AgentCode" => $this->tm_agent_code,
+                        "Password" => $this->tm_password,
+                        "UserName" => $this->tm_user_name,
+                        "RequestTime" => now()->format('Y-m-d H:i:s')
+                    ]
+                ];
+            
+                $response = Http::withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json'
+                ])->post("{$this->baseUrl}/SearchOrder", $payload);
+
+                if ($response->failed()) {
+                    return ['Error' => "TM SearchOrder Ошибка при запросе к API"];
+                }
+
+                return $response->json();
+
+            } catch (\Throwable $th) {
+                
+                Log::channel('tourmind')->info('CreateOrder 946 - ', $response->json());
+                return ["Error" => "TM SearchOrder Ошибка при запросе к API: " . $th->getMessage()];
+                
+            }
+    }
+
+    public function updateBookStatuses(){
+
+        $books = Book::where('api_type', 'tourmind')
+            ->whereIn('status', ['Pending', 'Failed'])
+            ->get('book_token','agent_ref');
+
+        foreach ($books as $book) {
+
+            $order = $this->getOneSearchOrder($book->agent_ref);
+
+            if( isset($order['OrderInfo']['OrderStatus']) ){
+
+                Book::where('book_token', $book->book_token)
+                    ->update(['status' => ucfirst( $order['OrderInfo']['OrderStatus'] )]);
+            }
+        }
         
     }
 

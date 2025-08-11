@@ -23,6 +23,7 @@
     <div class="row" style="margin-top: 30px">
         <div class="col-md-3">
             <div class="room">
+                
                 @if ( isset($tmimages[$loop->index]) )
                     <img src="{{ Storage::url($tmimages[$loop->index]->image) }}" alt="">
                 @else
@@ -32,7 +33,7 @@
                 {{-- <h5>{{ $room['room_name'] }}</h5> --}}
                 
                 <div class="amenities">
-                    @if( isset($roomAmenity) )
+                    @if( !empty($roomAmenity[0]) )
                         @foreach($roomAmenity as $amenity)
                             @php
                                 $iconFile = 'check.svg';

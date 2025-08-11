@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Api\V1\Emerging\EmergingRegionController;
+use App\Http\Controllers\API\V1\Emerging\EmergingHotelController;
 
 class EmergingHotelList extends Command
 {

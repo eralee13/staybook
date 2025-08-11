@@ -32,7 +32,7 @@
                 <h5>{{ $tmroom->Name }}</h5>
                 {{--   <div class="bed">2 отдельные кровати</div> --}}
                 <div class="amenities">
-                    @if( isset($roomAmenity) )
+                    @if( !empty($roomAmenity[0]) )
                         @foreach($roomAmenity as $amenity)
                             @php
                                 $iconFile = 'check.svg';

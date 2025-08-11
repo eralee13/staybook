@@ -33,8 +33,8 @@ class EmergingHotelController extends Controller
             ->withHeaders([
                 'Content-Type' => 'application/json',
             ])
-            ->post($this->url . '/hotel/info/incremental_dump/', [
-                'inventory' => 'top', 
+            ->post($this->url . '/hotel/info/dump/', [
+                'inventory' => 'all', 
                 'language' => 'en',
             ]);
 
@@ -62,8 +62,8 @@ class EmergingHotelController extends Controller
         // $url = 'https://partner-feedora.s3.eu-central-1.amazonaws.com/feed/partner_feed_en_v3.jsonl.zst';
 
         // Шаг 1: Скачиваем файл во временное хранилище
-        $zstPath = storage_path('app\feed_en_v3.json.zst');
-        $jsonlPath = storage_path('app\hotels_en.jsonl');
+        $zstPath = storage_path('app\partner_feed_en_v3.jsonl.zst');
+        $jsonlPath = storage_path('app/partner_hotels_en.jsonl');
         $zstdExe = 'D:\OSPanel\tools\zstd\zstd.exe';
 
         // file_put_contents($zstPath, file_get_contents($url));
@@ -92,8 +92,11 @@ class EmergingHotelController extends Controller
            
             $data = json_decode($line, true);
 
-            if ($data['region']['name'] == 'Dubai') {
-                
+            if ($data['region']['name'] == 'China' && $data['kind'] == 'hotel') {
+                //if ($data['hid'] == 8473727) {
+
+                // file_put_contents(storage_path('app\testov.jsonl'), json_encode($data, JSON_PRETTY_PRINT));
+
                 $hotels[] = $data;
 
                 $amenitiesHotel = collect($data['amenity_groups'])
@@ -219,7 +222,7 @@ class EmergingHotelController extends Controller
             }
 
             // Полный путь для сохранения
-            $filePath = "/hotels/emerging/{$hotelId}/{$fileName}";
+            $filePath = "hotels/emerging/{$hotelId}/{$fileName}";
 
             // Загружаем изображение
             $imageContent = Http::get($imageUrl)->body();
@@ -229,7 +232,7 @@ class EmergingHotelController extends Controller
                 Storage::put($filePath, $imageContent);
             }
 
-            return "/hotels/emerging/{$hotelId}/{$fileName}"; // Путь для хранения в БД
+            return "hotels/emerging/{$hotelId}/{$fileName}"; // Путь для хранения в БД
 
         } catch (\Exception $e) {
             Log::channel('Emerging')->error("Ошибка загрузки изображения saveHotelImage: " . $e->getMessage());
