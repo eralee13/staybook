@@ -152,10 +152,8 @@ class EmergingFormController extends Controller
             $adults += (int) ($room['adults'] ?? 0);
             $adultse = (int) ($room['adults'] ?? 0);
 
-            $children = [];
             if (!empty($room['childAges']) && is_array($room['childAges'])) {
                 foreach ($room['childAges'] as $age) {
-                    $children[] = (int) $age;
                     $allChildAges[] = (int) $age;
                     $childs++;
                 }
@@ -163,7 +161,7 @@ class EmergingFormController extends Controller
 
             $guests[] = [
                 'adults' => $adultse,
-                'children' => $children,
+                'children' => $allChildAges,
             ];
         }
 
@@ -511,35 +509,48 @@ class EmergingFormController extends Controller
                     }
                 }
 
-                $guests[] = [
-                    'adults' => $adultse,
-                    'children' => $children,
-                ];
+                // $guests[] = [
+                //     'adults' => $adultse,
+                //     'children' => $children,
+                // ];
             }
-
+                
                     $paxList = [];
+                    
+                    for ($i = 0; $i < $adults; $i++) { // < вместо <=, чтобы не было лишней итерации
+                        $fname = trim($request->input('paxfname' . $i, ''));
+                        $parts = preg_split('/\s+/', $fname, 3); // делим максимум на 2 части
+                        
+                        $lastName  = $parts[0] ?? '';
+                        $firstName = $parts[1] ?? '';
+                        $thirdName = $parts[2] ?? '';
 
-                        for ($i = 0; $i < $adults; $i++) {
-                            $j = $i + 1;
-
-                            if($j > 1){
-
-                                $paxList[] = [
-                                    "first_name" => $request->{'paxfname' . $j},
-                                    "last_name" => $request->{'paxlname' . $j},
-                                    'is_child' => 0,
-                                ];
-                                    
-                            }else{
-                                $paxList[] = [
-                                    "first_name" => $request->paxfname,
-                                    "last_name" => $request->paxlname,
-                                    'is_child' => 0,
-                                ];
-                            }
+                        $paxList[] = [
+                            'first_name' => $firstName,
+                            'last_name'  => $lastName .' '.$thirdName,
+                            'is_child'   => 0,
+                        ];
+                    }
+                    
+                    if( !empty( $childs ) ){
+                        for ($i = 0; $i < $childs; $i++) { // < вместо <=, чтобы не было лишней итерации
+                            $fname = trim($request->input('child_name' . $i, ''));
+                            $parts = preg_split('/\s+/', $fname, 3); // делим максимум на 2 части
                             
-                        }
+                            $lastName  = $parts[0] ?? '';
+                            $firstName = $parts[1] ?? '';
+                            $thirdName = $parts[2] ?? '';
 
+                            $paxList[] = [
+                                'first_name' => $firstName,
+                                'last_name'  => $lastName .' '.$thirdName,
+                                'is_child'   => 1,
+                                'age' => $allChildAges[$i],
+                            ];
+                        }
+                    }
+
+                    
         $payload = [
                 "user" => [
                         "email" => $request->email, 
@@ -569,6 +580,8 @@ class EmergingFormController extends Controller
                                     "currency_code" => $data['curr'] 
                                 ], 
                             ];
+                            
+                // dd(json_encode($payload));
 
         $response = Http::withBasicAuth($this->keyId, $this->apiKey)
             ->withHeaders([

@@ -43,6 +43,10 @@
                                         </div>
                                         <select name="city" id="city">
                                             <option value="3421-Tegucigalpa">Tegucigalpa</option>
+                                            <option value="822-china">china</option>
+                                            <option value="378-Amsterdam">Amsterdam</option>
+                                            <option value="6384-Amsterdam">Amsterdam</option>
+                                            <option value="602645-Amsterdam">Amsterdam</option>
                                             <option value="3421-Kyiv">Kyiv</option>
                                             {{-- @foreach($cities as $city)
                                                 <option value="{{ $city->country_id }}-{{ $city->name }}">{{ $city->name }}</option>

@@ -67,19 +67,23 @@ class BookingEtgController extends Controller
 
     public function book_reserve_etg(Request $request)
     {
+
+        $message = ''; $finish = ''; $finishStatus='';
+
         try {
-            //code...
-        
-            $message = ''; $finish = ''; $finishStatus='';
+            
             // $hotel = Hotel::find($request->hotel_id);
             $emergingPrebook = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
             $preBook = $emergingPrebook->preBook($request);
-            
+            Log::channel('emerging')->info('Create Order Prebook - ', $preBook);
+
             $emergingOrder = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
             $order = $emergingOrder->startProcess($request);
+            Log::channel('emerging')->info('Create Order Process - ', $order);
             
             // dd($request);
             // dd($order);
+
 
             if( isset($order['status'])  == "ok" && isset($order['data']['item_id']) ){
 
@@ -103,44 +107,99 @@ class BookingEtgController extends Controller
                             'order_id' => $order_id,
                             'etoken' => $etoken,
                         ];
-
-                    if( $paytype['currency_code'] == 'USD'){
+                        
+                        // Create booking on API
+                    // if( $paytype['currency_code'] == 'USD'){
                         $emergingFinish = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
                         $finish = $emergingFinish->bookingFinish($request, $data);
+                        Log::channel('emerging')->info('Create Order Finish - ', $finish);
                         // dd($finish);
+                        
 
-                        if($finish['status'] == 'ok'){
-                            $message = 'Бронирование успешно создано!';
-                        }
+                        if( $finish['error'] == 'booking_form_expired' || $finish['error'] == 'rate_not_found' || $finish['error'] == 'return_path_required' ){
 
-                        if( isset( $finish['error'] ) ){
+                            $message = 'Ошибка бронь не создана! Попробуйте заного еще раз!';
+
+                                Book::where('book_token', $request->number)->update([
+                                    'status' => 'Cancelled', 
+                                ]);
+
+                        }else{
 
                             $emergingStatus = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
                             $finishStatus = $emergingStatus->finishStatus($request);
+                            Log::channel('emerging')->info('Create Order Status - ', $finishStatus);
 
-                            $message = $finish['error'];
+                            $errors = ['block', 'charge', '3ds', 'soldout', 'provider', 'book_limit', 'not_allowed', 'booking_finish_did_not_succeed'];
+                            
+                            if ( in_array($finish['error'], $errors) ){
+
+                                $message = 'Ошибка бронь не создана! Попробуйте заного еще раз!';
+                                // $message = $finish['error'];
+
+                            }else{
+
+                                if( $order['status'] == 'ок' ){
+                                    
+                                    $message = 'Booking successfully created';
+                                    Book::where('book_token', $request->number)->update([
+                                        'status' => 'Confirmed', 
+                                    ]);
+
+                                }else{
+
+                                    $maxAttempts = 10; // максимум попыток
+                                    $attempt = 0;
+                                    $response = null;
+                                    
+                                        do {
+                                            $attempt++;
+
+                                            // Запрос к API
+                                            $response = $emergingStatus->finishStatus($request);
+
+                                            // Если ошибка из списка — ждём и пробуем снова
+                                            if ( $response['status'] != 'ок' ) {
+                                                sleep(1); // пауза в секундах
+                                            }
+
+                                        } while ( $response['status'] != 'ок' && $attempt < $maxAttempts);
+
+                                            if ( $response['status'] == 'ok' ) {
+
+                                                $message = 'Booking successfully created';
+                                                Book::where('book_token', $request->number)->update([
+                                                    'status' => 'Confirmed', 
+                                                ]);
+
+                                            } else {
+                                                $message = 'Booking is pending confirmation from the hotel';
+                                            }
+                                }
+                            }   
+                            
                         }
-                    }
+                    // }
                 }
             }
 
-            if ( isset($order['error']) ) {
+            elseif ( isset($order['error']) ) {
                 
-                $emergingStatus = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
-                $finishStatus = $emergingStatus->finishStatus($request);
-
-                $message = $order['error'];
+                $message = "Ошибка бронь не создана! Попробуйте заного еще раз!";
             }
 
         } catch (\Throwable $th) {
-            Log::channel('emerging')->info('Create Order Catch - ', $th->getMessage());
+
+            $message = $th->getMessage();
+            Log::channel('emerging')->info('Create Order Catch - ', [$th->getMessage()]);
         }
 
             $book = Book::where('book_token', $request->token)->first();
             
 
-        return view('pages.booking.emerging.rezerve', compact('book', 'request', 'message', 'preBook', 'finish', 'order', 'finishStatus'));
-        
+        return view('pages.booking.emerging.rezerve', compact(
+            'book', 'request', 'message', 
+            'preBook', 'finish', 'order', 'finishStatus'));
     }
 
     public function cancel_calculate_etg(Request $request)

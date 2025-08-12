@@ -127,20 +127,33 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="paxfname">@lang('main.fio') #{{$i+1}}</label>
-                                            <input type="text" name="paxfname{{$i}}" required>
+                                            <input type="text" name="paxfname{{$i}}" 
+                                                class="only-latin" 
+                                                required >
                                         </div>
                                     </div>
                                 @endfor
-
-                                <h5>@lang('main.count_child')</h5>
-                                @for ($i = 0; $i < $childs; $i++)
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="paxlname">@lang('main.fio') #{{$i+1}}</label>
-                                            <input type="text" name="child_name{{$i}}" required>
+                                
+                                @if( !empty($childs) )
+                                    <h5>@lang('main.count_child')</h5>
+                                    @for ($i = 0; $i < $childs; $i++)
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="paxlname">@lang('main.fio') #{{$i+1}}</label>
+                                                <input type="text" name="child_name{{$i}}"
+                                                    class="only-latin"
+                                                    required>
+                                            </div>
                                         </div>
-                                    </div>
-                                @endfor    
+                                    @endfor   
+                                @endif 
+                                <script>
+                                    document.querySelectorAll('.only-latin').forEach(function(input) {
+                                        input.addEventListener('input', function() {
+                                            this.value = this.value.replace(/[^a-z\s]/gi, '');
+                                        });
+                                    });
+                                </script>
                         </div>
                         {{-- <div class="line"></div>
                         <div class="row">

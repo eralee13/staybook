@@ -123,15 +123,18 @@ return [
             'handler' => NullHandler::class,
         ],
 
-        'emergency' => [
-            'path' => storage_path('logs/laravel.log'),
+        'emerging' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/Emerging.log'),
+            'level' => 'debug',
+            // 'days' => 30, // Хранить логи n дней
         ],
 
         'tourmind' => [
             'driver' => 'daily',
             'path' => storage_path('logs/Tourmind.log'),
             'level' => 'debug',
-            'days' => 30, // Хранить логи n дней
+            // 'days' => 30, // Хранить логи n дней
         ],
     ],
 

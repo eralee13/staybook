@@ -16,7 +16,10 @@
             <div class="row">
                 <div class="col-lg-12 col-md-12">
 
-                    @if($message == 'Бронирование успешно создано!' || $message == 'Этот бронь уже существует!')
+                    @if($message == 'Booking successfully created' 
+                        || $message == 'This booking already exists' 
+                        || $message == 'Booking is pending confirmation from the hotel'
+                            )
                         <h1>@lang('main.Congratulations')</h1>
 
                             <div class="alert alert-primary" role="alert">
@@ -101,7 +104,11 @@
             margin-left: 10px;
         }
     </style>
-
+    <script>
+        document.getElementById('order').addEventListener('click', function() {
+            localStorage.removeItem('booking_etg_secondsLeft'); // Очистить данные
+        });
+    </script>
     {{-- <script>
         document.getElementById('getStatus').addEventListener('click', function() {
             fetch('{{ route('get.data') }}', {

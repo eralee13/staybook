@@ -126,7 +126,9 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="paxfname">@lang('main.fio') #{{$i+1}}</label>
-                                            <input type="text" name="paxfname{{$i}}" required>
+                                            <input type="text" name="paxfname{{$i}}" 
+                                                class="only-latin"
+                                                required>
                                         </div>
                                     </div>
                                 @endfor
@@ -137,10 +139,19 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="paxlname">@lang('main.fio') #{{$i+1}}</label>
-                                            <input type="text" name="child_name{{$i}}" required>
+                                            <input type="text" name="child_name{{$i}}" 
+                                                class="only-latin"
+                                                required>
                                         </div>
                                     </div>
                                 @endfor
+                                <script>
+                                    document.querySelectorAll('.only-latin').forEach(function(input) {
+                                        input.addEventListener('input', function() {
+                                            this.value = this.value.replace(/[^a-z\s]/gi, '');
+                                        });
+                                    });
+                                </script>
                         </div>
                         {{-- <div class="line"></div>
                         <div class="row">
