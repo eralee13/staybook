@@ -306,7 +306,7 @@ class HotelServices
             // dd($payload);
 
         try {
-            $response = Http::withHeaders([
+            $response = Http::timeout(30)->withHeaders([
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json'
             ])->post("{$this->baseUrl}/HotelDetail", $payload);
@@ -377,7 +377,7 @@ class HotelServices
             // dd($payload);
 
         try {
-            $response = Http::withHeaders([
+            $response = Http::timeout(30)->withHeaders([
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json'
             ])->post("{$this->baseUrl}/HotelDetail", $payload);
@@ -513,7 +513,7 @@ class HotelServices
         ]);
 
         
-        $response = Http::withHeaders([
+        $response = Http::timeout(30)->withHeaders([
             'Content-Type' => 'application/json',
             'Accept' => 'application/json'
         ])->post("{$this->baseUrl}/CheckRoomRate", $payload);
@@ -842,7 +842,7 @@ class HotelServices
 
 
             // tourmind create order
-            $response = Http::withHeaders([
+            $response = Http::timeout(30)->withHeaders([
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json'
             ])->post("{$this->baseUrl}/CreateOrder", $payload);
@@ -924,7 +924,7 @@ class HotelServices
                     ]
                 ];
             
-                    $response = Http::withHeaders([
+                    $response = Http::timeout(30)->withHeaders([
                         'Content-Type' => 'application/json',
                         'Accept' => 'application/json'
                     ])->post("{$this->baseUrl}/CancelOrder", $payload);
@@ -954,7 +954,7 @@ class HotelServices
                     ]
                 ];
             
-                $response = Http::withHeaders([
+                $response = Http::timeout(30)->withHeaders([
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/json'
                 ])->post("{$this->baseUrl}/SearchOrder", $payload);

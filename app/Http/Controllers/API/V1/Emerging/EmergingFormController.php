@@ -169,7 +169,7 @@ class EmergingFormController extends Controller
 
 
 
-            $response = Http::withBasicAuth($this->keyId, $this->apiKey)
+            $response = Http::timeout(30)->withBasicAuth($this->keyId, $this->apiKey)
                 ->withHeaders([
                     'Content-Type' => 'application/json',
                 ])
@@ -190,7 +190,7 @@ class EmergingFormController extends Controller
 
     public function preBook(Request $request){
 
-        $response = Http::withBasicAuth($this->keyId, $this->apiKey)
+        $response = Http::timeout(30)->withBasicAuth($this->keyId, $this->apiKey)
             ->withHeaders([
                 'Content-Type' => 'application/json',
             ])
@@ -240,7 +240,7 @@ class EmergingFormController extends Controller
             
         $mappingMeals = $this->mappingMeals();
 
-        $response = Http::withBasicAuth($this->keyId, $this->apiKey)
+        $response = Http::timeout(30)->withBasicAuth($this->keyId, $this->apiKey)
             ->withHeaders([
                 'Content-Type' => 'application/json',
             ])
@@ -550,7 +550,7 @@ class EmergingFormController extends Controller
                             
                 // dd(json_encode($payload));
 
-        $response = Http::withBasicAuth($this->keyId, $this->apiKey)
+        $response = Http::timeout(30)->withBasicAuth($this->keyId, $this->apiKey)
             ->withHeaders([
                 'Content-Type' => 'application/json',
             ])
@@ -562,7 +562,7 @@ class EmergingFormController extends Controller
 
     public function etg_cancel(Request $request){
 
-        $response = Http::withBasicAuth($this->keyId, $this->apiKey)
+        $response = Http::timeout(30)->withBasicAuth($this->keyId, $this->apiKey)
             ->withHeaders([
                 'Content-Type' => 'application/json',
             ])
@@ -578,7 +578,7 @@ class EmergingFormController extends Controller
     
     public function finishStatus(Request $request){
 
-        $response = Http::withBasicAuth($this->keyId, $this->apiKey)
+        $response = Http::timeout(30)->withBasicAuth($this->keyId, $this->apiKey)
             ->withHeaders([
                 'Content-Type' => 'application/json',
             ])
@@ -597,7 +597,7 @@ class EmergingFormController extends Controller
 
         try{
 
-            $response = Http::withBasicAuth($this->keyId, $this->apiKey)
+            $response = Http::timeout(30)->withBasicAuth($this->keyId, $this->apiKey)
                 ->withHeaders([
                     'Content-Type' => 'application/json',
                 ])
