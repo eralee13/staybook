@@ -63,7 +63,7 @@ class EmergingHotelController extends Controller
 
         // Шаг 1: Скачиваем файл во временное хранилище
         $zstPath = storage_path('app\partner_feed_en_v3.jsonl.zst');
-        $jsonlPath = storage_path('app\partner_hotels_en.jsonl');
+        $jsonlPath = 'D:\Projects\SilkWayTravel\partner_hotels_en.jsonl';
         $zstdExe = 'D:\OSPanel\tools\zstd\zstd.exe';
 
         // file_put_contents($zstPath, file_get_contents($url));
@@ -92,8 +92,9 @@ class EmergingHotelController extends Controller
            
             $data = json_decode($line, true);
 
-            if ($data['region']['name'] == 'Amsterdam' ) {
-                //if ($data['hid'] == 8473727) {
+            if ( $data['hid'] == 7615581 || $data['hid'] == 6574079 || $data['hid'] == 7785166 || $data['hid'] == 7691218) {
+                // $data['region']['name'] == 'Moscow'
+                //if ( $data['hid'] == 8473727) {
                 // && $data['kind'] == 'hotel'
                 // file_put_contents(storage_path('app\testov.jsonl'), json_encode($data, JSON_PRETTY_PRINT));
 
@@ -173,6 +174,7 @@ class EmergingHotelController extends Controller
 
                     $this->saveImagesLink($hotel->id, $images, 20, $size);
 
+                    echo "Сохранено: {$hotel->id} - {$hotel->title}\n";
                     // dd($data);
             }
             $i++;
@@ -180,9 +182,9 @@ class EmergingHotelController extends Controller
 
         fclose($handle);
 
-        echo '<pre>';
-        dump($hotels[0]);
-        echo '</pre>';
+        
+        // dump($hotels[0]);
+      
         // return response()->json($hotels);
     }
 

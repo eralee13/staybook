@@ -30,7 +30,7 @@
                                     @endif
                                     <td>
                                         <div class="title">@lang('admin.status'):</div>
-                                        @if($book->status == 'Reserved')
+                                        @if($book->status == 'Reserved' || $book->status == 'Confirmed')
                                             <div class="value" style="color: green">{{ $book->status }}</div>
                                         @else
                                             <div class="value" style="color: red">{{ $book->status }}</div>
@@ -74,11 +74,11 @@
                                     @endphp
                                     <td>
                                         <div class="title">@lang('admin.hotel')</div>
-                                        <div class="value">{{ $hotel->title }}</div>
+                                        <div class="value">{{ $hotel->title ?? '' }}</div>
                                     </td>
                                     <td>
                                         <div class="title">@lang('admin.city')</div>
-                                        <div class="value">{{ $hotel->city }}</div>
+                                        <div class="value">{{ $hotel->city ?? ''}}</div>
                                     </td>
                                     @php
                                         $cancel = \App\Models\CancellationRule::find($book->cancellation_id);
@@ -108,37 +108,36 @@
                                     @else
                                         <td></td>
                                     @endif
-                                    <td>
-                                        @if($book->api_type == 'local')
-                                            <form action="{{ route('userbooks.cancel_calculate', $book) }}"
-                                                  method="post">
+
+                                        <td>
+                                            @php
+                                                $cancelRoutes = [
+                                                    'local' => route('userbooks.cancel_calculate', $book),
+                                                    'exely' => route('userbooks.cancel_calculate_exely', $book),
+                                                    'emerging' => route('userbooks.cancel_calculate_etg', $book),
+                                                    'tourmind' => route('userbooks.cancel_calculate_tm', $book),
+                                                    // добавляешь сколько нужно
+                                                ];
+
+                                                $cancelRoute = $cancelRoutes[$book->api_type] ?? '#';
+                                            @endphp
+
+                                            <form action="{{ $cancelRoute }}" method="post">
                                                 <ul>
-                                                    <a href="{{ route('userbooks.show', $book)}}"><img
-                                                                src="{{ route('index') }}/img/icons/eye.svg" alt=""></a>
+                                                    <a href="{{ route('userbooks.show', $book) }}">
+                                                        <img src="{{ route('index') }}/img/icons/eye.svg" alt="">
+                                                    </a>
                                                     @csrf
-                                                    @if($book->status == 'Reserved')
+                                                    @if($book->status == 'Reserved' || $book->status == 'Confirmed')
                                                         <button class="btn delete"
                                                                 onclick="return confirm('Do you want to cancel this?');">
-                                                        @lang('admin.cancel_btn')</button>
+                                                            @lang('admin.cancel_btn')
+                                                        </button>
                                                     @endif
                                                 </ul>
                                             </form>
-                                        @else
-                                            <form action="{{ route('userbooks.cancel_calculate_exely', $book) }}"
-                                                  method="post">
-                                                <ul>
-                                                    <a href="{{ route('userbooks.show', $book)}}"><img
-                                                                src="{{ route('index') }}/img/icons/eye.svg" alt=""></a>
-                                                    @csrf
-                                                    @if($book->status == 'Reserved')
-                                                        <button class="btn delete"
-                                                                onclick="return confirm('Do you want to cancel this?');">
-                                                            Отменить</button>
-                                                    @endif
-                                                </ul>
-                                            </form>
-                                        @endif
-                                    </td>
+                                            
+                                        </td>
                                 </tr>
                                 </tbody>
                             </table>

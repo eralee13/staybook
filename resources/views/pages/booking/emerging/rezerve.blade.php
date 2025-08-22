@@ -33,44 +33,57 @@
                             </div>
                     @endif
     
-                    <ul>
-                        <li>@lang('main.status'): @lang('main.' . $book->status ?? $message)</li>
-                        <li>@lang('main.booking_number'): {{ $book->id ?? ''}}</li>
-                        <li>@lang('main.hotel_id'): {{ $request->hotel_id ?? ''}}</li>
-                        <li>
-                            @lang('main.dates'): {{ Carbon\Carbon::createFromDate($request->arrivalDate)->format('d.m.Y') }} {{$hotel->checkin ?? ''}} 
-                            - {{ Carbon\Carbon::createFromDate($request->departureDate)->format('d.m.Y') }} {{ $hotel->checkout ?? ''}}
-                            (UTC {{ $request->utc }})
-                        </li>
-                        <li>
-                            @if($request->refundable == true)
-                                
-                                    @lang('main.free_cancellation') {{ \Carbon\Carbon::parse($request->cancelDate)->format('d.m.Y') }} 
-                                    (UTC {{ $request->utc }})!
-                                    
-                                    @lang('main.cancellation_amount_tm'): {{ round($book->cancel_penalty) }} {{ $request->currency ?? '$' }}
-                            @else
-                                    @lang('main.non_refundable')
-                            @endif
-                        <li>
-                            @lang('main.сustomer'): {{ $request->name ? $book->title : '' }}
-                            <ul>
-                                <li>@lang('main.phone'): {{ $request->phone ?? '' }}</li>
-                                <li>
-                                    Email: {{ $request->email ?? '' }}</li>
-                                <li>@lang('main.comment'): {{ $request->comment ?? '' }}</li>
-                            </ul>
-                        </li>
-                    </ul>
+                    
                     @if( isset($book->id) ) 
+                        <ul>
+                            <li>@lang('main.status'): @lang('main.' . $book->status ?? $message)</li>
+                            <li>@lang('main.booking_number'): {{ $book->id ?? ''}}</li>
+                            <li>@lang('main.hotel_id'): {{ $request->hotel_id ?? ''}}</li>
+                            <li>
+                                @lang('main.dates'): {{ Carbon\Carbon::createFromDate($request->arrivalDate)->format('d.m.Y') }} {{$hotel->checkin ?? ''}} 
+                                - {{ Carbon\Carbon::createFromDate($request->departureDate)->format('d.m.Y') }} {{ $hotel->checkout ?? ''}}
+                                (UTC {{ $request->utc }})
+                            </li>
+                            <li>
+                                @if($request->refundable == true)
+                                    
+                                        @lang('main.free_cancellation') {{ \Carbon\Carbon::parse($request->cancelDate)->format('d.m.Y') }} 
+                                        (UTC {{ $request->utc }})!
+                                        
+                                        @lang('main.cancellation_amount_tm'): {{ round($book->cancel_penalty) }} {{ $request->currency ?? '$' }}
+                                @else
+                                        @lang('main.non_refundable')
+                                @endif
+                            <li>
+                                @lang('main.сustomer'): {{ $request->name ? $book->title : '' }}
+                                <ul>
+                                    <li>@lang('main.phone'): {{ $request->phone ?? '' }}</li>
+                                    <li>
+                                        Email: {{ $request->email ?? '' }}</li>
+                                    <li>@lang('main.comment'): {{ $request->comment ?? '' }}</li>
+                                </ul>
+                            </li>
+                        </ul>
                         <div class="bnt-wrap">
-                            <form action="{{ route('cancel_calculate_etg', $book->id) }}">
-                                <input type="hidden" name="number" value="{{ $book->book_token }}">
-                                <button class="more">@lang('main.cancel_booking')</button>
-                            </form>
+                            @if($book->status != 'Cancelled')
+                                <form action="{{ route('cancel_calculate_etg', $book->id) }}">
+                                    <input type="hidden" name="number" value="{{ $book->book_token }}">
+                                    <button class="more">@lang('main.cancel_booking')</button>
+                                </form>
+                            @endif
                             {{-- @if($message == 'Бронирование успешно создано!' || $message == 'Этот бронь уже существует!')
                                 <button class="more primary" id="getStatus">Узнать статус брони</button>
                             @endif --}}
+                            <button class="more" onclick="location.href='{{ route('index') }}'">
+                                @lang('main.go_home')
+                            </button>
+
+                        </div>
+                    @else
+                        <div class="bnt-wrap">
+                            <button class="more" onclick="location.href='{{ route('index') }}'">
+                                @lang('main.go_home')
+                            </button>
                         </div>
                     @endif
 

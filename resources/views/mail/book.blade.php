@@ -126,12 +126,12 @@
                 </tr>
                 <tr>
                     <td><strong>Cancellation charge:</strong></td>
-                    <td align="right">{{ $book->cancel_penalty ?? 0 }} {{ $book->currency}}</td>
+                    <td align="right">{{ round($book->cancel_penalty) ?? 0 }} {{ $book->currency}}</td>
                 </tr>
                 <tr>
                     <td><strong>Accommodation cost:</strong></td>
                     <td align="right" style="color: #000; font-size: 16px;">
-                        <strong>{{ $book->sum }} {{ $book->currency}}</strong></td>
+                        <strong>{{ round($book->sum) }} {{ $book->currency}}</strong></td>
                 </tr>
             </table>
 

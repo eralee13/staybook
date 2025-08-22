@@ -105,6 +105,14 @@ Route::middleware('set_locale')->group(function () {
         Route::post('/userbooks/cancel_exely/{book}', [UserBookController::class, 'cancel_calculate_exely'])->name('userbooks.cancel_calculate_exely');
         Route::get('/userbooks/cancel_confirm', [UserBookController::class, 'cancel_confirm_exely'])->name('userbooks.cancel_confirm_exely');
 
+        // tourmind
+        Route::post('/userbooks/cancel_calculate_tm/{book}', [UserBookController::class, 'cancelCalculateBookingTM'])->name('userbooks.cancel_calculate_tm');
+        Route::get('/userbooks/cancel_confirm_tm', [UserBookController::class, 'cancelBookingTM'])->name('userbooks.cancel_confirm_tm');
+
+        // emerging
+        Route::post('/userbooks/cancel_calculate_etg/{book}', [UserBookController::class, 'cancelCalculateBookingETG'])->name('userbooks.cancel_calculate_etg');
+        Route::get('/userbooks/cancel_confirm_etg', [UserBookController::class, 'cancelBookingETG'])->name('userbooks.cancel_confirm_etg'); 
+
         Route::post('/users/store-user-hotel', [\App\Http\Controllers\Admin\UserController::class, 'storeHotel'])->name('users.createHotelUsers');
         Route::get('/list-users-hotel', [\App\Http\Controllers\Admin\UserController::class, 'listHotel'])->name('users.listHotel');
         Route::get('/edit-hotel/{user}/editHotelUser', [\App\Http\Controllers\Admin\UserController::class, 'editHotelUser'])->name('users.editHotelUser');

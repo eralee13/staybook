@@ -117,6 +117,8 @@ class EmergingFormController extends Controller
             ];
         }
 
+        $city = explode('-', $request->city);
+
             $response = Http::withBasicAuth($this->keyId, $this->apiKey)
                 ->withHeaders([
                     'Content-Type' => 'application/json',
@@ -127,8 +129,8 @@ class EmergingFormController extends Controller
                     "residency" => "gb",
                     "language" => "en",
                     "guests" => $guests,
-                    // "timeout" => 30,
-                    "region_id" => 3421,
+                    "timeout" => 30,
+                    "region_id" => (int)$city[0],
                     "currency" => "USD"
                 ]);
                 // dd($response->json());
@@ -177,7 +179,7 @@ class EmergingFormController extends Controller
                     "residency" => "gb",
                     "language" => "en",
                     "guests" => $guests,
-                    "timeout" => 30,
+                    // "timeout" => 30,
                     "hid" => (int)$request->apiHotelId,
                     "currency" => "USD"
                 ]);
@@ -194,11 +196,12 @@ class EmergingFormController extends Controller
             ])
             ->post($this->url . '/hotel/prebook/', [
 
-                "hash" => $request->book_hash 
-                
+                "hash" => $request->book_hash,
+                "price_increase_percent" => (int) $request->increase_percent ?? 0,
+
             ]);
 
-        // Возвращаем JSON
+        // Возвращаем JSON  
         return $response->json();
 
     }
@@ -234,46 +237,8 @@ class EmergingFormController extends Controller
                     'children' => $children,
                 ];
             }
-
-            $mappingMeals = [
-                // 1 => Room Only
-                'nomeal' => 1,
-                'room-only' => 1,
-
-                // 2 => Bed & Breakfast
-                'breakfast' => 2,
-                'buffet' => 2,
-                'american-breakfast' => 2,
-                'asian-breakfast' => 2,
-                'chinese-breakfast' => 2,
-                'continental-breakfast' => 2,
-                'english-breakfast' => 2,
-                'irish-breakfast' => 2,
-                'israeli-breakfast' => 2,
-                'japanese-breakfast' => 2,
-                'scandinavian-breakfast' => 2,
-                'scottish-breakfast' => 2,
-                'breakfast-for-1' => 2,
-                'breakfast-for-2' => 2,
-
-                // 3 => Half Board
-                'half-board' => 3,
-                'half-board-dinner' => 3,
-                'half-board-lunch' => 3,
-                'some-meal' => 3,
-
-                // 4 => Full Board
-                'full-board' => 4,
-                'lunch' => 4,
-                'dinner' => 4,
-
-                // 5 => All Inclusive
-                'all-inclusive' => 5,
-                'soft-all-inclusive' => 5,
-                'super-all-inclusive' => 5,
-                'ultra-all-inclusive' => 5,
-            ];
-
+            
+        $mappingMeals = $this->mappingMeals();
 
         $response = Http::withBasicAuth($this->keyId, $this->apiKey)
             ->withHeaders([
@@ -474,9 +439,9 @@ class EmergingFormController extends Controller
                         ]
                     );
 
-            if ( !isset($book->id) ){
-                return ['status' => 'error', 'error' => 'error_dublicate_local'];
-            }
+                        if ( !isset($book->id) ){
+                            return ['status' => 'error', 'error' => 'not_created_locally'];
+                        }
         }
 
             // dd( json_decode($response->body()) );
@@ -550,7 +515,9 @@ class EmergingFormController extends Controller
                         }
                     }
 
-                    
+        $totalPrice = number_format(($request->price / $this->coef), 2, '.', '');
+        // $partnerComment = Auth::user()->partner_comment;
+
         $payload = [
                 "user" => [
                         "email" => $request->email, 
@@ -565,8 +532,8 @@ class EmergingFormController extends Controller
                 //         ], 
                 "partner" => [
                             "partner_order_id" => $data['etoken'], 
-                            "comment" => "", 
-                            // "amount_sell_b2b2c" => 
+                            // "comment" => $partnerComment ?? '', 
+                            "amount_sell_b2b2c" => round($totalPrice)
                             ], 
                 "language" => $language, 
                 "rooms" => [
@@ -625,4 +592,159 @@ class EmergingFormController extends Controller
         return $response->json();
 
     }
+
+    public function getBookingStatus($token){
+
+        try{
+
+            $response = Http::withBasicAuth($this->keyId, $this->apiKey)
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                ])
+                ->post($this->url . '/hotel/order/booking/finish/status/', [
+                    "partner_order_id" => $token 
+                ]);
+
+
+            return $response->json();
+
+        } catch (\Throwable $th) {
+            
+            Log::channel('emerging')->info('Crontab Get Statuses - ', $response->json());
+            return ["Error" => "Cron Statuses SearchOrder Ошибка при запросе к API: " . $th->getMessage()];
+            
+        }
+
+    }
+
+    public function updateBookingStatuses(){
+
+        $books = Book::where('api_type', 'emerging')
+            ->where('status', 'Pending')
+            ->get('id', 'book_token');
+
+        foreach ($books as $book) {
+
+            $status = $this->getBookingStatus($book->book_token);
+
+            if( $status['status'] == 'ok' ){
+
+                Book::where('book_token', $book->book_token)
+                    ->update(['status' => 'Confirmed']);
+                echo "Done {$book->id} \n";
+            }
+
+            echo "Error - {$status['error']} {$book->id} \n";
+        }
+        
+    }
+
+    public function mappingMeals(){
+
+        $mappingMeals = [
+                // 1 => Room Only
+                'nomeal' => 1,
+                'room-only' => 1,
+
+                // 2 => Bed & Breakfast
+                'breakfast' => 2,
+                'buffet' => 2,
+                'american-breakfast' => 2,
+                'asian-breakfast' => 2,
+                'chinese-breakfast' => 2,
+                'continental-breakfast' => 2,
+                'english-breakfast' => 2,
+                'irish-breakfast' => 2,
+                'israeli-breakfast' => 2,
+                'japanese-breakfast' => 2,
+                'scandinavian-breakfast' => 2,
+                'scottish-breakfast' => 2,
+                'breakfast-for-1' => 2,
+                'breakfast-for-2' => 2,
+
+                // 3 => Half Board
+                'half-board' => 3,
+                'half-board-dinner' => 3,
+                'half-board-lunch' => 3,
+                'some-meal' => 3,
+
+                // 4 => Full Board
+                'full-board' => 4,
+                'lunch' => 4,
+                'dinner' => 4,
+
+                // 5 => All Inclusive
+                'all-inclusive' => 5,
+                'soft-all-inclusive' => 5,
+                'super-all-inclusive' => 5,
+                'ultra-all-inclusive' => 5,
+        ];
+        
+        return $mappingMeals;
+    }
+
+    public function mappingMealsGrouped(){
+
+        // mapping: id => список ключей
+        $mappingMealsGrouped = [
+            1 => ['nomeal', 'room-only'],
+            2 => [
+                'breakfast', 'buffet', 'american-breakfast', 'asian-breakfast',
+                'chinese-breakfast', 'continental-breakfast', 'english-breakfast',
+                'irish-breakfast', 'israeli-breakfast', 'japanese-breakfast',
+                'scandinavian-breakfast', 'scottish-breakfast',
+                'breakfast-for-1', 'breakfast-for-2'
+            ],
+            3 => ['half-board', 'half-board-dinner', 'half-board-lunch', 'some-meal'],
+            4 => ['full-board', 'lunch', 'dinner'],
+            5 => ['all-inclusive', 'soft-all-inclusive', 'super-all-inclusive', 'ultra-all-inclusive'],
+        ];
+        
+        return $mappingMealsGrouped;
+    }
+
+    public function mappingStaybookMeals($mealId)
+    {
+        $mappingMeals = [
+            // 1 => Room Only
+            1 => 'nomeal',
+            1 => 'room-only',
+
+            // 2 => Bed & Breakfast
+            2 => 'breakfast',
+            2 => 'buffet',
+            2 => 'american-breakfast',
+            2 => 'asian-breakfast',
+            2 => 'chinese-breakfast',
+            2 => 'continental-breakfast',
+            2 => 'english-breakfast',
+            2 => 'irish-breakfast',
+            2 => 'israeli-breakfast',
+            2 => 'japanese-breakfast',
+            2 => 'scandinavian-breakfast',
+            2 => 'scottish-breakfast',
+            2 => 'breakfast-for-1',
+            2 => 'breakfast-for-2',
+
+            // 3 => Half Board
+            3 => 'half-board',
+            3 => 'half-board-dinner',
+            3 => 'half-board-lunch',
+            3 => 'some-meal',
+
+            // 4 => Full Board
+            4 => 'full-board',
+            4 => 'lunch',
+            4 => 'dinner',
+
+            // 5 => All Inclusive
+            5 => 'all-inclusive',
+            5 => 'soft-all-inclusive',
+            5 => 'super-all-inclusive',
+            5 => 'ultra-all-inclusive',
+        ];
+
+        return $mappingMeals;
+    }
+
 }

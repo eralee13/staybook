@@ -8,10 +8,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\log;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\BookCancelMail;
-use App\Mail\BookMail;
 use DateTimeZone;
 use DateTime;
+use App\Mail\BookCancelMail;
+// use App\Mail\BookMail;
 use App\Models\Book;
 use App\Models\City;
 use App\Models\Contact;
@@ -172,9 +172,10 @@ class BookingTmController extends Controller
         $departure = Carbon::createFromDate($book->departureDate)->format('d.m.Y');
         $room = Room::where('id', $book->room_id)->first();
         $rate = Rate::where('id', $book->rate_id)->first();
+        $cancelRule = CancellationRule::where('id', $book->cancellation_id)->first();
 
         return view('pages.booking.tourmind.cancel', compact(
-            'book', 'hotel', 'arrival', 'departure', 'room', 'rate', 'request'));
+            'book', 'hotel', 'arrival', 'departure', 'room', 'rate', 'request', 'cancelRule'));
     }
 
     public function cancel_confirm_tm(Request $request, Book $book)
@@ -227,7 +228,10 @@ class BookingTmController extends Controller
 
                 $book = Book::where('book_token', $request->number)->first();
 
-                Mail::to('info@staybook.asia')->send(new BookCancelMail($book));
+                if( $book->id ){
+                    $userEmail = Auth::user()->email;
+                    Mail::to($userEmail)->send(new BookCancelMail($book));
+                }
 
                 $status = 'Cancelled';
                 

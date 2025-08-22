@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 use Carbon\Carbon;
 use DateTimeZone;
 use DateTime;
-use App\Mail\BookCancelMail;
+// use App\Mail\BookCancelMail;
 use App\Mail\BookMail;
 use App\Services\Tourmind\TmApiService;
 use App\Models\Hotel;
@@ -866,15 +866,27 @@ class HotelServices
     
                 $message = $order['OrderInfo']['OrderStatus'];
 
-                    Book::where('book_token', $this->token)
-                        ->update([
-                            'status' => ucfirst($order['OrderInfo']['OrderStatus']),
-                            // 'rezervation_id' => $order['OrderInfo']['ReservationID']
-                        ]);
+                    $status;
+                    match ($order['OrderInfo']['OrderStatus']) {
+                        'CONFIRMED' => $status = 'Confirmed',
+                        'PENDING' => $status = 'Pending',       
+                        'FAILED' => $status = 'Failed',
+                        'CANCELLED' => $status = 'Cancelled',
+                        default => $status = '',
+                    };
 
-                    $book = Book::where('book_token', $request->token)->first();
 
-                        Mail::to('info@staybook.asia')->send(new BookMail($book));
+                    $book = Book::where('book_token', $this->token)->first();
+
+                    if ($book) {
+                        $book->status = 'Confirmed';
+                        // $book->rezervation_id = $order['OrderInfo']['ReservationID'] ?? null;
+                        $book->save();
+
+                        $userEmail = Auth::user()->email;
+                        Mail::to($userEmail)->send(new BookMail($book));
+                    }
+                        
 
                 return ['Success' => "{$order['OrderInfo']['OrderStatus']}"];
     
@@ -961,11 +973,11 @@ class HotelServices
             }
     }
 
-    public function updateBookStatuses(){
+    public function updateBookingStatuses(){
 
         $books = Book::where('api_type', 'tourmind')
             ->whereIn('status', ['Pending', 'Failed'])
-            ->get('book_token','agent_ref');
+            ->get('id','book_token','agent_ref');
 
         foreach ($books as $book) {
 
@@ -973,8 +985,12 @@ class HotelServices
 
             if( isset($order['OrderInfo']['OrderStatus']) ){
 
+                $status = $order['OrderInfo']['OrderStatus'];
+
                 Book::where('book_token', $book->book_token)
                     ->update(['status' => ucfirst( $order['OrderInfo']['OrderStatus'] )]);
+
+                    echo "Done {$book->id} - {$status} \n";
             }
         }
         

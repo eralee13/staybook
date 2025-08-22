@@ -14,12 +14,7 @@
                         <div class="alert alert-success">@lang('main.status'): @lang('main.' . $book->status)</div>
                     @else
                         <h1 data-aos="fade-up" data-aos-duration="2000">@lang('main.error_book_not_cancelled')</h1>
-                        @if( empty($message) )
-                            <p>@lang('main.error_book_not_cancelled_description')</p>
-                        @else
-                            <p>@lang('main.' . $message)</p>
-                        @endif
-                        
+                        <p>@lang('main.error_book_not_cancelled_description')</p>
                         <div class="alert alert-danger">@lang('main.status'): @lang('main.' . $book->status)</div>
                     @endif
                     <ul>

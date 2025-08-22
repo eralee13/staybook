@@ -81,7 +81,7 @@ class EmergingRegionController extends Controller
         $regions = [];
         $i = 0;
 
-        while (($line = fgets($handle)) !== false) { // ограничим для примера 10 строками
+        while (($line = fgets($handle)) !== false) { 
 
             $data = json_decode($line, true);
             $regions = $data;

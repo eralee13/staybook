@@ -4,7 +4,8 @@
 @section('title', 'Поиск')
 
 @section('content')
-    {{-- @dump($results) --}}
+    @dump($emerHotels)
+    @dump($results)
     
     @auth
         <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
@@ -848,7 +849,7 @@
                                                             <input type="hidden" name="servicesId"
                                                                 value="{{ $serv->id }}">
                                                         @endforeach
-                                                        {{-- <input type="hidden" name="servicesQuantity" value="{{  }}">--}}
+                                                        {{-- <input type="hidden" name="servicesQuantity" value="{{  }}"> --}}
                                                         <input type="hidden" name="hotel"
                                                             value="{{ $room->fullPlacementsName }}">
                                                         <input type="hidden" name="hotel_id"
