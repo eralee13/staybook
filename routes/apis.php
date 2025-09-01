@@ -19,6 +19,9 @@ use App\Http\Controllers\API\V1\Emerging\EmergingTestController;
 use App\Http\Controllers\API\V1\Emerging\EmergingFormController;
 use App\Http\Controllers\API\V1\Emerging\EmergingAllBookingController;
 
+use App\Http\Controllers\API\V1\Hotelstar\HotelstarHotelStaticController;
+use App\Http\Controllers\API\V1\Hotelstar\HotelstarCountryStaticController;
+use App\Http\Controllers\API\V1\Hotelstar\HotelstarCityStaticController;
 
 
 /*
@@ -51,4 +54,10 @@ use App\Http\Controllers\API\V1\Emerging\EmergingAllBookingController;
     Route::get('EtgRegionList', [EmergingRegionController::class, 'fetchRegionStatic']);
     Route::get('EtgDescTransHotel', [EmergingDescTransHotelController::class, 'fetchDescTranslationData']);
     Route::get('EtgTest', [EmergingTestController::class, 'fetchTest']);
+
+    // hotelstar
+    Route::get('HSHotelStatic', [HotelstarHotelStaticController::class, 'HSHotelStatic']);
+    Route::get('HSCountryStatic', [HotelstarCountryStaticController::class, 'HSCountryStatic']);
+    Route::get('HSCityStatic', [HotelstarCityStaticController::class, 'HSCityStatic']);
+
 // });

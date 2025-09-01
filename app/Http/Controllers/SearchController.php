@@ -102,6 +102,8 @@ class SearchController extends Controller
             ->values()
             ->all();
 
+
+
         $results = null;
 
         // ######## Emerging API ########
@@ -109,7 +111,7 @@ class SearchController extends Controller
             $emerSearch = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
             $emerHotels = $emerSearch->EmergingGetHotels($request);
             $mappingMeals = $emerSearch->mappingMealsGrouped();
-            // dd($emerHotels['data']['hotels'][0]);
+            // dd($emerHotels['data']);
             
             
             if (!empty($emerHotels['data']['hotels'])) {
@@ -315,7 +317,7 @@ class SearchController extends Controller
         return view('pages.search.search', [
             'allHotels' => $allHotels,
             'results' => $results,
-            'emerHotels' => $filteredMealsHotels,
+            'emerHotels' => [],
             'fxBase' => $fxBase,
             'fxRates' => $fxRates,
             'request' => $request,

@@ -126,8 +126,8 @@ class EmergingFormController extends Controller
                 ->post($this->url . '/search/serp/region/', [
                     "checkin" => $request->arrivalDate,
                     "checkout" => $request->departureDate,
-                    "residency" => "gb",
-                    "language" => "en",
+                    // "residency" => "uz",
+                    // "language" => "en",
                     "guests" => $guests,
                     "timeout" => 30,
                     "region_id" => (int)$city[0],
@@ -142,47 +142,42 @@ class EmergingFormController extends Controller
     {
         // dd($request);
         $rooms = $request->input('rooms', []); // если нет — пустой массив
-        $adults = 0;
-        $allChildAges = [];
-        $childs = 0;
-        $roomCount=0;
         $guests = [];
 
         foreach ($rooms as $room) {
-            $roomCount++;
-            // Взрослые
-            $adults += (int) ($room['adults'] ?? 0);
-            $adultse = (int) ($room['adults'] ?? 0);
+            $adultCount = (int) ($room['adults'] ?? 0);
 
+            $children = [];
             if (!empty($room['childAges']) && is_array($room['childAges'])) {
                 foreach ($room['childAges'] as $age) {
-                    $allChildAges[] = (int) $age;
-                    $childs++;
+                    $children[] = (int) $age;
                 }
             }
 
             $guests[] = [
-                'adults' => $adultse,
-                'children' => $allChildAges,
+                'adults'   => $adultCount,
+                'children' => $children,
             ];
         }
 
+        $payload = [
+                    "checkin" => $request->arrivalDate,
+                    "checkout" => $request->departureDate,
+                    // "residency" => "gb",
+                    // "language" => "en",
+                    "guests" => $guests,
+                    // "timeout" => 30,
+                    "hid" => (int)$request->apiHotelId,
+                    "currency" => "USD"
+        ];
 
+        Log::channel('emerging')->info('Booking /search/hp/ - Payload ', $payload);
 
             $response = Http::timeout(30)->withBasicAuth($this->keyId, $this->apiKey)
                 ->withHeaders([
                     'Content-Type' => 'application/json',
                 ])
-                ->post($this->url . '/search/hp/', [
-                    "checkin" => $request->arrivalDate,
-                    "checkout" => $request->departureDate,
-                    "residency" => "gb",
-                    "language" => "en",
-                    "guests" => $guests,
-                    // "timeout" => 30,
-                    "hid" => (int)$request->apiHotelId,
-                    "currency" => "USD"
-                ]);
+                ->post($this->url . '/search/hp/', $payload);
 
             return $response->json();
 
@@ -453,67 +448,57 @@ class EmergingFormController extends Controller
     {
         $language = app()->getLocale();
         $rooms = $request->input('rooms', []); // если нет — пустой массив
-        $adults = 0;
-        $allChildAges = [];
-        $childs = 0;
-        $roomCount=0;
-        $guests = [];
 
-            foreach ($rooms as $room) {
-                $roomCount++;
-                // Взрослые
-                $adults += (int) ($room['adults'] ?? 0);
-                $adultse = (int) ($room['adults'] ?? 0);
+        $roomsData = [];
+        $childIndex = 0;
+        $adultIndex = 0;
 
-                $children = [];
-                if (!empty($room['childAges']) && is_array($room['childAges'])) {
-                    foreach ($room['childAges'] as $age) {
-                        $children[] = (int) $age;
-                        $allChildAges[] = (int) $age;
-                        $childs++;
-                    }
-                }
+        foreach ($rooms as $room) {
+            $roomGuests = [];
 
-                // $guests[] = [
-                //     'adults' => $adultse,
-                //     'children' => $children,
-                // ];
+            // Взрослые в этом номере
+            $adultCount = (int)($room['adults'] ?? 0);
+            for ($i = 0; $i < $adultCount; $i++) {
+                $fname = trim($request->input('paxfname' . $adultIndex, ''));
+                $parts = preg_split('/\s+/', $fname, 3);
+
+                $lastName  = $parts[0] ?? '';
+                $firstName = $parts[1] ?? '';
+                $thirdName = $parts[2] ?? '';
+
+                $roomGuests[] = [
+                    'first_name' => $firstName,
+                    'last_name'  =>trim($lastName . ' ' . $thirdName),
+                ];
+
+                $adultIndex++;
             }
-                
-                    $paxList = [];
-                    
-                    for ($i = 0; $i < $adults; $i++) { // < вместо <=, чтобы не было лишней итерации
-                        $fname = trim($request->input('paxfname' . $i, ''));
-                        $parts = preg_split('/\s+/', $fname, 3); // делим максимум на 2 части
-                        
-                        $lastName  = $parts[0] ?? '';
-                        $firstName = $parts[1] ?? '';
-                        $thirdName = $parts[2] ?? '';
 
-                        $paxList[] = [
-                            'first_name' => $firstName,
-                            'last_name'  => $lastName .' '.$thirdName,
-                            'is_child'   => 0,
-                        ];
-                    }
-                    
-                    if( !empty( $childs ) ){
-                        for ($i = 0; $i < $childs; $i++) { // < вместо <=, чтобы не было лишней итерации
-                            $fname = trim($request->input('child_name' . $i, ''));
-                            $parts = preg_split('/\s+/', $fname, 3); // делим максимум на 2 части
-                            
-                            $lastName  = $parts[0] ?? '';
-                            $firstName = $parts[1] ?? '';
-                            $thirdName = $parts[2] ?? '';
+            // Дети в этом номере
+            if (!empty($room['childAges']) && is_array($room['childAges'])) {
+                foreach ($room['childAges'] as $age) {
+                    $fname = trim($request->input('child_name' . $childIndex, ''));
+                    $parts = preg_split('/\s+/', $fname, 3);
 
-                            $paxList[] = [
-                                'first_name' => $firstName,
-                                'last_name'  => $lastName .' '.$thirdName,
-                                'is_child'   => 1,
-                                'age' => $allChildAges[$i],
-                            ];
-                        }
-                    }
+                    $lastName  = $parts[0] ?? '';
+                    $firstName = $parts[1] ?? '';
+                    $thirdName = $parts[2] ?? '';
+
+                    $roomGuests[] = [
+                        'first_name' => $firstName,
+                        'last_name'  => trim($lastName . ' ' . $thirdName),
+                        'age'        => (int)$age,
+                    ];
+
+                    $childIndex++;
+                }
+            }
+
+            $roomsData[] = [
+                'guests' => $roomGuests
+            ];
+        }
+
 
         $totalPrice = number_format(($request->price / $this->coef), 2, '.', '');
         // $partnerComment = Auth::user()->partner_comment;
@@ -536,11 +521,7 @@ class EmergingFormController extends Controller
                             "amount_sell_b2b2c" => round($totalPrice)
                             ], 
                 "language" => $language, 
-                "rooms" => [
-                                [
-                                    "guests" => $paxList
-                                ] 
-                            ], 
+                "rooms" => $roomsData, 
                 "payment_type" => [
                                     "type" => $data['type'], 
                                     "amount" => $data['amount'], 
@@ -549,6 +530,8 @@ class EmergingFormController extends Controller
                             ];
                             
                 // dd(json_encode($payload));
+                Log::channel('emerging')->info('Booking order/booking/finish/ - Payload ', $payload);
+
 
         $response = Http::timeout(30)->withBasicAuth($this->keyId, $this->apiKey)
             ->withHeaders([
@@ -556,6 +539,23 @@ class EmergingFormController extends Controller
             ])
             ->post($this->url . '/hotel/order/booking/finish/', $payload);
                 
+        return $response->json();
+
+    }
+
+    public function finishStatus(Request $request){
+
+        $response = Http::timeout(30)->withBasicAuth($this->keyId, $this->apiKey)
+            ->withHeaders([
+                'Content-Type' => 'application/json',
+            ])
+            ->post($this->url . '/hotel/order/booking/finish/status/', [
+
+                "partner_order_id" => $request->token 
+                
+            ]);
+
+        // Возвращаем JSON
         return $response->json();
 
     }
@@ -573,23 +573,6 @@ class EmergingFormController extends Controller
             ]);
 
         return json_decode( $response->body() );
-
-    }
-    
-    public function finishStatus(Request $request){
-
-        $response = Http::timeout(30)->withBasicAuth($this->keyId, $this->apiKey)
-            ->withHeaders([
-                'Content-Type' => 'application/json',
-            ])
-            ->post($this->url . '/hotel/order/booking/finish/status/', [
-
-                "partner_order_id" => $request->token 
-                
-            ]);
-
-        // Возвращаем JSON
-        return $response->json();
 
     }
 
