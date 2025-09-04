@@ -104,7 +104,8 @@ class SearchController extends Controller
 
 
 
-        $results = null;
+        $results = new \stdClass();
+        $results1 = null;
 
         // ######## Emerging API ########
         try {
@@ -141,7 +142,6 @@ class SearchController extends Controller
                 if( empty($filteredMealsHotels) ){
                     $filteredMealsHotels = $emerHotels['data']['hotels'];
                 }
-
 
 
                 // Вывоводим отели
@@ -188,9 +188,10 @@ class SearchController extends Controller
                     ];
                     
                 }, $filteredHotels);
+                
 
-
-                $results = json_decode(json_encode($hotels));
+                $results1 = json_decode(json_encode($hotels['hotels']));
+                
             }
 
 
@@ -199,7 +200,7 @@ class SearchController extends Controller
                     'message' => $th->getMessage(),
                     'trace'   => $th->getTraceAsString(),
                 ]);
-            $results = [];
+            // $results = [];
         }
            
         // ######## End Emerging API ########
@@ -248,8 +249,11 @@ class SearchController extends Controller
                     ];
                 }, $filteredHotels);
 
-                $results = json_decode(json_encode($hotels));
+                if (isset($hotels)) 
+                    $results2 = json_decode(json_encode($hotels['hotels']));
+                    $results->hotels = array_merge($results1, $results2);
                 // dd($results->hotels);
+
             }
 
         } catch (\Throwable $th) {
@@ -257,10 +261,9 @@ class SearchController extends Controller
                     'message' => $th->getMessage(),
                     'trace'   => $th->getTraceAsString(),
                 ]);
-            $results = [];
+            // $results = [];
         }
         // ######## End Tourmind API ########
-
 
         if (!empty($propertyIds)) {
             try {
@@ -316,8 +319,8 @@ class SearchController extends Controller
 
         return view('pages.search.search', [
             'allHotels' => $allHotels,
-            'results' => $results,
-            'emerHotels' => [],
+            'results' => $results ?? [],
+            'emerHotels' => $result1 ?? [],
             'fxBase' => $fxBase,
             'fxRates' => $fxRates,
             'request' => $request,

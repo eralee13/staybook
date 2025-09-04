@@ -49,8 +49,31 @@ class BookingEtgController extends Controller
         //dd($request->all());
         $arrival = Carbon::createFromDate($request->arrivalDate)->format('d.m.Y');
         $departure = Carbon::createFromDate($request->departureDate)->format('d.m.Y');
+        $message = ''; $preBook = ''; $throwMessage = '';
 
-        return view('pages.booking.emerging.order', compact('request', 'arrival', 'departure'));
+        try {
+            // $hotel = Hotel::find($request->hotel_id);
+            $emergingPrebook = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
+            $preBook = $emergingPrebook->preBook($request);
+            Log::channel('emerging')->info('Create Order Prebook - ', $preBook);
+
+                if( $preBook['status'] == 'ok' ){
+
+                    if( $preBook['data']['changes']['price_changed'] == true ){
+                        $message = 'price_changed_text';
+                    }
+                } else{
+                    $message = $preBook['error'];
+                } //preBook else
+
+        } catch (\Throwable $th) {
+            //throw $th;
+            $throwMessage = 'prebook_error';
+            Log::channel('emerging')->info('preBook Search Error- ', [$th->getMessage()]);
+        }
+
+        return view('pages.booking.emerging.order', 
+                compact('request', 'arrival', 'departure', 'preBook', 'message', 'throwMessage'));
     }
 
     public function book_verify_etg(Request $request)
@@ -75,14 +98,7 @@ class BookingEtgController extends Controller
         $message = ''; $finish = ''; $finishStatus=''; $book; $order=''; $preBook = '';
 
         try {
-            
-            // $hotel = Hotel::find($request->hotel_id);
-            $emergingPrebook = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
-            $preBook = $emergingPrebook->preBook($request);
-            Log::channel('emerging')->info('Create Order Prebook - ', $preBook);
 
-            if( $preBook['status'] == 'ok' ){
-                
                 $emergingOrder = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
                 $order = $emergingOrder->startProcess($request);
                 Log::channel('emerging')->info('Create Order Process - ', $order);
@@ -220,10 +236,7 @@ class BookingEtgController extends Controller
                     $message = $order['error'];
                 }
 
-            } //preBook if
-            else{
-                $message = $preBook['error'];
-            } //preBook else
+            
 
         } catch (\Throwable $th) {
 

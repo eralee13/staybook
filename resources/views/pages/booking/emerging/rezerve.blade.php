@@ -1,8 +1,6 @@
 @extends('layouts.head')
 
 @section('title', 'Бронирование')
-<span>/hotel/prebook/</span>
-    @dump($preBook)
 <span>/hotel/order/booking/form/</span>
     @dump($order)
 <span>/hotel/order/booking/finish/</span>

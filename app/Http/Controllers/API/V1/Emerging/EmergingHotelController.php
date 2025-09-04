@@ -88,10 +88,10 @@ class EmergingHotelController extends Controller
         $hotels = [];
         $i = 0;
 
-        while (($line = fgets($handle)) !== false) { // ограничим для примера 10 строками
-           
+        while ( ($line = fgets($handle)) !== false ) { // ограничим для примера 10 строками
+            
             $data = json_decode($line, true);
-
+            
             if ( $data['hid'] == 7615581 || $data['hid'] == 6574079 || $data['hid'] == 7785166 || $data['hid'] == 7691218) {
                 // $data['region']['name'] == 'Moscow'
                 //if ( $data['hid'] == 8473727) {

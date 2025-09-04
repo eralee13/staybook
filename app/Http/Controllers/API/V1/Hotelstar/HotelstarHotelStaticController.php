@@ -18,6 +18,7 @@ use App\Models\Book;
 use App\Models\Room;
 use App\Models\Rate;
 use App\Models\CancellationRule;
+use App\Models\Amenity;
 
 
 
@@ -68,99 +69,105 @@ class HotelstarHotelStaticController extends Controller
 
             // // Распаковать через shell
             // exec("tar -xzf " . escapeshellarg($gzPath) . " -C " . escapeshellarg($outDir));
+
+            // 4. Читаем hotel.json
+            $jsonFile = $outDir.'/hotel.json';
+            if (!file_exists($jsonFile)) {
+                return response()->json(['error' => 'Файл hotel.json не найден'], 404);
+            }
+
+            $controller = new HotelstarCategoryStaticController();
+            $category = $controller->extractJson();
+            $withKeys = collect($category->getData(true))->keyBy('id')->toArray();
+            
+
+            $count = 0;
+            $data = [];
+            $handle = fopen($jsonFile, 'r');
+            if ($handle) {
+                while (($line = fgets($handle)) !== false && $count < 2 ){
+                    $line = trim($line);
+                    if ($line === '') continue;
+
+                    $item = json_decode($line, true);
+                    if ($item !== null) {
+                        $data[] = $item;
+                        
+                        $kind; $rating = 0;
+                        if($item['categoryId'] > 5){
+                            $kind = $withKeys[$item['categoryId']]['nameEn'] ?? '';
+                        }else{
+                            $rating = $item['categoryId'];
+                        }
+                        
+                        $code  = str_replace([' ', '/'], '_', strtolower($item['nameEn']) ?? '');
+                        $amenitiesRoom = ''; $descriptionRoom = ''; $amenitiesHotel = '';
+
+                            $hotel = Hotel::updateOrCreate(
+                                ['hotelstar_id' => $item['id']],
+                                [
+                                    'code' => $code ?? '',
+                                    'title' => $item['nameRu'] ?? '',
+                                    'title_en' => $item['nameEn'] ?? '',
+                                    'type' => $kind ?? '',
+                                    'rating' => (int) ($rating ?? 0),
+                                    'address_en' => $item['addressEn'] ?? '',
+                                    // 'country_code' => $data['region']['country_code'] ?? '',
+                                    'city' => $item['cityId'] ?? '',
+                                    'utc' => $utc ?? '',
+                                    'lat' => $item['latitude'] ?? '',
+                                    'lng' => $item['longitude'] ?? '',
+                                    'checkin' => $item['check_in_time'] ?? '',
+                                    'checkout' => $item['check_out_time'] ?? '',
+                                    'phone' => $item['phone'] ?? '',
+                                    'email' => $item['email'] ?? '',
+                                    'description' => $item['description']['descriptionRu'] ?? '',
+                                    'description_en' => $item['description']['descriptionEn'] ?? '',
+                                    'image' => '',
+                                    'hotelstar_id' => $item['id'],
+                                    'status' => 1,
+                                    'user_id' => 1,
+                                ]
+                            );
+                            
+                            // // Обновляем удобства в таблице amenities
+                            Amenity::updateOrCreate(
+                                ['hotel_id' => $hotel->id],
+                                ['title' => 'Services', 'services' => $amenitiesHotel ?? '']
+                            );
+                
+                            $room = Room::updateOrCreate(
+                                ['hotel_id' => $hotel->id],
+                                [
+                                    'title' => '',
+                                    'title_en' => '',
+                                    'services' => $amenitiesRoom,
+                                    // 'image' => $localImagePath,
+                                    'description_en' => $descriptionRoom ?? ''
+                                ]
+                            );
+
+                        $count++;
+                        echo "Processed hotel ID: {$item['id']} - {$item['nameRu']}\n";
+                    }
+                }
+                fclose($handle);
+            }
+
+            // dd($data);
+            $data = json_decode($content, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return response()->json(['error' => 'Ошибка JSON: '.json_last_error_msg()], 422);
+            }
+
+            return response()->json($data);
+
         } catch (\Exception $e) {
             return response()->json(['error' => 'Ошибка распаковки: '.$e->getMessage()], 500);
         }
 
-        // 4. Читаем hotel.json
-        $jsonFile = $outDir.'/hotel.json';
-        if (!file_exists($jsonFile)) {
-            return response()->json(['error' => 'Файл hotel.json не найден'], 404);
-        }
-
-        $controller = new HotelstarCategoryStaticController();
-        $category = $controller->extractJson();
-        $withKeys = collect($category->getData(true))->keyBy('id')->toArray();
         
-
-        $count = 0;
-        $data = [];
-        $handle = fopen($jsonFile, 'r');
-        if ($handle) {
-            while (($line = fgets($handle)) !== false && $count < 10 ){
-                $line = trim($line);
-                if ($line === '') continue;
-
-                $item = json_decode($line, true);
-                if ($item !== null) {
-                    $data[] = $item;
-                    
-                    $kind; $rating = 0;
-                    if($item['categoryId'] > 5){
-                        $kind = $withKeys[$item['categoryId']]['nameEn'] ?? '';
-                    }else{
-                        $rating = $item['categoryId'];
-                    }
-                    
-                    $code  = str_replace([' ', '/'], '_', strtolower($item['nameEn']) ?? '');
-
-                        $hotel = Hotel::updateOrCreate(
-                            ['hotelstar_id' => $item['id']],
-                            [
-                                'code' => $code ?? '',
-                                'title' => $item['nameRu'] ?? '',
-                                'title_en' => $item['nameEn'] ?? '',
-                                'type' => $kind ?? '',
-                                'rating' => (int) ($rating ?? 0),
-                                'address_en' => $item['addressEn'] ?? '',
-                                // 'country_code' => $data['region']['country_code'] ?? '',
-                                'city' => $item['cityId'] ?? '',
-                                'utc' => $utc ?? '',
-                                'lat' => $item['latitude'] ?? '',
-                                'lng' => $item['longitude'] ?? '',
-                                'checkin' => $item['check_in_time'] ?? '',
-                                'checkout' => $item['check_out_time'] ?? '',
-                                'phone' => $item['phone'] ?? '',
-                                'email' => $item['email'] ?? '',
-                                'description' => $item['description']['descriptionRu'] ?? '',
-                                'description_en' => $item['description']['descriptionEn'] ?? '',
-                                'image' => '',
-                                'hotelstar_id' => $item['id'],
-                                'status' => 1,
-                                'user_id' => 1,
-                            ]
-                        );
-                        
-                        // // Обновляем удобства в таблице amenities
-                        Amenity::updateOrCreate(
-                            ['hotel_id' => $hotel->id],
-                            ['title' => 'Services', 'services' => $amenitiesHotel ?? '']
-                        );
-            
-                        $room = Room::updateOrCreate(
-                            ['hotel_id' => $hotel->id],
-                            [
-                                'title' => '',
-                                'title_en' => '',
-                                'services' => $amenitiesRoom,
-                                // 'image' => $localImagePath,
-                                'description_en' => $descriptionRoom ?? ''
-                            ]
-                        );
-
-                    $count++;
-                }
-            }
-            fclose($handle);
-        }
-        dd($data);
-        $data = json_decode($content, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            return response()->json(['error' => 'Ошибка JSON: '.json_last_error_msg()], 422);
-        }
-
-        return response()->json($data);
     }
 
     /**

@@ -97,9 +97,16 @@
                             value="{{ $rate['payment_options']['payment_types'][0]['currency_code'] }}">
                     <input type="hidden" name="utc"  value="{{ $hotel->utc }}">
                     <input type="hidden" name="etgimage"  value="{{ $tmimage }}">
-
+                    <input type="hidden" name="increase_percent">
+                    
                     <button class="more" id="order">@lang('main.book')</button>
                 </form>
             </div>
         </div>
     @endforeach
+
+    <script>
+        // document.getElementById('order').addEventListener('click', function() {
+            localStorage.removeItem('booking_etg_secondsLeft'); // Очистить данные
+        // });
+    </script>

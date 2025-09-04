@@ -22,6 +22,9 @@ class Hotel extends Model
         'user_id',
         'exely_id',
         'rate_id',
+        'tourmind_id',
+        'emerging_id',  
+        'hotelstar_id',
         'top',
         'status',
         'early_in',
@@ -54,6 +57,7 @@ class Hotel extends Model
         'exely_id',
         'tourmind_id',
         'emerging_id',
+        'hotelstar_id',
         'timezone',
         'utc',
         'status'

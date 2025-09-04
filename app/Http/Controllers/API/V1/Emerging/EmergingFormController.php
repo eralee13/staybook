@@ -89,30 +89,21 @@ class EmergingFormController extends Controller
 
     public function searchHotelsByCity(Request $request)
     {
-        $rooms = $request->input('rooms', []); // если нет — пустой массив
-        $adults = 0;
-        $allChildAges = [];
-        $childs = 0;
-        $roomCount=0;
+       $rooms = $request->input('rooms', []); // если нет — пустой массив
         $guests = [];
 
         foreach ($rooms as $room) {
-            $roomCount++;
-            // Взрослые
-            $adults += (int) ($room['adults'] ?? 0);
-            $adultse = (int) ($room['adults'] ?? 0);
+            $adultCount = (int) ($room['adults'] ?? 0);
 
             $children = [];
             if (!empty($room['childAges']) && is_array($room['childAges'])) {
                 foreach ($room['childAges'] as $age) {
                     $children[] = (int) $age;
-                    $allChildAges[] = (int) $age;
-                    $childs++;
                 }
             }
 
             $guests[] = [
-                'adults' => $adultse,
+                'adults'   => $adultCount,
                 'children' => $children,
             ];
         }
@@ -126,7 +117,7 @@ class EmergingFormController extends Controller
                 ->post($this->url . '/search/serp/region/', [
                     "checkin" => $request->arrivalDate,
                     "checkout" => $request->departureDate,
-                    // "residency" => "uz",
+                    // "residency" => "gb",
                     // "language" => "en",
                     "guests" => $guests,
                     "timeout" => 30,
@@ -488,6 +479,7 @@ class EmergingFormController extends Controller
                         'first_name' => $firstName,
                         'last_name'  => trim($lastName . ' ' . $thirdName),
                         'age'        => (int)$age,
+                        'is_child'   => true,
                     ];
 
                     $childIndex++;

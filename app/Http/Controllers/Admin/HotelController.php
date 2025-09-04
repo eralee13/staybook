@@ -40,9 +40,9 @@ class HotelController extends Controller
         $user = Auth::user()->id;
         $chotel = Hotel::all();
         if($user != 1 && $user != 3){
-            $hotels = Hotel::where('user_id', $user)->paginate(20);
+            $hotels = Hotel::where('user_id', $user)->orderBy('id', 'DESC')->paginate(20);
         } else{
-            $hotels = Hotel::paginate(20);
+            $hotels = Hotel::orderBy('id', 'DESC')->paginate(20);
         }
 
         return view('auth.hotels.index', compact('hotels', 'chotel'));

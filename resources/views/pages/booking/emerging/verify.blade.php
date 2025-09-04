@@ -163,25 +163,7 @@
                             @for ($i = 0; $i < $childs; $i++)
                                 <input type="hidden" name="child_name{{$i}}" value="{{ $request->input('child_name' . $i) }}">
                             @endfor
-                        <div class="d-flex mb-3" style="gap: 5%;">
-                            <label for="increase">@lang('main.increase_text')</label>
-                            {{-- <input type="checkbox" name="increase" id="increase"> --}}
-                            <select name="increase_percent" id="increase_percent">
-                                <option value="0">0 %</option>
-                                <option value="5">5 %</option>
-                                <option value="10">10 %</option>
-                                <option value="15">15 %</option>
-                                <option value="20">20 %</option>
-                                <option value="30">30 %</option>
-                                <option value="40">40 %</option>
-                                <option value="50">50 %</option>
-                                <option value="60">60 %</option>
-                                <option value="70">70 %</option>
-                                <option value="80">80 %</option>
-                                <option value="90">90 %</option>
-                                <option value="100">100 %</option>
-                            </select>
-                        </div>
+                        
                         <button class="more">@lang('main.confirm')</button>
                     </form>
                 </div>
