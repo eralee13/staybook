@@ -320,7 +320,7 @@ class SearchController extends Controller
         return view('pages.search.search', [
             'allHotels' => $allHotels,
             'results' => $results ?? [],
-            'emerHotels' => $result1 ?? [],
+            'emerHotels' => $results1 ?? [],
             'fxBase' => $fxBase,
             'fxRates' => $fxRates,
             'request' => $request,
