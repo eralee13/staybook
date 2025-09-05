@@ -105,7 +105,7 @@ class SearchController extends Controller
 
 
         $results = new \stdClass();
-        $results1 = null;
+        $results1 = null; $results2 = null;
 
         // ######## Emerging API ########
         try {
@@ -251,8 +251,7 @@ class SearchController extends Controller
 
                 if (isset($hotels)) 
                     $results2 = json_decode(json_encode($hotels['hotels']));
-                    $results->hotels = array_merge($results1, $results2);
-                // dd($results->hotels);
+                // dd($results2->hotels);
 
             }
 
@@ -261,9 +260,12 @@ class SearchController extends Controller
                     'message' => $th->getMessage(),
                     'trace'   => $th->getTraceAsString(),
                 ]);
-            // $results = [];
+            
         }
         // ######## End Tourmind API ########
+
+        $results->hotels = array_merge($results1 ?? [], $results2 ?? []);
+
 
         if (!empty($propertyIds)) {
             try {
