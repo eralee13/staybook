@@ -264,7 +264,16 @@ class SearchController extends Controller
         }
         // ######## End Tourmind API ########
 
-        $results->hotels = array_merge($results1 ?? [], $results2 ?? []);
+        // Приводим к массивам, даже если это stdClass
+        $hotels1 = is_array($results1) ? $results1 : (array) ($results1 ?? []);
+        $hotels2 = is_array($results2) ? $results2 : (array) ($results2 ?? []);
+        
+        // Объединяем
+        $mergedHotels = array_merge($hotels1, $hotels2);
+        
+        // Гарантируем объект с массивом hotels
+        $results = new \stdClass();
+        $results->hotels = $mergedHotels;
 
 
         if (!empty($propertyIds)) {
