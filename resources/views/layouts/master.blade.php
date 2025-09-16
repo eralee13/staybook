@@ -2,6 +2,8 @@
 <html lang="ru">
 
 <head>
+    <title>@yield('title') - StayBook</title>
+    <meta name="description" content="Staybook- прямая связь с отелями Центральной Азии и Кавказа для B2B-партнёров">
     <link rel="icon" href="{{route('index')}}/img/favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <link rel="apple-touch-icon" sizes="180x180" href="{{route('index')}}/img/favicon.png">
@@ -26,7 +28,11 @@
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-JWCJ1YQVHX"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+
         gtag('js', new Date());
 
         gtag('config', 'G-JWCJ1YQVHX');
@@ -39,7 +45,6 @@
 {{--<div id="preloader">--}}
 {{--    <div class="loader"></div>--}}
 {{--</div>--}}
-
 
 
 <header class="main">
@@ -73,7 +78,8 @@
                                     <ul class="currency-switcher">
                                         @foreach(['USD', 'KGS', 'RUB'] as $ccy)
                                             <li>
-                                                <a class="{{ $fxBase === $ccy ? 'current' : '' }}" href="{{ route('currency.switch', $ccy) }}">
+                                                <a class="{{ $fxBase === $ccy ? 'current' : '' }}"
+                                                   href="{{ route('currency.switch', $ccy) }}">
                                                     @if($ccy === 'USD')
                                                         USD Американский доллар
                                                     @elseif($ccy === 'KGS')
@@ -86,19 +92,19 @@
                                         @endforeach
                                     </ul>
                                     <style>
-                                        header .wrap .lang-wrap .overwrap .tab-content ul li a.current{
+                                        header .wrap .lang-wrap .overwrap .tab-content ul li a.current {
                                             color: #0061ae;
                                         }
                                     </style>
-{{--                                    <ul>--}}
-{{--                                        <li>KGS Кыргызский сом</li>--}}
-{{--                                        <li>RUB Российский рубль</li>--}}
-{{--                                        <li class="current">USD Американский доллар</li>--}}
-{{--                                    </ul>--}}
+                                    {{--                                    <ul>--}}
+                                    {{--                                        <li>KGS Кыргызский сом</li>--}}
+                                    {{--                                        <li>RUB Российский рубль</li>--}}
+                                    {{--                                        <li class="current">USD Американский доллар</li>--}}
+                                    {{--                                    </ul>--}}
                                 </div>
                                 <div class="tab-content" id="tab-2">
                                     <ul>
-{{--                                        <li><img src="{{route('index')}}/img/kg.svg" alt=""> Кыргыз тили</li>--}}
+                                        {{--                                        <li><img src="{{route('index')}}/img/kg.svg" alt=""> Кыргыз тили</li>--}}
                                         <li @if(session('locale')=='ru')
                                                 current
                                                 @endif><a href="{{ route('locale', 'ru') }}"><img
@@ -119,8 +125,9 @@
                         </div>
                         <div class="auth">
                             @auth
-                            <a href="{{ route('profile.edit') }}"><img src="{{route('index')}}/img/user_w.svg" alt="">
-                                @lang('main.welcome_log') {{ \Illuminate\Support\Facades\Auth::user()->name }}</a>
+                                <a href="{{ route('profile.edit') }}"><img src="{{route('index')}}/img/user_w.svg"
+                                                                           alt="">
+                                    @lang('main.welcome_log') {{ \Illuminate\Support\Facades\Auth::user()->name }}</a>
                             @else
                                 <a href="{{ route('extranet') }}"><img src="{{route('index')}}/img/user_w.svg" alt="">
                                     @lang('main.login')</a>
@@ -132,7 +139,8 @@
                     <div class="wrap">
                         <div class="auth">
                             @auth
-                                <a href="{{ route('profile.edit') }}"><img src="{{route('index')}}/img/user_w.svg" alt="">
+                                <a href="{{ route('profile.edit') }}"><img src="{{route('index')}}/img/user_w.svg"
+                                                                           alt="">
                                     @lang('main.welcome_log') {{ \Illuminate\Support\Facades\Auth::user()->name }}</a>
                             @else
                                 <a href="{{ route('extranet') }}"><img src="{{route('index')}}/img/user_w.svg" alt="">
@@ -144,7 +152,7 @@
                             <ul>
                                 <li><a href="{{route('about')}}">@lang('main.about_service')</a></li>
                                 <li><a href="{{route('contactspage')}}">@lang('main.contacts')</a></li>
-{{--                                <li><a href="#"><img src="{{route('index')}}/img/kg.svg" alt=""> Кыргыз тили </a></li>--}}
+                                {{--                                <li><a href="#"><img src="{{route('index')}}/img/kg.svg" alt=""> Кыргыз тили </a></li>--}}
                                 <li @if(session('locale')=='ru')
                                         current
                                         @endif><a href="{{ route('locale', 'ru') }}"><img
@@ -195,7 +203,8 @@
                             <li>{{ $contacts->first()->__('address') }}</li>
                             <li><a href="tel:{{ $contacts->first()->phone }}">{{ $contacts->first()->phone }}</a></li>
                             <li><a href="{{ $contacts->first()->instagram }}" target="_blank">Instagram</a></li>
-                            <li><a href="https://wa.me/{{ $contacts->first()->whatsapp }}" target="_blank">WhatsApp</a></li>
+                            <li><a href="https://wa.me/{{ $contacts->first()->whatsapp }}" target="_blank">WhatsApp</a>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -238,34 +247,88 @@
     </div>
 </footer>
 
-<script src="{{ route('index') }}/js/scripts.min.js"></script>
+<script src="{{ route('index') }}/js/scripts.min.js?ver=1.1"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
         $('#city').select2({
             placeholder: "Выберите город",
             allowClear: true
+        });
+
+        // 1) читаем hidden, подставляем дефолты если пусто/Invalid
+        let start = moment($('#arrivalDate').val(), 'YYYY-MM-DD', true);
+        let end = moment($('#departureDate').val(), 'YYYY-MM-DD', true);
+
+        if (!start.isValid()) start = moment().startOf('day');
+        if (!end.isValid() || end.isSameOrBefore(start)) end = start.clone().add(1, 'day');
+
+        // 2) инициализация одного DRP на поле заезда
+        $('#arrivalDisplay').daterangepicker({
+            autoApply: true,
+            autoUpdateInput: false, // сами заполним оба инпута
+            startDate: start,
+            endDate: end,
+            minDate: moment().startOf('day'),
+            locale: {
+                format: "DD.MM.YYYY",
+                separator: " - ",
+                applyLabel: "Применить",
+                cancelLabel: "Отмена",
+                fromLabel: "С",
+                toLabel: "По",
+                customRangeLabel: "Произвольно",
+                weekLabel: "W",
+                daysOfWeek: ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"],
+                monthNames: ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"],
+                firstDay: 1
+            }
+        }, function (s, e) {
+            // 3) обновляем hidden (ISO) и видимые (RU-формат)
+            $('#arrivalDate').val(s.format('YYYY-MM-DD'));
+            $('#departureDate').val(e.format('YYYY-MM-DD'));
+            $('#arrivalDisplay').val(s.format('DD.MM.YYYY'));
+            $('#departureDisplay').val(e.format('DD.MM.YYYY'));
+        });
+
+        // 4) первичное отображение в видимых полях
+        $('#arrivalDisplay').val(start.format('DD.MM.YYYY'));
+        $('#departureDisplay').val(end.format('DD.MM.YYYY'));
+
+        // 5) если хотите открывать календарь и по клику на выезд:
+        $('#departureDisplay').on('focus click', function () {
+            $('#arrivalDisplay').trigger('click');
         });
     });
 </script>
 
 <!-- Yandex.Metrika counter -->
-<script type="text/javascript" >
-    (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-        m[i].l=1*new Date();
-        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+<script type="text/javascript">
+    (function (m, e, t, r, i, k, a) {
+        m[i] = m[i] || function () {
+            (m[i].a = m[i].a || []).push(arguments)
+        };
+        m[i].l = 1 * new Date();
+        for (var j = 0; j < document.scripts.length; j++) {
+            if (document.scripts[j].src === r) {
+                return;
+            }
+        }
+        k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)
+    })
     (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
 
     ym(103165450, "init", {
-        clickmap:true,
-        trackLinks:true,
-        accurateTrackBounce:true,
-        webvisor:true
+        clickmap: true,
+        trackLinks: true,
+        accurateTrackBounce: true,
+        webvisor: true
     });
 </script>
-<noscript><div><img src="https://mc.yandex.ru/watch/103165450" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<noscript>
+    <div><img src="https://mc.yandex.ru/watch/103165450" style="position:absolute; left:-9999px;" alt=""/></div>
+</noscript>
 <!-- /Yandex.Metrika counter -->
 
 </body>

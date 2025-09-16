@@ -35,7 +35,7 @@ Route::prefix('base')->middleware(['throttle:api', 'auth:sanctum'])->group(funct
     Route::get('/getBooks/{book}', [\App\Http\Controllers\API\V1\BookingController::class, 'show'])->name('showBook');
     Route::post('/storeBook', [\App\Http\Controllers\API\V1\BookingController::class, 'store'])->name('storeBook');
     Route::post('/cancelBook', [\App\Http\Controllers\API\V1\BookingController::class, 'cancel'])->name('cancelBook');
-
+    Route::get('getStatus', ['App\Http\Controllers\BookingController', 'getStatus']);
     //Route::get('/getAmenities', [\App\Http\Controllers\API\V1\AmenityController::class, 'index'])->name('getAmenityList');
     //Route::get('/getAmenities/{amenity}', [\App\Http\Controllers\API\V1\AmenityController::class, 'show'])->name('showAmenity');
 

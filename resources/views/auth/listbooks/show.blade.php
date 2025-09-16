@@ -29,7 +29,7 @@
                                 @php
                                     $hotel = \App\Models\Hotel::where('id', $book->hotel_id)->first();
                                     $room = \App\Models\Room::where('id', $book->room_id)->orWhere('exely_id', $book->room_id)->first();
-                                    $img = \App\Models\Image::where('room_id', $room->id)->first();
+                                    $img = \App\Models\Image::where('room_id', $book->room_id)->first();
                                     $rate = \App\Models\Rate::where('id', $book->rate_id)->first();
                                 @endphp
                                 @if(!empty($img->image))
@@ -42,8 +42,11 @@
                                 <div class="name">@lang('admin.hotel')</div>
                                 <div class="wrap">
                                     {{ $hotel->title ??  $hotel->title_en ?? ''}} <br>
+                                    @isset($room)
                                     <div class="name" style="margin-top: 20px">@lang('admin.room')</div>
-                                    {{ $room->__('title') ?? ''}} <br>
+                                    {{ $room->__('title') ?? ''}}
+                                    @endisset
+                                    <br>
                                     @if(!empty($rate))
                                         <div class="name" style="margin-top: 20px">@lang('admin.rate')</div>
                                         {{ $rate->__('title') ?? ''}} <br>
@@ -140,14 +143,13 @@
                                 <div class="name" style="margin-top: 20px">@lang('admin.status')</div>
                                 <div class="status">
                                     @if($book->status == 'Reserved')
-                                        <span style="color: green">{{ $book->status }}</span>
+                                        <div class="alert alert-success">{{ $book->status }}</div>
                                     @else
-                                        <span style="color: red">{{ $book->status }}</span>
+                                        <div class="alert alert-danger">{{ $book->status }}</div>
                                     @endif
                                 </div>
                             </div>
                         </div>
-
                     </div>
                     <div class="row">
                         <div class="col-md-6">

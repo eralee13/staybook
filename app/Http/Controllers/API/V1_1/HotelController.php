@@ -2,89 +2,61 @@
 
 namespace App\Http\Controllers\API\V1_1;
 
-use App\Filters\V1\HotelFilter;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\V1_1\HotelCollection;
 use App\Models\Hotel;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class HotelController extends Controller
 {
     /**
-     * @param Request $request
-     * @return HotelCollection
+     * GET /api/v1.1/hotels
+     * Возвращает NDJSON (по строке = один объект HotelStatic).
      */
-    public function HotelStatic(Request $request)
+    public function index(Request $request): StreamedResponse
     {
-        $filter = new HotelFilter();
+        // НЕ указываем Content-Encoding, если не сжимаем в PHP.
+        // Gzip лучше делать на уровне nginx/Apache.
+        $headers = [
+            'Content-Type' => 'application/x-ndjson; charset=utf-8',
+        ];
 
-        if ($request->header('Content-Type') === 'application/x-ndjson') {
-            $lines = explode("\n", $request->getContent());
-            $parsed = [];
+        return response()->stream(function () {
+            Hotel::query()
+                ->with(['images:id,hotel_id,image', 'amenity:id,hotel_id,services'])
+                ->select(['id','code','title','title_en','address','city','lat','lng','rating'])
+                ->orderBy('title')
+                ->chunk(500, function ($chunk) {
+                    foreach ($chunk as $h) {
+                        $row = [
+                            'id'                  => (string)($h->code ?? $h->id),
+                            'name'                => (string)($h->title_en ?: $h->title),
+                            'description'         => null, // можно заполнить при наличии
+                            'geo_coordinates'     => [
+                                'latitude' => $h->lat !== null ? (float) $h->lat : null,
+                                'longitude' => $h->lng !== null ? (float) $h->lng : null,
+                            ],
+                            'address'             => '',
+                            'currency'            => 'USD', // ISO 4217
+                            'stars'               => 3,
+                            'images'              => collect($h->images)->take(20)->map(function ($img) {
+                                return [
+                                    'url' => url(Storage::url($img->image)),
+                                ];
+                            })->values(),
 
-            foreach ($lines as $line) {
-                if (trim($line)) {
-                    $data = json_decode($line, true);
-                    if (is_array($data)) {
-                        $parsed[] = $data;
+                            'amenities'           => $h->amenity && $h->amenity->services
+                                ? array_values(array_filter(array_map('trim', explode(',', (string)$h->amenity->services))))
+                                : [],
+                        ];
+
+                        // Печатаем одну NDJSON-строку
+                        echo json_encode($row, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+                        @ob_flush();
+                        flush();
                     }
-                }
-            }
-
-            $queryItems = $filter->fromArray($parsed);
-
-            return new HotelCollection(
-                count($queryItems)
-                    ? Hotel::where($queryItems)->paginate(20)
-                    : Hotel::paginate(20)
-            );
-        }
-
-        // Стандартный запрос
-        $queryItems = $filter->transform($request);
-        return new HotelCollection(
-            count($queryItems)
-                ? Hotel::where($queryItems)->paginate(20)
-                : Hotel::paginate(20)
-        );
+                });
+        }, 200, $headers);
     }
-
-    public function show($id){
-        try {
-            $hotel = Hotel::findOrFail($id);
-            return response()->json($hotel);
-        } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'Hotel not found'], 404);
-        }
-    }
-
-//    /**
-//     * @param StoreHotelRequest $request
-//     * @return HotelResource
-//     */
-//    public function store(StoreHotelRequest $request)
-//    {
-//        return new HotelResource(Hotel::create($request->all()));
-//    }
-//
-//    /**
-//     * @param Request $request
-//     * @param Hotel $hotel
-//     * @return void
-//     */
-//    public function update(Request $request, Hotel $hotel)
-//    {
-//        $hotel->update($request->all());
-//    }
-
-//    /**
-//     * @param Hotel $hotel
-//     * @return Application|ResponseFactory|\Illuminate\Foundation\Application|Response
-//     */
-//    public function destroy(Hotel $hotel)
-//    {
-//        $hotel->delete();
-//        return response(null, 204);
-//    }
 }

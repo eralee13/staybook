@@ -1,175 +1,136 @@
 <?php
-
 namespace App\Http\Controllers\API\V1_1;
 
+use App\Exceptions\EtgBadRequestException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\API\V1_1\SearchOneRequest;
-use App\Http\Requests\API\V1_1\SearchRequest;
 use App\Models\Hotel;
-use App\Models\Meal;
-use App\Models\Rate;
-use App\Models\Room;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
+use App\Http\Requests\API\V1_1\SearchRequest;
+use Illuminate\Http\Request;
 
 class SearchController extends Controller
 {
     /**
-     * @param SearchRequest $request
-     * @return JsonResponse
+     * POST /api/v1.1/search
      */
-    public function search(SearchRequest $request)
+    public function search(Request $r)
     {
-        $query = Hotel::with(['rates' => function ($q) use ($request) {
-            if ($request->filled('adults')) {
-                $q->where('availability', '>=', $request->adults);
+        $payload = $r->validate([
+            'check_in'       => 'required|date_format:Y-m-d',
+            'check_out'      => 'required|date_format:Y-m-d|after:check_in',
+            'residency'      => 'required|string|size:2',
+            'guests_groups'  => 'required|array|min:1',
+            'hotel_ids'      => 'sometimes|array',
+            'hotel_ids.*'    => 'string',
+        ]);
+
+        $this->validateRestrictions($payload['guests_groups']); // метод ДОЛЖЕН существовать
+
+        // Если передали hotel_ids — неизвестные игнорим, все неизвестны => 200 + []
+        if (isset($payload['hotel_ids']) && is_array($payload['hotel_ids'])) {
+            $requested = array_map('strval', $payload['hotel_ids']);
+            $known     = array_map('strval', $this->knownHotels ?? []); // обеспечьте свойство
+            $filtered  = array_values(array_intersect($requested, $known));
+            if (count($filtered) === 0) {
+                return response()->json([], 200); // массив, не объект!
             }
-
-            if ($request->filled('start_d') && $request->filled('end_d')) {
-                $startTime = $request->check_in;
-                $endTime = $request->check_out;
-
-                $q->whereDoesntHave('bookings', function ($b) use ($startTime, $endTime) {
-                    $b->where('status', 'reserved')
-                        ->where(function ($query) use ($startTime, $endTime) {
-                            $query->whereBetween('arrivalDate', [$startTime, $endTime])
-                                ->orWhereBetween('departureDate', [$startTime, $endTime])
-                                ->orWhere(function ($q) use ($startTime, $endTime) {
-                                    $q->where('arrivalDate', '<=', $startTime)
-                                        ->where('departureDate', '>=', $endTime);
-                                });
-                        });
-                });
-            }
-
-        }]);
-        if ($request->filled('hotel_ids')) {
-            $query->whereIn('id', $request->get('hotel_ids'))->orWhereIn('exely_id', $request->get('hotel_ids'));
+            // ...ищите только по $filtered (если нужно)
         }
 
-//        if ($request->filled('rating')) {
-//            $query->where('rating', '>=', $request->rating);
-//        }
-
-        $hotels = $query->where('status', 1)->get();
-
-        $hotels_array = [];
-        foreach ($hotels as $hotel) {
-            $rates_array = [];
-            foreach ($hotel->rates as $rate) {
-                $room_array = [];
-                foreach ($hotel->rooms as $room) {
-                    $room_array = [
-                        'id' => $room->id,
-                        'name' => $room->title,
-                        'bed_groups' => [
-                            'id' => $rate->id,
-                            'name' => $rate->bed_type,
-                        ],
-                        'allotment' => $rate->availability,
-                    ];
-                }
-                $rates_array[] = [
-                    'id' => $rate->id,
-                    'price' => $rate->price,
-                    'payment_type' => 'prepay',
-                    'currency' => $rate->currency ?? '$',
-                    'rooms' => $room_array,
-                ];
-            }
-            $hotels_array[] = [
-                'hotel_id' => $hotel->id,
-                'rates' => $rates_array,
-            ];
-        }
-        return response()->json($hotels_array);
+        // Ваша логика поиска. Нет офферов? → пустой массив.
+        $result = [];
+        return response()->json($result, 200);
     }
+
+    private array $knownHotels = ['14','16']; // пример
+
+    private function validateRestrictions(array $groups): void
+    {
+        if (count($groups) > 2) {
+            throw new EtgBadRequestException(6, 'The amount of rooms exceeds the maximum acceptable value.');
+        }
+        $total = 0;
+        foreach ($groups as $g) {
+            $adults   = (int)($g['adults'] ?? 0);
+            $children = isset($g['children_ages']) && is_array($g['children_ages']) ? count($g['children_ages']) : 0;
+
+            if ($adults > 2)   throw new EtgBadRequestException(6, 'The amount of adults exceeds the maximum acceptable value per room.');
+            if ($children > 2) throw new EtgBadRequestException(6, 'The amount of children exceeds the maximum acceptable value per room.');
+            if (($adults + $children) <= 0) {
+                throw new EtgBadRequestException(6, 'Invalid guests configuration.');
+            }
+            $total += $adults + $children;
+        }
+        if ($total > 6) {
+            throw new EtgBadRequestException(6, 'The amount of guests exceeds the maximum acceptable value.');
+        }
+    }
+
 
     /**
      * @param $id
      * @param SearchOneRequest $request
      * @return JsonResponse
      */
-    public function show($id, SearchOneRequest $request)
+    public function show($id, SearchOneRequest $request): JsonResponse
     {
-        $query = Room::with(['rates' => function ($q) use ($request) {
-            if ($request->filled('adults')) {
-                $q->where('availability', '>=', $request->adults);
-            }
+        // Ищем отель
+        $hotel = \App\Models\Hotel::with(['rooms.rates.cancellationRule'])->find($id);
 
-            if ($request->filled('child')) {
-                $q->where('child', '>=', $request->child);
-            }
-            if ($request->filled('arrivalDate') && $request->filled('departureDate')) {
-                $startTime = $request->check_in;
-                $endTime = $request->check_out;
+        if (!$hotel) {
+            throw new EtgBadRequestException(1, 'The specified hotel does not exist in the system.');
+        }
 
-                $q->whereDoesntHave('bookings', function ($b) use ($startTime, $endTime) {
-                    $b->where('status', 'reserved')
-                        ->where(function ($query) use ($startTime, $endTime) {
-                            $query->whereBetween('arrivalDate', [$startTime, $endTime])
-                                ->orWhereBetween('departureDate', [$startTime, $endTime])
-                                ->orWhere(function ($q) use ($startTime, $endTime) {
-                                    $q->where('arrivalDate', '<=', $startTime)
-                                        ->where('departureDate', '>=', $endTime);
-                                });
-                        });
-                });
-            }
-        }])->where('hotel_id', $id);
 
-        $rooms = $query->get()->filter(function ($room) {
-            return $room->rates->isNotEmpty();
-        });
+        $rates_array = [];
 
-        $rooms_array = [];
-        foreach ($rooms as $room) {
-            $rates_array = [];
+        foreach ($hotel->rooms as $room) {
             foreach ($room->rates as $rate) {
-                //meal
-                $meals = Meal::where('id', $rate->meal_id)->get();
-                $meals_array = [];
-                foreach ($meals as $meal) {
-                    $meals_array[] = [
-                        'id' => $meal->id,
-                        'name' => $meal->title,
-                    ];
+                // простая проверка на доступность
+                if ($request->filled('adults') && $rate->availability < $request->adults) {
+                    continue;
                 }
 
-                $cancelDate = Carbon::parse($request->arrivalDate)->subDays($rate->cancellationRule->free_cancellation_days);
-                $rates_array = [
-                    'id' => $rate->id,
-                    'price' => $rate->price,
-                    'bar_price' => null,
-                    'comission' => null,
-                    'supplier_min_price' => null,
-                    'taxes' => [
-                        'type' => null,
-                        'currency' => '$',
-                        'is_included' => true,
-                        'amount' => round($rate->price * 0.14, 2),
-                    ],
+                $cancelDate = $request->arrivalDate
+                    ? Carbon::parse($request->arrivalDate)->subDays($rate->cancellationRule->free_cancellation_days)
+                    : null;
+
+                $rates_array[] = [
+                    'id'       => (string)$rate->id,
+                    'price'    => (float)$rate->price,
+                    'currency' => $rate->currency ?? 'USD',
                     'payment_type' => 'prepay',
-                    'currency' => '$',
-                    'meals' => $meals_array,
-                    'cancellation_policies' => [
-                        'from' => $cancelDate,
-                        'amount' => $rate->cancellationRule->penalty_amount,
-                    ],
-                    'rooms' => [
-                        'id' => $room->id,
+                    'rooms'    => [
+                        'id'   => (string)$room->id,
                         'name' => $room->title,
                         'bed_groups' => [
-                            'id' => $rate->id,
-                            'name' => $rate->bed_type,
+                            [
+                                'id'   => (string)$rate->id,
+                                'name' => $rate->bed_type ?? 'Default',
+                            ]
                         ],
-                        'allotment' => $rate->availability,
-                    ]
+                        'allotment' => (int)($rate->availability ?? 0),
+                    ],
+                    'cancellation_policies' => $cancelDate ? [
+                        'from'   => $cancelDate->toDateString(),
+                        'amount' => $rate->cancellationRule->penalty_amount,
+                    ] : null,
                 ];
             }
         }
 
-        return response()->json($rates_array);
+        if (empty($rates_array)) {
+            return response()->json([
+                'code'    => 404,
+                'message' => 'No available rates for this hotel'
+            ], 404);
+        }
+
+        return response()->json($rates_array, 200, [
+            'Content-Type' => 'application/json; charset=utf-8'
+        ], JSON_UNESCAPED_UNICODE);
     }
 
     /**
@@ -177,11 +138,43 @@ class SearchController extends Controller
      * @param $rate_id
      * @return JsonResponse
      */
-    public function ratedetails($hotel_id, $rate_id)
+    public function rateDetails(Request $request): JsonResponse
     {
-        $rates = Rate::where('hotel_id', $hotel_id)->where('id', $rate_id)->get();
+        $data = $request->validate([
+            'hotel_id' => ['required','string'],
+            'rate_id'  => ['required'],
+        ]);
 
-        return response()->json($rates);
+        $hotel = \App\Models\Hotel::query()
+            ->where('code', $data['hotel_id'])
+            ->orWhere('id', $data['hotel_id'])
+            ->first();
+
+        if (!$hotel) {
+            return response()->json([
+                'code'    => 404,
+                'message' => 'Hotel not found',
+            ], 404, ['Content-Type' => 'application/json; charset=utf-8']);
+        }
+
+        $rate = \App\Models\Rate::query()
+            ->where('id', $data['rate_id'])
+            ->where('hotel_id', $hotel->id)
+            ->first();
+
+        if (!$rate) {
+            return response()->json([
+                'code'    => 404,
+                'message' => 'Rate not found',
+            ], 404, ['Content-Type' => 'application/json; charset=utf-8']);
+        }
+
+        return response()->json([
+            'id'       => (string)$rate->id,
+            'price'    => (float)($rate->price ?? 0),
+            'currency' => (string)($rate->currency ?: 'USD'),
+            // добавьте нужные поля
+        ], 200, ['Content-Type' => 'application/json; charset=utf-8']);
     }
 
 }

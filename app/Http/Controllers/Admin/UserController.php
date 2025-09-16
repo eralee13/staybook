@@ -63,11 +63,11 @@ class UserController extends Controller
     {
         $hotel = $request->session()->get('hotel_id');
         // Check Only Super Admin can update his own Profile
-        if ($user->hasRole('Super Admin')){
-            if($user->id != auth()->user()->id){
-                abort(403, 'USER DOES NOT HAVE THE RIGHT PERMISSIONS');
-            }
-        }
+//        if ($user->hasRole('Super Admin')){
+//            if($user->id != auth()->user()->id){
+//                abort(403, 'USER DOES NOT HAVE THE RIGHT PERMISSIONS');
+//            }
+//        }
 
         return view('auth.users.form', [
             'user' => $user,

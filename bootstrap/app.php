@@ -51,5 +51,8 @@ $app->singleton(
 | from the actual running of the application and sending responses.
 |
 */
+$app->bind('request', function () {
+    return Illuminate\Http\Request::capture();
+});
 
 return $app;

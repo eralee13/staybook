@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\API\V1\Emerging;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -11,8 +10,6 @@ use App\Models\Hotel;
 use App\Models\Amenity;
 use App\Models\Room;
 use App\Models\Image;
-
-
 
 class EmergingHotelController extends Controller
 {       

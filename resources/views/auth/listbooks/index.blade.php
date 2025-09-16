@@ -4,13 +4,23 @@
 
 @section('content')
 
+    <style>
+        .admin table td, .admin table th{
+            background-color: #fff;
+            padding: 10px;
+        }
+        .admin .date{
+            margin-top: 0;
+        }
+    </style>
+
     <div class="page admin bookings">
-        <div class="container">
+        <div class="container-fluid">
             <div class="row">
-                <div class="col-md-3">
+                <div class="col-md-2">
                     @include('auth.layouts.sidebar')
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-10">
                     @if($books->isNotEmpty())
 {{--                        <form>--}}
 {{--                            <div class="form-group">--}}
@@ -54,7 +64,6 @@
                                         @isset($room)
                                             <div class="title">{{ $room->__('title') }}</div>
                                         @endisset
-
                                         @isset($plan)
                                             <div class="title">{{ $plan->__('title') }}</div>
                                         @endisset
@@ -96,7 +105,7 @@
                                                 </ul>
                                             </form>
                                         @else
-                                            <form action="{{ route('listbooks.cancel_calculate_exely', $book) }}"
+                                            <form action="{{ route('userbooks.cancel_calculate_exely', $book) }}"
                                                   method="post">
                                                 <ul>
                                                     <a href="{{ route('listbooks.show', $book)}}"><img
@@ -123,13 +132,6 @@
         </div>
     </div>
 
-    <style>
-        .admin table td, .admin table th{
-            background-color: #fff;
-            padding: 10px;
-        }
-    </style>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script>
         $(document).ready(function () {
@@ -146,11 +148,5 @@
             });
         });
     </script>
-
-    <style>
-        .admin .date{
-            margin-top: 0;
-        }
-    </style>
 
 @endsection

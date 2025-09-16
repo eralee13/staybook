@@ -3,21 +3,25 @@
 namespace App\Http\Controllers\API\V1_1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\V1_1\MealResource;
 use App\Models\Meal;
-use Illuminate\Database\Eloquent\Collection;
-
 
 class MealController extends Controller
 {
     /**
-     * @group Питание
-     * Получить список типов питания
-     *
-     * @response 200 App\Http\Resources\V1_1\MealResource[]
+     * GET /api/v1.1/meals
+     * Должен возвращать массив Meal[]
      */
-    public function meals()
+    public function index()
     {
-        return MealResource::collection(Meal::all());
+        $items = Meal::query()
+            ->orderBy('id')
+            ->get(['code','title']);
+
+        return response()->json(
+            $items->map(fn($m) => [
+                'id'   => (string) $m->code,   // строка, например "RO"
+                'name' => (string) $m->title,  // вместо title → name
+            ])->values()->all()
+        );
     }
 }

@@ -15,8 +15,6 @@
 
 @section('content')
     <div class="container-fluid mt-5">
-        @dump($tmhotels)
-        
         <div class="row">
             <div class="col-md-12">
                 <div class="tabs">
@@ -135,8 +133,6 @@
         <div id="warning" class="alert alert-warning"></div>
 
         <div id="calendar"></div>
-        @dump($resources)
-        @dump($events)
     </div>
 
     @php

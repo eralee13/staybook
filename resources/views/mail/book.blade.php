@@ -136,7 +136,7 @@
             </table>
 
             <div style="text-align: center; margin-top: 25px;">
-                <a href="{{ route('index') }}/auth/listbooks/show/{{$book->id}}"
+                <a href="{{ route('index') }}/auth/userbooks/show/{{$book->id}}"
                    style="display: inline-block; background-color: #0061ae; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: bold;">View
                     booking</a>
             </div>

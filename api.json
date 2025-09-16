@@ -7,7 +7,12 @@
     },
     "servers": [
         {
-            "url": "http://127.0.0.1:8000/api"
+            "url": "http://:/api",
+            "description": "Local"
+        },
+        {
+            "url": "https://staybook.asia/api",
+            "description": "Prod"
         }
     ],
     "security": [
@@ -18,7 +23,7 @@
     "paths": {
         "/v1.0/base/login": {
             "post": {
-                "operationId": "v1.auth.login_0",
+                "operationId": "login",
                 "tags": [
                     "Auth"
                 ],
@@ -33,7 +38,7 @@
                     }
                 },
                 "responses": {
-                    "404": {
+                    "401": {
                         "description": "",
                         "content": {
                             "application/json": {
@@ -45,7 +50,9 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "example": "Unauthorised."
+                                            "enum": [
+                                                "Unauthorised."
+                                            ]
                                         }
                                     },
                                     "required": [
@@ -71,7 +78,9 @@
                                         },
                                         "message": {
                                             "type": "string",
-                                            "example": "User login successfully."
+                                            "enum": [
+                                                "User login successfully."
+                                            ]
                                         }
                                     },
                                     "required": [
@@ -85,85 +94,6 @@
                     },
                     "422": {
                         "$ref": "#/components/responses/ValidationException"
-                    },
-                    "403": {
-                        "$ref": "#/components/responses/AuthorizationException"
-                    }
-                }
-            }
-        },
-        "/v1.1/login": {
-            "post": {
-                "operationId": "v1.auth.login_0",
-                "tags": [
-                    "Auth"
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/LoginRequest"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "404": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Unauthorised."
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        },
-                                        "data": {
-                                            "type": "string"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "User login successfully."
-                                        }
-                                    },
-                                    "required": [
-                                        "success",
-                                        "data",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "$ref": "#/components/responses/ValidationException"
-                    },
-                    "403": {
-                        "$ref": "#/components/responses/AuthorizationException"
                     }
                 }
             }
@@ -194,7 +124,9 @@
                                     "properties": {
                                         "error": {
                                             "type": "string",
-                                            "example": "Book not found"
+                                            "enum": [
+                                                "Book not found"
+                                            ]
                                         }
                                     },
                                     "required": [
@@ -222,7 +154,7 @@
         },
         "/v1.0/base/storeBook": {
             "post": {
-                "operationId": "v1.booking.store",
+                "operationId": "storeBook",
                 "tags": [
                     "Booking"
                 ],
@@ -261,7 +193,9 @@
                             "application/json": {
                                 "schema": {
                                     "type": "string",
-                                    "example": "Book created successfully"
+                                    "enum": [
+                                        "Book created successfully"
+                                    ]
                                 }
                             }
                         }
@@ -271,16 +205,13 @@
                     },
                     "422": {
                         "$ref": "#/components/responses/ValidationException"
-                    },
-                    "403": {
-                        "$ref": "#/components/responses/AuthorizationException"
                     }
                 }
             }
         },
         "/v1.0/base/cancelBook": {
             "post": {
-                "operationId": "booking.cancel",
+                "operationId": "cancelBook",
                 "tags": [
                     "Booking"
                 ],
@@ -304,7 +235,9 @@
                                     "properties": {
                                         "error": {
                                             "type": "string",
-                                            "example": "Book not found"
+                                            "enum": [
+                                                "Book not found"
+                                            ]
                                         }
                                     },
                                     "required": [
@@ -322,11 +255,15 @@
                                     "anyOf": [
                                         {
                                             "type": "string",
-                                            "example": "Book cancelled"
+                                            "enum": [
+                                                "Book cancelled"
+                                            ]
                                         },
                                         {
                                             "type": "string",
-                                            "example": "Not found"
+                                            "enum": [
+                                                "Not found"
+                                            ]
                                         }
                                     ]
                                 }
@@ -338,16 +275,15 @@
                     },
                     "422": {
                         "$ref": "#/components/responses/ValidationException"
-                    },
-                    "403": {
-                        "$ref": "#/components/responses/AuthorizationException"
                     }
                 }
             }
         },
-        "/v1.1/storeBook": {
+        "/v1.1/book": {
             "post": {
-                "operationId": "v1_1.booking.store",
+                "operationId": "v1.1.book",
+                "description": "\u041f\u0440\u0438\u043c\u0435\u0440 \u0442\u0435\u043b\u0430:\n{\n  \"hotel_id\": \"otel-orion\",\n  \"rate_id\": 245,\n  \"room_id\": 33,\n  \"arrivalDate\": \"2025-08-22\",\n  \"departureDate\": \"2025-08-25\",\n  \"guests\": { \"adults\": 2, \"children\": 1, \"childAges\": [9] },\n  \"contact\": { \"first_name\": \"Ivan\", \"last_name\": \"Petrov\", \"phone\": \"+996...\", \"email\": \"a@b.c\" },\n  \"currency\": \"USD\",\n  \"comment\": \"Late check-in\"\n}",
+                "summary": "\u0421\u043e\u0437\u0434\u0430\u0442\u044c \u0431\u0440\u043e\u043d\u044c.\nPOST /api/v1.1/book",
                 "tags": [
                     "Booking"
                 ],
@@ -356,7 +292,270 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/BookRequest"
+                                "type": "object",
+                                "properties": {
+                                    "hotel_id": {
+                                        "type": "string",
+                                        "maxLength": 191
+                                    },
+                                    "rate_id": {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    },
+                                    "room_id": {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    },
+                                    "arrivalDate": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "departureDate": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "currency": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "minLength": 3,
+                                        "maxLength": 3
+                                    },
+                                    "comment": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 2000
+                                    },
+                                    "adults": {
+                                        "type": "integer",
+                                        "description": "\u0430\u043b\u044c\u0442\u0435\u0440\u043d\u0430\u0442\u0438\u0432\u043d\u0430\u044f \u0444\u043e\u0440\u043c\u0430",
+                                        "minimum": 1,
+                                        "maximum": 10
+                                    },
+                                    "children": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 10
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "description": "\u0441\u0442\u0430\u0442\u0443\u0441 \u043f\u0440\u0438 \u0441\u043e\u0437\u0434\u0430\u043d\u0438\u0438 \u2014 \u043e\u043f\u0446\u0438\u043e\u043d\u0430\u043b\u044c\u043d\u043e",
+                                        "enum": [
+                                            "Pending",
+                                            "reserved",
+                                            "Cancelled"
+                                        ]
+                                    },
+                                    "guests": {
+                                        "type": "object",
+                                        "properties": {
+                                            "adults": {
+                                                "type": "integer",
+                                                "description": "\u0413\u043e\u0441\u0442\u0438 \u2014 \u0434\u043e\u043f\u0443\u0441\u043a\u0430\u0435\u043c \u043a\u0430\u043a \u043f\u043b\u043e\u0441\u043a\u0438\u0435 \u043f\u043e\u043b\u044f, \u0442\u0430\u043a \u0438 \u0432\u043b\u043e\u0436\u0435\u043d\u043d\u044b\u0439 \u043e\u0431\u044a\u0435\u043a\u0442",
+                                                "minimum": 1,
+                                                "maximum": 10
+                                            },
+                                            "children": {
+                                                "type": [
+                                                    "integer",
+                                                    "null"
+                                                ],
+                                                "minimum": 0,
+                                                "maximum": 10
+                                            },
+                                            "childAges": {
+                                                "type": [
+                                                    "array",
+                                                    "null"
+                                                ],
+                                                "items": {
+                                                    "type": "integer",
+                                                    "minimum": 0,
+                                                    "maximum": 17
+                                                },
+                                                "maxItems": 10
+                                            }
+                                        }
+                                    },
+                                    "childAges": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "minimum": 0,
+                                            "maximum": 17
+                                        },
+                                        "maxItems": 10
+                                    },
+                                    "contact": {
+                                        "type": "object",
+                                        "properties": {
+                                            "first_name": {
+                                                "type": "string",
+                                                "description": "\u041a\u043e\u043d\u0442\u0430\u043a\u0442\u044b",
+                                                "maxLength": 191
+                                            },
+                                            "last_name": {
+                                                "type": "string",
+                                                "maxLength": 191
+                                            },
+                                            "phone": {
+                                                "type": "string",
+                                                "maxLength": 191
+                                            },
+                                            "email": {
+                                                "type": "string",
+                                                "format": "email",
+                                                "maxLength": 191
+                                            }
+                                        },
+                                        "required": [
+                                            "first_name",
+                                            "last_name",
+                                            "phone",
+                                            "email"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "hotel_id",
+                                    "rate_id",
+                                    "room_id",
+                                    "arrivalDate",
+                                    "departureDate"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "(\u043e\u043f\u0446\u0438\u043e\u043d\u0430\u043b\u044c\u043d\u043e) \u0443\u043c\u0435\u043d\u044c\u0448\u0430\u0435\u043c \u043a\u0432\u043e\u0442\u0443\nif ($rate->availability !== null) {\n$rate->availability = max(0, $rate->availability - $allotment);\n$rate->save();\n}",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "enum": [
+                                                "success"
+                                            ]
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "booking_id": {
+                                                    "type": "string"
+                                                },
+                                                "book_token": {
+                                                    "type": "string"
+                                                },
+                                                "status": {
+                                                    "type": "string"
+                                                },
+                                                "sum": {
+                                                    "type": "string"
+                                                },
+                                                "currency": {
+                                                    "type": "string"
+                                                },
+                                                "nights": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "booking_id",
+                                                "book_token",
+                                                "status",
+                                                "sum",
+                                                "currency",
+                                                "nights"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "enum": [
+                                                "error"
+                                            ]
+                                        },
+                                        "error": {
+                                            "type": "object",
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "NO_AVAILABILITY"
+                                                    ]
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "Not enough allotment"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "code",
+                                                "message"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "error"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1.1/booking-check": {
+            "post": {
+                "operationId": "v1.1.bookingCheck",
+                "summary": "\u041f\u0440\u043e\u0432\u0435\u0440\u043a\u0430 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u043e\u0432\u0430\u043d\u0438\u044f/\u0432\u0430\u043b\u0438\u0434\u043d\u043e\u0441\u0442\u0438 \u0431\u0440\u043e\u043d\u0438.\nPOST /api/v1.1/booking-check\n{ \"book_token\": \"...\" }",
+                "tags": [
+                    "Booking"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "book_token": {
+                                        "type": "string",
+                                        "minLength": 40,
+                                        "maxLength": 40
+                                    }
+                                },
+                                "required": [
+                                    "book_token"
+                                ]
                             }
                         }
                     }
@@ -369,147 +568,52 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
-                                        "error": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "201": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "string",
-                                    "example": "Book created successfully"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationException"
-                    },
-                    "422": {
-                        "$ref": "#/components/responses/ValidationException"
-                    },
-                    "403": {
-                        "$ref": "#/components/responses/AuthorizationException"
-                    }
-                }
-            }
-        },
-        "/v1.1/getStatus": {
-            "post": {
-                "operationId": "getStatus",
-                "tags": [
-                    "Booking"
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/BookStatusRequest"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "anyOf": [
-                                        {
-                                            "type": "object",
-                                            "properties": {
-                                                "error": {
-                                                    "type": "string"
-                                                }
-                                            },
-                                            "required": [
-                                                "error"
+                                        "status": {
+                                            "type": "string",
+                                            "enum": [
+                                                "success"
                                             ]
                                         },
-                                        {
+                                        "data": {
                                             "type": "object",
                                             "properties": {
+                                                "booking_id": {
+                                                    "type": "string"
+                                                },
                                                 "status": {
                                                     "type": "string"
                                                 },
-                                                "reservation_id": {
+                                                "arrival": {
                                                     "type": "string"
                                                 },
-                                                "client_reference_id": {
+                                                "departure": {
                                                     "type": "string"
                                                 },
-                                                "firstName": {
+                                                "sum": {
                                                     "type": "string"
                                                 },
-                                                "phone": {
-                                                    "type": "string"
-                                                },
-                                                "email": {
-                                                    "type": "string"
-                                                },
-                                                "arrivalDate": {
-                                                    "type": "string"
-                                                },
-                                                "departureDate": {
+                                                "currency": {
                                                     "type": "string"
                                                 }
                                             },
                                             "required": [
+                                                "booking_id",
                                                 "status",
-                                                "reservation_id",
-                                                "client_reference_id",
-                                                "firstName",
-                                                "phone",
-                                                "email",
-                                                "arrivalDate",
-                                                "departureDate"
+                                                "arrival",
+                                                "departure",
+                                                "sum",
+                                                "currency"
                                             ]
                                         }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "data"
                                     ]
                                 }
                             }
                         }
                     },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationException"
-                    },
-                    "422": {
-                        "$ref": "#/components/responses/ValidationException"
-                    },
-                    "403": {
-                        "$ref": "#/components/responses/AuthorizationException"
-                    }
-                }
-            }
-        },
-        "/v1.1/cancelBook": {
-            "post": {
-                "operationId": "booking.cancelBook",
-                "tags": [
-                    "Booking"
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/App.Http.Requests.API.V1_1.CancelRequest"
-                            }
-                        }
-                    }
-                },
-                "responses": {
                     "404": {
                         "description": "",
                         "content": {
@@ -517,37 +621,322 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
-                                        "error": {
+                                        "status": {
                                             "type": "string",
-                                            "example": "Book not found"
+                                            "enum": [
+                                                "error"
+                                            ]
+                                        },
+                                        "error": {
+                                            "type": "object",
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "NOT_FOUND"
+                                                    ]
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "Booking not found"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "code",
+                                                "message"
+                                            ]
                                         }
                                     },
                                     "required": [
+                                        "status",
                                         "error"
                                     ]
                                 }
                             }
                         }
                     },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1.1/status": {
+            "post": {
+                "operationId": "v1.1.status",
+                "summary": "\u0421\u0442\u0430\u0442\u0443\u0441 \u0431\u0440\u043e\u043d\u0438.\nPOST /api/v1.1/status\n{ \"book_token\": \"...\" }",
+                "tags": [
+                    "Booking"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "book_token": {
+                                        "type": "string",
+                                        "minLength": 40,
+                                        "maxLength": 40
+                                    }
+                                },
+                                "required": [
+                                    "book_token"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
                     "200": {
                         "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "string",
-                                    "example": "Book cancelled"
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "enum": [
+                                                "success"
+                                            ]
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "booking_id": {
+                                                    "type": "string"
+                                                },
+                                                "status": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "booking_id",
+                                                "status"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "data"
+                                    ]
                                 }
                             }
                         }
                     },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationException"
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "enum": [
+                                                "error"
+                                            ]
+                                        },
+                                        "error": {
+                                            "type": "object",
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "NOT_FOUND"
+                                                    ]
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "Booking not found"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "code",
+                                                "message"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "error"
+                                    ]
+                                }
+                            }
+                        }
                     },
                     "422": {
                         "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1.1/cancel": {
+            "post": {
+                "operationId": "v1.1.cancel",
+                "summary": "\u041e\u0442\u043c\u0435\u043d\u0430 \u0431\u0440\u043e\u043d\u0438.\nPOST /api/v1.1/cancel\n{ \"book_token\": \"...\", \"reason\": \"...\" }",
+                "tags": [
+                    "Booking"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "book_token": {
+                                        "type": "string",
+                                        "minLength": 40,
+                                        "maxLength": 40
+                                    },
+                                    "reason": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 1000
+                                    }
+                                },
+                                "required": [
+                                    "book_token"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "(\u043e\u043f\u0446\u0438\u043e\u043d\u0430\u043b\u044c\u043d\u043e) \u0432\u0435\u0440\u043d\u0443\u0442\u044c \u043a\u0432\u043e\u0442\u0443 \u043d\u0430 rate\n$rate = Rate::find($book->rate_id);\nif ($rate && $rate->availability !== null) {\n$rate->availability += max(1, (int)$book->adult);\n$rate->save();\n}",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "enum": [
+                                                "success"
+                                            ]
+                                        },
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "booking_id": {
+                                                    "type": "string"
+                                                },
+                                                "status": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "booking_id",
+                                                "status"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
                     },
-                    "403": {
-                        "$ref": "#/components/responses/AuthorizationException"
+                    "409": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "enum": [
+                                                "error"
+                                            ]
+                                        },
+                                        "error": {
+                                            "type": "object",
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "CANCEL_NOT_ALLOWED"
+                                                    ]
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "Cancellation is not allowed on/after arrival date"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "code",
+                                                "message"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "error"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "enum": [
+                                                "error"
+                                            ]
+                                        },
+                                        "error": {
+                                            "type": "object",
+                                            "properties": {
+                                                "code": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "NOT_FOUND"
+                                                    ]
+                                                },
+                                                "message": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "Booking not found"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "code",
+                                                "message"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "status",
+                                        "error"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
                     }
                 }
             }
@@ -568,7 +957,9 @@
                                     "properties": {
                                         "error": {
                                             "type": "string",
-                                            "example": "Hotels not found"
+                                            "enum": [
+                                                "Hotels not found"
+                                            ]
                                         }
                                     },
                                     "required": [
@@ -583,7 +974,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "string"
+                                    "type": "object"
                                 }
                             }
                         }
@@ -596,7 +987,7 @@
         },
         "/v1.0/base/getHotels/{id}": {
             "get": {
-                "operationId": "v1.hotel.show",
+                "operationId": "showHotel",
                 "tags": [
                     "Hotel"
                 ],
@@ -620,7 +1011,9 @@
                                     "properties": {
                                         "error": {
                                             "type": "string",
-                                            "example": "Hotel not found"
+                                            "enum": [
+                                                "Hotel not found"
+                                            ]
                                         }
                                     },
                                     "required": [
@@ -646,42 +1039,14 @@
                 }
             }
         },
-        "/v1.1/getHotels/{id}": {
+        "/v1.1/hotels": {
             "get": {
-                "operationId": "v1_1.hotel.show",
+                "operationId": "v1.1.hotels",
+                "summary": "\u0421\u0442\u0430\u0442\u0438\u0447\u0435\u0441\u043a\u0438\u0439 \u0441\u043f\u0438\u0441\u043e\u043a \u043e\u0431\u044a\u0435\u043a\u0442\u043e\u0432 \u0440\u0430\u0437\u043c\u0435\u0449\u0435\u043d\u0438\u044f.\nGET /api/v1.1/hotels",
                 "tags": [
                     "Hotel"
                 ],
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
                 "responses": {
-                    "404": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "example": "Hotel not found"
-                                        }
-                                    },
-                                    "required": [
-                                        "error"
-                                    ]
-                                }
-                            }
-                        }
-                    },
                     "200": {
                         "description": "",
                         "content": {
@@ -691,16 +1056,13 @@
                                 }
                             }
                         }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationException"
                     }
                 }
             }
         },
         "/v1.0/base/getMeals": {
             "get": {
-                "operationId": "v1.meal.index",
+                "operationId": "getMealList",
                 "tags": [
                     "Meal"
                 ],
@@ -732,52 +1094,29 @@
                 }
             }
         },
-        "/v1.1/getMeals": {
-            "get": {
-                "operationId": "v1_1.meal.index",
-                "tags": [
-                    "Meal"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Array of `App.Http.Resources.V1_1.MealResource`",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/App.Http.Resources.V1_1.MealResource"
-                                            }
-                                        }
-                                    },
-                                    "required": [
-                                        "data"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationException"
-                    }
-                }
-            }
-        },
         "/v1.0/base/searchHotel": {
             "post": {
-                "operationId": "v1.search.index",
+                "operationId": "searchHotels",
                 "tags": [
                     "Search"
                 ],
                 "requestBody": {
-                    "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/SearchRequest"
+                                "allOf": [
+                                    {
+                                        "$ref": "#/components/schemas/SearchRequest"
+                                    },
+                                    {
+                                        "type": "object",
+                                        "properties": {
+                                            "city": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                ]
                             }
                         }
                     }
@@ -798,16 +1137,13 @@
                     },
                     "422": {
                         "$ref": "#/components/responses/ValidationException"
-                    },
-                    "403": {
-                        "$ref": "#/components/responses/AuthorizationException"
                     }
                 }
             }
         },
         "/v1.0/base/searchHotel/{id}": {
             "post": {
-                "operationId": "v1.search.show",
+                "operationId": "searchHotel",
                 "tags": [
                     "Search"
                 ],
@@ -847,61 +1183,66 @@
                     },
                     "422": {
                         "$ref": "#/components/responses/ValidationException"
-                    },
-                    "403": {
-                        "$ref": "#/components/responses/AuthorizationException"
                     }
                 }
             }
         },
-        "/v1.1/searchHotel": {
-            "post": {
-                "operationId": "v1_1.search.index",
+        "/v1.1/search": {
+            "get": {
+                "operationId": "v1.1.search",
                 "tags": [
                     "Search"
                 ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/SearchRequest"
-                            }
-                        }
-                    }
-                },
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "4) \u0412\u043e\u0437\u0432\u0440\u0430\u0449\u0430\u0435\u043c \u0420\u041e\u0412\u041d\u041e \u043c\u0430\u0441\u0441\u0438\u0432 \u043e\u0442\u0435\u043b\u0435\u0439 (\u0431\u0435\u0437 \u043e\u0431\u0451\u0440\u0442\u043e\u043a meta/status)",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "string"
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "minItems": 0,
+                                    "maxItems": 0,
+                                    "additionalItems": false
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Accept": {
+                                "schema": {
+                                    "type": "string",
+                                    "enum": [
+                                        "application/json"
+                                    ]
                                 }
                             }
                         }
                     },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationException"
-                    },
                     "422": {
                         "$ref": "#/components/responses/ValidationException"
-                    },
-                    "403": {
-                        "$ref": "#/components/responses/AuthorizationException"
                     }
                 }
             }
         },
-        "/v1.1/searchHotel/{id}": {
+        "/v1.1/rateDetails/{hotel_id}/{rate_id}": {
             "post": {
-                "operationId": "v1_1.search.show",
+                "operationId": "v1.1.rateDetails",
                 "tags": [
                     "Search"
                 ],
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "hotel_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "rate_id",
                         "in": "path",
                         "required": true,
                         "schema": {
@@ -909,35 +1250,35 @@
                         }
                     }
                 ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/SearchOneRequest"
-                            }
-                        }
-                    }
-                },
                 "responses": {
                     "200": {
                         "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "string"
+                                    "type": "object",
+                                    "properties": {
+                                        "hotel_id": {
+                                            "type": "string"
+                                        },
+                                        "rate_id": {
+                                            "type": "string"
+                                        },
+                                        "details": {
+                                            "type": "string",
+                                            "enum": [
+                                                "rate details here"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "hotel_id",
+                                        "rate_id",
+                                        "details"
+                                    ]
                                 }
                             }
                         }
-                    },
-                    "401": {
-                        "$ref": "#/components/responses/AuthenticationException"
-                    },
-                    "422": {
-                        "$ref": "#/components/responses/ValidationException"
-                    },
-                    "403": {
-                        "$ref": "#/components/responses/AuthorizationException"
                     }
                 }
             }
@@ -947,135 +1288,10 @@
         "securitySchemes": {
             "http": {
                 "type": "http",
-                "scheme": "bearer"
+                "scheme": "basic"
             }
         },
         "schemas": {
-            "App.Http.Requests.API.V1_1.CancelRequest": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "book_token": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "book_token"
-                ],
-                "title": "App.Http.Requests.API.V1_1.CancelRequest"
-            },
-            "App.Http.Resources.V1_1.MealResource": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "code": {
-                        "type": "string"
-                    },
-                    "title": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "id",
-                    "code",
-                    "title"
-                ],
-                "title": "App.Http.Resources.V1_1.MealResource"
-            },
-            "BookRequest": {
-                "type": "object",
-                "properties": {
-                    "hotel_id": {
-                        "type": "integer"
-                    },
-                    "room_id": {
-                        "type": "integer"
-                    },
-                    "rate_id": {
-                        "type": "integer"
-                    },
-                    "user_id": {
-                        "type": "integer"
-                    },
-                    "adult": {
-                        "type": "integer"
-                    },
-                    "childages": {
-                        "type": "string"
-                    },
-                    "title": {
-                        "type": "string"
-                    },
-                    "phone": {
-                        "type": "string"
-                    },
-                    "email": {
-                        "type": "string",
-                        "format": "email"
-                    },
-                    "sum": {
-                        "type": "integer",
-                        "minimum": 1
-                    },
-                    "comment": {
-                        "type": "string"
-                    },
-                    "arrivalDate": {
-                        "type": "string",
-                        "format": "date"
-                    },
-                    "departureDate": {
-                        "type": "string",
-                        "format": "date"
-                    },
-                    "book_token": {
-                        "type": "string"
-                    },
-                    "status": {
-                        "type": "string",
-                        "enum": [
-                            "pending",
-                            "reserved",
-                            "cancelled"
-                        ]
-                    }
-                },
-                "required": [
-                    "hotel_id",
-                    "room_id",
-                    "rate_id",
-                    "user_id",
-                    "adult",
-                    "title",
-                    "phone",
-                    "email",
-                    "sum",
-                    "arrivalDate",
-                    "departureDate",
-                    "book_token"
-                ],
-                "title": "BookRequest"
-            },
-            "BookStatusRequest": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "book_token": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "id",
-                    "book_token"
-                ],
-                "title": "BookStatusRequest"
-            },
             "CancelRequest": {
                 "type": "object",
                 "properties": {
@@ -1134,8 +1350,9 @@
             "SearchOneRequest": {
                 "type": "object",
                 "properties": {
-                    "adult": {
-                        "type": "integer"
+                    "adults": {
+                        "type": "integer",
+                        "minimum": 1
                     },
                     "children_ages": {
                         "type": "array",
@@ -1143,54 +1360,78 @@
                             "type": "string"
                         }
                     },
-                    "arrivalDate": {
+                    "check_in": {
                         "type": "string",
                         "format": "date"
                     },
-                    "departureDate": {
+                    "check_out": {
                         "type": "string",
                         "format": "date"
+                    },
+                    "residency": {
+                        "type": "string"
                     }
                 },
                 "required": [
-                    "adult",
-                    "arrivalDate",
-                    "departureDate"
+                    "adults",
+                    "check_in",
+                    "check_out",
+                    "residency"
                 ],
                 "title": "SearchOneRequest"
             },
             "SearchRequest": {
                 "type": "object",
                 "properties": {
-                    "city": {
-                        "type": "string"
-                    },
-                    "arrivalDate": {
-                        "type": "string",
-                        "format": "date"
-                    },
-                    "departureDate": {
-                        "type": "string",
-                        "format": "date"
-                    },
-                    "adult": {
-                        "type": "integer"
-                    },
-                    "children_ages": {
+                    "hotel_ids": {
                         "type": "array",
                         "items": {
                             "type": "string"
                         }
                     },
-                    "rating": {
-                        "type": "integer"
+                    "residency": {
+                        "type": "string",
+                        "minLength": 2,
+                        "maxLength": 2
+                    },
+                    "check_in": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "check_out": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "guests_groups": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "adults": {
+                                    "type": "integer",
+                                    "minimum": 1
+                                },
+                                "children_ages": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer",
+                                        "minimum": 0
+                                    }
+                                }
+                            },
+                            "required": [
+                                "adults"
+                            ]
+                        },
+                        "minItems": 1
                     }
                 },
                 "required": [
-                    "city",
-                    "arrivalDate",
-                    "departureDate",
-                    "adult"
+                    "hotel_ids",
+                    "residency",
+                    "check_in",
+                    "check_out",
+                    "guests_groups"
                 ],
                 "title": "SearchRequest"
             },
@@ -1301,25 +1542,6 @@
                             "required": [
                                 "message",
                                 "errors"
-                            ]
-                        }
-                    }
-                }
-            },
-            "AuthorizationException": {
-                "description": "Authorization error",
-                "content": {
-                    "application/json": {
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "message": {
-                                    "type": "string",
-                                    "description": "Error overview."
-                                }
-                            },
-                            "required": [
-                                "message"
                             ]
                         }
                     }

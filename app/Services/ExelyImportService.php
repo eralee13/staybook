@@ -105,7 +105,6 @@ class ExelyImportService
                 // Не записываем image, если ошибка
             }
         }
-
         return Hotel::updateOrCreate(
             ['exely_id' => $property->id],
             $fields

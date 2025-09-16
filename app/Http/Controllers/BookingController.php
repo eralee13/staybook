@@ -78,7 +78,10 @@ class BookingController extends Controller
         if ($book) {
             Log::warning('Бронь создана: ' . $book->id);
             $email = Contact::first()->email;
-            Mail::to($email)->send(new BookMail($book));
+            Mail::to($email)
+                ->cc(Auth::user()->email)
+                ->bcc(['02_07_92@mail.ru'])
+                ->send(new BookMail($book));
         }
 
         return view('pages.booking.order-reserve', compact('book', 'request'));
@@ -387,8 +390,8 @@ class BookingController extends Controller
                             "comment" => $request->get("comment"),
                         ],
                         "prepayment" => [
-                            "remark" => "Payment in channel",
-                            "paymentType" => "Cash",
+                            "remark" => "Full payment made in the channel",
+                            "paymentType" => "Prepay",
                             "prepaidSum" => 0
                         ],
                         "bookingComments" => [
@@ -452,8 +455,8 @@ class BookingController extends Controller
                             "comment" => $request->get("comment"),
                         ],
                         "prepayment" => [
-                            "remark" => "Payment in channel",
-                            "paymentType" => "Cash",
+                            "remark" => "Full payment made in the channel",
+                            "paymentType" => "Prepay",
                             "prepaidSum" => 0
                         ],
                         "bookingComments" => [
@@ -531,7 +534,11 @@ class BookingController extends Controller
                             'api_type' => 'exely'
                         ]);
                         $email = Contact::first()->email;
-                        Mail::to($email)->send(new BookMail($book));
+                        Mail::to($email)
+                            ->cc(Auth::user()->email)
+                            ->bcc(['02_07_92@mail.ru'])
+                            ->send(new BookMail($book));
+
                         Log::warning('Бронь создана: ' . $book->id);
                     }
                 }
@@ -587,7 +594,10 @@ class BookingController extends Controller
                 ]);
                 Log::warning('Отмена брони: ' . $book->id);
                 $email = Contact::first()->email;
-                Mail::to($email)->send(new BookCancelMail($book));
+                Mail::to($email)
+                    ->cc(Auth::user()->email)
+                    ->bcc(['02_07_92@mail.ru'])
+                    ->send(new BookMail($book));
                 return view('pages.booking.exely.cancel-confirm', compact('cancel'));
             }
         } catch (RequestException $e) {

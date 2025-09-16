@@ -12,23 +12,16 @@ class HotelStaticListController extends Controller
 
     public function __construct(HotelStaticList $HotelStaticList)
     {
-
         $this->HotelStaticList = $HotelStaticList;
-        
     }
 
-    public function fetchHotels(Request $request)
+
+    public function fetchHotels(Request $request, \App\Services\Tourmind\HotelStaticList $svc)
     {
+        $cc       = $request->input('country', 'UA');     // ?country=UA
+        $pageSize = (int) $request->input('size', 200);
+        $maxPages = (int) $request->input('maxPages', 0); // 0 = без лимита
 
-        $requestData = $request->all();
-        // $data = $this->HotelStaticList->getHotelListForAllCountries($requestData);
-        $data = $this->HotelStaticList->getHotelList($requestData);
-
-        // dd($data);
-        
-        return response()->json($data);
-        
+        return response()->json($svc->getHotelList($cc, $pageSize, $maxPages));
     }
-    
 }
-

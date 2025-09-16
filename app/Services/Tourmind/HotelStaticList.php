@@ -1,22 +1,16 @@
 <?php
-
 namespace App\Services\Tourmind;
 
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
-use App\Services\Tourmind\TmApiService;
 use App\Models\Hotel;
 use App\Models\Amenity;
 use App\Models\Room;
 use App\Models\Image;
-use GeoIp2\Database\Reader;
-
-
+use Throwable;
 class HotelStaticList
 {
-    
     protected TmApiService $tmApiService;
     protected string $baseUrl;
     protected string $tm_agent_code;
@@ -25,210 +19,243 @@ class HotelStaticList
 
     public function __construct(TmApiService $tmApiService)
     {
-        $this->tmApiService = $tmApiService;
-        $this->baseUrl = config('app.tm_base_url');
-        $this->tm_agent_code = config('app.tm_agent_code');
-        $this->tm_user_name = config('app.tm_user_name');
-        $this->tm_password = config('app.tm_password');
+        $this->tmApiService   = $tmApiService;
+        $this->baseUrl        = rtrim((string) config('app.tm_base_url'), '/');
+        $this->tm_agent_code  = (string) config('app.tm_agent_code');
+        $this->tm_user_name   = (string) config('app.tm_user_name');
+        $this->tm_password    = (string) config('app.tm_password');
     }
-    
-    public function getHotelListForAllCountries()
-    {
-        // Получаем список стран (можно задать вручную или запросить API)
-        $countryCodes = $this->tmApiService->getCountryCodes();
 
-        foreach ($countryCodes as $countryCode) {
-            $this->getHotelList($countryCode);
+    /**
+     * Импорт статик-отелей для одной страны.
+     *
+     * @param  string $countryCode ISO-код страны (напр. 'UA')
+     * @param  int    $pageSize    1..500
+     * @param  int    $maxPages    0 = без лимита, иначе обрежем
+     * @return array  ['ok'=>bool, 'imported'=>int, 'pages'=>int, 'errors'=>int]
+     */
+    public function getHotelList(string $countryCode, int $pageSize = 200, int $maxPages = 0): array
+    {
+        if ($this->baseUrl === '') {
+            return ['ok' => false, 'imported' => 0, 'pages' => 0, 'errors' => 1, 'err' => 'tm_base_url пуст'];
         }
-    }
 
-    public function getHotelList($countryCode)
-    {
-        $pageIndex = 1; // Начинаем с первой страницы
-        $pageSize = 100; // Количество отелей на страницу
-        $pageCount = 1;
-        $hotel = [];
-        $room = [];
-        // do {
+        $pageIndex   = 1;
+        $imported    = 0;
+        $errors      = 0;
+        $seenHotelIds = [];
+
+        do {
             $payload = [
-                "CountryCode" => 'UA',
-                "Pagination" => [
-                    "PageIndex" => $pageIndex,
-                    "PageSize" => $pageSize
+                'CountryCode'   => strtoupper(trim($countryCode)),
+                'Pagination'    => [
+                    'PageIndex' => $pageIndex,
+                    'PageSize'  => max(1, min($pageSize, 500)),
                 ],
-                "RequestHeader" => [
-                    "AgentCode" => $this->tm_agent_code,
-                    "Password" => $this->tm_password,
-                    "UserName" => $this->tm_user_name,
-                    "RequestTime" => now()->format('Y-m-d H:i:s')
-                ]
+                'RequestHeader' => [
+                    'AgentCode'   => $this->tm_agent_code,
+                    'Password'    => $this->tm_password,
+                    'UserName'    => $this->tm_user_name,
+                    'RequestTime' => now()->format('Y-m-d H:i:s'),
+                ],
             ];
-            
+
             try {
-
-                $response = Http::withHeaders([
+                $resp = Http::withHeaders([
                     'Content-Type' => 'application/json',
-                    'Accept' => 'application/json'
-                ])->timeout(60)->post("{$this->baseUrl}/HotelStaticList", $payload);
-        
-                if ($response->failed()) {
-                    return ['error' => 'Ошибка при запросе к API', 'status' => $response->status()];
+                    'Accept'       => 'application/json',
+                ])
+                    ->connectTimeout(15)
+                    ->timeout(90)
+                    ->retry(4, 1000, function ($exception, $request) {
+                        // Ретрай только при сетевых таймаутах/5xx/429
+                        if ($exception instanceof \Illuminate\Http\Client\ConnectionException) {
+                            return true;
+                        }
+                        $response = method_exists($exception, 'response') ? $exception->response : null;
+                        return $response && ($response->serverError() || $response->status() === 429);
+                    }, throw: false)
+                    ->post("{$this->baseUrl}/HotelStaticList", $payload);
+
+                if (!$resp->successful()) {
+                    $errors++;
+                    Log::channel('tourmind')->warning('HotelStaticList non-200', [
+                        'status' => $resp->status(),
+                        'body'   => $resp->body(),
+                        'page'   => $pageIndex,
+                        'country'=> $countryCode,
+                    ]);
+                    // если неуспех — прекращаем цикл, чтобы не крутить пустую пагинацию
+                    break;
                 }
-        
-                $data = $response->json();
-                $hotels = $data['HotelStaticListResult']['Hotels'] ?? [];
-                $pageCount = $data['HotelStaticListResult']['Pagination']['PageCount'] ?? 1;
-                
-                // Log::channel('tourmind')->info('Hotel Static List - ', $data);
-                
-                foreach ($hotels as $hotelData) {
-                    $AmenitiesHotel = collect($hotelData['AmenitiesHotel'] ?? [])->pluck('name')
-                        ->unique()
-                        ->implode(', ');
-        
-                    $AmenitiesRoom = collect($hotelData['AmenitiesRoom'] ?? [])->pluck('name')
-                        ->unique()
-                        ->implode(', ');
-        
-                    // Получаем первую картинку
-                    $imageUrl = collect($hotelData['Images'] ?? [])->pluck('links.1000px.href')->filter()->first();
-                    $imageUrl2 = collect($hotelData['Images'] ?? [])->pluck('links.1000px.href')->filter()->values()->get(1);
-                    $imageUrl3 = collect($hotelData['Images'] ?? [])->pluck('links.1000px.href')->filter()->values()->get(2);
-                    $category = collect($hotelData['Images'] ?? [])->pluck('category')->filter()->first();
-                    $category2 = collect($hotelData['Images'] ?? [])->pluck('category')->filter()->values()->get(1);
-                    $category3 = collect($hotelData['Images'] ?? [])->pluck('category')->filter()->values()->get(2);
-        
-        
-                        $nameLower = str_replace(' ', '-', $hotelData['Name']);
 
-                        if ( isset($hotelData['Phone']) ) {
-                            $phone = preg_replace('/[^+\d]/', '', $hotelData['Phone']);
+                $json      = $resp->json() ?? [];
+                $result    = $json['HotelStaticListResult'] ?? [];
+                $hotels    = $result['Hotels'] ?? [];
+                $pageCount = (int) ($result['Pagination']['PageCount'] ?? 0);
 
-                            if (!Str::startsWith($phone, '+')) {
+                if (empty($hotels)) {
+                    // пустая страница — выходим
+                    break;
+                }
+
+                foreach ($hotels as $h) {
+                    try {
+                        $tmHotelId = $h['HotelId'] ?? null;
+                        if (!$tmHotelId) {
+                            continue;
+                        }
+                        // защита от дублей в рамках одного запуска
+                        if (isset($seenHotelIds[$tmHotelId])) {
+                            continue;
+                        }
+                        $seenHotelIds[$tmHotelId] = true;
+
+                        $name    = (string) ($h['Name'] ?? '');
+                        $code    = Str::slug($name) ?: ('hotel-' . $tmHotelId);
+
+                        // Телефон
+                        $phone = '';
+                        if (!empty($h['Phone'])) {
+                            $phone = preg_replace('/[^+\d]/', '', (string) $h['Phone']);
+                            if ($phone !== '' && !Str::startsWith($phone, '+')) {
                                 $phone = '+' . $phone;
                             }
-                        }else{
-                            $phone = '';
                         }
-                    
 
-                    $hotelService = new HotelServices();
-                    $utc = $hotelService->getUtcOffsetByCountryCode($hotelData['CountryCode']);
-                    
-                    $hotelDataInsert = [
-                        'code' => strtolower($nameLower) ?? '',
-                        'title' => (string)$hotelData['Name'] ?? '',
-                        'title_en' => $hotelData['Name'] ?? '',
-                        'rating' => (int) ($hotelData['StarRating'] ?? 0),
-                        'address_en' => $hotelData['Address'] ?? '',
-                        'country_code' => $hotelData['CountryCode'] ?? '',
-                        'city' => $hotelData['CityName'] ?? '',
-                        'utc' => $utc ?? '',
-                        'lat' => $hotelData['Latitude'] ?? '',
-                        'lng' => $hotelData['Longitude'] ?? '',
-                        'phone' => $phone ?? '',
-                        'description_en' => $hotelData['Description']['Location'] ?? '',
-                        'image' => '',
-                        'tourmind_id' => $hotelData['HotelId'],
-                        'status' => 1,
-                    ];
-                    
-        
-                    $hotel = Hotel::updateOrCreate(
-                        ['tourmind_id' => $hotelData['HotelId']],
-                        $hotelDataInsert
-                    );
-                    
-                        if ($hotel) {
+                        // Удобства
+                        $amenitiesHotel = collect($h['AmenitiesHotel'] ?? [])
+                            ->pluck('name')->filter()->unique()->implode(', ');
+                        $amenitiesRoom = collect($h['AmenitiesRoom'] ?? [])
+                            ->pluck('name')->filter()->unique()->implode(', ');
 
-                            // Обновляем удобства в таблице amenities
+                        // Картинки (берём до 3 уникальных ссылок 1000px)
+                        $images = collect($h['Images'] ?? [])
+                            ->map(fn ($it) => [
+                                'href'     => data_get($it, 'links.1000px.href'),
+                                'category' => data_get($it, 'category'),
+                            ])
+                            ->filter(fn ($it) => !empty($it['href']))
+                            ->unique('href')
+                            ->take(3)
+                            ->values()
+                            ->all();
+
+                        // Вставляем/обновляем отель
+                        $hotel = Hotel::updateOrCreate(
+                            ['tourmind_id' => $tmHotelId],
+                            [
+                                'code'          => strtolower($code),
+                                'title'         => $name,
+                                'title_en'      => $name,
+                                'rating'        => (int) ($h['StarRating'] ?? 0),
+                                'address_en'    => (string) ($h['Address'] ?? ''),
+                                'country_code'  => (string) ($h['CountryCode'] ?? ''),
+                                'city'          => (string) ($h['CityName'] ?? ''),
+                                'utc'           => '', // TODO: заполните своей логикой, если нужно
+                                'lat'           => (string) ($h['Latitude'] ?? ''),
+                                'lng'           => (string) ($h['Longitude'] ?? ''),
+                                'phone'         => $phone,
+                                'description_en'=> (string) data_get($h, 'Description.Location', ''),
+                                'image'         => '', // превью кладём в images таблицу ниже
+                                'status'        => 1,
+                            ]
+                        );
+
+                        // Удобства отеля
+                        if ($amenitiesHotel !== '') {
                             Amenity::updateOrCreate(
                                 ['hotel_id' => $hotel->id],
-                                ['services' => $AmenitiesHotel]
+                                ['services' => $amenitiesHotel]
                             );
-                    
-                                $room = Room::updateOrCreate(
-                                    ['hotel_id' => $hotel->id],
-                                    [
-                                        'title' => '',
-                                        'amenities' => $AmenitiesRoom,
-                                        // 'image' => $localImagePath,
-                                        'description_en' => $hotelData['Description']['Rooms'] ?? null
-                                    ]
-                                );
-                        
-                    
-                            // return $hotel;
-                            // die;
+                        }
 
-                            // Сохраняем изображение отеля
-                            if ($imageUrl) {
-                                $localImagePath = $this->tmApiService->saveHotelImage($imageUrl, $hotel->id);
+                        // Создаём «комнатный» контейнер под статику (если у вас отдельные типы — замените логику)
+                        Room::updateOrCreate(
+                            ['hotel_id' => $hotel->id], // ключ — 1 запись per hotel
+                            [
+                                'title'          => '',
+                                'amenities'      => $amenitiesRoom,
+                                'description_en' => (string) data_get($h, 'Description.Rooms', null),
+                            ]
+                        );
 
-                                $image = Image::updateOrCreate(
+                        // Сохраняем изображения
+                        foreach ($images as $i => $im) {
+                            try {
+                                $localPath = $this->tmApiService->saveHotelImage($im['href'], $hotel->id);
+                                Image::updateOrCreate(
                                     [
                                         'hotel_id' => $hotel->id,
-                                        'category' => $category,
+                                        'category' => (string) ($im['category'] ?? 'photo'),
+                                        'caption'  => $i === 0 ? 'Primary' : 'Gallery',
                                     ],
                                     [
-                                        'image' => $localImagePath ?? '',
-                                        'caption' => 'Primary',
+                                        'image' => $localPath ?? '',
                                     ]
                                 );
-                            
-                            }
-                            if ($imageUrl2) {
-                                $localImagePath2 = $this->tmApiService->saveHotelImage($imageUrl2, $hotel->id);
-
-                                $image = Image::updateOrCreate(
-                                    [
-                                        'hotel_id' => $hotel->id,
-                                        'category' => $category2,
-                                    ],
-                                    [
-                                        'image' => $localImagePath2 ?? '',
-                                        'caption' => 'Reception',
-                                    ]
-                                );
-                                
-                            }
-                            if ($imageUrl3) {
-                                $localImagePath3 = $this->tmApiService->saveHotelImage($imageUrl3, $hotel->id);
-
-                                $image = Image::updateOrCreate(
-                                    [
-                                        'hotel_id' => $hotel->id,
-                                        'category' => $category3,
-                                    ],
-                                    [
-                                        'image' => $localImagePath3 ?? '',
-                                        'caption' => 'Reception',
-                                    ]
-                                );
-                                
-                            }
-
-                            // Сохраняем  изображений номеров
-                            if ( isset($hotelData['Images'])  && is_array($hotelData['Images']) ) {
-                                Log::channel('tourmind')->error('Hotel static list Сохраняем  изображений передача roomid '.$room->id);
-                                $this->tmApiService->saveRoomImages($hotel->id,  $hotelData['Images'], $room->id, $col = 9);
+                            } catch (Throwable $e) {
+                                Log::channel('tourmind')->warning('saveHotelImage failed', [
+                                    'hotel_id' => $hotel->id,
+                                    'href'     => $im['href'],
+                                    'err'      => $e->getMessage(),
+                                ]);
                             }
                         }
-                    
+                        $imported++;
+                    } catch (Throwable $e) {
+                        $errors++;
+                        Log::channel('tourmind')->error('HotelStaticList item failed', [
+                            'err'   => $e->getMessage(),
+                            'hotel' => $h ?? null,
+                        ]);
+                        // продолжаем остальные отели
+                    }
                 }
-                echo 'Данные ' .count($hotels). ' Отелей успешно обновлены';
 
-            } catch (\Throwable $th) {
-                Log::channel('tourmind')->error('Hotel Static List - Ошибка при получении данных - ' . $th->getMessage());
-                echo 'Ошибка смотри логи';
+                $pageIndex++;
+
+                if ($maxPages > 0 && $pageIndex > $maxPages) {
+                    break;
+                }
+            } catch (Throwable $e) {
+                $errors++;
+                Log::channel('tourmind')->error('Hotel Static List - request failed', [
+                    'err'     => $e->getMessage(),
+                    'country' => $countryCode,
+                    'page'    => $pageIndex,
+                ]);
+                // при сетевых фейлах можно сделать маленькую паузу
+                usleep(300_000); // 300ms
+                // и перейти к следующей попытке/странице или прервать:
+                break;
             }
-    
-        //     $pageIndex++; // Переход на следующую страницу
-    
-        // } while ($pageIndex <= $pageCount); // Пока не загрузим все страницы
-    
-        //return ['message' => 'Данные обновлены', 'count' => count($hotels)];
-            // return $room;
+        } while (true);
+
+        return [
+            'ok'       => $imported > 0 && $errors === 0,
+            'imported' => $imported,
+            'pages'    => $pageIndex - 1,
+            'errors'   => $errors,
+        ];
     }
 
+    /**
+     * Обход по всем странам из сервиса.
+     */
+    public function getHotelListForAllCountries(): array
+    {
+        $codes = $this->tmApiService->getCountryCodes(); // верните массив ISO-кодов
+        $summary = ['ok' => true, 'countries' => []];
+
+        foreach ($codes as $cc) {
+            $res = $this->getHotelList((string) $cc);
+            $summary['countries'][$cc] = $res;
+            if (!$res['ok']) {
+                $summary['ok'] = false;
+            }
+        }
+
+        return $summary;
+    }
 }

@@ -22,7 +22,7 @@ class SearchOneRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'adults' => 'required|integer|min:1',
+            'adults' => 'integer|min:1',
             'children_ages' => 'array',
             'check_in' => 'required|date|date_format:Y-m-d|after_or_equal:today',
             'check_out' => 'required|date|date_format:Y-m-d|after_or_equal:check_in',

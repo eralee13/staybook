@@ -60,108 +60,108 @@ class BookingTmController extends Controller
     {
         $arrival = Carbon::createFromDate($request->arrivalDate)->format('d.m.Y');
         $departure = Carbon::createFromDate($request->departureDate)->format('d.m.Y');
-        
+
 
         $hotel = Hotel::find($request->hotel_id);
         $token = '';
         do {
             $token = Str::random(40);
         } while (Book::where('book_token', $token)->exists());
-        
+
         return view('pages.booking.tourmind.verify', compact('request', 'arrival', 'departure', 'hotel', 'token'));
 
     }
 
     public function book_reserve_tm(Request $request)
     {
-            try {
-                // $hotel = Hotel::find($request->hotel_id);
-                $hotelService = new \App\Services\Tourmind\HotelServices();
-                $order = $hotelService->createOrder($request);
-                $message = ''; $key;
-                // dd($order);
-                if ( isset($order['Error']) == true) {
+        try {
+            // $hotel = Hotel::find($request->hotel_id);
+            $hotelService = new \App\Services\Tourmind\HotelServices();
+            $order = $hotelService->createOrder($request);
+            $message = ''; $key;
+            // dd($order);
+            if ( isset($order['Error']) == true) {
 
-                    $message = $order['ErrorMessage'];
-                    $key = '5';
-                    
-                }elseif( $order['Success'] == 'CONFIRMED'){
+                $message = $order['ErrorMessage'];
+                $key = '5';
 
-                    $message = 'Booking successfully created';
-                    $key = '1';
-                }
-                elseif( $order['Success'] == 'Этот бронь уже существует!' ){
+            }elseif( $order['Success'] == 'CONFIRMED'){
 
-                    $message = 'This booking already exists';
-                    $key = '2';
+                $message = 'Booking successfully created';
+                $key = '1';
+            }
+            elseif( $order['Success'] == 'Этот бронь уже существует!' ){
 
-                }elseif( $order['Success'] == 'PENDING' ){
+                $message = 'This booking already exists';
+                $key = '2';
 
-                    $orderStatus = '';
-                    $attempt = 0;
+            }elseif( $order['Success'] == 'PENDING' ){
 
-                        do {
-                            $orderStatus = $hotelService->getOneSearchOrder($book->agent_ref);
+                $orderStatus = '';
+                $attempt = 0;
 
-                            if ($orderStatus['Success'] === 'CONFIRMED') {
-                                break;
-                            }
+                do {
+                    $orderStatus = $hotelService->getOneSearchOrder($book->agent_ref);
 
-                            sleep(1);
-                            $attempt++;
+                    if ($orderStatus['Success'] === 'CONFIRMED') {
+                        break;
+                    }
 
-                        } while ($attempt < 10);
+                    sleep(1);
+                    $attempt++;
+
+                } while ($attempt < 10);
 
 
-                    if ( $orderStatus['Success'] == 'CONFIRMED' ){
+                if ( $orderStatus['Success'] == 'CONFIRMED' ){
 
-                        Book::where('book_token', $this->token)
+                    Book::where('book_token', $this->token)
                         ->update([
                             'status' => ucfirst($orderStatus['OrderInfo']['OrderStatus']),
                             // 'rezervation_id' => $order['OrderInfo']['ReservationID']
                         ]);
 
-                        $message = 'Booking successfully created';
-                        $key = '1';
-                        
-                    }else{
+                    $message = 'Booking successfully created';
+                    $key = '1';
 
-                        Book::where('book_token', $this->token)
+                }else{
+
+                    Book::where('book_token', $this->token)
                         ->update([
                             'status' => ucfirst($order['OrderInfo']['OrderStatus']),
                             // 'rezervation_id' => $order['OrderInfo']['ReservationID']
                         ]);
 
 
-                            if( $order['OrderInfo']['OrderStatus'] == 'PENDING' ){
+                    if( $order['OrderInfo']['OrderStatus'] == 'PENDING' ){
 
-                                $message = 'Booking is pending confirmation from the hotel';
-                                $key = '3';
-                                
-                            }elseif( $order['OrderInfo']['OrderStatus'] == 'CANCELLED' ){
+                        $message = 'Booking is pending confirmation from the hotel';
+                        $key = '3';
 
-                                $message = 'Booking has been cancelled';
-                                $key = '4';
+                    }elseif( $order['OrderInfo']['OrderStatus'] == 'CANCELLED' ){
 
-                            }
-                        
+                        $message = 'Booking has been cancelled';
+                        $key = '4';
+
                     }
 
-                }else {
-
-                    $message = 'Error later or contact us';
-                    $key = '5';
                 }
 
-            } catch (\Throwable $th) {
-                $message = 'Error later or contact us!';
-                Log::channel('tourmind')->info('Create Order Catch - ', $th->getMessage());
+            }else {
+
+                $message = 'Error later or contact us';
+                $key = '5';
             }
 
-            $book = Book::where('book_token', $request->token)->first();
+        } catch (\Throwable $th) {
+            $message = 'Error later or contact us!';
+            Log::channel('tourmind')->info('Create Order Catch - ', $th->getMessage());
+        }
 
-            return view('pages.booking.tourmind.rezerve', compact('book', 'request', 'message', 'key'));
-        
+        $book = Book::where('book_token', $request->token)->first();
+
+        return view('pages.booking.tourmind.rezerve', compact('book', 'request', 'message', 'key'));
+
     }
 
     public function cancel_calculate_tm(Request $request)
@@ -187,68 +187,68 @@ class BookingTmController extends Controller
         $departure = Carbon::createFromDate($book->departureDate)->format('d.m.Y');
         $room = Room::where('id', $book->room_id)->first();
         $rate = Rate::where('id', $book->rate_id)->first();
-            
-            $hotelService = new \App\Services\Tourmind\HotelServices();
-            $cancel = $hotelService->cancelOrder($request, $book);
-            $cancelRule = CancellationRule::where('id', $book->cancellation_id)->first();
+
+        $hotelService = new \App\Services\Tourmind\HotelServices();
+        $cancel = $hotelService->cancelOrder($request, $book);
+        $cancelRule = CancellationRule::where('id', $book->cancellation_id)->first();
+        $book = Book::where('book_token', $request->number)->first();
+
+        $cancelFee = 0;
+        $curr = '';
+        $message = '';
+        $status = '';
+
+        // info for log
+        $userInfo = [
+            'user_id' => $userId,
+            'book_id' => $book->id,
+        ];
+
+
+        if ( isset($cancel['Error']['ErrorMessage']) ){
+
+            $message = $cancel['Error']['ErrorMessage'];
+            Log::channel('tourmind')->info('Cancel Order User ID - ', $userInfo);
+            Log::channel('tourmind')->info('Cancel Order - ', $cancel);
+
+        } elseif( isset($cancel['CancelResult']['OrderStatus']) && $cancel['CancelResult']['OrderStatus'] == 'CANCELLED' && $book->status != 'Cancelled' ){
+
+            // $cancelFee = $cancel['CancelResult']['CancelFee'];
+            // $cancelFee = ($cancelFee * $this->coef) + $cancelFee;
+            $curr = $cancel['CancelResult']['CurrencyCode'];
+            $thisdate = Carbon::now()->format('Y-m-d H:i:s');
+
+            Book::where('book_token', $request->number)->update([
+                'status' => 'Cancelled',
+                'cancel_date' => $thisdate,
+                // 'cancel_penalty' => $cancelFee,
+                // 'currency' => $curr
+            ]);
+
             $book = Book::where('book_token', $request->number)->first();
-            
-                $cancelFee = 0;
-                $curr = '';
-                $message = '';
-                $status = '';
 
-                    // info for log
-                    $userInfo = [
-                        'user_id' => $userId,
-                        'book_id' => $book->id,
-                    ];
-            
-            
-           if ( isset($cancel['Error']['ErrorMessage']) ){
+            Mail::to('info@staybook.asia')->send(new BookCancelMail($book));
 
-                $message = $cancel['Error']['ErrorMessage'];
-                Log::channel('tourmind')->info('Cancel Order User ID - ', $userInfo);
-                Log::channel('tourmind')->info('Cancel Order - ', $cancel);
-        
-            } elseif( isset($cancel['CancelResult']['OrderStatus']) && $cancel['CancelResult']['OrderStatus'] == 'CANCELLED' && $book->status != 'Cancelled' ){
+            $status = 'Cancelled';
 
-                // $cancelFee = $cancel['CancelResult']['CancelFee'];
-                // $cancelFee = ($cancelFee * $this->coef) + $cancelFee;
-                $curr = $cancel['CancelResult']['CurrencyCode'];
-                $thisdate = Carbon::now()->format('Y-m-d H:i:s');
-
-                Book::where('book_token', $request->number)->update([
-                    'status' => 'Cancelled', 
-                    'cancel_date' => $thisdate, 
-                    // 'cancel_penalty' => $cancelFee, 
-                    // 'currency' => $curr
-                ]);
-
-                $book = Book::where('book_token', $request->number)->first();
-
-                Mail::to('info@staybook.asia')->send(new BookCancelMail($book));
-
-                $status = 'Cancelled';
-                
-                    $rato = Rate::where('id', $book->rate_id)->get('cancellation_rule_id')->first(); 
-                    if ( isset($rato->cancellation_rule_id) ){
-                        // CancellationRule::where('id', $rate->cancellation_rule_id)->update(['penalty_amount' => $cancelFee]);
-                    }
-                
-
-                        Log::channel('tourmind')->info('Cancel Order User ID - ', $userInfo);
-                        Log::channel('tourmind')->info('Cancel Order - ', $cancel);
-
-                $message = "Ваша бронь отменена";
-
-            }else{
-                $message = $cancel['Error'];
-                Log::channel('tourmind')->info('Cancel Order User ID - ', $userInfo);
-                Log::channel('tourmind')->info('Cancel Order - ', $cancel);
+            $rato = Rate::where('id', $book->rate_id)->get('cancellation_rule_id')->first();
+            if ( isset($rato->cancellation_rule_id) ){
+                // CancellationRule::where('id', $rate->cancellation_rule_id)->update(['penalty_amount' => $cancelFee]);
             }
-            
-            return view('pages.booking.tourmind.confirm', compact(
-                'book', 'hotel', 'cancel', 'cancelRule', 'arrival', 'departure', 'room', 'rate', 'request', 'message', 'status'));
+
+
+            Log::channel('tourmind')->info('Cancel Order User ID - ', $userInfo);
+            Log::channel('tourmind')->info('Cancel Order - ', $cancel);
+
+            $message = "Ваша бронь отменена";
+
+        }else{
+            $message = $cancel['Error'];
+            Log::channel('tourmind')->info('Cancel Order User ID - ', $userInfo);
+            Log::channel('tourmind')->info('Cancel Order - ', $cancel);
+        }
+
+        return view('pages.booking.tourmind.confirm', compact(
+            'book', 'hotel', 'cancel', 'cancelRule', 'arrival', 'departure', 'room', 'rate', 'request', 'message', 'status'));
     }
 }

@@ -200,7 +200,5 @@ return [
     'emerging_api_key' => env('EMERGING_API_KEY'),
     'emerging_api_url' => env('EMERGING_API_URL'),
 
-
     'main_coef' => env('MAIN_COEF', 0.08),
-    
 ];

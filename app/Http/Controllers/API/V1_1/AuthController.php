@@ -2,41 +2,34 @@
 
 namespace App\Http\Controllers\API\V1_1;
 
-use App\Http\Requests\API\V1\LoginRequest;
-use App\Models\User;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 
-class AuthController extends BaseController
+class AuthController extends Controller
 {
-//    public function register(RegisterRequest $request): JsonResponse
-//    {
-//        $input = $request->all();
-//        $input['password'] = bcrypt($input['password']);
-//        $user = User::create($input);
-//        $success['token'] =  $user->createToken('MyApp')->plainTextToken;
-//        $success['name'] =  $user->name;
-//
-//        return $this->sendResponse($success, 'User register successfully.');
-//    }
-
-    /**
-     * @param LoginRequest $request
-     * @return JsonResponse
-     */
-
-    public function login(LoginRequest $request): JsonResponse
+    public function signin(Request $request): JsonResponse
     {
+        $request->validate([
+            'email'    => ['required','email'],
+            'password' => ['required','string'],
+        ]);
+
         $user = User::where('email', $request->email)->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
-            return $this->sendError('Unauthorised', ['error' => 'Invalid credentials'], 401);
+            return response()->json([
+                'status' => 'error',
+                'error'  => ['code' => 'UNAUTHORIZED', 'message' => 'Invalid credentials'],
+            ], 401);
         }
 
-        $token = $user->createToken('api-token')->plainTextToken;
+        $token = $user->createToken('api-v1.1')->plainTextToken;
 
         return response()->json([
-            'token' => $token,
+            'token'      => $token,
             'token_type' => 'Bearer',
         ], 200);
     }

@@ -8,24 +8,16 @@ use App\Services\Tourmind\HotelDetail;
 
 class HotelDetailController extends Controller
 {
-    protected $HotelDetail;
+    private HotelDetail $hotelDetail;
 
-    public function __construct(HotelDetail $HotelDetail)
+    public function __construct(HotelDetail $hotelDetail)
     {
-
-        $this->HotelDetail = $HotelDetail;
-        
+        $this->hotelDetail = $hotelDetail;
     }
 
     public function fetchHotelDetail(Request $request)
     {
-
-        $requestData = $request->all();
-        $data = $this->HotelDetail->getHotelDetail($requestData);
-        
+        $data = $this->hotelDetail->getHotelDetail($request->all());
         return response()->json($data);
-        
     }
-    
 }
-

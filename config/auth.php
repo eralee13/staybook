@@ -40,8 +40,18 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        // ← ДОБАВЬ ЭТОТ guard
+        'basic' => [
+            'driver' => 'session',   // Basic Auth работает через пользовательский провайдер, guard может быть session
+            'provider' => 'users',
+        ],
+        // можешь оставить, если где‑то нужен токен-guard
+        'api' => [
+            'driver' => 'token',
+            'provider' => 'users',
+            'hash' => false,
+        ],
     ],
-
     /*
     |--------------------------------------------------------------------------
     | User Providers

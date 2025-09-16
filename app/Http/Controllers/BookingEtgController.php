@@ -53,14 +53,14 @@ class BookingEtgController extends Controller
     {
         $arrival = Carbon::createFromDate($request->arrivalDate)->format('d.m.Y');
         $departure = Carbon::createFromDate($request->departureDate)->format('d.m.Y');
-        
+
 
         $hotel = Hotel::find($request->hotel_id);
         $token = '';
         do {
             $token = Str::random(40);
         } while (Book::where('book_token', $token)->exists());
-        
+
         return view('pages.booking.emerging.verify', compact('request', 'arrival', 'departure', 'hotel', 'token'));
 
     }
@@ -69,15 +69,15 @@ class BookingEtgController extends Controller
     {
         try {
             //code...
-        
+
             $message = ''; $finish = ''; $finishStatus='';
             // $hotel = Hotel::find($request->hotel_id);
             $emergingPrebook = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
             $preBook = $emergingPrebook->preBook($request);
-            
+
             $emergingOrder = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
             $order = $emergingOrder->startProcess($request);
-            
+
             // dd($request);
             // dd($order);
 
@@ -95,14 +95,14 @@ class BookingEtgController extends Controller
                     // "is_need_cvc" => false
                     // "recommended_price" => null
                     // "type" => "deposit" || now
-                        $data = [
-                            'amount' => $paytype['amount'],
-                            'curr' => $paytype['currency_code'],
-                            'type' => 'deposit', // $paytype['type'], // deposit, now
-                            'item_id' => $item_id,
-                            'order_id' => $order_id,
-                            'etoken' => $etoken,
-                        ];
+                    $data = [
+                        'amount' => $paytype['amount'],
+                        'curr' => $paytype['currency_code'],
+                        'type' => 'deposit', // $paytype['type'], // deposit, now
+                        'item_id' => $item_id,
+                        'order_id' => $order_id,
+                        'etoken' => $etoken,
+                    ];
 
                     if( $paytype['currency_code'] == 'USD'){
                         $emergingFinish = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
@@ -125,7 +125,7 @@ class BookingEtgController extends Controller
             }
 
             if ( isset($order['error']) ) {
-                
+
                 $emergingStatus = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
                 $finishStatus = $emergingStatus->finishStatus($request);
 
@@ -136,11 +136,11 @@ class BookingEtgController extends Controller
             Log::channel('emerging')->info('Create Order Catch - ', $th->getMessage());
         }
 
-            $book = Book::where('book_token', $request->token)->first();
-            
+        $book = Book::where('book_token', $request->token)->first();
+
 
         return view('pages.booking.emerging.rezerve', compact('book', 'request', 'message', 'preBook', 'finish', 'order', 'finishStatus'));
-        
+
     }
 
     public function cancel_calculate_etg(Request $request)
@@ -166,75 +166,75 @@ class BookingEtgController extends Controller
         $departure = Carbon::createFromDate($book->departureDate)->format('d.m.Y');
         $room = Room::where('id', $book->room_id)->first();
         $rate = Rate::where('id', $book->rate_id)->first();
-            
-            $emergingService = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
-            $cancel = $emergingService->etg_cancel($request);
-            $cancelRule = CancellationRule::where('id', $book->cancellation_id)->first();
+
+        $emergingService = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
+        $cancel = $emergingService->etg_cancel($request);
+        $cancelRule = CancellationRule::where('id', $book->cancellation_id)->first();
+        $book = Book::where('book_token', $request->number)->first();
+
+        $cancelFee = 0;
+        $curr = '';
+        $message = '';
+        $status = '';
+
+        // info for log
+        $userInfo = [
+            'user_id' => $userId,
+            'book_id' => $book->id,
+        ];
+
+
+        if ( isset($cancel->status) == 'error' && $cancel->error == 'order_not_found' ){
+
+            $message = "book_status_completed_rejected";
+
+            Log::channel('emerging')->info('Cancel Order User ID - ', $userInfo);
+            Log::channel('emerging')->info('Cancel Order - ', [$cancel]);
+
+        }
+        elseif ( isset($cancel->status) == 'error' && $cancel->error == 'order_not_cancellable' ){
+
+            $message = "user_not_book_cancellable";
+
+            Log::channel('emerging')->info('Cancel Order User ID - ', $userInfo);
+            Log::channel('emerging')->info('Cancel Order - ', [$cancel]);
+
+        }
+
+        if( isset($cancel->status) && $cancel->status == 'ok' ){
+            // dd($cancel);
+            $cancelFee = $cancel->data->amount_payable->amount;
+            $cancelFee = ($cancelFee * $this->coef) + $cancelFee;
+            $curr = $cancel->data->amount_payable->currency_code;
+
+            Book::where('book_token', $request->number)->update([
+                'status' => 'Cancelled',
+                'cancel_penalty' => $cancelFee,
+                'currency' => $curr
+            ]);
+
             $book = Book::where('book_token', $request->number)->first();
-            
-                $cancelFee = 0;
-                $curr = '';
-                $message = '';
-                $status = '';
+            $status = 'Cancelled';
 
-                    // info for log
-                    $userInfo = [
-                        'user_id' => $userId,
-                        'book_id' => $book->id,
-                    ];
-            
-            
-           if ( isset($cancel->status) == 'error' && $cancel->error == 'order_not_found' ){
-
-                $message = "book_status_completed_rejected";
-
-                    Log::channel('emerging')->info('Cancel Order User ID - ', $userInfo);
-                    Log::channel('emerging')->info('Cancel Order - ', [$cancel]);
-        
-            } 
-            elseif ( isset($cancel->status) == 'error' && $cancel->error == 'order_not_cancellable' ){
-
-                $message = "user_not_book_cancellable";
-
-                    Log::channel('emerging')->info('Cancel Order User ID - ', $userInfo);
-                    Log::channel('emerging')->info('Cancel Order - ', [$cancel]);
-        
+            $rato = Rate::where('id', $book->rate_id)->get('cancellation_rule_id')->first();
+            if ( isset($rato->cancellation_rule_id) ){
+                CancellationRule::where('id', $rato->cancellation_rule_id)->update(['penalty_amount' => $cancelFee]);
             }
-            
-            if( isset($cancel->status) && $cancel->status == 'ok' ){
-                // dd($cancel);
-                $cancelFee = $cancel->data->amount_payable->amount;
-                $cancelFee = ($cancelFee * $this->coef) + $cancelFee;
-                $curr = $cancel->data->amount_payable->currency_code;
 
-                Book::where('book_token', $request->number)->update([
-                    'status' => 'Cancelled', 
-                    'cancel_penalty' => $cancelFee, 
-                    'currency' => $curr
-                ]);
 
-                $book = Book::where('book_token', $request->number)->first();
-                $status = 'Cancelled';
-                
-                    $rato = Rate::where('id', $book->rate_id)->get('cancellation_rule_id')->first(); 
-                    if ( isset($rato->cancellation_rule_id) ){
-                        CancellationRule::where('id', $rato->cancellation_rule_id)->update(['penalty_amount' => $cancelFee]);
-                    }
-                
+            Log::channel('emerging')->info('Cancel Order User ID - ', $userInfo);
+            Log::channel('emerging')->info('Cancel Order - ', (array)$cancel);
 
-                        Log::channel('emerging')->info('Cancel Order User ID - ', $userInfo);
-                        Log::channel('emerging')->info('Cancel Order - ', (array)$cancel);
+            $message = "Ваша бронь отменена!";
 
-                $message = "Ваша бронь отменена!";
+        }else{
+            // dd($cancel);
+            $message = $cancel->error;
+            Log::channel('emerging')->info('Cancel Order User ID - ', $userInfo);
+            Log::channel('emerging')->info('Cancel Order - ', (array)$cancel);
+        }
 
-            }else{
-                // dd($cancel);
-                $message = $cancel->error;
-                Log::channel('emerging')->info('Cancel Order User ID - ', $userInfo);
-                Log::channel('emerging')->info('Cancel Order - ', (array)$cancel);
-            }
-            
-            return view('pages.booking.emerging.confirm', compact(
-                'book', 'hotel', 'cancel', 'cancelRule', 'arrival', 'departure', 'room', 'rate', 'request', 'message', 'status'));
+        return view('pages.booking.emerging.confirm', compact(
+            'book', 'hotel', 'cancel', 'cancelRule', 'arrival', 'departure', 'room', 'rate', 'request', 'message', 'status'));
     }
 }

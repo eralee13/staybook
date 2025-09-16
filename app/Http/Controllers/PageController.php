@@ -14,6 +14,7 @@ use App\Models\City;
 use App\Models\Contact;
 use App\Models\Page;
 use App\Models\Hotel;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 
 class PageController extends Controller
@@ -23,42 +24,6 @@ class PageController extends Controller
         $hotels = Hotel::where('tourmind_id', null)->where('status', 1)->latest()->limit(9)->get();
         $cities = City::orderBy('title', 'asc')->get();
         $tomorrow = Carbon::tomorrow()->format('Y-m-d');
-        //hotelstar
-//        $hotelStar = new \App\Services\HotelStarService();
-//
-//        $searchData = [
-//            'region_id' => 67005,
-//            'check_in' => '2025-08-10',
-//            'check_out' => '2025-08-13',
-//            'adults' => 2,
-//            'children' => [],
-//            'currency' => 'RUB',
-//            '3d_hotelstar' => '7705857799',
-//        ];
-//
-//        $offers = $hotelStar->search($searchData);
-//        $offer = $offers[0];
-//
-//// Актуализация
-//        $actualOffer = $hotelStar->actualize($searchData, $offer);
-//
-//// Бронирование
-//        $booking = $hotelStar->book([
-//            'partner_order_id' => 'order_12345',
-//            'partner_price' => $actualOffer['search_item']['price'],
-//            'email' => 'client@example.com',
-//            'phone' => '+79991234567',
-//            'persons' => [
-//                ['name' => 'Ivan', 'surname' => 'Ivanov'],
-//            ],
-//            'search_data' => $searchData,
-//            'search_item' => [
-//                'hash' => $offer['hash'],
-//                'provider_id' => $offer['provider_id'],
-//            ],
-//            'meals' => $actualOffer['search_item']['meals'] ?? [],
-//            'extras' => $actualOffer['search_item']['extras'] ?? [],
-//        ]);
 
         return view('index', compact('hotels', 'cities', 'tomorrow'));
     }
@@ -87,11 +52,14 @@ class PageController extends Controller
     {
         $page = Page::cacheFor(now()->addHours(6))->where('id', 5)->first();;
         $contacts = Contact::get();
+        return view('pages.contacts', compact('page', 'contacts'));
+    }
 
+    public function exely_import()
+    {
         $service = new ExelyImportService();
         $service->handle();
-
-        return view('pages.contacts', compact('page', 'contacts'));
+        return view('pages.exely_import');
     }
 
     public function companies()

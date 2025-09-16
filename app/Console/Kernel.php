@@ -14,7 +14,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         $schedule->command('app:tm-update-status')->everyMinute();
-        $schedule->command('fx:update')->hourly();
+        $schedule->command('fx:update')->everyFourHours();
         $schedule->command('sync:exely-hotels')->everyTwoHours();
     }
 

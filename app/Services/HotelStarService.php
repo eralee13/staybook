@@ -20,11 +20,9 @@ class HotelStarService
             'X-HS-Token' => $this->token,
             'Accept' => 'application/json',
         ])->{$method}("{$this->baseUrl}/{$endpoint}", $payload);
-
         if ($response->failed()) {
             throw new \Exception("HotelStar error: " . $response->body());
         }
-
         return $response->json();
     }
 

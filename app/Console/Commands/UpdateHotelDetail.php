@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use App\Http\Controllers\API\V1\Tourmind\HotelDetailController;
 use Illuminate\Console\Command;
-use Illuminate\Http\Client\Request;
+use Illuminate\Http\Request;
 
 class UpdateHotelDetail extends Command
 {
@@ -28,7 +28,6 @@ class UpdateHotelDetail extends Command
     public function handle()
     {
         $controller = app(HotelDetailController::class);
-
         $request = new Request();
         $controller->fetchHotelDetail($request); // Передаём в метод
         $this->info('Список отелей и комнаты обновлён.');

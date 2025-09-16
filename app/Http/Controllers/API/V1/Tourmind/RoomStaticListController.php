@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\API\V1\Tourmind;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Services\Tourmind\RoomStaticList;
+use Illuminate\Http\Request;
 
 class RoomStaticListController extends Controller
 {
@@ -17,14 +17,24 @@ class RoomStaticListController extends Controller
         
     }
 
-    public function fetchRoomsTypes(Request $request)
+    public function fetch(Request $request, RoomStaticList $svc)
     {
+        // берём сырые значения (могут прийти строкой, числом или массивом)
+        $piRaw = $request->input('PageIndex', 1);
+        $psRaw = $request->input('PageSize', 100);
 
-        $requestData = $request->all();
-        $data = $this->RoomStaticList->getRoomList($requestData);
-        
-        return response()->json($data);
-        
+        // приводим к числу, если пришёл массив — берём первый элемент
+        $pageIndex = (int) (is_array($piRaw) ? ($piRaw[0] ?? 1) : $piRaw);
+        $pageSize  = (int) (is_array($psRaw) ? ($psRaw[0] ?? 100) : $psRaw);
+
+        // границы
+        $pageIndex = max(1, $pageIndex);
+        $pageSize  = min(max(1, $pageSize), 500);
+
+        // вызов сервиса со строгими int
+        $result = $svc->fetchRoomStaticList($pageIndex, $pageSize);
+
+        return response()->json($result);
     }
 
 }

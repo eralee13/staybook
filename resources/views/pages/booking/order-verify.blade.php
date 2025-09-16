@@ -177,10 +177,14 @@
                                        value="{{ $request->phone  }}">
                                 <input type="hidden" name="email"
                                        value="{{ $request->email }}">
-                                <input type="hidden" name="checkin_request" value="{{ $request->checkin_request }}">
-                                <input type="hidden" name="checkout_request" value="{{ $request->checkout_request }}">
-                                <input type="hidden" name="checkin_time" value="{{ $request->checkin_time }}">
-                                <input type="hidden" name="checkout_time" value="{{ $request->checkout_time }}">
+                                @if($request->checkin_request)
+                                    <input type="hidden" name="checkin_request" value="{{ $request->checkin_request }}">
+                                    <input type="hidden" name="checkin_time" value="{{ $request->checkin_time }}">
+                                @endif
+                                @if($request->checkout_request)
+                                    <input type="hidden" name="checkout_request" value="{{ $request->checkout_request }}">
+                                    <input type="hidden" name="checkout_time" value="{{ $request->checkout_time }}">
+                                @endif
                                 @hasrole('Demo')
                                 <div class="alert alert-danger">Доступ ограничен</div>
                                 @else

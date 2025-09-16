@@ -1,6 +1,6 @@
 @extends('layouts.filter_mini')
 
-@section('title', __('title'))
+@section('title', $page->title)
 
 @section('content')
 

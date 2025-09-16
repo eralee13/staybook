@@ -32,6 +32,8 @@ return [
         'description' => 'API for retrieving entity of accommodation properties. Auth: login:user@silkwaytravel.kg password: user1234',
     ],
 
+
+
     /*
      * Customize Stoplight Elements UI
      */
@@ -60,7 +62,11 @@ return [
          * Use to fetch the credential policy for the Try It feature. Options are: omit, include (default), and same-origin
          */
         'try_it_credentials_policy' => 'include',
+
+
     ],
+
+
 
     /*
      * The list of servers of the API. By default, when `null`, server URL will be created from
@@ -78,11 +84,29 @@ return [
      * ```
      */
 
+    'servers' => [
+        'Local' => url('api'),
+        // прод (замени на твой домен)
+        'Prod'  => 'https://staybook.asia/api',
+    ],
+
 
     'middleware' => [
         'web',
         RestrictedDocsAccess::class,
     ],
 
-    'extensions' => [],
+    'extensions' => [
+        'components' => [
+            'securitySchemes' => [
+                'basicAuth' => [
+                    'type'   => 'http',
+                    'scheme' => 'basic',
+                ],
+            ],
+        ],
+        'security' => [
+            ['basicAuth' => []],
+        ],
+    ],
 ];

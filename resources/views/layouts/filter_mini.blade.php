@@ -2,6 +2,8 @@
 <html lang="ru">
 
 <head>
+    <title>@yield('title') - StayBook</title>
+    <meta name="description" content="Staybook- прямая связь с отелями Центральной Азии и Кавказа для B2B-партнёров">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <link rel="icon" href="{{route('index')}}/img/favicon.png">
     <link rel="apple-touch-icon" sizes="180x180" href="{{route('index')}}/img/favicon.png">
@@ -254,10 +256,54 @@
 
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
         $('#city').select2({
             placeholder: "Выберите город",
             allowClear: true
+        });
+
+        // 1) читаем hidden, подставляем дефолты если пусто/Invalid
+        let start = moment($('#arrivalDate').val(), 'YYYY-MM-DD', true);
+        let end = moment($('#departureDate').val(), 'YYYY-MM-DD', true);
+
+        if (!start.isValid()) start = moment().startOf('day');
+        if (!end.isValid() || end.isSameOrBefore(start)) end = start.clone().add(1, 'day');
+
+        // 2) инициализация одного DRP на поле заезда
+        $('#arrivalDisplay').daterangepicker({
+            autoApply: true,
+            autoUpdateInput: false, // сами заполним оба инпута
+            startDate: start,
+            endDate: end,
+            minDate: moment().startOf('day'),
+            locale: {
+                format: "DD.MM.YYYY",
+                separator: " - ",
+                applyLabel: "Применить",
+                cancelLabel: "Отмена",
+                fromLabel: "С",
+                toLabel: "По",
+                customRangeLabel: "Произвольно",
+                weekLabel: "W",
+                daysOfWeek: ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"],
+                monthNames: ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"],
+                firstDay: 1
+            }
+        }, function (s, e) {
+            // 3) обновляем hidden (ISO) и видимые (RU-формат)
+            $('#arrivalDate').val(s.format('YYYY-MM-DD'));
+            $('#departureDate').val(e.format('YYYY-MM-DD'));
+            $('#arrivalDisplay').val(s.format('DD.MM.YYYY'));
+            $('#departureDisplay').val(e.format('DD.MM.YYYY'));
+        });
+
+        // 4) первичное отображение в видимых полях
+        $('#arrivalDisplay').val(start.format('DD.MM.YYYY'));
+        $('#departureDisplay').val(end.format('DD.MM.YYYY'));
+
+        // 5) если хотите открывать календарь и по клику на выезд:
+        $('#departureDisplay').on('focus click', function () {
+            $('#arrivalDisplay').trigger('click');
         });
     });
 </script>

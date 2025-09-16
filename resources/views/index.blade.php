@@ -1,6 +1,6 @@
 @extends('layouts.master')
 
-@section('title', 'Главная страница')
+@section('title', 'StayBook – часть Silk Way Group')
 
 @section('content')
     @auth
@@ -10,9 +10,14 @@
                 height: 50px;
                 line-height: 50px;
                 display: block;
+                border: none;
+                border-radius: 8px;
             }
             .select2-container--default .select2-selection--single .select2-selection__rendered {
                 line-height: 50px;
+            }
+            body input, body textarea{
+                border: none;
             }
         </style>
 
@@ -37,27 +42,173 @@
                             <div class="row">
                                 <div class="col-lg-3 col-md-12">
                                     <div class="form-group">
-                                        <div class="label stay"><img src="{{route('index')}}/img/marker_out.svg" alt="">
-                                        </div>
-                                        <select name="city" id="city">
-{{--                                            <option value="Самарканд">Самарканд</option>--}}
-                                            <option value="Бишкек">Бишкек</option>
-                                            @foreach($cities as $city)
-                                                <option value="{{ $city->title }}">{{ $city->title }}</option>
-                                            @endforeach
-                                        </select>
+                                        <div class="label stay"><img src="{{ route('index') }}/img/marker_out.svg" alt=""></div>
+                                        <input type="text" id="searchbox" name="city" placeholder="Город или отель" autocomplete="off" value="{{ request('q') }}">
+                                        <div id="suggest" class="suggest hidden"></div>
+                                        <input type="hidden" name="city_id" id="city_id">
                                     </div>
+
+                                    <style>
+                                        .suggest{position:absolute; z-index:9999; background:#fff; border:1px solid #e5e7eb; width:100%; max-height:280px; overflow:auto; border-radius:8px; box-shadow:0 10px 20px rgba(0,0,0,.08)}
+                                        .suggest.hidden{display:none}
+                                        .suggest-item{padding:10px 12px; cursor:pointer; display:flex; gap:8px; align-items:center}
+                                        .suggest-item:hover, .suggest-item.active{background:#f3f4f6}
+                                        .s-title{font-weight:600; font-size:14px}
+                                        .s-sub{font-size:12px; color:#6b7280}
+                                        .s-badge{font-size:11px; color:#111827; background:#fef3c7; border:1px solid #fcd34d; border-radius:6px; padding:2px 6px}
+                                    </style>
+
+                                    <script>
+                                        document.addEventListener('DOMContentLoaded', () => {
+                                            const input   = document.getElementById('searchbox');
+                                            const box     = document.getElementById('suggest');
+                                            const url     = @json(route('suggest'));
+                                            let items     = [];
+                                            let activeIdx = -1;
+                                            let lastQuery = '';
+                                            let t = null;
+
+                                            function debounce(fn, ms) {
+                                                return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+                                            }
+
+                                            function hide() { box.classList.add('hidden'); activeIdx = -1; }
+                                            function show() { box.classList.remove('hidden'); }
+
+                                            function render(list) {
+                                                if (!list.length) { hide(); return; }
+                                                box.innerHTML = list.map((it, i) => {
+                                                    const rating = it.rating ? `<span class="s-badge">★ ${it.rating}</span>` : '';
+                                                    const type   = it.type === 'hotel'
+                                                        ? '<span class="s-badge">Отель</span>'
+                                                        : '<span class="s-badge">Город</span>';
+                                                    const alt  = it.alt && it.alt !== it.label
+                                                        ? ` · <span class="s-sub">${it.alt}</span>` : '';
+                                                    const city = it.city ? `<div class="s-sub">${it.city}</div>` : '';
+                                                    return `
+<div class="suggest-item" data-idx="${i}">
+  <div>
+    <div class="s-title">${it.label} ${rating}${alt} ${type}</div>
+    ${city}
+  </div>
+</div>`;
+                                                }).join('');
+                                                show();
+                                            }
+
+                                            async function fetchSuggest(q) {
+                                                try {
+                                                    const resp = await fetch(url + '?q=' + encodeURIComponent(q), {
+                                                        headers: { 'Accept': 'application/json' },
+                                                        cache: 'no-store',
+                                                    });
+                                                    const ct = resp.headers.get('content-type') || '';
+                                                    if (!resp.ok) {
+                                                        console.error('[suggest] HTTP', resp.status, await resp.text());
+                                                        return hide();
+                                                    }
+                                                    if (!ct.includes('application/json')) {
+                                                        console.error('[suggest] Not JSON, got:', ct, await resp.text());
+                                                        return hide();
+                                                    }
+                                                    const data = await resp.json();
+                                                    items = Array.isArray(data.items) ? data.items : [];
+                                                    render(items);
+                                                } catch (e) {
+                                                    console.error('[suggest] fetch error', e);
+                                                    hide();
+                                                }
+                                            }
+
+                                            const onType = debounce((e) => {
+                                                const q = (e.target.value || '').trim();
+                                                if (q.length < 2) { hide(); lastQuery = ''; return; }
+                                                if (q === lastQuery) return;
+                                                lastQuery = q;
+                                                fetchSuggest(q);
+                                            }, 250);
+
+                                            input.addEventListener('input', onType);
+                                            input.addEventListener('focus', () => {
+                                                if ((input.value || '').trim().length >= 2 && items.length) show();
+                                            });
+                                            input.addEventListener('blur', () => setTimeout(hide, 150));
+
+                                            // Клик по подсказке
+                                            box.addEventListener('click', (e) => {
+                                                const itemEl = e.target.closest('.suggest-item');
+                                                if (!itemEl) return;
+                                                const idx = +itemEl.dataset.idx;
+                                                const it  = items[idx];
+                                                if (!it) return;
+
+                                                input.value = it.label;
+                                                if (it.city_id) {
+                                                    const cityIdEl = document.getElementById('city_id');
+                                                    if (cityIdEl) cityIdEl.value = it.city_id;
+                                                }
+                                                hide();
+                                                //if (it.url) window.location.href = it.url; // для отелей переход сразу
+                                            });
+
+                                            // Навигация стрелками и Enter
+                                            input.addEventListener('keydown', (e) => {
+                                                if (box.classList.contains('hidden')) return;
+                                                if (e.key === 'ArrowDown') {
+                                                    e.preventDefault();
+                                                    activeIdx = (activeIdx + 1) % items.length;
+                                                    highlight();
+                                                } else if (e.key === 'ArrowUp') {
+                                                    e.preventDefault();
+                                                    activeIdx = (activeIdx - 1 + items.length) % items.length;
+                                                    highlight();
+                                                } else if (e.key === 'Enter') {
+                                                    if (activeIdx >= 0 && items[activeIdx]) {
+                                                        e.preventDefault();
+                                                        const it = items[activeIdx];
+                                                        input.value = it.label;
+                                                        if (it.city_id) {
+                                                            const cityIdEl = document.getElementById('city_id');
+                                                            if (cityIdEl) cityIdEl.value = it.city_id;
+                                                        }
+                                                        hide();
+                                                        if (it.url) window.location.href = it.url;
+                                                    }
+                                                } else if (e.key === 'Escape') {
+                                                    hide();
+                                                }
+                                            });
+
+                                            function highlight() {
+                                                [...box.querySelectorAll('.suggest-item')].forEach((el, i) => {
+                                                    el.classList.toggle('active', i === activeIdx);
+                                                    if (i === activeIdx) {
+                                                        el.scrollIntoView({ block: 'nearest' });
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    </script>
                                 </div>
                                 <div class="col-lg col-6">
                                     <div class="form-group">
                                         <div class="label in"><img src="{{route('index')}}/img/marker_in.svg" alt="">
                                             @lang('main.checkin')
                                         </div>
-                                        <input type="text" id="date" class="date">
-                                        <input type="hidden" id="arrivalDate" name="arrivalDate"
-                                               value="{{ now()->format('Y-m-d') }}">
-                                        <input type="hidden" id="departureDate" name="departureDate"
-                                               value="{{ $tomorrow }}">
+                                        <!-- Заезд -->
+                                        <input type="text" id="arrivalDisplay" class="date" autocomplete="off">
+                                        <input type="hidden" id="arrivalDate" name="arrivalDate" value="{{ now()->format('Y-m-d') }}">
+                                    </div>
+                                </div>
+
+                                <div class="col-lg col-6">
+                                    <div class="form-group">
+                                        <div class="label in"><img src="{{route('index')}}/img/marker_out.svg" alt="">
+                                            @lang('main.checkout')
+                                        </div>
+                                        <!-- Выезд -->
+                                        <input type="text" id="departureDisplay" class="date" autocomplete="off">
+                                        <input type="hidden" id="departureDate" name="departureDate" value="{{ $tomorrow }}">
                                     </div>
                                 </div>
                                 <div class="col-lg col-6">

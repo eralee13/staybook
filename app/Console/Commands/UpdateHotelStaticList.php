@@ -2,9 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Services\Tourmind\HotelStaticList;
 use Illuminate\Console\Command;
-use Illuminate\Http\Request;
-use App\Http\Controllers\API\V1\Tourmind\HotelStaticListController;
 
 class UpdateHotelStaticList extends Command
 {
@@ -25,12 +24,10 @@ class UpdateHotelStaticList extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(HotelStaticList $service)
     {
-        $controller = app(HotelStaticListController::class);
-
-        $request = new Request(); // Создаём пустой запрос
-        $controller->fetchHotels($request); // Передаём в метод
-        // $this->info('Список отелей обновлён.');
+        $country = 'UA'; // или возьмите из опций команды
+        $service->getHotelList($country);
+        $this->info('Импорт завершен');
     }
 }

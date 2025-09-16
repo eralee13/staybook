@@ -1,6 +1,6 @@
 @extends('layouts.filter_mini')
 
-@section('title', 'Об отеле')
+@section('title', 'О сервисе')
 
 @section('content')
 

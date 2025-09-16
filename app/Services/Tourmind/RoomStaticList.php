@@ -1,14 +1,7 @@
 <?php
-
 namespace App\Services\Tourmind;
-
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
-use App\Services\Tourmind\TmApiService;
-use App\Models\Hotel;
-use App\Models\Room;
-
-
 class RoomStaticList
 {
     protected TmApiService $tmApiService;
@@ -26,71 +19,68 @@ class RoomStaticList
         $this->tm_password = config('app.tm_password');
     }
 
-    public function getRoomList(){
+    public function fetchRoomStaticList(int $pageIndex = 1, int $pageSize = 50): array
+    {
+        $base = rtrim((string) config('services.tourmind.api_url'), '/'); // https://tmsapi.tourmind.cn/v2
+        $url  = $base.'/RoomStaticList';
 
+        // меньше records → быстрее ответ
+        $pageIndex = max(1, $pageIndex);
+        $pageSize  = min(max(1, $pageSize), 100);
+
+        $payload = [
+            'Pagination' => ['PageIndex' => $pageIndex, 'PageSize' => $pageSize],
+            'RequestHeader' => [
+                'AgentCode'   => config('services.tourmind.agent'),
+                'UserName'    => config('services.tourmind.username'),
+                'Password'    => config('services.tourmind.password'),
+                'RequestTime' => now()->format('Y-m-d H:i:s'),
+            ],
+        ];
         try {
+            $resp = Http::withOptions([
+                'force_ip_resolve' => 'v4',
+                'curl' => [
+                    CURLOPT_IPRESOLVE         => CURL_IPRESOLVE_V4,
+                    CURLOPT_TCP_KEEPALIVE     => 1,
+                    CURLOPT_TCP_KEEPIDLE      => 15,
+                    CURLOPT_TCP_KEEPINTVL     => 15,
+                    CURLOPT_DNS_CACHE_TIMEOUT => 300,
+                ],
+                // при наличии прокси (HK/SG) — раскомментируйте:
+                // 'proxy' => config('services.tourmind.proxy'), // например http://user:pass@host:port
+                // 'verify' => true, // НЕ выключайте в проде
+            ])
+                ->acceptJson()
+                ->asJson()
+                ->timeout(120)
+                ->connectTimeout(25)
+                ->retry(
+                    6,
+                    fn($attempt) => 1000 * $attempt,
+                    function ($e, $request) {
+                        return $e instanceof ConnectionException
+                            || optional($e->response)->serverError();
+                    },
+                    throw: false
+                )
+                ->withHeaders([
+                    'Accept-Encoding' => 'gzip, deflate',
+                    'Connection'      => 'keep-alive',
+                ])
+                ->post($url, $payload);
 
-            $hotels = Hotel::whereNotNull('tourmind_id')
-                ->where('tourmind_id', '!=', '')
-                ->get(['id', 'tourmind_id']) // Извлекаем только нужные колонки
-                ->toArray();
-
-                // dd($hotels);
-
-            foreach ($hotels as $hotel) {
-                $tourmindId = $hotel['tourmind_id'];
-                $hId = $hotel['id'];
-
-                $payload = [
-                    "HotelCode" => $tourmindId,
-                    "RequestHeader" => [
-                        "AgentCode" => $this->tm_agent_code,
-                        "Password" => $this->tm_password,
-                        "UserName" => $this->tm_user_name,
-                        "RequestTime" => now()->format('Y-m-d H:i:s')
-                    ]
-                ];
-        
-                $response = Http::withHeaders([
-                    'Content-Type' => 'application/json',
-                    'Accept' => 'application/json'
-                ])->post("{$this->baseUrl}/RoomStaticList", $payload);
-        
-                if ($response->failed()) {
-                    return ['error' => 'Ошибка при запросе к API', 'status' => $response->status()];
-                }
-
-                $data = $response->json();
-                $types = $data['RoomTypes'] ?? [];
-                
-                foreach($types as $type){
-
-                        Room::updateOrCreate(
-
-                            [
-                                'hotel_id' => (int)$hId,
-                                'tourmind_id' => (int)$type['RoomTypeCode'],
-                            ],
-                            [
-                                'title' => (string)$type['RoomTypeName'],
-                                'title_en' => (string)$type['RoomTypeName'],
-                                'description_en' => (string)$type['BedTypeDesc']
-                            ],
-                            
-                        );
-                        
-                }
-
+            if (!$resp->successful()) {
+                \Log::warning('TM RoomStaticList HTTP fail', [
+                    'status' => $resp->status(),
+                    'body'   => mb_substr($resp->body(), 0, 1000),
+                ]);
+                return ['ok' => false, 'status' => $resp->status(), 'error' => $resp->body()];
             }
-
-            echo 'Данные ' .count($types). ' Типы номеров успешно обновлены';
-            
-        } catch (Exception $e) {
-
-                // Обработка исключения
-                Log::error('Ошибка Services Room static list: ' . $e->getMessage(), ['exception' => $e]);
-                echo 'Ошибка смотри логи';
-            }
-        
+            return ['ok' => true, 'data' => $resp->json()];
+        } catch (\Throwable $e) {
+            \Log::warning('TM RoomStaticList timeout', ['msg' => $e->getMessage()]);
+            return ['ok' => false, 'status' => 0, 'error' => $e->getMessage()];
+        }
     }
 }

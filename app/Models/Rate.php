@@ -10,40 +10,15 @@ class Rate extends Model
 {
     use Translatable;
 
+    protected $guarded = [];
+
     /**
      * @var string[]
      */
-    protected $fillable = [
-        'title',
-        'title_en',
-        'hotel_id',
-        'room_id',
-        'meal_id',
-        'price',
-        'price2',
-        'price3',
-        'price4',
-        'desc_en',
-        'rate_code',
-        'currency',
-        'total_price',
-        'adult',
-        'child',
-        'bed_type',
-        'children_allowed',
-        'free_children_age',
-        'child_extra_fee',
-        'availability',
-        'open_time',
-        'close_time',
-        'exely_id'
-    ];
-
     protected $hidden = [
         'created_at',
         'updated_at'
     ];
-
 
     /**
      * @return BelongsTo
@@ -58,24 +33,16 @@ class Rate extends Model
         return $this->hasMany(Book::class, 'rate_id');
     }
 
-    /**
-     * @return BelongsTo
-     */
     public function room()
     {
         return $this->belongsTo(Room::class);
     }
-    /**
-     * @return BelongsTo
-     */
+
     public function meal()
     {
         return $this->belongsTo(Meal::class);
     }
 
-    /**
-     * @return BelongsTo
-     */
     public function cancellationRule()
     {
         return $this->belongsTo(CancellationRule::class);

@@ -3,34 +3,58 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Http\Request;
-use App\Http\Controllers\API\V1\Tourmind\RoomStaticListController;
+use App\Services\Tourmind\RoomStaticList;
 
 class UpdateRoomStaticList extends Command
 {
     /**
-     * The name and signature of the console command.
+     * Имя и сигнатура команды.
      *
-     * @var string
+     * artisan tm:room-static --page=1 --size=100
      */
-    protected $signature = 'app:tm-room-static-list';
+    protected $signature = 'tm:room-static
+                            {--page=1 : PageIndex (начиная с 1)}
+                            {--size=100 : PageSize (1..500)}';
+
 
     /**
-     * The console command description.
-     *
-     * @var string
+     * Описание команды.
      */
-    protected $description = 'get Room types';
+    protected $description = 'Импорт статического списка номеров из Tourmind API';
 
-    /**
-     * Execute the console command.
-     */
-    public function handle()
+    protected RoomStaticList $roomStaticList;
+
+    public function __construct(RoomStaticList $roomStaticList)
     {
-        $controller = app(RoomStaticListController::class);
+        parent::__construct();
+        $this->roomStaticList = $roomStaticList;
+    }
 
-        $request = new Request(); // Создаём пустой запрос
-        $controller->fetchRoomsTypes($request); // Передаём в метод
-        // $this->info('Список типов номеров обновлён.');
+    /**
+     * Выполнение команды.
+     */
+    public function handle(): int
+    {
+        $page = (int) $this->option('page');
+        $size = (int) $this->option('size');
+
+        if ($size < 1 || $size > 500) {
+            $this->error('❌ Размер страницы (--size) должен быть в диапазоне 1–500');
+            return Command::FAILURE;
+        }
+
+        $this->info("▶ Импорт статического списка номеров: page={$page}, size={$size}");
+
+        $result = $this->roomStaticList->fetchRoomStaticList($page, $size);
+
+        if (($result['ok'] ?? false) === false) {
+            $this->error("Ошибка: {$result['error']}");
+            return Command::FAILURE;
+        }
+
+        $count = count($result['data']['RoomStaticListResult']['Rooms'] ?? []);
+        $this->info("✅ Успешно импортировано номеров: {$count}");
+
+        return Command::SUCCESS;
     }
 }

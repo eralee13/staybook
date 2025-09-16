@@ -36,6 +36,13 @@ return [
         'base_url' => env('EXELY_BASE_URL'),
     ],
 
+    'tourmind' => [
+        'api_url'   => env('TOURMIND_API_URL'),
+        'agent'     => env('TM_AGENT_CODE'),
+        'username'  => env('TM_USER_NAME'),
+        'password'  => env('TM_PASSWORD'),
+    ],
+
     'main' => [
         'coef' => env('MAIN_COEF'),
     ],
@@ -49,5 +56,4 @@ return [
         'url' => env('HOTELSTAR_API_URL'),
         'token' => env('HOTELSTAR_API_TOKEN'),
     ],
-
 ];

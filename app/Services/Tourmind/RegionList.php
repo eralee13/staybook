@@ -27,59 +27,56 @@ class RegionList
 
     public function getRegionList(){
 
-        try {
-
         $countryCodes = $this->tmApiService->getCountryCodes();
 
         // foreach ($countryCodes as $countryCode) {
-            
-                $payload = [
-                    "CountryCode" => 'UA',
-                    "RequestHeader" => [
-                        "AgentCode" => $this->tm_agent_code,
-                        "Password" => $this->tm_password,
-                        "UserName" => $this->tm_user_name,
-                        "RequestTime" => now()->format('Y-m-d H:i:s')
+
+        $payload = [
+            "CountryCode" => 'UA',
+            "RequestHeader" => [
+                "AgentCode" => $this->tm_agent_code,
+                "Password" => $this->tm_password,
+                "UserName" => $this->tm_user_name,
+                "RequestTime" => now()->format('Y-m-d H:i:s')
+            ]
+        ];
+
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json'
+        ])->post("{$this->baseUrl}/RegionList", $payload);
+
+        if ($response->failed()) {
+            return ['error' => 'Services RegionList Ошибка при запросе к API', 'status' => $response->status()];
+        }
+
+        $data = $response->json();
+        $regions = $data['RegionListResult']['Regions'] ?? [];
+
+        foreach($regions as $region){
+
+            try {
+
+                DB::table('cities')->updateOrInsert(
+                    ['country_id' => $region['RegionID']], // Условие проверки
+                    [
+                        'title' => $region['Name'],
+                        'code' => Str::slug($region['Name']),
+                        'country_id' => (int)$region['RegionID'],
+                        'country_code' => (string)$region['CountryCode'],
                     ]
-                ];
-        
-                $response = Http::withHeaders([
-                    'Content-Type' => 'application/json',
-                    'Accept' => 'application/json'
-                ])->post("{$this->baseUrl}/RegionList", $payload);
-        
-                if ($response->failed()) {
-                    return ['error' => 'Services RegionList Ошибка при запросе к API', 'status' => $response->status()];
-                }
+                );
 
-                $data = $response->json();
-                $regions = $data['RegionListResult']['Regions'] ?? [];
-                
-                foreach($regions as $region){
-                        
-                        DB::table('cities')->updateOrInsert(
-                            ['country_id' => $region['RegionID']], // Условие проверки
-                            [
-                                'title' => $region['Name'],
-                                'code' => Str::slug($region['Name']),
-                                'tourmind_id' => (int)$region['RegionID'],
-                                'country_code' => (string)$region['CountryCode'],
-                            ]
-                        );
+            } catch (Exception $e) {
 
-                }
+                // Обработка исключения
+                Log::error('Ошибка Services Region List: ' . $e->getMessage(), ['exception' => $e]);
+
+            }
+        }
 
         // }
 
-           echo 'Данные ' .count($regions). ' Регионов успешно обновлены';
-
-        } catch (Exception $e) {
-
-            // Обработка исключения
-            Log::error('Ошибка Services Region List: ' . $e->getMessage(), ['exception' => $e]);
-            echo 'Ошибка смотри логи';
-        }
-        
-        
+        return ['message' => 'Данные обновлены', 'count' => count($regions)];
     }
 }

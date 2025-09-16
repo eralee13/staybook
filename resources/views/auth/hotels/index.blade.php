@@ -44,7 +44,7 @@
                             <tr>
                                 <td>{{ $hotel->id }}</td>
                                 <td>{{ $hotel->__('title') }}</td>
-                                <td>{{ $hotel->__('address') }}</td>
+                                <td>{{ $hotel->__('address') ?? $hotel->address_en }}</td>
                                 <td>
                                     @if($hotel->status === 1)
                                         <div class="alert alert-success">@lang('admin.active')</div>

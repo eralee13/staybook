@@ -14,6 +14,7 @@ use App\Http\Controllers\API\HotelStar\HotelStarController;
 use App\Http\Controllers\MainController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SearchController;
 use App\Livewire\BookingForm;
 use App\Livewire\HotelResults;
 use App\Livewire\HotelRooms;
@@ -144,8 +145,12 @@ Route::middleware('set_locale')->group(function () {
     })->name('currency.switch');
 
     //-----search
+    Route::get('/search', [SearchController::class, 'smartSearch'])->name('search');        // результаты
+    Route::get('/api/suggest', [SearchController::class, 'suggest'])->name('api.suggest'); // подсказки
+    Route::get('/suggest', [SearchController::class, 'suggest'])->name('suggest');
+
     //local
-    Route::get('/search', [\App\Http\Controllers\SearchController::class, 'search'])->name('search');
+    Route::get('/search/hotel', [\App\Http\Controllers\SearchController::class, 'search'])->name('search');
     Route::get('/search/hotel/{hotel}', [\App\Http\Controllers\SearchController::class, 'findHotel'])->name('findHotel');
 
     //exely
@@ -181,6 +186,8 @@ Route::middleware('set_locale')->group(function () {
     Route::get('/extranet', [PageController::class, 'extranet'])->name('extranet');
     Route::get('/offline', [PageController::class, 'offline_request'])->name('offline');
     Route::post('/offline_send', [PageController::class, 'offline_send'])->name('offline_send');
+    Route::get('/exely_import', [PageController::class, 'exely_import'])->name('exely_import');
+
 
     //TourMind
     Route::get('/hotel-results', HotelResults::class)->name('hotel.results');
@@ -206,16 +213,16 @@ Route::middleware('set_locale')->group(function () {
     Route::get('/book/cancel/confirm/etg', [\App\Http\Controllers\BookingEtgController::class, 'cancel_confirm_etg'])->name('cancel_confirm_etg');
 
     //HotelStar
-    Route::prefix('hotelstar')->group(function () {
-        Route::post('/search', [HotelStarController::class, 'search']);
-        Route::post('/actualize', [HotelStarController::class, 'actualize']);
-        Route::post('/book', [HotelStarController::class, 'book']);
-
-        Route::post('/cancel', [HotelStarController::class, 'cancel']);
-        Route::post('/info', [HotelStarController::class, 'info']);
-        Route::post('/message', [HotelStarController::class, 'sendMessage']);
-        Route::post('/message-list', [HotelStarController::class, 'messageList']);
-    });
+//    Route::prefix('hotelstar')->group(function () {
+//        Route::post('/search', [HotelStarController::class, 'search']);
+//        Route::post('/actualize', [HotelStarController::class, 'actualize']);
+//        Route::post('/book', [HotelStarController::class, 'book']);
+//
+//        Route::post('/cancel', [HotelStarController::class, 'cancel']);
+//        Route::post('/info', [HotelStarController::class, 'info']);
+//        Route::post('/message', [HotelStarController::class, 'sendMessage']);
+//        Route::post('/message-list', [HotelStarController::class, 'messageList']);
+//    });
 
     //email
     Route::post('contact_mail', [MainController::class, 'contact_mail'])->name('contact_mail');
@@ -232,8 +239,4 @@ Route::get('/clear-cache', function () {
     return "Cache cleared successfully";
 });
 
-Route::get('/log-test', function () {
-    Log::info('Лог работает');
-    return 'OK';
-});
 
