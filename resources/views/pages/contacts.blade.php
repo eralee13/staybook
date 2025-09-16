@@ -54,10 +54,12 @@
                                     <label for="agree">@lang('main.form_agree')</label>
                                 </div>
                                 @csrf
-                                <button class="more" id="send">@lang('main.send')</button>
+                                {!! NoCaptcha::display() !!}
+                                <button class="more" id="send" type="submit">@lang('main.send')</button>
                             </div>
                         </div>
                     </form>
+                    {!! NoCaptcha::renderJs('ru') !!}
                 </div>
             </div>
         </div>

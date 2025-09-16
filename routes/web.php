@@ -146,7 +146,7 @@ Route::middleware('set_locale')->group(function () {
 
     //-----search
     Route::get('/search', [SearchController::class, 'smartSearch'])->name('search');        // результаты
-    Route::get('/api/suggest', [SearchController::class, 'suggest'])->name('api.suggest'); // подсказки
+    //Route::get('/api/suggest', [SearchController::class, 'suggest'])->name('api.suggest'); // подсказки
     Route::get('/suggest', [SearchController::class, 'suggest'])->name('suggest');
 
     //local

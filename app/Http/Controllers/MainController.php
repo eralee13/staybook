@@ -31,7 +31,8 @@ class MainController extends Controller
 
     public function contact_mail(Request $request)
     {
-        Mail::to('info@timdjol.com')->send(new ContactMail($request));
+        $email = Contact::first()->email;
+        Mail::to($email)->send(new ContactMail($request));
         session()->flash('success', 'Заявка ' . $request->name . ' отправлена');
         return redirect()->route('contactspage');
     }

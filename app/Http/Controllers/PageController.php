@@ -24,7 +24,6 @@ class PageController extends Controller
         $hotels = Hotel::where('tourmind_id', null)->where('status', 1)->latest()->limit(9)->get();
         $cities = City::orderBy('title', 'asc')->get();
         $tomorrow = Carbon::tomorrow()->format('Y-m-d');
-
         return view('index', compact('hotels', 'cities', 'tomorrow'));
     }
 

@@ -5,49 +5,47 @@
 
 @section('content')
     @auth
-        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
 
         <style>
-            .select2-container--default .select2-selection--single {
-                height: 50px;
-                line-height: 50px;
-                display: block;
-            }
-
-            .select2-container--default .select2-selection--single .select2-selection__rendered {
-                line-height: 50px;
-            }
 
             #rooms-panel {
                 z-index: 9999;
             }
+
             .search .rating {
                 font-size: 14px;
                 margin-left: 0;
             }
+
             .search .rating img {
                 margin-right: 0;
                 position: relative;
                 top: -2px;
                 width: 15px;
             }
+
             /* Контейнер, который «липнет» при скролле */
-            .map-sticky{
+            .map-sticky {
                 position: sticky;
-                top: 80px;           /* отступ от верхнего края окна (подгони под высоту хедера) */
-                z-index: 1;          /* чтобы не перекрывать другие элементы */
+                top: 80px; /* отступ от верхнего края окна (подгони под высоту хедера) */
+                z-index: 1; /* чтобы не перекрывать другие элементы */
             }
 
             /* Делаем карту высотой почти на экран */
-            #map{
+            #map {
                 width: 100%;
                 height: calc(100vh - 120px); /* подгони «120px» при необходимости */
             }
 
             /* На мобильных отключаем липкость и уменьшаем высоту */
-            @media (max-width: 991.98px){
-                .map-sticky{ position: static; }
-                #map{ height: 400px; }
+            @media (max-width: 991.98px) {
+                .map-sticky {
+                    position: static;
+                }
+
+                #map {
+                    height: 400px;
+                }
             }
         </style>
         <div class="main-filter" style="padding-bottom: 40px">
@@ -58,47 +56,100 @@
                             <div class="row">
                                 <div class="col-lg-3 col-md-12">
                                     <div class="form-group">
-                                        <div class="label stay"><img src="{{ route('index') }}/img/marker_out.svg" alt=""></div>
-                                        <input type="text" id="searchbox" name="city" placeholder="Город или отель" autocomplete="off" value="{{ $request->city }}">
+                                        <div class="label stay"><img src="{{ route('index') }}/img/marker_out.svg"
+                                                                     alt=""></div>
+                                        <input type="text" id="searchbox" name="city" placeholder="Город или отель"
+                                               autocomplete="off" value="{{ $request->city }}">
                                         <div id="suggest" class="suggest hidden"></div>
                                         <input type="hidden" name="city_id" id="city_id">
                                     </div>
 
                                     <style>
-                                        .suggest{position:absolute; z-index:9999; background:#fff; border:1px solid #e5e7eb; width:100%; max-height:280px; overflow:auto; border-radius:8px; box-shadow:0 10px 20px rgba(0,0,0,.08)}
-                                        .suggest.hidden{display:none}
-                                        .suggest-item{padding:10px 12px; cursor:pointer; display:flex; gap:8px; align-items:center}
-                                        .suggest-item:hover, .suggest-item.active{background:#f3f4f6}
-                                        .s-title{font-weight:600; font-size:14px}
-                                        .s-sub{font-size:12px; color:#6b7280}
-                                        .s-badge{font-size:11px; color:#111827; background:#fef3c7; border:1px solid #fcd34d; border-radius:6px; padding:2px 6px}
+                                        .suggest {
+                                            position: absolute;
+                                            z-index: 9999;
+                                            background: #fff;
+                                            border: 1px solid #e5e7eb;
+                                            width: 100%;
+                                            max-height: 280px;
+                                            overflow: auto;
+                                            border-radius: 8px;
+                                            box-shadow: 0 10px 20px rgba(0, 0, 0, .08)
+                                        }
+
+                                        .suggest.hidden {
+                                            display: none
+                                        }
+
+                                        .suggest-item {
+                                            padding: 10px 12px;
+                                            cursor: pointer;
+                                            display: flex;
+                                            gap: 8px;
+                                            align-items: center
+                                        }
+
+                                        .suggest-item:hover, .suggest-item.active {
+                                            background: #f3f4f6
+                                        }
+
+                                        .s-title {
+                                            font-weight: 600;
+                                            font-size: 14px
+                                        }
+
+                                        .s-sub {
+                                            font-size: 12px;
+                                            color: #6b7280
+                                        }
+
+                                        .s-badge {
+                                            font-size: 11px;
+                                            color: #111827;
+                                            background: #fef3c7;
+                                            border: 1px solid #fcd34d;
+                                            border-radius: 6px;
+                                            padding: 2px 6px
+                                        }
                                     </style>
 
                                     <script>
                                         document.addEventListener('DOMContentLoaded', () => {
-                                            const input   = document.getElementById('searchbox');
-                                            const box     = document.getElementById('suggest');
-                                            const url     = @json(route('suggest'));
-                                            let items     = [];
+                                            const input = document.getElementById('searchbox');
+                                            const box = document.getElementById('suggest');
+                                            const url = @json(route('suggest'));
+                                            let items = [];
                                             let activeIdx = -1;
                                             let lastQuery = '';
                                             let t = null;
 
                                             function debounce(fn, ms) {
-                                                return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+                                                return (...args) => {
+                                                    clearTimeout(t);
+                                                    t = setTimeout(() => fn(...args), ms);
+                                                };
                                             }
 
-                                            function hide() { box.classList.add('hidden'); activeIdx = -1; }
-                                            function show() { box.classList.remove('hidden'); }
+                                            function hide() {
+                                                box.classList.add('hidden');
+                                                activeIdx = -1;
+                                            }
+
+                                            function show() {
+                                                box.classList.remove('hidden');
+                                            }
 
                                             function render(list) {
-                                                if (!list.length) { hide(); return; }
+                                                if (!list.length) {
+                                                    hide();
+                                                    return;
+                                                }
                                                 box.innerHTML = list.map((it, i) => {
                                                     const rating = it.rating ? `<span class="s-badge">★ ${it.rating}</span>` : '';
-                                                    const type   = it.type === 'hotel'
+                                                    const type = it.type === 'hotel'
                                                         ? '<span class="s-badge">Отель</span>'
                                                         : '<span class="s-badge">Город</span>';
-                                                    const alt  = it.alt && it.alt !== it.label
+                                                    const alt = it.alt && it.alt !== it.label
                                                         ? ` · <span class="s-sub">${it.alt}</span>` : '';
                                                     const city = it.city ? `<div class="s-sub">${it.city}</div>` : '';
                                                     return `
@@ -115,7 +166,7 @@
                                             async function fetchSuggest(q) {
                                                 try {
                                                     const resp = await fetch(url + '?q=' + encodeURIComponent(q), {
-                                                        headers: { 'Accept': 'application/json' },
+                                                        headers: {'Accept': 'application/json'},
                                                         cache: 'no-store',
                                                     });
                                                     const ct = resp.headers.get('content-type') || '';
@@ -138,7 +189,11 @@
 
                                             const onType = debounce((e) => {
                                                 const q = (e.target.value || '').trim();
-                                                if (q.length < 2) { hide(); lastQuery = ''; return; }
+                                                if (q.length < 2) {
+                                                    hide();
+                                                    lastQuery = '';
+                                                    return;
+                                                }
                                                 if (q === lastQuery) return;
                                                 lastQuery = q;
                                                 fetchSuggest(q);
@@ -155,7 +210,7 @@
                                                 const itemEl = e.target.closest('.suggest-item');
                                                 if (!itemEl) return;
                                                 const idx = +itemEl.dataset.idx;
-                                                const it  = items[idx];
+                                                const it = items[idx];
                                                 if (!it) return;
 
                                                 input.value = it.label;
@@ -199,7 +254,7 @@
                                                 [...box.querySelectorAll('.suggest-item')].forEach((el, i) => {
                                                     el.classList.toggle('active', i === activeIdx);
                                                     if (i === activeIdx) {
-                                                        el.scrollIntoView({ block: 'nearest' });
+                                                        el.scrollIntoView({block: 'nearest'});
                                                     }
                                                 });
                                             }
@@ -967,11 +1022,14 @@
                                                                     <div class="col-md-6">
                                                                         <div class="main">
                                                                             @if($hotel->image)
-                                                                                <img src="{{ Storage::url($hotel->image) }}" alt="">
+                                                                                <img src="{{ Storage::url($hotel->image) }}"
+                                                                                     alt="">
                                                                             @elseif($first_image)
-                                                                                <img src="{{ Storage::url($first_image->image) }}" alt="">
+                                                                                <img src="{{ Storage::url($first_image->image) }}"
+                                                                                     alt="">
                                                                             @else
-                                                                                <img src="{{ route('index') }}/img/noimage.png" alt="">
+                                                                                <img src="{{ route('index') }}/img/noimage.png"
+                                                                                     alt="">
                                                                             @endif
                                                                         </div>
                                                                     </div>
@@ -1052,29 +1110,27 @@
                                                         </div>
                                                         <div class="address">{{ $hotel->__('address') }}</div>
                                                         <div class="btn-wrap">
-                                                            <div class="btn-wrap">
-                                                                <form action="{{ route('findHotel', $hotel->code) }}">
-                                                                    <input type="hidden" name="arrivalDate"
-                                                                           value="{{ $request->arrivalDate }}">
-                                                                    <input type="hidden" name="departureDate"
-                                                                           value="{{ $request->departureDate }}">
-                                                                    <input type="hidden" id="city" name="city"
-                                                                           value="{{ $request->city }}">
-                                                                    <input type="hidden" name="roomCount"
-                                                                           value="{{ $roomCount }}">
-                                                                    <input type="hidden" name="adult"
-                                                                           value="{{ $totalAdults }}">
-                                                                    <input type="hidden" name="child"
-                                                                           value="{{ $totalChildren }}">
-                                                                    <input type="hidden" name="childAges[]"
-                                                                           value="{{ implode(', ', $childAges) }}">
-                                                                    @foreach((array) $request->meal as $meal)
-                                                                        <input type="hidden" name="meal[]"
-                                                                               value="{{ $meal }}">
-                                                                    @endforeach
-                                                                    <button class="more">@lang('main.show_all_rooms')</button>
-                                                                </form>
-                                                            </div>
+                                                            <form action="{{ route('findHotel', $hotel->code) }}">
+                                                                <input type="hidden" name="arrivalDate"
+                                                                       value="{{ $request->arrivalDate }}">
+                                                                <input type="hidden" name="departureDate"
+                                                                       value="{{ $request->departureDate }}">
+{{--                                                                <input type="hidden" id="city" name="city"--}}
+{{--                                                                       value="{{ $request->city }}">--}}
+                                                                <input type="hidden" name="roomCount"
+                                                                       value="{{ $roomCount }}">
+                                                                <input type="hidden" name="adult"
+                                                                       value="{{ $totalAdults }}">
+                                                                <input type="hidden" name="child"
+                                                                       value="{{ $totalChildren }}">
+                                                                <input type="hidden" name="childAges[]"
+                                                                       value="{{ implode(', ', $childAges) }}">
+                                                                @foreach((array) $request->meal as $meal)
+                                                                    <input type="hidden" name="meal[]"
+                                                                           value="{{ $meal }}">
+                                                                @endforeach
+                                                                <button class="more">@lang('main.show_all_rooms')</button>
+                                                            </form>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1287,14 +1343,16 @@
                                                             <div class="row">
                                                                 <div class="col-md-6 col-6">
                                                                     <div class="main">
-                                                                        <img src="{{ Storage::url($images[0]->image) }}" alt="">
+                                                                        <img src="{{ Storage::url($images[0]->image) }}"
+                                                                             alt="">
                                                                     </div>
                                                                 </div>
 
                                                                 <div class="col-md-6 col-6">
                                                                     @if($images->count() >= 2)
                                                                         <div class="primary">
-                                                                            <img src="{{ Storage::url($images[1]->image) }}" alt="">
+                                                                            <img src="{{ Storage::url($images[1]->image) }}"
+                                                                                 alt="">
                                                                         </div>
                                                                     @endif
                                                                 </div>
