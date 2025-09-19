@@ -29,7 +29,9 @@ class Hotel extends Model
         'status',
         'early_in',
         'late_out',
-        'count'
+        'count',
+        'metapolicy_struct',
+        'metapolicy_extra_info',
     ];
 
     protected $fillable = [
@@ -60,8 +62,15 @@ class Hotel extends Model
         'hotelstar_id',
         'timezone',
         'utc',
-        'status'
+        'status',
+        'metapolicy_struct',
+        'metapolicy_extra_info',
     ];
+
+    protected $casts = [
+        'metapolicy_struct' => 'array',
+    ];
+
 
     public function rooms()
     {

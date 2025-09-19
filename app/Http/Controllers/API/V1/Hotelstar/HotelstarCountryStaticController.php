@@ -40,6 +40,7 @@ class HotelstarCountryStaticController extends Controller
     public function extractJson()
     {
         $url = 'https://dev.hotelstar.ru/dump/raw/country.tar.gz';
+        // $url = 'https://hotelstar.ru/dump/raw/country.tar.gz';
 
         $tmpDir = storage_path('app/tmp');
         if (!is_dir($tmpDir)) {
@@ -105,13 +106,14 @@ class HotelstarCountryStaticController extends Controller
             }
             fclose($handle);
         }
-        dd($data);
+
+        // dd($data);
     
         if (json_last_error() !== JSON_ERROR_NONE) {
             return response()->json(['error' => 'Ошибка JSON: '.json_last_error_msg()], 422);
         }
 
-        return response()->json($data);
+        return $jsonFile;
     }
 
     /**

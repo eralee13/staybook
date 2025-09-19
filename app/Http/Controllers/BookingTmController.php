@@ -173,9 +173,10 @@ class BookingTmController extends Controller
         $room = Room::where('id', $book->room_id)->first();
         $rate = Rate::where('id', $book->rate_id)->first();
         $cancelRule = CancellationRule::where('id', $book->cancellation_id)->first();
+        $cancelDate = Carbon::createFromDate($cancelRule->end_date)->format('d.m.Y H:i:s');
 
         return view('pages.booking.tourmind.cancel', compact(
-            'book', 'hotel', 'arrival', 'departure', 'room', 'rate', 'request', 'cancelRule'));
+            'book', 'hotel', 'arrival', 'departure', 'room', 'rate', 'request', 'cancelRule', 'cancelDate'));
     }
 
     public function cancel_confirm_tm(Request $request, Book $book)
@@ -188,11 +189,14 @@ class BookingTmController extends Controller
         $departure = Carbon::createFromDate($book->departureDate)->format('d.m.Y');
         $room = Room::where('id', $book->room_id)->first();
         $rate = Rate::where('id', $book->rate_id)->first();
-            
+        $cancel; $cancelRule; $message; $status;
+
+        $cancelRule = CancellationRule::where('id', $book->cancellation_id)->first();
+        $book = Book::where('book_token', $request->number)->first();
+        
+        try {
             $hotelService = new \App\Services\Tourmind\HotelServices();
             $cancel = $hotelService->cancelOrder($request, $book);
-            $cancelRule = CancellationRule::where('id', $book->cancellation_id)->first();
-            $book = Book::where('book_token', $request->number)->first();
             
                 $cancelFee = 0;
                 $curr = '';
@@ -244,13 +248,19 @@ class BookingTmController extends Controller
                         Log::channel('tourmind')->info('Cancel Order User ID - ', $userInfo);
                         Log::channel('tourmind')->info('Cancel Order - ', $cancel);
 
-                $message = "Ваша бронь отменена";
+                $message = "booking_cancel_error";
 
             }else{
                 $message = $cancel['Error'];
                 Log::channel('tourmind')->info('Cancel Order User ID - ', $userInfo);
                 Log::channel('tourmind')->info('Cancel Order - ', $cancel);
             }
+
+        } catch (\Throwable $th) {
+            //throw $th;
+            $message = 'booking_cancel_error';
+            Log::channel('tourmind')->info('Cancel Order Catch - ', [$th->getMessage()]);
+        }
             
             return view('pages.booking.tourmind.confirm', compact(
                 'book', 'hotel', 'cancel', 'cancelRule', 'arrival', 'departure', 'room', 'rate', 'request', 'message', 'status'));

@@ -554,7 +554,7 @@
                                     $images = \App\Models\Image::where('hotel_id', $hotel->id)->get();
                                     $amenityObj = \App\Models\Amenity::where('hotel_id', $hotel->id)->first();
                                     $amenities = $amenityObj && $amenityObj->services ? explode(',', $amenityObj->services) : [];
-                                $items = array_slice($amenities, 0, 8);
+                                    $items = array_slice($amenities, 0, 8);
                                                     $iconMap = [
                                                         'wi-fi' => 'wifi.svg', 'интернет' => 'wifi.svg', 'Доступ в интернет' => 'wifi.svg',
                                                         'чайный набор' => 'tea.svg', 'Питание включено' => 'meal.svg', 'минеральная вода' => 'water.svg',
@@ -1063,6 +1063,37 @@
                                                             <input type="hidden" name="meal_id" value="{{       $request->meal_id }}">
                                                             <input type="hidden" name="apiHotelId"
                                                                 value="{{ $hotel->apiHotelId ?? '' }}">
+                                            
+                                                            <button class="more">Показать все номера</button>
+                                                        </form>
+                                                    </div>
+                                                @elseif( $hotel->apiName == 'HS' ) 
+                                                    {{-- hotelstar --}}
+                                                    <div class="btn-wrap">
+                                                        <form action="{{ route('hotel_hs', ["hid" => $hotel->hid]) }}">
+                                                            <input type="hidden" name="arrivalDate"
+                                                                value="{{ $request->arrivalDate }}">
+                                                            <input type="hidden" name="departureDate"
+                                                                value="{{ $request->departureDate }}">
+
+                                                            @foreach ($rooms as $i => $room)
+                                                                <input type="hidden" name="rooms[{{ $i }}][adults]" value="{{ $room['adults'] }}">
+                                                                
+                                                                @if (isset($room['childAges']))
+                                                                    @foreach ($room['childAges'] as $a => $age)
+                                                                        <input type="hidden" name="rooms[{{ $i }}][childAges][]" value="{{ $age }}">
+                                                                    @endforeach
+                                                                @endif
+                                                            @endforeach
+                                                            
+                                                            <input type="hidden" name="city" value="{{ $request->city }}">
+                                                            <input type="hidden" name="meal_id" value="{{       $request->meal_id }}">
+                                                            <input type="hidden" name="apiHotelId" 
+                                                                value="{{ $hotel->apiHotelId ?? '' }}">
+                                                            <input type="hidden" name="hash" 
+                                                                value="{{ $hotel->hash ?? '' }}">
+                                                            <input type="hidden" name="provider_id" 
+                                                                value="{{ $hotel->provider_id ?? '' }}">
                                             
                                                             <button class="more">Показать все номера</button>
                                                         </form>

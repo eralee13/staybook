@@ -105,7 +105,7 @@ class SearchController extends Controller
 
 
         $results = new \stdClass();
-        $results1 = null; $results2 = null;
+        $results1 = null; $results2 = null; $results3 = null;
 
         // ######## Emerging API ########
         try {
@@ -200,76 +200,175 @@ class SearchController extends Controller
                     'message' => $th->getMessage(),
                     'trace'   => $th->getTraceAsString(),
                 ]);
-            // $results = [];
         }
            
         // ######## End Emerging API ########
 
 
         // ######## Start Tourmind API ########
-        try {
-            $hotelService = new \App\Services\Tourmind\HotelServices();
-            $tmhotels = $hotelService->tmGetHotels($request);
-            // dd($tmhotels);
+        // try {
+        //     $hotelService = new \App\Services\Tourmind\HotelServices();
+        //     $tmhotels = $hotelService->tmGetHotels($request);
+        //     // dd($tmhotels);
 
-            if ( isset($tmhotels['Hotels']) ){
+        //     if ( isset($tmhotels['Hotels']) ){
 
-                $filteredHotels = array_filter($tmhotels['Hotels'], function ($hotel) {
-                    return isset($hotel['localData']['id']);
-                });
-                $hotels['hotels'] = array_map(function ($hotel) use ($fxBase, $fxRates, $symbols) {
-                    $rate = $hotel['RoomTypes'][0]['RateInfos'][0];
-                    $price = $rate['TotalPrice'] ?? 0;
-                    $totalPrice = number_format( ($price / $this->coef) , 2, '.', '');
+        //         $filteredHotels = array_filter($tmhotels['Hotels'], function ($hotel) {
+        //             return isset($hotel['localData']['id']);
+        //         });
+        //         $hotels['hotels'] = array_map(function ($hotel) use ($fxBase, $fxRates, $symbols) {
+        //             $rate = $hotel['RoomTypes'][0]['RateInfos'][0];
+        //             $price = $rate['TotalPrice'] ?? 0;
+        //             $totalPrice = number_format( ($price / $this->coef) , 2, '.', '');
 
-                    $toCurrency = strtoupper($fxBase ?? 'USD');
+        //             $toCurrency = strtoupper($fxBase ?? 'USD');
 
-                        $rateTo = $fxRates[$toCurrency] ?? 1;
-                        $converted = app(\App\Services\FXService::class)->convert($totalPrice, $rate['CurrencyCode'], $fxBase);
-                        $symbol = $symbols[$toCurrency] ?? $toCurrency;
+        //                 $rateTo = $fxRates[$toCurrency] ?? 1;
+        //                 $converted = app(\App\Services\FXService::class)->convert($totalPrice, $rate['CurrencyCode'], $fxBase);
+        //                 $symbol = $symbols[$toCurrency] ?? $toCurrency;
 
-                    return [
-                        'apiName' => 'TM',
-                        'apiHotelId' => $hotel['HotelCode'],
-                        'hid' => $hotel['localData']['id'] ?? '',
-                        'code' => $hotel['localData']['code'] ?? '',
-                        'title' => $hotel['localData']['title'] ?? '',
-                        'title_en' => $hotel['localData']['title_en'] ?? '',
-                        'rating' => $hotel['localData']['rating'] ?? '',
-                        'city' => $hotel['localData']['city'] ?? '',
-                        'amenities' => $hotel['localData']['amenity']['services'] ?? '',
-                        'images' => $hotel['localData']['images'] ?? [],
-                        'lat' => $hotel['localData']['lat'] ?? '',
-                        'lng' => $hotel['localData']['lng'] ?? '',
-                        'price' => $rate['TotalPrice'] ?? 0,
-                        'totalPrice' => $totalPrice ?? 0,
-                        'currency' => $rate['CurrencyCode'] ?? 0,
-                        'conv_total' => round($converted) ?? 0,
-                        'conv_symbol' => $symbol,
-                    ];
-                }, $filteredHotels);
+        //             return [
+        //                 'apiName' => 'TM',
+        //                 'apiHotelId' => $hotel['HotelCode'],
+        //                 'hid' => $hotel['localData']['id'] ?? '',
+        //                 'code' => $hotel['localData']['code'] ?? '',
+        //                 'title' => $hotel['localData']['title'] ?? '',
+        //                 'title_en' => $hotel['localData']['title_en'] ?? '',
+        //                 'rating' => $hotel['localData']['rating'] ?? '',
+        //                 'city' => $hotel['localData']['city'] ?? '',
+        //                 'amenities' => $hotel['localData']['amenity']['services'] ?? '',
+        //                 'images' => $hotel['localData']['images'] ?? [],
+        //                 'lat' => $hotel['localData']['lat'] ?? '',
+        //                 'lng' => $hotel['localData']['lng'] ?? '',
+        //                 'price' => $rate['TotalPrice'] ?? 0,
+        //                 'totalPrice' => $totalPrice ?? 0,
+        //                 'currency' => $rate['CurrencyCode'] ?? 0,
+        //                 'conv_total' => round($converted) ?? 0,
+        //                 'conv_symbol' => $symbol,
+        //             ];
+        //         }, $filteredHotels);
 
-                if (isset($hotels)) 
-                    $results2 = json_decode(json_encode($hotels['hotels']));
-                // dd($results2->hotels);
+        //         if (isset($hotels)) 
+        //             $results2 = json_decode(json_encode($hotels['hotels']));
+        //         // dd($results2->hotels);
 
-            }
+        //     }
 
-        } catch (\Throwable $th) {
-            Log::channel('Tourmind')->error('API error on MAIN Search ', [
-                    'message' => $th->getMessage(),
-                    'trace'   => $th->getTraceAsString(),
-                ]);
+        // } catch (\Throwable $th) {
+        //     Log::channel('Tourmind')->error('API error on MAIN Search ', [
+        //             'message' => $th->getMessage(),
+        //             'trace'   => $th->getTraceAsString(),
+        //         ]);
             
-        }
+        // }
         // ######## End Tourmind API ########
+
+
+        // ######## End Hotelstar API ########
+        // try {
+
+            // $HSSearch = new \App\Http\Controllers\API\V1\Hotelstar\HotelstarFormController();
+            // $HSHotels = $HSSearch->HSGetHotels($request);
+            // // $mappingMeals = $HSSearch->mappingMealsGrouped();
+            // // dd($HSHotels);
+            
+            
+            // if ( !empty($HSHotels) ) {
+
+            //     // // выбранные типы питания (из запроса)
+            //     // $selectedMealIds = request()->input('meal', []); // [1,2]
+
+            //     // // получаем список допустимых ключей по выбранным ID
+            //     // $allowedMeals = collect($selectedMealIds)
+            //     //     ->map(fn($id) => $mappingMeals[$id] ?? [])
+            //     //     ->flatten()
+            //     //     ->toArray();
+                
+            //     // // фильтруем тарифы по meal
+            //     // $filteredMealsHotels = array_map(function ($hoteli) use ($allowedMeals) {
+
+            //     //     $hoteli['rates'] = array_filter($hoteli['rates'], function ($rate) use ($allowedMeals) {
+                        
+            //     //         return in_array($rate['meal'], $allowedMeals);
+            //     //     });
+            //     //     return $hoteli;
+            //     // },  $emerHotels);
+                
+            //     // // убираем отели без тарифов
+            //     // $filteredMealsHotels = array_filter($filteredMealsHotels, fn($hotel) => !empty($hotel['rates']));
+
+            //     // if( empty($filteredMealsHotels) ){
+            //     //     $filteredMealsHotels = $emerHotels;
+            //     // }
+
+
+            //     // // Вывоводим отели
+            //     // $filteredHotels = array_filter($filteredMealsHotels, function ($hotel) {
+            //     //     return isset($hotel['localData']['id']);
+            //     // });
+
+            //     // 
+            //     $hotels['hotels'] = array_map(function ($hotel) use ($fxBase, $fxRates, $symbols) {
+            //         $rate = $hotel['rates'] ?? null;
+
+            //         $price = isset($rate['price']) ? (float)$rate['price'] : 0;
+            //         $currency = $rate['currency'] ?? 'USD';
+
+            //         $totalPrice = $price > 0 ? number_format(($price / ($this->coef ?? 1)), 2, '.', '') : 0;
+
+            //         $toCurrency = strtoupper($fxBase ?? 'USD');
+            //         $converted = $price > 0 
+            //             ? app(\App\Services\FXService::class)->convert($totalPrice, $currency, $fxBase) 
+            //             : 0;
+
+            //         $symbol = $symbols[$toCurrency] ?? $toCurrency;
+
+            //         return [
+            //             'apiName'      => 'HS',
+            //             'apiHotelId'   => $rate['hotel_id'] ?? '',
+            //             'hid'          => $hotel['localData']['id'] ?? '',
+            //             'code'         => $hotel['localData']['code'] ?? '',
+            //             'title'        => $hotel['localData']['title'] ?? '',
+            //             'title_en'     => $hotel['localData']['title_en'] ?? '',
+            //             'rating'       => $hotel['localData']['rating'] ?? '',
+            //             'city'         => $hotel['localData']['city'] ?? '',
+            //             'amenities'    => $hotel['localData']['amenity']['services'] ?? '',
+            //             'images'       => $hotel['localData']['images'] ?? [],
+            //             'lat'          => $hotel['localData']['lat'] ?? '',
+            //             'lng'          => $hotel['localData']['lng'] ?? '',
+            //             'price'        => $price,
+            //             'totalPrice'   => $totalPrice,
+            //             'currency'     => $currency,
+            //             'hash'   => $rate['hash'] ?? '',
+            //             'provider_id'   => $rate['provider_id'] ?? '',
+            //             'conv_total'   => round($converted),
+            //             'conv_symbol'  => $symbol,
+            //         ];
+                    
+            //     }, $HSHotels);
+                
+
+            //     $results3 = json_decode(json_encode($hotels['hotels']));
+                
+            // }
+            // dd($results3);
+
+        // } catch (\Throwable $th) {
+        //     Log::channel('hotelstar')->error('API error on MAIN Search ', [
+        //             'message' => $th->getMessage(),
+        //             'trace'   => $th->getTraceAsString(),
+        //         ]);
+        // }
+        // ######## End Hotelstar API ########
+
 
         // Приводим к массивам, даже если это stdClass
         $hotels1 = is_array($results1) ? $results1 : (array) ($results1 ?? []);
         $hotels2 = is_array($results2) ? $results2 : (array) ($results2 ?? []);
+        $hotels3 = is_array($results3) ? $results3 : (array) ($results3 ?? []);
         
         // Объединяем
-        $mergedHotels = array_merge($hotels1, $hotels2);
+        $mergedHotels = array_merge($hotels1, $hotels2, $hotels3);
         
         // Гарантируем объект с массивом hotels
         $results = new \stdClass();
@@ -512,6 +611,33 @@ class SearchController extends Controller
 
         $emergingSearch = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
         $etgroom = $emergingSearch->searchRates($request, $hotel->id);
+        // dd($etgroom);
+        $tmimages = Image::where('hotel_id', $hotel->id)->where('caption', 'guest_rooms')->get('image');
+
+        $city = City::where('title', $hotel->city)->first(['country_code']);
+
+        if (!$hotel->utc && $city && ($utc = $hotelService->getUtcOffsetByCountryCode($city->country_code))) {
+            $hotel->utc = $utc;
+            $hotel->save();
+        }
+
+
+        return view('pages.search.emerging.hotel', compact('hotel', 'arrival', 'departure', 'request', 'roomAmenity', 'etgroom', 'tmimages', 'meals'));
+    }
+
+    // Hotelstar
+    public function hotel_hs($hid, Request $request)
+    {
+        $hotel = Hotel::where('id', $hid)->with(['amenity'])->first();
+        $room = Room::where('hotel_id', $hid)->get(['amenities'])->first();
+        $amenities = explode(',', $room->amenities ?? '');
+        $roomAmenity = array_slice($amenities, 0, 8);
+        $meals = Meal::pluck('title', 'id');
+        $arrival = Carbon::createFromDate($request->arrivalDate);
+        $departure = Carbon::createFromDate($request->departureDate);
+
+        $hotelstar = new \App\Http\Controllers\API\V1\Hotelstar\HotelstarFormController();
+        $etgroom = $hotelstar->searchRates($request, $hotel->id);
         // dd($etgroom);
         $tmimages = Image::where('hotel_id', $hotel->id)->where('caption', 'guest_rooms')->get('image');
 

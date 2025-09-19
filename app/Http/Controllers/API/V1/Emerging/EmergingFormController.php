@@ -110,7 +110,7 @@ class EmergingFormController extends Controller
 
         $city = explode('-', $request->city);
 
-            $response = Http::withBasicAuth($this->keyId, $this->apiKey)
+            $response = Http::timeout(31)->withBasicAuth($this->keyId, $this->apiKey)
                 ->withHeaders([
                     'Content-Type' => 'application/json',
                 ])
@@ -157,14 +157,14 @@ class EmergingFormController extends Controller
                     // "residency" => "gb",
                     // "language" => "en",
                     "guests" => $guests,
-                    // "timeout" => 30,
+                    "timeout" => 30,
                     "hid" => (int)$request->apiHotelId,
                     "currency" => "USD"
         ];
 
         Log::channel('emerging')->info('Booking /search/hp/ - Payload ', $payload);
 
-            $response = Http::timeout(30)->withBasicAuth($this->keyId, $this->apiKey)
+            $response = Http::timeout(31)->withBasicAuth($this->keyId, $this->apiKey)
                 ->withHeaders([
                     'Content-Type' => 'application/json',
                 ])
@@ -176,12 +176,13 @@ class EmergingFormController extends Controller
 
     public function preBook(Request $request){
 
-        $response = Http::timeout(30)->withBasicAuth($this->keyId, $this->apiKey)
+        $response = Http::timeout(21)->withBasicAuth($this->keyId, $this->apiKey)
             ->withHeaders([
                 'Content-Type' => 'application/json',
             ])
             ->post($this->url . '/hotel/prebook/', [
 
+                "timeout" => 20,
                 "hash" => $request->book_hash,
                 "price_increase_percent" => (int) $request->increase_percent ?? 0,
 
@@ -226,7 +227,7 @@ class EmergingFormController extends Controller
             
         $mappingMeals = $this->mappingMeals();
 
-        $response = Http::timeout(30)->withBasicAuth($this->keyId, $this->apiKey)
+        $response = Http::timeout(31)->withBasicAuth($this->keyId, $this->apiKey)
             ->withHeaders([
                 'Content-Type' => 'application/json',
             ])
@@ -235,6 +236,7 @@ class EmergingFormController extends Controller
                 "book_hash" => $request->book_hash,
                 "language" => $language,
                 "user_ip" => $request->ip(),
+                "timeout" => 30,
             ]);
 
         $res = json_decode( $response->body() );
@@ -386,7 +388,7 @@ class EmergingFormController extends Controller
                             'price2' => null,
                             'child_extra_fee' => 0,
                             'availability' => 0,
-                            'total_price' => $totalPrice,
+                            'total_price' => round($totalPrice),
                             'cancellation_rule_id' => $ruleid ?? null,
                             
                         ]
@@ -491,11 +493,11 @@ class EmergingFormController extends Controller
             ];
         }
 
-
         $totalPrice = number_format(($request->price / $this->coef), 2, '.', '');
         // $partnerComment = Auth::user()->partner_comment;
 
         $payload = [
+                // "timeout" => 30,
                 "user" => [
                         "email" => $request->email, 
                         "comment" => $request->comment, 
@@ -522,28 +524,31 @@ class EmergingFormController extends Controller
                             ];
                             
                 // dd(json_encode($payload));
-                Log::channel('emerging')->info('Booking order/booking/finish/ - Payload ', $payload);
+        Log::channel('emerging')->info('Order Finish - Payload ', $payload);
 
-
-        $response = Http::timeout(30)->withBasicAuth($this->keyId, $this->apiKey)
+        $response = Http::timeout(61)->withBasicAuth($this->keyId, $this->apiKey)
             ->withHeaders([
                 'Content-Type' => 'application/json',
             ])
             ->post($this->url . '/hotel/order/booking/finish/', $payload);
-                
+            // ->throw(); // <-- это кидает исключение при 4xx/5xx
+                // return Http::get('https://httpstat.us/500');   // для 5xx
+                // return Http::timeout(1)->get('https://httpstat.us/200?sleep=5000'); // для timeout
+                // return Http::get('https://not-existing-12345-domain.com/test'); // для unknown
         return $response->json();
 
     }
 
     public function finishStatus(Request $request){
 
-        $response = Http::timeout(30)->withBasicAuth($this->keyId, $this->apiKey)
+        $response = Http::timeout(61)->withBasicAuth($this->keyId, $this->apiKey)
             ->withHeaders([
                 'Content-Type' => 'application/json',
             ])
             ->post($this->url . '/hotel/order/booking/finish/status/', [
 
-                "partner_order_id" => $request->token 
+                "partner_order_id" => $request->token,
+                "timeout" => 60, 
                 
             ]);
 
@@ -554,14 +559,14 @@ class EmergingFormController extends Controller
 
     public function etg_cancel(Request $request){
 
-        $response = Http::timeout(30)->withBasicAuth($this->keyId, $this->apiKey)
+        $response = Http::timeout(31)->withBasicAuth($this->keyId, $this->apiKey)
             ->withHeaders([
                 'Content-Type' => 'application/json',
             ])
             ->post($this->url . '/hotel/order/cancel/', [
 
-                "partner_order_id" => $request->number 
-                
+                "partner_order_id" => $request->number, 
+                "timeout" => 30,
             ]);
 
         return json_decode( $response->body() );

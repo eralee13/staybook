@@ -43,6 +43,8 @@
                                         </div>
                                         <select name="city" id="city">
                                             <option value="3421-Tegucigalpa">Tegucigalpa</option>
+                                            <option value="1259">Moscow</option>
+                                            <option value="67005-Moscow">Moscow</option>
                                             <option value="822-China">china</option>
                                             <option value="2395-Moscow">Moscow</option>
                                             <option value="378-Amsterdam">Amsterdam</option>

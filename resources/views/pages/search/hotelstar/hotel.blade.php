@@ -79,55 +79,6 @@
                                 @endif
 
                             </div>
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <h4>@lang('main.metapolicy_extra_info')</h4>
-                                    <p>
-                                        {!! nl2br(e($hotel->metapolicy_extra_info)) !!}
-                                    </p>
-                                    <h4>@lang('main.metapolicy_struct')</h4>
-                                    <p>
-                                        
-                                        @foreach($hotel->metapolicy_struct as $k => $policy)
-
-                                            @continue(!$policy)
-                                            @continue($k == 'meal')
-                                            <div class="row mb-3">
-                                                
-                                                    <strong>@lang('main.'.$k)</strong>
-
-                                                    @if(is_array($policy))
-                                                        {{-- Если это список (массив с числовыми ключами) --}}
-                                                        @if(array_is_list($policy))
-                                                            @foreach($policy as $i => $item)
-                                                                <div class="col-md-3">
-                                                                    @foreach($item as $field => $value)
-                                                                        - @lang('main.'.$field): 
-                                                                        {{ (is_numeric($value) || !\Illuminate\Support\Facades\Lang::has('main.' . $value))
-                                                                        ? $value
-                                                                        : __('main.' . $value) }} <br>
-                                                                    @endforeach
-                                                                </div>
-                                                            @endforeach
-                                                        @else
-                                                            {{-- Ассоциативный массив --}}
-                                                            @foreach($policy as $subKey => $subValue)
-                                                                - @lang('main.'.$subKey):
-                                                                {{ (is_numeric($subValue) || !\Illuminate\Support\Facades\Lang::has('main.' . $subValue))
-                                                                    ? $subValue
-                                                                    : __('main.' . $subValue) }} <br>
-                                                            @endforeach
-                                                        @endif
-                                                    @else
-                                                        @lang('main.'.$policy)<br>
-                                                    @endif
-                                            </div>
-                                        @endforeach
-
-                                        {{-- @dump($hotel->metapolicy_struct) --}}
-                                    </p>
-                                </div>
-                            </div>
                             <div class="maps">
                                 <h4>Расположение</h4>
                                 <!-- Подключаем Leaflet -->
@@ -197,7 +148,6 @@
                                 
                             </div>
                         </div>
-                        
                     </div>
                 </div>
             </div>

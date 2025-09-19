@@ -23,12 +23,6 @@
                             <div class="alert alert-primary" role="alert">
                                 <strong>@lang('main.'.$message)</strong>
                             </div>
-                    @elseif($message == 'Timeout waiting for valid response')
-                        <h1>@lang('main.timeout')</h1>
-
-                            <div class="alert alert-info" role="alert">
-                                <strong>@lang('main.'.$message)</strong>
-                            </div>
                     @else
                         <h1>@lang('main.Booking error')</h1>
 

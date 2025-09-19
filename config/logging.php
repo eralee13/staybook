@@ -136,6 +136,13 @@ return [
             'level' => 'debug',
             // 'days' => 30, // Хранить логи n дней
         ],
+        
+        'hotelstar' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/Hotelstar.log'),
+            'level' => 'debug',
+            // 'days' => 30, // Хранить логи n дней
+        ],
     ],
 
 ];

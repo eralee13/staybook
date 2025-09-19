@@ -40,6 +40,7 @@ class HotelstarCityStaticController extends Controller
    public function extractJson()
     {
         $url = 'https://dev.hotelstar.ru/dump/raw/city.tar.gz';
+        // $url = 'https://hotelstar.ru/dump/raw/city.tar.gz';
 
         $tmpDir = storage_path('app/tmp');
         if (!is_dir($tmpDir)) {
@@ -76,43 +77,44 @@ class HotelstarCityStaticController extends Controller
 
         $count = 0;
         $data = [];
-        $handle = fopen($jsonFile, 'r');
-        if ($handle) {
-            while (($line = fgets($handle)) !== false && $count < 10 ){
-                $line = trim($line);
-                if ($line === '') continue;
+        // $handle = fopen($jsonFile, 'r');
+        // if ($handle) {
+        //     while (($line = fgets($handle)) !== false && $count < 10 ){
+        //         $line = trim($line);
+        //         if ($line === '') continue;
 
-                $item = json_decode($line, true);
-                if ($item !== null) {
-                    $data[] = $item;
+        //         $item = json_decode($line, true);
+        //         if ($item !== null) {
+        //             $data[] = $item;
 
-                    if ( isset($item['countryId']) ) {
+        //             // if ( isset($item['countryId']) ) {
 
-                        DB::table('cities')->update(
-                        // City::firstOrCreate(
-                                [
-                                    // 'title' => $item['country_name']['en'] ?? '',
-                                    // 'code' => strtolower($item['country_name']['en']),
-                                    'hotelstar_id' => (int)$item['countryId'],
-                                    'name' => (string)$item['nameEn'],
-                                    // 'country_code' => (string)$item['country_code'],
-                                ]
-                        );
-                    }
+        //             //     DB::table('cities')->update(
+        //             //     // City::firstOrCreate(
+        //             //             [
+        //             //                 // 'title' => $item['country_name']['en'] ?? '',
+        //             //                 // 'code' => strtolower($item['country_name']['en']),
+        //             //                 'hotelstar_id' => (int)$item['countryId'],
+        //             //                 'name' => (string)$item['nameEn'],
+        //             //                 // 'country_code' => (string)$item['country_code'],
+        //             //             ]
+        //             //     );
+        //             // }
 
-                    $count++;
-                }
-            }
-            fclose($handle);
-        }
-        dd($data);
-        $data = json_decode($content, true);
+        //             $count++;
+        //         }
+        //     }
+        //     fclose($handle);
+        // }
+
+        // dd($data);
+        // $data = json_decode($data, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             return response()->json(['error' => 'Ошибка JSON: '.json_last_error_msg()], 422);
         }
 
-        return response()->json($data);
+        return $jsonFile;
     }
 
     /**

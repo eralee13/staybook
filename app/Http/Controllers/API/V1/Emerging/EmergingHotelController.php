@@ -92,7 +92,7 @@ class EmergingHotelController extends Controller
             
             $data = json_decode($line, true);
             
-            if ( $data['hid'] == 7615581 || $data['hid'] == 6574079 || $data['hid'] == 7785166 || $data['hid'] == 7691218) {
+            if ( $data['hid'] == 7615581 || $data['hid'] == 6574079 || $data['hid'] == 7785166 || $data['hid'] == 7691218 || $data['hid'] == 8473727) {
                 // $data['region']['name'] == 'Moscow'
                 //if ( $data['hid'] == 8473727) {
                 // && $data['kind'] == 'hotel'
@@ -148,6 +148,8 @@ class EmergingHotelController extends Controller
                             'emerging_id' => $data['hid'],
                             'status' => 1,
                             'user_id' => 1,
+                            'metapolicy_extra_info' => $data['metapolicy_extra_info'] ?? '',
+                            'metapolicy_struct' => $data['metapolicy_struct'] ?? [],
                         ]
                     );
                     
@@ -174,8 +176,8 @@ class EmergingHotelController extends Controller
 
                     $this->saveImagesLink($hotel->id, $images, 20, $size);
 
-                    echo "Сохранено: {$hotel->id} - {$hotel->title}\n";
-                    // dd($data);
+                    echo "Сохранен или обновлен: {$hotel->id} - {$hotel->title}\n";
+                    dd($data);
             }
             $i++;
         }
