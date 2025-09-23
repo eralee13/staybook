@@ -54,7 +54,8 @@ class Book extends Model
         'api_type',
         'agent_ref',
         'allotment',
-        'room_count'
+        'room_count',
+        'untax',
     ];
 
     protected $guarded = [];
@@ -66,7 +67,7 @@ class Book extends Model
         'tag',
         'status',
         'price',
-        'count'
+        'count',
     ];
 
     public function hotel()

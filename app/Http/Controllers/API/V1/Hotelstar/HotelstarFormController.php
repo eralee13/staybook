@@ -109,6 +109,7 @@ class HotelstarFormController extends Controller
     {
         $rooms = $request->input('rooms', []); // если нет — пустой массив
         $guests = [];
+        $fxBase = session('currency', 'USD');
 
         foreach ($rooms as $room) {
             $adultCount = (int) ($room['adults'] ?? 0);
@@ -140,7 +141,7 @@ class HotelstarFormController extends Controller
             "check_out"   => $request->departureDate,
             "adults"      => $adultCount,
             "children"    => $children,
-            "currency"    => "USD",
+            "currency"    => $fxBase,
             "3d_hotelstar"=> null,
         ]);
             // dd($payload);
@@ -160,6 +161,7 @@ class HotelstarFormController extends Controller
     {
         $rooms = $request->input('rooms', []); // если нет — пустой массив
         $guests = [];
+        $fxBase = session('currency', 'USD');
 
         foreach ($rooms as $room) {
             $adultCount = (int) ($room['adults'] ?? 0);
@@ -178,23 +180,30 @@ class HotelstarFormController extends Controller
         }
 
         $city = explode('-', $request->city);
-        $hids = [1];
-            $payload = [ 
-                "search_data" => [
-                        "hotel_ids" =>$hids,
-                        "region_id" => (int)$city[0],
-                        "check_in" => $request->arrivalDate,
-                        "check_out" => $request->departureDate,
-                        "adults" => $adultCount,
-                        "children" => $children,
-                        "currency" => "RUB",
-                        "3d_hotelstar" => null,
-                ],
-                "search_item" => [
-                    "hash" => $request->hash,
-                    "provider_id" => $request->provider_id,
-                ]
-            ];
+        $searchParams = [];
+
+        if (is_numeric($request->city)) {
+            $searchParams['hotel_ids'] = [(int)$request->city];
+        } else {
+            $searchParams['region_id'] = (int)$city[0];
+        }
+
+        $payload = [
+            "search_data" => array_merge($searchParams, [
+                "check_in"     => $request->arrivalDate,
+                "check_out"    => $request->departureDate,
+                "adults"       => $adultCount,
+                "children"     => $children,
+                "currency"     => $fxBase,
+                "3d_hotelstar" => null,
+            ]),
+            "search_item" => [
+                "hash"        => $request->hash,
+                "provider_id" => $request->provider_id,
+            ],
+        ];
+
+            
             // dd($payload);
             $response = Http::timeout(31)->withHeaders([
                     'X-HS-Token' => $this->apiKey,
@@ -202,9 +211,9 @@ class HotelstarFormController extends Controller
                 ])
                 ->post($this->url . '/actualize', $payload);
 
-                dd($response->json());
+                // dd($response->json());
 
-            // return $response->json();
+            return $response->json();
                 
     }
 

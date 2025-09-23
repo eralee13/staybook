@@ -1,25 +1,25 @@
-@php
-    // if ( isset($tmroom->Hotels[0]->RoomTypes) ){
-    //     // Сортируем номера и тарифы по минимальной цене
-    //     $sortedRoom = collect($tmroom->Hotels[0]->RoomTypes)
-    //     // Сначала сортируем тарифы внутри каждого номера
-    //     ->map(function ($room) {
-    //         $room->RateInfos = collect($room->RateInfos)
-    //             ->sortBy('TotalPrice')
-    //             ->values();
-    //         return $room;
-    //     })
-    //     // Потом сортируем сами номера по минимальной цене из RateInfos
-    //     ->sortBy(function ($room) {
-    //         return $room->RateInfos[0]->TotalPrice ?? PHP_INT_MAX;
-    //     })
-    //     ->values();
-    // } else {
-    //     $sortedRoom = [];
-    // }
-@endphp
-@dump($etgroom)
-@foreach($etgroom['data']['hotels'] as $room)
+{{-- @php
+    if ( isset($tmroom->Hotels[0]->RoomTypes) ){
+        // Сортируем номера и тарифы по минимальной цене
+        $sortedRoom = collect($tmroom->Hotels[0]->RoomTypes)
+        // Сначала сортируем тарифы внутри каждого номера
+        ->map(function ($room) {
+            $room->RateInfos = collect($room->RateInfos)
+                ->sortBy('TotalPrice')
+                ->values();
+            return $room;
+        })
+        // Потом сортируем сами номера по минимальной цене из RateInfos
+        ->sortBy(function ($room) {
+            return $room->RateInfos[0]->TotalPrice ?? PHP_INT_MAX;
+        })
+        ->values();
+    } else {
+        $sortedRoom = [];
+    }
+@endphp --}}
+@dump($hsroom)
+@foreach($hsroom as $room)
     <div class="row" style="margin-top: 30px">
         <div class="col-md-3">
             <div class="room">
@@ -56,7 +56,7 @@
         <div class="col-md-9">
             <div class="tariff-wrap">
                 <div class="owl-carousel owl-tariffs">
-                    @include('pages.search.emerging.rates', ['rates' => $room['rates'], 'tmimage' => $tmimages[$loop->index]->image ?? ''])
+                    @include('pages.search.hotelstar.rates', ['rates' => $room['rates'], 'tmimage' => $tmimages[$loop->index]->image ?? ''])
                 </div>
             </div>
         </div>

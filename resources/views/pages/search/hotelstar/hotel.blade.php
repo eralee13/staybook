@@ -1,7 +1,8 @@
 @extends('layouts.master')
 
 @section('title')
-    {{-- @dump($request) --}}
+    @dump($hsroom)
+
     @section('content')
         @php
             $amenities = explode(',', $hotel->amenity->services ?? '');
@@ -144,7 +145,7 @@
                                     });
                                 </script>
 
-                                @include('pages.search.emerging.rooms', ['etgroom' => $etgroom, 'tmimages' => $tmimages])
+                                {{-- @include('pages.search.hotelstar.rooms', ['hsroom' => $hsroom, 'tmimages' => $tmimages]) --}}
                                 
                             </div>
                         </div>

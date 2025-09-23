@@ -62,6 +62,22 @@
             </div>
             <div class="item price"> {{ round($converted) }} {{ $symbol }}</div>
             <div class="nds">@lang('main.all_taxes_included')</div>
+            <div class="nds_not_included" style="color: red; font-size: 13px;">
+                @lang('main.all_taxes_excluded')</div>
+                <span style="font-size: 13px;">@lang('main.pay_at_hotel')</span><br>
+                @foreach($payment['tax_data']['taxes'] as $tax)
+                    @if($tax['included_by_supplier'] == false)
+                        <span style="font-size: 13px;"><strong>
+                        {{-- проверка: если ключ это строка и есть перевод --}}
+                        @if(is_string($tax['name']) && Lang::has('main.'.$tax['name']))
+                            @lang('main.'.$tax['name'])
+                        @else
+                            {{ $tax['name'] }}
+                        @endif : </strong>
+                        {{ $tax['amount']}} {{ $tax['currency_code'] }}</span><br>
+                    @endif
+                @endforeach
+            
                 
             <div class="btn-wrap">
 
@@ -98,7 +114,10 @@
                     <input type="hidden" name="utc"  value="{{ $hotel->utc }}">
                     <input type="hidden" name="etgimage"  value="{{ $tmimage }}">
                     <input type="hidden" name="increase_percent">
-                    
+                    <input type="hidden" name="residency" value="{{ $request->residency ?? '' }}">
+                    <input type="hidden" name="tax_not_included" 
+                        value='@json(collect($payment["tax_data"]["taxes"])->where("included_by_supplier", false)->values())'>
+
                     <button class="more" id="order">@lang('main.book')</button>
                 </form>
             </div>

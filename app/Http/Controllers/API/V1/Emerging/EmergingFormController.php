@@ -30,6 +30,7 @@ class EmergingFormController extends Controller
         $this->apiKey = config('app.emerging_api_key');
         $this->url = config('app.emerging_api_url');
         $this->coef = config('app.main_coef');
+        $this->language = app()->getLocale();
     }
 
     public function EmergingGetHotels(Request $request)
@@ -117,8 +118,8 @@ class EmergingFormController extends Controller
                 ->post($this->url . '/search/serp/region/', [
                     "checkin" => $request->arrivalDate,
                     "checkout" => $request->departureDate,
-                    // "residency" => "gb",
-                    // "language" => "en",
+                    // "residency" => $request->residency ?? null,
+                    "language" => $this->language,
                     "guests" => $guests,
                     "timeout" => 30,
                     "region_id" => (int)$city[0],
@@ -155,7 +156,7 @@ class EmergingFormController extends Controller
                     "checkin" => $request->arrivalDate,
                     "checkout" => $request->departureDate,
                     // "residency" => "gb",
-                    // "language" => "en",
+                    "language" => $this->language,
                     "guests" => $guests,
                     "timeout" => 30,
                     "hid" => (int)$request->apiHotelId,
@@ -196,7 +197,6 @@ class EmergingFormController extends Controller
     public function startProcess(Request $request)
     {   
         $userId = Auth::id();
-        $language = app()->getLocale();
         $rooms = $request->input('rooms', []); // если нет — пустой массив
         $adults = 0;
         $allChildAges = [];
@@ -234,7 +234,7 @@ class EmergingFormController extends Controller
             ->post($this->url . '/hotel/order/booking/form/', [
                 "partner_order_id" => $request->token,
                 "book_hash" => $request->book_hash,
-                "language" => $language,
+                "language" => $this->language,
                 "user_ip" => $request->ip(),
                 "timeout" => 30,
             ]);
@@ -394,6 +394,14 @@ class EmergingFormController extends Controller
                         ]
                     );
 
+                    // untax example json
+                        // {
+                        //     "name": "service_fee",
+                        //     "included_by_supplier": false,
+                        //     "amount": "1458.17",
+                        //     "currency_code": "HNL"
+                        // }
+
                     $book = Book::firstOrCreate(
                         [
                             'book_token' => $etoken,
@@ -408,6 +416,7 @@ class EmergingFormController extends Controller
                             'phone' => $request->phone,
                             'email' => $request->email,
                             'comment' => $request->comment,
+                            'room_count' => $roomCount,
                             'adult' => $adults ?? 1,
                             'child' => $childs,
                             'childages' => $childAges ?? '',
@@ -421,6 +430,7 @@ class EmergingFormController extends Controller
                             'arrivalDate' => $request->arrivalDate,
                             'departureDate' => $request->departureDate,
                             'status' => 'Pending',
+                            'untax' => $request->tax_not_included ?? '',
                             'user_id' => $userId,
                             'api_type' => 'emerging',
                             'agent_ref' => '',
@@ -531,10 +541,11 @@ class EmergingFormController extends Controller
                 'Content-Type' => 'application/json',
             ])
             ->post($this->url . '/hotel/order/booking/finish/', $payload);
+            // ->post('https://httpstat.us/500', []); // для 5xx
+            // ->post('https://httpstat.us/200?sleep=5000', []); // для timeout
+            // ->post('https://not-existing-12345-domain.com/test', []); // для unknown
             // ->throw(); // <-- это кидает исключение при 4xx/5xx
-                // return Http::get('https://httpstat.us/500');   // для 5xx
-                // return Http::timeout(1)->get('https://httpstat.us/200?sleep=5000'); // для timeout
-                // return Http::get('https://not-existing-12345-domain.com/test'); // для unknown
+                
         return $response->json();
 
     }
@@ -625,6 +636,9 @@ class EmergingFormController extends Controller
                 // 1 => Room Only
                 'nomeal' => 1,
                 'room-only' => 1,
+                'some-meal' => 1,
+                'breakfast-for-1' => 1,
+                'breakfast-for-2' => 1,
 
                 // 2 => Bed & Breakfast
                 'breakfast' => 2,
@@ -639,23 +653,26 @@ class EmergingFormController extends Controller
                 'japanese-breakfast' => 2,
                 'scandinavian-breakfast' => 2,
                 'scottish-breakfast' => 2,
-                'breakfast-for-1' => 2,
-                'breakfast-for-2' => 2,
+                
 
                 // 3 => Half Board
                 'half-board' => 3,
                 'half-board-dinner' => 3,
                 'half-board-lunch' => 3,
-                'some-meal' => 3,
+                
 
                 // 4 => Full Board
                 'full-board' => 4,
-                'lunch' => 4,
-                'dinner' => 4,
+                'soft-all-inclusive' => 4,
+
+                // Lunch & Bed
+                'lunch' => 6,
+
+                // Dinner & Bed
+                'dinner' => 7,
 
                 // 5 => All Inclusive
                 'all-inclusive' => 5,
-                'soft-all-inclusive' => 5,
                 'super-all-inclusive' => 5,
                 'ultra-all-inclusive' => 5,
         ];
@@ -667,17 +684,18 @@ class EmergingFormController extends Controller
 
         // mapping: id => список ключей
         $mappingMealsGrouped = [
-            1 => ['nomeal', 'room-only'],
+            1 => ['nomeal', 'room-only', 'some-meal', 'breakfast-for-1', 'breakfast-for-2'],
             2 => [
                 'breakfast', 'buffet', 'american-breakfast', 'asian-breakfast',
                 'chinese-breakfast', 'continental-breakfast', 'english-breakfast',
                 'irish-breakfast', 'israeli-breakfast', 'japanese-breakfast',
                 'scandinavian-breakfast', 'scottish-breakfast',
-                'breakfast-for-1', 'breakfast-for-2'
             ],
-            3 => ['half-board', 'half-board-dinner', 'half-board-lunch', 'some-meal'],
-            4 => ['full-board', 'lunch', 'dinner'],
-            5 => ['all-inclusive', 'soft-all-inclusive', 'super-all-inclusive', 'ultra-all-inclusive'],
+            3 => ['half-board', 'half-board-dinner', 'half-board-lunch'],
+            4 => ['full-board', 'soft-all-inclusive'],
+            5 => ['all-inclusive', 'super-all-inclusive', 'ultra-all-inclusive'],
+            6 => ['lunch'],
+            7 => ['dinner'],
         ];
         
         return $mappingMealsGrouped;
@@ -689,6 +707,9 @@ class EmergingFormController extends Controller
             // 1 => Room Only
             1 => 'nomeal',
             1 => 'room-only',
+            1 => 'some-meal',
+            1 => 'breakfast-for-1',
+            1 => 'breakfast-for-2',
 
             // 2 => Bed & Breakfast
             2 => 'breakfast',
@@ -703,25 +724,26 @@ class EmergingFormController extends Controller
             2 => 'japanese-breakfast',
             2 => 'scandinavian-breakfast',
             2 => 'scottish-breakfast',
-            2 => 'breakfast-for-1',
-            2 => 'breakfast-for-2',
 
             // 3 => Half Board
             3 => 'half-board',
             3 => 'half-board-dinner',
             3 => 'half-board-lunch',
-            3 => 'some-meal',
 
             // 4 => Full Board
             4 => 'full-board',
-            4 => 'lunch',
-            4 => 'dinner',
+            4 => 'soft-all-inclusive',
 
             // 5 => All Inclusive
             5 => 'all-inclusive',
-            5 => 'soft-all-inclusive',
             5 => 'super-all-inclusive',
             5 => 'ultra-all-inclusive',
+
+            // Lunch & Bed
+            6 => 'lunch',
+
+            // Dinner & Bed
+            7 => 'dinner',
         ];
 
         return $mappingMeals;

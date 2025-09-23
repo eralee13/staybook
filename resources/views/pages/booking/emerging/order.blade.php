@@ -106,6 +106,8 @@
                         <input type="hidden" name="utc" value="{{ $request->utc }}">
                         <input type="hidden" name="price" value="{{ $request->price }}">
                         <input type="hidden" name="sum" value="{{ $request->totalPrice }}">
+                        <input type="hidden" name="tax_not_included" value="{{ $request->tax_not_included }}">
+                        <input type="hidden" name="residency" value="{{ $request->residency ?? '' }}">
                        
 
                         <div class="row">
@@ -294,6 +296,24 @@
                                         @lang('main.non_refundable')
                                     @endif
                                 </div>
+                                <div class="nds_not_included" style="color: red; font-size: 13px;">
+                                    @lang('main.all_taxes_excluded')</div>
+                                    <span style="font-size: 13px;">@lang('main.pay_at_hotel')</span><br>
+                                    @php
+                                    $tax_not_included = json_decode($request->tax_not_included, true);
+                                    @endphp
+                                    @foreach($tax_not_included as $tax)
+                                        @if($tax['included_by_supplier'] == false)
+                                            <span style="font-size: 13px;"><strong>
+                                                {{-- проверка: если ключ это строка и есть перевод --}}
+                                                @if(is_string($tax['name']) && Lang::has('main.'.$tax['name']))
+                                                    @lang('main.'.$tax['name'])
+                                                @else
+                                                    {{ $tax['name'] }}
+                                                @endif : </strong>
+                                                {{ $tax['amount']}} {{ $tax['currency_code'] }}</span><br>
+                                        @endif
+                                    @endforeach
                             </div>
                         </div>  
             

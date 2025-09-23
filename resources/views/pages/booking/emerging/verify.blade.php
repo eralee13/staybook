@@ -156,6 +156,8 @@
                         <input type="hidden" name="comment" value="{{ $request->comment }}">
                         <input type="hidden" name="phone" value="{{ $request->phone }}">
                         <input type="hidden" name="email" value="{{ $request->email }}">
+                        <input type="hidden" name="tax_not_included" value="{{ $request->tax_not_included }}">
+                        <input type="hidden" name="residency" value="{{ $request->residency ?? '' }}">
   
                             @for ($i = 0; $i < $totalAdults; $i++)
                                 <input type="hidden" name="paxfname{{$i}}" value="{{ $request->input('paxfname' . $i) }}">

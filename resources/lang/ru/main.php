@@ -339,7 +339,23 @@ return [
     // питание
     'breakfast' => 'завтрак',
     // валюты (пояснения)
-    'USD' => 'USD (доллар США)',
-    'EUR' => 'EUR (евро)',
+    'USD' => 'USD',
+    'EUR' => 'EUR',
+    'KGS' => 'KGS',
+    'RUB' => 'RUB',
+    'TRY' => 'TRY',
+    'UAH' => 'UAH',
+    'GBP' => 'GBP',
+    'CNY' => 'CNY',
+    'AED' => 'AED',
+    'KZT' => 'KZT',
+    'UZS' => 'UZS',
+    'RUB' => 'RUB',
+    'all_taxes_excluded' => 'Все не включенные налоги',
+    'pay_at_hotel' => 'Оплачивается в отеле',
+    'city_tax' => 'Городской налог',
+    'service_fee' => 'Сервисный сбор',
+    'vat' => 'НДС',
+
 
 ];

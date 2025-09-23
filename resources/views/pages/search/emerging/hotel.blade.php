@@ -88,41 +88,43 @@
                                     <h4>@lang('main.metapolicy_struct')</h4>
                                     <p>
                                         
-                                        @foreach($hotel->metapolicy_struct as $k => $policy)
+                                        @if( isset($hotel->metapolicy_struct) )
+                                           @foreach($hotel->metapolicy_struct as $k => $policy)
 
-                                            @continue(!$policy)
-                                            @continue($k == 'meal')
-                                            <div class="row mb-3">
-                                                
-                                                    <strong>@lang('main.'.$k)</strong>
+                                                @continue(!$policy)
+                                                @continue($k == 'meal')
+                                                <div class="row mb-3">
+                                                    
+                                                        <strong>@lang('main.'.$k)</strong>
 
-                                                    @if(is_array($policy))
-                                                        {{-- Если это список (массив с числовыми ключами) --}}
-                                                        @if(array_is_list($policy))
-                                                            @foreach($policy as $i => $item)
-                                                                <div class="col-md-3">
-                                                                    @foreach($item as $field => $value)
-                                                                        - @lang('main.'.$field): 
-                                                                        {{ (is_numeric($value) || !\Illuminate\Support\Facades\Lang::has('main.' . $value))
-                                                                        ? $value
-                                                                        : __('main.' . $value) }} <br>
-                                                                    @endforeach
-                                                                </div>
-                                                            @endforeach
+                                                        @if(is_array($policy))
+                                                            {{-- Если это список (массив с числовыми ключами) --}}
+                                                            @if(array_is_list($policy))
+                                                                @foreach($policy as $i => $item)
+                                                                    <div class="col-md-3">
+                                                                        @foreach($item as $field => $value)
+                                                                            - @lang('main.'.$field): 
+                                                                            {{ (is_numeric($value) || !\Illuminate\Support\Facades\Lang::has('main.' . $value))
+                                                                            ? $value
+                                                                            : __('main.' . $value) }} <br>
+                                                                        @endforeach
+                                                                    </div>
+                                                                @endforeach
+                                                            @else
+                                                                {{-- Ассоциативный массив --}}
+                                                                @foreach($policy as $subKey => $subValue)
+                                                                    - @lang('main.'.$subKey):
+                                                                    {{ (is_numeric($subValue) || !\Illuminate\Support\Facades\Lang::has('main.' . $subValue))
+                                                                        ? $subValue
+                                                                        : __('main.' . $subValue) }} <br>
+                                                                @endforeach
+                                                            @endif
                                                         @else
-                                                            {{-- Ассоциативный массив --}}
-                                                            @foreach($policy as $subKey => $subValue)
-                                                                - @lang('main.'.$subKey):
-                                                                {{ (is_numeric($subValue) || !\Illuminate\Support\Facades\Lang::has('main.' . $subValue))
-                                                                    ? $subValue
-                                                                    : __('main.' . $subValue) }} <br>
-                                                            @endforeach
+                                                            @lang('main.'.$policy)<br>
                                                         @endif
-                                                    @else
-                                                        @lang('main.'.$policy)<br>
-                                                    @endif
-                                            </div>
-                                        @endforeach
+                                                </div>
+                                            @endforeach
+                                        @endif
 
                                         {{-- @dump($hotel->metapolicy_struct) --}}
                                     </p>
