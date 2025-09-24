@@ -13,5 +13,12 @@ class Page extends Model
 
     protected $cacheFor = 180;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'title',
+        'title_en',
+        'code',
+        'description',
+        'description_en',
+        'image'
+    ];
 }

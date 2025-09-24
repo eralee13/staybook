@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\EtgBadRequestException;
 use App\Http\Requests\OfflineRequest;
 use App\Mail\OfflineMail;
 use App\Models\Amenity;
@@ -44,13 +45,19 @@ class PageController extends Controller
     public function about(Request $request)
     {
         $page = Page::cacheFor(now()->addHours(6))->where('id', 4)->first();
-        return view('pages.about', compact('page', 'request'));
+        $contacts = Contact::first();
+        return view('pages.about', compact('page', 'request', 'contacts'));
+    }
+
+    public function service()
+    {
+        return view('pages.service');
     }
 
     public function contactspage()
     {
         $page = Page::cacheFor(now()->addHours(6))->where('id', 5)->first();;
-        $contacts = Contact::get();
+        $contacts = Contact::first();
         return view('pages.contacts', compact('page', 'contacts'));
     }
 
@@ -64,54 +71,54 @@ class PageController extends Controller
     public function companies()
     {
         $page = Page::cacheFor(now()->addHours(6))->where('id', 7)->first();
-        return view('pages.page', compact('page'));
+        $contacts = Contact::first();
+        return view('pages.page', compact('page', 'contacts'));
     }
 
     public function apartments()
     {
         $page = Page::cacheFor(now()->addHours(6))->where('id', 8)->first();
-        return view('pages.page', compact('page'));
+        $contacts = Contact::first();
+        return view('pages.page', compact('page', 'contacts'));
     }
 
     public function objects()
     {
         $page = Page::cacheFor(now()->addHours(6))->where('id', 9)->first();
-        return view('pages.page', compact('page'));
-    }
-
-    public function aboutus()
-    {
-        $page = Page::cacheFor(now()->addHours(6))->where('id', 10)->first();
-        return view('pages.page', compact('page'));
+        $contacts = Contact::first();
+        return view('pages.page', compact('page', 'contacts'));
     }
 
     public function rules()
     {
         $page = Page::cacheFor(now()->addHours(6))->where('id', 11)->first();
-        return view('pages.page', compact('page'));
+        $contacts = Contact::first();
+        return view('pages.page', compact('page', 'contacts'));
     }
 
     public function privacy()
     {
         $page = Page::cacheFor(now()->addHours(6))->where('id', 12)->first();
-        return view('pages.page', compact('page'));
+        $contacts = Contact::first();
+        return view('pages.page', compact('page', 'contacts'));
     }
 
     public function legal()
     {
         $page = Page::cacheFor(now()->addHours(6))->where('id', 13)->first();
-        return view('pages.page', compact('page'));
+        $contacts = Contact::first();
+        return view('pages.page', compact('page', 'contacts'));
     }
 
     public function extranet()
     {
         return view('pages.extranet');
     }
-    public function offline_request()
+    public function offline_request(Request $request)
     {
         $cities = City::where('country_id', null)->orderBy('title', 'asc')->get();
         $tomorrow = Carbon::tomorrow();
-        return view('pages.offline', compact('cities', 'tomorrow'));
+        return view('pages.offline', compact('cities', 'tomorrow', 'request'));
     }
 
     public function offline_send(OfflineRequest $request)

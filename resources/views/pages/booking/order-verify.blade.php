@@ -1,8 +1,17 @@
-@extends('layouts.head')
+@extends('layouts.master')
 
 @section('title', 'Подтверждение заказа')
 
 @section('content')
+
+    <style>
+        body{
+            font-family: Unbounded,sans-serif !important;
+        }
+        .page{
+            padding-bottom: 60px;
+        }
+    </style>
 
     @auth
         <div class="page order">

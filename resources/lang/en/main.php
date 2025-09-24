@@ -45,6 +45,7 @@ return [
     'search_not_found' => 'Search not found',
     'try_again' => 'Please try again!',
     'from' => 'from',
+    'to' => 'to',
     'show_all_rooms' => 'Show all rooms',
     'night' => 'night',
     'description' => 'Description',
@@ -138,6 +139,11 @@ return [
     'late_checkin' => 'Early checkin',
     'late_checkout' => 'Late checkout',
     'welcome_log' => 'Welcome',
-    'not_hotel' => 'No hotels available'
+    'not_hotel' => 'No hotels available',
+    'city_or_hotel' => 'City or hotel',
+    'vantage' => 'Advantages of',
+    'for_hotels' => 'For hotels',
+    'contact_us' => 'Contact us',
+    'contact_form' => 'Contact Form',
 
 ];

@@ -27,12 +27,11 @@ class ViewServiceProvider extends ServiceProvider
         View::composer(['layouts.master', 'rooms'], 'App\ViewComposers\RoomsComposer');
         View::composer(['layouts.master', 'cities'], 'App\ViewComposers\CitiesComposer');
         View::composer(['layouts.master', 'contacts'], 'App\ViewComposers\ContactsComposer');
-        View::composer(['layouts.filter_mini', 'contacts'], 'App\ViewComposers\ContactsComposer');
+        View::composer(['layouts.main', 'contacts'], 'App\ViewComposers\ContactsComposer');
         View::composer(['layouts.master', 'hotels'], 'App\ViewComposers\HotelsComposer');
         View::composer(['layouts.booking', 'hotels'], 'App\ViewComposers\HotelsComposer');
         View::composer(['layouts.booking', 'rooms'], 'App\ViewComposers\RoomsComposer');
         View::composer(['layouts.booking', 'contacts'], 'App\ViewComposers\ContactsComposer');
-        View::composer(['layouts.head_extranet', 'contacts'], 'App\ViewComposers\ContactsComposer');
 
         View::composer(
             '*',

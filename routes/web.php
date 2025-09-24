@@ -6,11 +6,11 @@ use App\Http\Controllers\Admin\BookingCalendarController;
 use App\Http\Controllers\Admin\BookingCalendarPriceController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\HotelController;
+use App\Http\Controllers\Admin\ImportController;
 use App\Http\Controllers\Admin\ListbookController;
 use App\Http\Controllers\Admin\OfflineController;
 use App\Http\Controllers\Admin\PDFController;
 use App\Http\Controllers\Admin\UserBookController;
-use App\Http\Controllers\API\HotelStar\HotelStarController;
 use App\Http\Controllers\MainController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
@@ -22,10 +22,8 @@ use App\Livewire\HotelWizard;
 use App\Livewire\LWTester;
 use Dedoc\Scramble\Scramble;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
-
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -45,6 +43,11 @@ Scramble::registerJsonSpecificationRoute(path: 'docs/v1.1.json', api: 'v1.1');
 
 Route::middleware('set_locale')->group(function () {
     Route::group(["prefix" => "auth", "middleware" => 'auth'], function () {
+
+        Route::get('imports/exely/start', [ImportController::class, 'exelyStart'])
+            ->name('exely.import.start');
+        Route::get('/imports/exely/progress', [ImportController::class,'exelyProgress']);
+
         Route::resource("hotels", "App\Http\Controllers\Admin\HotelController");
         Route::resource("amenities", "App\Http\Controllers\Admin\AmenityController");
         Route::prefix('bookcalendar')->group(function () {
@@ -56,7 +59,6 @@ Route::middleware('set_locale')->group(function () {
             Route::get('/books/{hotel?}', [BookingCalendarController::class, 'index'])->name('bookcalendar.index');
             Route::post('/books/create', [BookingCalendarController::class, 'store'])->name('bookcalendar.create');
         });
-
 
         Route::prefix('bookcalendarprice')->group(function () {
             Route::get('/books/events', [BookingCalendarPriceController::class, 'getEvents'])->name('bookcalendarprice.events');
@@ -121,8 +123,6 @@ Route::middleware('set_locale')->group(function () {
         Route::get('/create-user-hotel', [\App\Http\Controllers\Admin\UserController::class, 'createView'])->name('users.createView');
         Route::post('/create-hotel-user', [\App\Http\Controllers\Admin\UserController::class, 'createHotel'])->name('users.createHotel');
         Route::delete('/delete-user-hotel/{user}', [\App\Http\Controllers\Admin\UserController::class, 'destroyHotel'])->name('users.destroyHotel');
-
-        
     });
 
     require __DIR__ . '/auth.php';
@@ -174,12 +174,12 @@ Route::middleware('set_locale')->group(function () {
     //pages
     Route::get('/hotels', [PageController::class, 'hotels'])->name('hotels');
     Route::get('/hotel/{hotel}', [PageController::class, 'hotel'])->name('hotel');
-    Route::get('/about', [PageController::class, 'about'])->name('about');
     Route::get('/contactspage', [PageController::class, 'contactspage'])->name('contactspage');
     Route::get('/companies', [PageController::class, 'companies'])->name('companies');
     Route::get('/apartments', [PageController::class, 'apartments'])->name('apartments');
     Route::get('/objects', [PageController::class, 'objects'])->name('objects');
-    Route::get('/aboutus', [PageController::class, 'aboutus'])->name('aboutus');
+    Route::get('/about', [PageController::class, 'about'])->name('about');
+    Route::get('/service', [PageController::class, 'service'])->name('service');
     Route::get('/rules', [PageController::class, 'rules'])->name('rules');
     Route::get('/privacy', [PageController::class, 'privacy'])->name('privacy');
     Route::get('/legal', [PageController::class, 'legal'])->name('legal');
@@ -188,15 +188,12 @@ Route::middleware('set_locale')->group(function () {
     Route::post('/offline_send', [PageController::class, 'offline_send'])->name('offline_send');
     Route::get('/exely_import', [PageController::class, 'exely_import'])->name('exely_import');
 
-
     //TourMind
     Route::get('/hotel-results', HotelResults::class)->name('hotel.results');
     Route::get('/hotel-rooms', HotelRooms::class)->name('hotel.rooms');
     Route::get('/bookingform', BookingForm::class)->name('bookingform');
     //Route::get('/allhotels', [PageController::class, 'hotels'])->name('hotels');
 
-
-    // TourMind
     Route::get('/hoteltm/{hid}', [\App\Http\Controllers\SearchController::class, 'hotel_tm'])->name('hotel_tm');
     Route::get('/book/order/tm', [\App\Http\Controllers\BookingTmController::class, 'order_tm'])->name('order_tm');
     Route::get('/book/verify/tm', [\App\Http\Controllers\BookingTmController::class, 'book_verify_tm'])->name('book_verify_tm');
@@ -238,5 +235,3 @@ Route::get('/clear-cache', function () {
     //Artisan::call('web:clear');
     return "Cache cleared successfully";
 });
-
-

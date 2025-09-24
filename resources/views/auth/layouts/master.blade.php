@@ -21,9 +21,7 @@
     <!-- Custom Browsers Color End -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/gh/eliyantosarage/font-awesome-pro@main/fontawesome-pro-6.5.1-web/css/all.min.css"
-          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200..900&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="{{route('index')}}/css/main.min.css">
     <link rel="stylesheet" href="{{route('index')}}/css/admin.css">
@@ -40,17 +38,17 @@
                 </div>
             </div>
             <div class="col-md-9">
-                <div class="profile">
-                    <a href="{{ route('profile.edit') }}">@lang('main.welcome_log') {{ \Illuminate\Support\Facades\Auth::user()->name }}</a>
+                <div class="homelink">
+                    <a href="{{route('index')}}" target="_blank">@lang('admin.visit')</a>
                 </div>
                 <div class="wrap">
                     <div class="lang-wrap" id="lang">
                         <div class="lang">
                             <div class="lang-item">
                                 @if(app()->getLocale() == 'ru')
-                                    <a href="#">Русский <img src="{{route('index')}}/img/ru.svg" alt=""></a>
+                                    <a href="#">RU</a>
                                 @else
-                                    <a href="#"><img src="{{route('index')}}/img/en.svg" alt=""> English</a>
+                                    <a href="#">EN</a>
                                 @endif
                             </div>
                         </div>
@@ -72,8 +70,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="homelink">
-                    <a href="{{route('index')}}" target="_blank">@lang('admin.visit')</a>
+                <div class="profile">
+                    <a href="{{ route('profile.edit') }}">@lang('main.welcome_log') {{ \Illuminate\Support\Facades\Auth::user()->name }}</a>
                 </div>
             </div>
         </div>

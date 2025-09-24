@@ -15,7 +15,6 @@ class HotelStaticListController extends Controller
         $this->HotelStaticList = $HotelStaticList;
     }
 
-
     public function fetchHotels(Request $request, \App\Services\Tourmind\HotelStaticList $svc)
     {
         $cc       = $request->input('country', 'UA');     // ?country=UA

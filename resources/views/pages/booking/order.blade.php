@@ -1,5 +1,5 @@
 @php use App\Models\Hotel; @endphp
-@extends('layouts.head')
+@extends('layouts.master')
 
 @section('title', 'Оформление заказа')
 
@@ -9,6 +9,12 @@
         <style>
             .check input{
                 width: auto;
+            }
+            body{
+                font-family: Unbounded,sans-serif !important;
+            }
+            .page{
+                padding-bottom: 60px;
             }
         </style>
         <div class="page order">

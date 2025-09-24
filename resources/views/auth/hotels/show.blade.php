@@ -191,7 +191,7 @@
         
                                 <!-- Кнопка для открытия модального окна -->
                         <button type="button" class="btn more add pull-right" data-bs-toggle="modal" data-bs-target="#createUserModal">
-                        <i class="fa-solid fa-plus"></i> &nbsp; @lang('main.add_user')
+                        <i class="fa-solid fa-plus"></i> &nbsp; @lang('admin.add')
                         </button>
                         <br><br><br>
                         
@@ -226,6 +226,7 @@
                                 @endforeach --}}
                             </div>
                     </div>
+                </div>
                 </div>
             </div>
         </div>

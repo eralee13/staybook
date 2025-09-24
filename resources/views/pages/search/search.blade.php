@@ -1,5 +1,5 @@
 @php use App\Models\Image;use Carbon\Carbon;use Illuminate\Support\Facades\Http; @endphp
-@extends('layouts.filter_mini')
+@extends('layouts.main')
 
 @section('title', 'Поиск')
 
@@ -7,37 +7,15 @@
     @auth
 
         <style>
-
-            #rooms-panel {
-                z-index: 9999;
-            }
-
-            .search .rating {
-                font-size: 14px;
-                margin-left: 0;
-            }
-
-            .search .rating img {
-                margin-right: 0;
-                position: relative;
-                top: -2px;
-                width: 15px;
-            }
-
-            /* Контейнер, который «липнет» при скролле */
             .map-sticky {
                 position: sticky;
                 top: 80px; /* отступ от верхнего края окна (подгони под высоту хедера) */
                 z-index: 1; /* чтобы не перекрывать другие элементы */
             }
-
-            /* Делаем карту высотой почти на экран */
             #map {
                 width: 100%;
                 height: calc(100vh - 120px); /* подгони «120px» при необходимости */
             }
-
-            /* На мобильных отключаем липкость и уменьшаем высоту */
             @media (max-width: 991.98px) {
                 .map-sticky {
                     position: static;
@@ -48,244 +26,242 @@
                 }
             }
         </style>
-        <div class="main-filter" style="padding-bottom: 40px">
-            <div class="container">
+
+        <div class="main-filter">
+            <div class="container-fluid">
                 <div class="row">
                     <div class="col-md-12">
-                        <form action="{{ route('search') }}">
+                        <div class="type">
+                            <div class="type-item current">
+                                <a href="{{ route('index') }}">Отели и номера</a>
+                            </div>
+                            <div class="type-item">
+                                <a href="{{ route('offline') }}">Оффлайн запрос</a>
+                            </div>
+                        </div>
+                        <form action="{{ route('search') }}" method="GET">
                             <div class="row">
-                                <div class="col-lg-3 col-md-12">
+                                <div class="col-lg-4 col-md-12">
                                     <div class="form-group">
-                                        <div class="label stay"><img src="{{ route('index') }}/img/marker_out.svg"
-                                                                     alt=""></div>
                                         <input type="text" id="searchbox" name="city" placeholder="Город или отель"
                                                autocomplete="off" value="{{ $request->city }}">
                                         <div id="suggest" class="suggest hidden"></div>
                                         <input type="hidden" name="city_id" id="city_id">
-                                    </div>
-
-                                    <style>
-                                        .suggest {
-                                            position: absolute;
-                                            z-index: 9999;
-                                            background: #fff;
-                                            border: 1px solid #e5e7eb;
-                                            width: 100%;
-                                            max-height: 280px;
-                                            overflow: auto;
-                                            border-radius: 8px;
-                                            box-shadow: 0 10px 20px rgba(0, 0, 0, .08)
-                                        }
-
-                                        .suggest.hidden {
-                                            display: none
-                                        }
-
-                                        .suggest-item {
-                                            padding: 10px 12px;
-                                            cursor: pointer;
-                                            display: flex;
-                                            gap: 8px;
-                                            align-items: center
-                                        }
-
-                                        .suggest-item:hover, .suggest-item.active {
-                                            background: #f3f4f6
-                                        }
-
-                                        .s-title {
-                                            font-weight: 600;
-                                            font-size: 14px
-                                        }
-
-                                        .s-sub {
-                                            font-size: 12px;
-                                            color: #6b7280
-                                        }
-
-                                        .s-badge {
-                                            font-size: 11px;
-                                            color: #111827;
-                                            background: #fef3c7;
-                                            border: 1px solid #fcd34d;
-                                            border-radius: 6px;
-                                            padding: 2px 6px
-                                        }
-                                    </style>
-
-                                    <script>
-                                        document.addEventListener('DOMContentLoaded', () => {
-                                            const input = document.getElementById('searchbox');
-                                            const box = document.getElementById('suggest');
-                                            const url = @json(route('suggest'));
-                                            let items = [];
-                                            let activeIdx = -1;
-                                            let lastQuery = '';
-                                            let t = null;
-
-                                            function debounce(fn, ms) {
-                                                return (...args) => {
-                                                    clearTimeout(t);
-                                                    t = setTimeout(() => fn(...args), ms);
-                                                };
+                                        <style>
+                                            .suggest {
+                                                position: absolute;
+                                                z-index: 9999;
+                                                background: #fff;
+                                                border: 1px solid #e5e7eb;
+                                                width: 100%;
+                                                max-height: 280px;
+                                                overflow: auto;
+                                                border-radius: 8px;
+                                                box-shadow: 0 10px 20px rgba(0, 0, 0, .08)
                                             }
 
-                                            function hide() {
-                                                box.classList.add('hidden');
-                                                activeIdx = -1;
+                                            .suggest.hidden {
+                                                display: none
                                             }
 
-                                            function show() {
-                                                box.classList.remove('hidden');
+                                            .suggest-item {
+                                                padding: 10px 12px;
+                                                cursor: pointer;
+                                                display: flex;
+                                                gap: 8px;
+                                                align-items: center
                                             }
 
-                                            function render(list) {
-                                                if (!list.length) {
-                                                    hide();
-                                                    return;
+                                            .suggest-item:hover, .suggest-item.active {
+                                                background: #f3f4f6
+                                            }
+
+                                            .s-title {
+                                                font-weight: 600;
+                                                font-size: 14px
+                                            }
+
+                                            .s-sub {
+                                                font-size: 12px;
+                                                color: #6b7280
+                                            }
+
+                                            .s-badge {
+                                                font-size: 11px;
+                                                color: #111827;
+                                                background: #fef3c7;
+                                                border: 1px solid #fcd34d;
+                                                border-radius: 6px;
+                                                padding: 2px 6px
+                                            }
+                                        </style>
+
+                                        <script>
+                                            document.addEventListener('DOMContentLoaded', () => {
+                                                const input = document.getElementById('searchbox');
+                                                const box = document.getElementById('suggest');
+                                                const url = @json(route('suggest'));
+                                                let items = [];
+                                                let activeIdx = -1;
+                                                let lastQuery = '';
+                                                let t = null;
+
+                                                function debounce(fn, ms) {
+                                                    return (...args) => {
+                                                        clearTimeout(t);
+                                                        t = setTimeout(() => fn(...args), ms);
+                                                    };
                                                 }
-                                                box.innerHTML = list.map((it, i) => {
-                                                    const rating = it.rating ? `<span class="s-badge">★ ${it.rating}</span>` : '';
-                                                    const type = it.type === 'hotel'
-                                                        ? '<span class="s-badge">Отель</span>'
-                                                        : '<span class="s-badge">Город</span>';
-                                                    const alt = it.alt && it.alt !== it.label
-                                                        ? ` · <span class="s-sub">${it.alt}</span>` : '';
-                                                    const city = it.city ? `<div class="s-sub">${it.city}</div>` : '';
-                                                    return `
+
+                                                function hide() {
+                                                    box.classList.add('hidden');
+                                                    activeIdx = -1;
+                                                }
+
+                                                function show() {
+                                                    box.classList.remove('hidden');
+                                                }
+
+                                                function render(list) {
+                                                    if (!list.length) {
+                                                        hide();
+                                                        return;
+                                                    }
+                                                    box.innerHTML = list.map((it, i) => {
+                                                        const rating = it.rating ? `<span class="s-badge">★ ${it.rating}</span>` : '';
+                                                        const type = it.type === 'hotel'
+                                                            ? '<span class="s-badge">Отель</span>'
+                                                            : '<span class="s-badge">Город</span>';
+                                                        const alt = it.alt && it.alt !== it.label
+                                                            ? ` · <span class="s-sub">${it.alt}</span>` : '';
+                                                        const city = it.city ? `<div class="s-sub">${it.city}</div>` : '';
+                                                        return `
 <div class="suggest-item" data-idx="${i}">
   <div>
     <div class="s-title">${it.label} ${rating}${alt} ${type}</div>
     ${city}
   </div>
 </div>`;
-                                                }).join('');
-                                                show();
-                                            }
-
-                                            async function fetchSuggest(q) {
-                                                try {
-                                                    const resp = await fetch(url + '?q=' + encodeURIComponent(q), {
-                                                        headers: {'Accept': 'application/json'},
-                                                        cache: 'no-store',
-                                                    });
-                                                    const ct = resp.headers.get('content-type') || '';
-                                                    if (!resp.ok) {
-                                                        console.error('[suggest] HTTP', resp.status, await resp.text());
-                                                        return hide();
-                                                    }
-                                                    if (!ct.includes('application/json')) {
-                                                        console.error('[suggest] Not JSON, got:', ct, await resp.text());
-                                                        return hide();
-                                                    }
-                                                    const data = await resp.json();
-                                                    items = Array.isArray(data.items) ? data.items : [];
-                                                    render(items);
-                                                } catch (e) {
-                                                    console.error('[suggest] fetch error', e);
-                                                    hide();
+                                                    }).join('');
+                                                    show();
                                                 }
-                                            }
 
-                                            const onType = debounce((e) => {
-                                                const q = (e.target.value || '').trim();
-                                                if (q.length < 2) {
-                                                    hide();
-                                                    lastQuery = '';
-                                                    return;
-                                                }
-                                                if (q === lastQuery) return;
-                                                lastQuery = q;
-                                                fetchSuggest(q);
-                                            }, 250);
-
-                                            input.addEventListener('input', onType);
-                                            input.addEventListener('focus', () => {
-                                                if ((input.value || '').trim().length >= 2 && items.length) show();
-                                            });
-                                            input.addEventListener('blur', () => setTimeout(hide, 150));
-
-                                            // Клик по подсказке
-                                            box.addEventListener('click', (e) => {
-                                                const itemEl = e.target.closest('.suggest-item');
-                                                if (!itemEl) return;
-                                                const idx = +itemEl.dataset.idx;
-                                                const it = items[idx];
-                                                if (!it) return;
-
-                                                input.value = it.label;
-                                                if (it.city_id) {
-                                                    const cityIdEl = document.getElementById('city_id');
-                                                    if (cityIdEl) cityIdEl.value = it.city_id;
-                                                }
-                                                hide();
-                                                //if (it.url) window.location.href = it.url; // для отелей переход сразу
-                                            });
-
-                                            // Навигация стрелками и Enter
-                                            input.addEventListener('keydown', (e) => {
-                                                if (box.classList.contains('hidden')) return;
-                                                if (e.key === 'ArrowDown') {
-                                                    e.preventDefault();
-                                                    activeIdx = (activeIdx + 1) % items.length;
-                                                    highlight();
-                                                } else if (e.key === 'ArrowUp') {
-                                                    e.preventDefault();
-                                                    activeIdx = (activeIdx - 1 + items.length) % items.length;
-                                                    highlight();
-                                                } else if (e.key === 'Enter') {
-                                                    if (activeIdx >= 0 && items[activeIdx]) {
-                                                        e.preventDefault();
-                                                        const it = items[activeIdx];
-                                                        input.value = it.label;
-                                                        if (it.city_id) {
-                                                            const cityIdEl = document.getElementById('city_id');
-                                                            if (cityIdEl) cityIdEl.value = it.city_id;
+                                                async function fetchSuggest(q) {
+                                                    try {
+                                                        const resp = await fetch(url + '?q=' + encodeURIComponent(q), {
+                                                            headers: {'Accept': 'application/json'},
+                                                            cache: 'no-store',
+                                                        });
+                                                        const ct = resp.headers.get('content-type') || '';
+                                                        if (!resp.ok) {
+                                                            console.error('[suggest] HTTP', resp.status, await resp.text());
+                                                            return hide();
                                                         }
+                                                        if (!ct.includes('application/json')) {
+                                                            console.error('[suggest] Not JSON, got:', ct, await resp.text());
+                                                            return hide();
+                                                        }
+                                                        const data = await resp.json();
+                                                        items = Array.isArray(data.items) ? data.items : [];
+                                                        render(items);
+                                                    } catch (e) {
+                                                        console.error('[suggest] fetch error', e);
                                                         hide();
-                                                        if (it.url) window.location.href = it.url;
                                                     }
-                                                } else if (e.key === 'Escape') {
-                                                    hide();
                                                 }
-                                            });
 
-                                            function highlight() {
-                                                [...box.querySelectorAll('.suggest-item')].forEach((el, i) => {
-                                                    el.classList.toggle('active', i === activeIdx);
-                                                    if (i === activeIdx) {
-                                                        el.scrollIntoView({block: 'nearest'});
+                                                const onType = debounce((e) => {
+                                                    const q = (e.target.value || '').trim();
+                                                    if (q.length < 2) {
+                                                        hide();
+                                                        lastQuery = '';
+                                                        return;
+                                                    }
+                                                    if (q === lastQuery) return;
+                                                    lastQuery = q;
+                                                    fetchSuggest(q);
+                                                }, 250);
+
+                                                input.addEventListener('input', onType);
+                                                input.addEventListener('focus', () => {
+                                                    if ((input.value || '').trim().length >= 2 && items.length) show();
+                                                });
+                                                input.addEventListener('blur', () => setTimeout(hide, 150));
+
+                                                // Клик по подсказке
+                                                box.addEventListener('click', (e) => {
+                                                    const itemEl = e.target.closest('.suggest-item');
+                                                    if (!itemEl) return;
+                                                    const idx = +itemEl.dataset.idx;
+                                                    const it = items[idx];
+                                                    if (!it) return;
+
+                                                    input.value = it.label;
+                                                    if (it.city_id) {
+                                                        const cityIdEl = document.getElementById('city_id');
+                                                        if (cityIdEl) cityIdEl.value = it.city_id;
+                                                    }
+                                                    hide();
+                                                    //if (it.url) window.location.href = it.url; // для отелей переход сразу
+                                                });
+
+                                                // Навигация стрелками и Enter
+                                                input.addEventListener('keydown', (e) => {
+                                                    if (box.classList.contains('hidden')) return;
+                                                    if (e.key === 'ArrowDown') {
+                                                        e.preventDefault();
+                                                        activeIdx = (activeIdx + 1) % items.length;
+                                                        highlight();
+                                                    } else if (e.key === 'ArrowUp') {
+                                                        e.preventDefault();
+                                                        activeIdx = (activeIdx - 1 + items.length) % items.length;
+                                                        highlight();
+                                                    } else if (e.key === 'Enter') {
+                                                        if (activeIdx >= 0 && items[activeIdx]) {
+                                                            e.preventDefault();
+                                                            const it = items[activeIdx];
+                                                            input.value = it.label;
+                                                            if (it.city_id) {
+                                                                const cityIdEl = document.getElementById('city_id');
+                                                                if (cityIdEl) cityIdEl.value = it.city_id;
+                                                            }
+                                                            hide();
+                                                            if (it.url) window.location.href = it.url;
+                                                        }
+                                                    } else if (e.key === 'Escape') {
+                                                        hide();
                                                     }
                                                 });
-                                            }
-                                        });
-                                    </script>
+
+                                                function highlight() {
+                                                    [...box.querySelectorAll('.suggest-item')].forEach((el, i) => {
+                                                        el.classList.toggle('active', i === activeIdx);
+                                                        if (i === activeIdx) {
+                                                            el.scrollIntoView({block: 'nearest'});
+                                                        }
+                                                    });
+                                                }
+                                            });
+                                        </script>
+                                    </div>
                                 </div>
-                                <div class="col-lg col-6">
+                                <div class="col-lg-4 col-md-6">
                                     <div class="form-group">
-                                        <div class="label in"><img src="{{ route('index') }}/img/marker_in.svg" alt="">
-                                            @lang('main.checkin')
-                                        </div>
-                                        <!-- Заезд -->
                                         <input type="text" id="arrivalDisplay" class="date" autocomplete="off"
                                                value="{{ Carbon::parse($request->arrivalDate)->format('d.m.Y')}}">
                                         <input type="hidden" id="arrivalDate" name="arrivalDate"
                                                value="{{ $request->arrivalDate }}">
                                     </div>
                                 </div>
-                                <div class="col-lg col-6">
+                                <div class="col-lg-4 col-md-6">
                                     <div class="form-group">
-                                        <div class="label in"><img src="{{route('index')}}/img/marker_out.svg" alt="">
-                                            @lang('main.checkout')
-                                        </div>
-                                        <!-- Выезд -->
                                         <input type="text" id="departureDisplay" class="date" autocomplete="off"
                                                value="{{ Carbon::parse($request->departureDate)->format('d.m.Y')}}">
                                         <input type="hidden" id="departureDate" name="departureDate"
                                                value="{{ $request->departureDate }}">
                                     </div>
                                 </div>
-                                <div class="col-lg col-6">
+                                <div class="col-lg-4 col-md-6">
                                     @php
                                         // 1) Берём массив комнат из запроса (если нет – пустой массив)
                                         $roomsData = $request->input('rooms', []);
@@ -309,37 +285,37 @@
                                        id="rooms-summary">
                                         @lang('main.room'): 1, @lang('main.adult'): 1, @lang('main.child'): 0
                                     </a>
+
                                     {{-- Полупрозрачный оверлей --}}
-                                    <div id="rooms-panel-overlay"></div>
-                                    {{-- Окно снизу --}}
+                                    <div id="rooms-panel-overlay"
+                                         class="fixed inset-0 bg-black bg-opacity-50 hidden z-40"></div>
+
                                     <div id="rooms-panel">
-                                        <div class="p-4">
-                                            <div class="flex justify-between items-center mb-4">
-                                                <h3 class="text-lg font-medium">@lang('main.guests_and_rooms')</h3>
-                                                <div class="close-btn">
-                                                    <a href="javascript:void(0)"
-                                                       id="panel-close"
-                                                       class="text-gray-500 hover:text-gray-700 text-xl">&times;</a>
-                                                </div>
-                                            </div>
-
-                                            {{-- Кнопка добавить комнату --}}
-                                            <div class="add-btn">
+                                        <div class="flex justify-between items-center">
+                                            <h3 class="text-lg font-medium">@lang('main.guests_and_rooms')</h3>
+                                            <div class="close-btn">
                                                 <a href="javascript:void(0)"
-                                                   id="add-room"
-                                                   class="inline-block text-blue-600 hover:underline text-sm mb-4">
-                                                    + @lang('main.add_room')
-                                                </a>
+                                                   id="panel-close"
+                                                   class="text-gray-500 hover:text-gray-700 text-xl">&times;</a>
                                             </div>
+                                        </div>
 
-                                            {{-- Сюда будут рендериться комнаты --}}
-                                            <div id="rooms-container" class="space-y-4"></div>
+                                        {{-- Кнопка добавить комнату --}}
+                                        <div class="add-btn">
+                                            <a href="javascript:void(0)"
+                                               id="add-room"
+                                               class="inline-block text-blue-600 hover:underline text-sm mb-4">
+                                                @lang('main.add_room')
+                                            </a>
+                                        </div>
 
-                                            <div class="mt-4 text-right">
-                                                <button id="panel-apply" class="more">
-                                                    @lang('main.ready')
-                                                </button>
-                                            </div>
+                                        {{-- Сюда будут рендериться комнаты --}}
+                                        <div id="rooms-container" class="space-y-4"></div>
+
+                                        <div class="mt-4 text-right">
+                                            <button id="panel-apply" class="more">
+                                                @lang('main.ready')
+                                            </button>
                                         </div>
                                     </div>
 
@@ -407,8 +383,7 @@
                                                 </div>
                                                 <div class="children-ages space-y-2 mb-4"></div>
                                                 <div class="text-right">
-                                                    <button class="apply-guests inline-block bg-blue-600 hover:bg-blue-700 text-white
-                       rounded-md px-4 py-2 text-sm">@lang('main.apply')
+                                                    <button class="apply-guests">@lang('main.apply')
                                                     </button>
                                                 </div>
                                             </div>
@@ -425,43 +400,40 @@
                                             const applyBtn = document.getElementById('panel-apply');
                                             const addRoomBtn = document.getElementById('add-room');
                                             const roomsContainer = document.getElementById('rooms-container');
-                                            const tplHtml = document.getElementById('room-template').innerHTML;
+                                            const tpl = document.getElementById('room-template').innerHTML;
                                             let nextIndex = 0;
 
-                                            // данные из PHP
-                                            const initialRooms = {!! $roomsJson !!};
-
-                                            // Открыть/закрыть
                                             function openPanel() {
-                                                overlay.classList.add('open');
+                                                overlay.classList.remove('hidden');
                                                 panel.classList.add('open');
                                             }
 
                                             function closePanel() {
-                                                overlay.classList.remove('open');
                                                 panel.classList.remove('open');
+                                                overlay.classList.add('hidden');
                                             }
 
-                                            // Глобальная сводка
                                             function updateGlobalSummary() {
                                                 const rooms = roomsContainer.querySelectorAll('.guest-room');
-                                                let adults = 0, children = 0;
+                                                const roomCount = rooms.length;
+                                                let adultsTotal = 0;
+                                                let childrenTotal = 0;
                                                 rooms.forEach(r => {
-                                                    adults += +r.querySelector('.count-adult').textContent;
-                                                    children += +r.querySelector('.count-child').textContent;
+                                                    adultsTotal += +r.querySelector('.count-adult').textContent;
+                                                    childrenTotal += +r.querySelector('.count-child').textContent;
                                                 });
                                                 summaryBtn.textContent =
-                                                    `@lang('main.room'): ${rooms.length}, @lang('main.adult'): ${adults}, @lang('main.child'): ${children}`;
-                                                // кнопка добавить
-                                                addRoomBtn.style.display = rooms.length < MAX_ROOMS ? 'inline-block' : 'none';
+                                                    `@lang('main.room'): ${roomCount}, @lang('main.adult'): ${adultsTotal}, @lang('main.child'): ${childrenTotal}`;
+                                                summaryBtn.classList.toggle('opacity-50', roomCount >= MAX_ROOMS);
+                                                summaryBtn.classList.toggle('pointer-events-none', roomCount >= MAX_ROOMS);
                                             }
 
-                                            // Переиндексация комнат
                                             function reindexRooms() {
                                                 roomsContainer.querySelectorAll('.guest-room').forEach((r, i) => {
                                                     r.dataset.index = i;
                                                     r.querySelector('.room-number').textContent = i + 1;
                                                     r.querySelector('.input-adults').name = `rooms[${i}][adults]`;
+                                                    // корректим name для каждого селекта детей
                                                     r.querySelectorAll('.children-ages select').forEach((sel, ci) => {
                                                         sel.name = `rooms[${i}][childAges][${ci}]`;
                                                     });
@@ -469,110 +441,28 @@
                                                 updateGlobalSummary();
                                             }
 
-                                            // Обновить сводку одной комнаты
-                                            function updateRoomSummary(roomEl) {
-                                                const a = +roomEl.querySelector('.count-adult').textContent;
-                                                const c = +roomEl.querySelector('.count-child').textContent;
-                                                const txt = [`${a} ${a === 1 ? '@lang('main.adult')' : '@lang('main.adult')'}`];
-                                                if (c) txt.push(`${c} ${c === 1 ? '@lang('main.child')' : '@lang('main.child')'}`);
-                                                roomEl.querySelector('.summary-text').textContent = txt.join(', ');
-                                                roomEl.querySelector('.input-adults').value = a;
-                                                updateGlobalSummary();
-                                            }
-
-                                            // Инициализация одной комнаты (навешиваем события)
-                                            function initRoom(roomEl) {
-                                                // кнопка сводки
-                                                roomEl.querySelector('.guest-summary').addEventListener('click', e => {
-                                                    e.preventDefault();
-                                                    roomEl.querySelector('.guest-dropdown').classList.toggle('hidden');
-                                                });
-                                                // dec/inc взрослых и детей, удаление, применить
-                                                roomEl.addEventListener('click', e => {
-                                                    const tgt = e.target;
-                                                    if (tgt.classList.contains('dec-adult') || tgt.classList.contains('inc-adult')) {
-                                                        e.preventDefault();
-                                                        const cnt = roomEl.querySelector('.count-adult');
-                                                        let v = +cnt.textContent;
-                                                        if (tgt.classList.contains('dec-adult') && v > 1) v--;
-                                                        if (tgt.classList.contains('inc-adult') && v < 8) v++;
-                                                        cnt.textContent = v;
-                                                        updateRoomSummary(roomEl);
-                                                    }
-                                                    if (tgt.classList.contains('dec-child') || tgt.classList.contains('inc-child')) {
-                                                        e.preventDefault();
-                                                        const cnt = roomEl.querySelector('.count-child');
-                                                        let v = +cnt.textContent;
-                                                        if (tgt.classList.contains('dec-child') && v > 0) {
-                                                            // удалить последний select
-                                                            const wrap = roomEl.querySelector('.children-ages');
-                                                            wrap.lastElementChild && wrap.removeChild(wrap.lastElementChild);
-                                                            v--;
-                                                        }
-                                                        if (tgt.classList.contains('inc-child') && v < 3) {
-                                                            const wrap = roomEl.querySelector('.children-ages');
-                                                            // создать селект
-                                                            const div = document.createElement('div');
-                                                            div.className = 'flex items-center mb-2';
-                                                            div.innerHTML = `<span class="mr-2 text-sm">@lang('main.age')</span>`;
-                                                            const sel = document.createElement('select');
-                                                            sel.className = 'border rounded px-2 py-1 text-sm';
-                                                            for (let age = 0; age <= 18; age++) {
-                                                                sel.insertAdjacentHTML('beforeend', `<option value="${age}">${age}</option>`);
-                                                            }
-                                                            div.appendChild(sel);
-                                                            wrap.appendChild(div);
-                                                            v++;
-                                                        }
-                                                        cnt.textContent = v;
-                                                        updateRoomSummary(roomEl);
-                                                        reindexRooms();
-                                                    }
-                                                    if (tgt.classList.contains('remove-room')) {
-                                                        e.preventDefault();
-                                                        roomEl.remove();
-                                                        reindexRooms();
-                                                    }
-                                                    if (tgt.classList.contains('apply-guests')) {
-                                                        e.preventDefault();
-                                                        roomEl.querySelector('.guest-dropdown').classList.add('hidden');
-                                                    }
-                                                });
-                                            }
-
-                                            // Добавление комнаты: data – {adults, childAges[]} или undefined
-                                            function addRoom(data) {
+                                            function addRoom() {
                                                 if (roomsContainer.children.length >= MAX_ROOMS) return;
                                                 const idx = nextIndex++;
                                                 const num = roomsContainer.children.length + 1;
-                                                const html = tplHtml.replace(/__INDEX__/g, idx).replace(/__NUM__/g, num);
-                                                roomsContainer.insertAdjacentHTML('beforeend', html);
-                                                const newRoom = roomsContainer.querySelector(`.guest-room[data-index="${idx}"]`);
-                                                initRoom(newRoom);
-                                                // если data – подставляем значения
-                                                if (data) {
-                                                    newRoom.querySelector('.count-adult').textContent = data.adults || 1;
-                                                    newRoom.querySelector('.count-child').textContent = (data.childAges || []).length;
-                                                    const wrap = newRoom.querySelector('.children-ages');
-                                                    wrap.innerHTML = '';
-                                                    (data.childAges || []).forEach(age => {
-                                                        const div = document.createElement('div');
-                                                        div.className = 'flex items-center mb-2';
-                                                        div.innerHTML = `<span class="mr-2 text-sm">@lang('main.age')</span>`;
-                                                        const sel = document.createElement('select');
-                                                        sel.className = 'border rounded px-2 py-1 text-sm';
-                                                        for (let a = 0; a <= 18; a++) {
-                                                            sel.insertAdjacentHTML('beforeend', `<option value="${a}"${a == age ? ' selected' : ''}>${a}</option>`);
-                                                        }
-                                                        div.appendChild(sel);
-                                                        wrap.appendChild(div);
-                                                    });
-                                                }
-                                                updateRoomSummary(newRoom);
+                                                roomsContainer.insertAdjacentHTML(
+                                                    'beforeend',
+                                                    tpl.replace(/__INDEX__/g, idx).replace(/__NUM__/g, num)
+                                                );
                                                 reindexRooms();
                                             }
 
-                                            // События открытия/закрытия
+                                            function updateRoomSummary(room) {
+                                                const aCount = +room.querySelector('.count-adult').textContent;
+                                                const cCount = +room.querySelector('.count-child').textContent;
+                                                const parts = [`${aCount} ${aCount === 1 ? '{{__('main.adult')}}' : '{{__('main.adult')}}'}`];
+                                                if (cCount) parts.push(`${cCount} ${cCount === 1 ? '{{__('main.child')}}' : '{{__('main.child')}}'}`);
+                                                room.querySelector('.summary-text').textContent = parts.join(', ');
+                                                room.querySelector('.input-adults').value = aCount;
+                                                updateGlobalSummary();
+                                            }
+
+                                            // Открытие/закрытие
                                             summaryBtn.addEventListener('click', e => {
                                                 e.preventDefault();
                                                 openPanel();
@@ -586,29 +476,98 @@
                                                 closePanel();
                                             });
                                             overlay.addEventListener('click', closePanel);
+
+                                            // Добавить комнату
                                             addRoomBtn.addEventListener('click', e => {
                                                 e.preventDefault();
                                                 addRoom();
                                             });
 
-                                            // При инициализации: если есть из запроса — рендерим их, иначе одну
-                                            if (initialRooms && initialRooms.length) {
-                                                initialRooms.forEach(roomData => addRoom(roomData));
-                                            } else {
-                                                addRoom();
-                                            }
+                                            // Делегируем клики по документу
+                                            document.addEventListener('click', e => {
+                                                // если событие не в панели — игнор
+                                                if (!e.target.closest('.guest-room') &&
+                                                    !e.target.closest('#rooms-summary') &&
+                                                    !e.target.closest('#add-room')) {
+                                                    return;
+                                                }
+
+                                                const room = e.target.closest('.guest-room');
+
+                                                if (e.target.closest('.remove-room')) {
+                                                    e.preventDefault();
+                                                    room.remove();
+                                                    reindexRooms();
+                                                    return;
+                                                }
+                                                if (e.target.closest('.guest-summary')) {
+                                                    e.preventDefault();
+                                                    room.querySelector('.guest-dropdown').classList.toggle('hidden');
+                                                    return;
+                                                }
+                                                if (e.target.closest('.dec-adult')) {
+                                                    e.preventDefault();
+                                                    const cnt = room.querySelector('.count-adult');
+                                                    if (+cnt.textContent > 1) cnt.textContent = +cnt.textContent - 1;
+                                                    updateRoomSummary(room);
+                                                    return;
+                                                }
+                                                if (e.target.closest('.inc-adult')) {
+                                                    e.preventDefault();
+                                                    const cnt = room.querySelector('.count-adult');
+                                                    if (+cnt.textContent < 8) cnt.textContent = +cnt.textContent + 1;
+                                                    updateRoomSummary(room);
+                                                    return;
+                                                }
+                                                if (e.target.closest('.dec-child')) {
+                                                    e.preventDefault();
+                                                    const cnt = room.querySelector('.count-child');
+                                                    if (+cnt.textContent > 0) cnt.textContent = +cnt.textContent - 1;
+                                                    // убираем последний селект
+                                                    const wrap = room.querySelector('.children-ages');
+                                                    if (wrap.lastElementChild) wrap.removeChild(wrap.lastElementChild);
+                                                    reindexRooms();
+                                                    updateRoomSummary(room);
+                                                    return;
+                                                }
+                                                if (e.target.closest('.inc-child')) {
+                                                    e.preventDefault();
+                                                    const cnt = room.querySelector('.count-child');
+                                                    if (+cnt.textContent < 3) {
+                                                        cnt.textContent = +cnt.textContent + 1;
+                                                        // создаём select для возраста
+                                                        const wrap = room.querySelector('.children-ages');
+                                                        const div = document.createElement('div');
+                                                        div.className = 'flex items-center';
+                                                        div.innerHTML = `<span class="mr-2 text-sm">@lang('main.age')</span>`;
+                                                        const sel = document.createElement('select');
+                                                        sel.className = 'border border-gray-300 rounded-md px-2 py-1 text-sm';
+                                                        for (let a = 0; a <= 18; a++) sel.insertAdjacentHTML('beforeend', `<option value="${a}">${a}</option>`);
+                                                        div.appendChild(sel);
+                                                        wrap.appendChild(div);
+                                                        reindexRooms();
+                                                        updateRoomSummary(room);
+                                                    }
+                                                    return;
+                                                }
+                                                if (e.target.closest('.apply-guests')) {
+                                                    e.preventDefault();
+                                                    room.querySelector('.guest-dropdown').classList.add('hidden');
+                                                }
+                                                if (e.target.closest('#rooms-summary') && !room) {
+                                                    // клик по сводке — уже обрабатывается выше
+                                                }
+                                            });
+
+                                            // Инициализация: первая комната
+                                            addRoom();
                                         });
                                     </script>
-
-
                                 </div>
-                                <div class="col-lg col-6 extra">
+                                <div class="col-lg-4 col-md-6 extra">
                                     <div class="form-group">
                                         <div id="filter">
-                                            <div class="label filter"><img src="{{route('index')}}/img/setting.svg"
-                                                                           alt="">
-                                                @lang('main.filters')
-                                            </div>
+                                            <div class="label filter">@lang('main.filters')</div>
                                             <div class="filter-wrap" id="filter-wrap">
                                                 <div class="closebtn" id="closebtn"><img
                                                             src="{{route('index')}}/img/close.svg" alt=""></div>
@@ -703,67 +662,56 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="line"></div>
                                                 <div class="form-group">
-                                                    <div class="row">
-                                                        <div class="col-lg-3">
-                                                            <div class="apart-item">
-                                                                <img src="{{route('index')}}/img/hotelb.svg" alt="">
-                                                                <h6>@lang('main.hotels')</h6>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="line"></div>
-                                                <div class="name">@lang('main.arrival')</div>
-                                                <div class="form-group" id="income">
-                                                    <div class="row">
-                                                        <div class="col-md-6 col-6">
-                                                            <div class="itemm">
-                                                                <input type="checkbox" value="early_in">
-                                                                <label for="">@lang('main.early_in')</label>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-md-6 col-6">
-                                                            <div class="itemm">
-                                                                <input type="checkbox" value="late_out">
-                                                                <label for="">@lang('main.late_out')</label>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="line"></div>
-                                                <div class="form-group" id="meal">
-                                                    <div class="name">@lang('main.meal_plans')</div>
-                                                    <div class="row">
-                                                        @php
-                                                            $meals = \App\Models\Meal::all();
-                                                        @endphp
-                                                        @foreach ($meals as $meal)
-                                                            <div class="col-lg">
-                                                                <div class="itemmm {{ in_array($meal->id, (array) request('meal')) ? 'active' : '' }}">
-                                                                    <input type="checkbox"
-                                                                           name="meal[]"
-                                                                           id="{{ $meal->code }}"
-                                                                           value="{{ $meal->id }}"
-                                                                            {{ in_array($meal->id, (array) request('meal')) ? 'checked' : '' }}>
-                                                                    <label class="meal-checkbox"
-                                                                           for="{{ $meal->code }}">{{ $meal->code }}</label>
+                                                    <div class="line"></div>
+                                                    <div class="name">@lang('main.arrival')</div>
+                                                    <div class="form-group" id="income">
+                                                        <div class="row">
+                                                            <div class="col-md-6 col-6">
+                                                                <div class="itemm">
+                                                                    <input type="checkbox" value="early_in">
+                                                                    <label for="">@lang('main.early_in')</label>
                                                                 </div>
                                                             </div>
-                                                        @endforeach
+                                                            <div class="col-md-6 col-6">
+                                                                <div class="itemm">
+                                                                    <input type="checkbox" value="late_out">
+                                                                    <label for="">@lang('main.late_out')</label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="line"></div>
+                                                    <div class="form-group" id="meal">
+                                                        <div class="name">@lang('main.meal_plans')</div>
+                                                        <div class="row">
+                                                            @php
+                                                                $meals = \App\Models\Meal::all();
+                                                            @endphp
+                                                            @foreach ($meals as $meal)
+                                                                <div class="col-lg">
+                                                                    <div class="itemmm {{ in_array($meal->id, (array) request('meal')) ? 'active' : '' }}">
+                                                                        <input type="checkbox"
+                                                                               name="meal[]"
+                                                                               id="{{ $meal->code }}"
+                                                                               value="{{ $meal->id }}"
+                                                                                {{ in_array($meal->id, (array) request('meal')) ? 'checked' : '' }}>
+                                                                        <label class="meal-checkbox"
+                                                                               for="{{ $meal->code }}">{{ $meal->code }}</label>
+                                                                    </div>
+                                                                </div>
+                                                            @endforeach
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <button class="more">@lang('main.find')</button>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-lg col-12">
+                                <div class="col-lg-4 col-md-6">
                                     <div class="form-group">
-                                        <button class="more"><img src="{{ route('index') }}/img/search.svg" alt="">
-                                            @lang('main.find')
-                                        </button>
+                                        @csrf
+                                        <button type="submit" class="more">@lang('main.find')</button>
                                     </div>
                                 </div>
                             </div>
@@ -772,8 +720,10 @@
                 </div>
             </div>
         </div>
+        </div>
 
-        <div class="page search">
+
+        <div class="page search" style="margin-bottom: 60px">
             <div class="container-fluid">
                 <div class="row">
                     {{--                    <div class="col-md-2">--}}
@@ -1115,8 +1065,8 @@
                                                                        value="{{ $request->arrivalDate }}">
                                                                 <input type="hidden" name="departureDate"
                                                                        value="{{ $request->departureDate }}">
-{{--                                                                <input type="hidden" id="city" name="city"--}}
-{{--                                                                       value="{{ $request->city }}">--}}
+                                                                {{--                                                                <input type="hidden" id="city" name="city"--}}
+                                                                {{--                                                                       value="{{ $request->city }}">--}}
                                                                 <input type="hidden" name="roomCount"
                                                                        value="{{ $roomCount }}">
                                                                 <input type="hidden" name="adult"

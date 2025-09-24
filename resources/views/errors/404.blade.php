@@ -1,10 +1,10 @@
-@extends('layouts.head')
+@extends('layouts.master')
 
 @section('title', 'Ошибка 404')
 
 @section('content')
 
-<div class="page page-not">
+<div class="page page-not" style="padding: 250px 0">
     <div class="container">
         <div class="col-md-12">
             <div class="text-wrap">

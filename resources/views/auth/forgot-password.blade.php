@@ -1,4 +1,4 @@
-@extends('layouts.head')
+@extends('layouts.master')
 
 @section('title', 'Забыли пароль?')
 
@@ -10,7 +10,7 @@
         </div>
     @endif
 
-    <div class="page">
+    <div class="page" style="margin-bottom: 60px">
         <div class="container">
             <div class="row">
                 <div class="col-lg-6 offset-lg-3 col-md-12">

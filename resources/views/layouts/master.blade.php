@@ -14,13 +14,7 @@
     <!-- Custom Browsers Color End -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
-          rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/gh/eliyantosarage/font-awesome-pro@main/fontawesome-pro-6.5.1-web/css/all.min.css"
-          rel="stylesheet">
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/css/selectize.bootstrap3.min.css"
-          integrity="sha256-ze/OEYGcFbPRmvCnrSeKbRTtjG4vGLHXgOqsyLFTRjg=" crossorigin="anonymous"/>
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{route('index')}}/css/main.min.css?ver=1.2">
     <link rel="stylesheet" href="{{route('index')}}/css/style.css?ver=1.1">
 
@@ -47,125 +41,90 @@
 {{--</div>--}}
 
 
-<header class="main">
+<header>
     <div class="container">
         <div class="row">
-            <div class="col-lg-2 col-md-3 col-4">
+            <div class="col-lg-3 col-md-3 col-4">
                 <a href="{{route('index')}}">
                     <img src="{{route('index')}}/img/logo.svg" alt="">
                 </a>
             </div>
-            @auth
-                <div class="col-lg-10 d-xl-block d-lg-block d-none">
-                    <div class="wrap">
-                        <div class="lang-wrap" id="lang">
-                            <div class="currency">{{ $fxBase }}</div>
-                            <div class="lang">
-                                <div class="lang-item">
-                                    @if(app()->getLocale() == 'ru')
-                                        <a href="#">Русский <img src="{{route('index')}}/img/ru.svg" alt=""></a>
-                                    @else
-                                        <a href="#"><img src="{{route('index')}}/img/en.svg" alt=""> English</a>
-                                    @endif
-                                </div>
+            <div class="col-lg-4 d-xl-block d-lg-block d-none">
+                <div class="menu-wrap">
+                    <ul>
+                        <li><a href="{{route('service')}}">@lang('main.about_service')</a></li>
+                        <li><a href="{{route('contactspage')}}">@lang('main.contacts')</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-5 d-xl-block d-lg-block d-none">
+                <div class="wrap">
+                    <div class="lang-wrap" id="lang">
+                        <div class="currency">{{ $fxBase }}</div>
+                        <div class="lang">
+                            <div class="lang-item">
+                                @if(app()->getLocale() == 'ru')
+                                    <a href="#">RU</a>
+                                @else
+                                    <a href="#">EN</a>
+                                @endif
                             </div>
-                            <div class="overwrap" id="over">
-                                <ul class="tabs" id="tabs">
-                                    <li class="current" data-tab="tab-1">@lang('main.currency')</li>
-                                    <li data-tab="tab-2">@lang('main.language')</li>
+                        </div>
+                        <div class="overwrap" id="over">
+                            <ul class="tabs" id="tabs">
+                                <li class="current" data-tab="tab-1">@lang('main.currency')</li>
+                                <li data-tab="tab-2">@lang('main.language')</li>
+                            </ul>
+                            <div class="tab-content current" id="tab-1">
+                                <ul class="currency-switcher">
+                                    @foreach(['USD', 'KGS', 'RUB'] as $ccy)
+                                        <li>
+                                            <a class="{{ $fxBase === $ccy ? 'current' : '' }}"
+                                               href="{{ route('currency.switch', $ccy) }}">
+                                                @if($ccy === 'USD')
+                                                    USD
+                                                @elseif($ccy === 'KGS')
+                                                    KGS
+                                                @else
+                                                    RUB
+                                                @endif
+                                            </a>
+                                        </li>
+                                    @endforeach
                                 </ul>
-                                <div class="tab-content current" id="tab-1">
-                                    <ul class="currency-switcher">
-                                        @foreach(['USD', 'KGS', 'RUB'] as $ccy)
-                                            <li>
-                                                <a class="{{ $fxBase === $ccy ? 'current' : '' }}"
-                                                   href="{{ route('currency.switch', $ccy) }}">
-                                                    @if($ccy === 'USD')
-                                                        USD Американский доллар
-                                                    @elseif($ccy === 'KGS')
-                                                        KGS Кыргызский сом
-                                                    @else
-                                                        RUB Российский рубль
-                                                    @endif
-                                                </a>
-                                            </li>
-                                        @endforeach
-                                    </ul>
-                                    <style>
-                                        header .wrap .lang-wrap .overwrap .tab-content ul li a.current {
-                                            color: #0061ae;
-                                        }
-                                    </style>
-                                    {{--                                    <ul>--}}
-                                    {{--                                        <li>KGS Кыргызский сом</li>--}}
-                                    {{--                                        <li>RUB Российский рубль</li>--}}
-                                    {{--                                        <li class="current">USD Американский доллар</li>--}}
-                                    {{--                                    </ul>--}}
-                                </div>
-                                <div class="tab-content" id="tab-2">
-                                    <ul>
-                                        {{--                                        <li><img src="{{route('index')}}/img/kg.svg" alt=""> Кыргыз тили</li>--}}
-                                        <li @if(session('locale')=='ru')
-                                                current
-                                                @endif><a href="{{ route('locale', 'ru') }}"><img
-                                                        src="{{route('index')}}/img/ru.svg" alt=""> Русский</a></li>
-                                        <li @if(session('locale')=='en')
-                                                current
-                                                @endif><a href="{{ route('locale', 'en') }}"><img
-                                                        src="{{route('index')}}/img/en.svg" alt=""> English</a></li>
-                                    </ul>
-                                </div>
+                            </div>
+                            <div class="tab-content" id="tab-2">
+                                <ul>
+                                    <li @if(session('locale')=='ru')
+                                            current
+                                            @endif><a href="{{ route('locale', 'ru') }}">RU</a></li>
+                                    <li @if(session('locale')=='en')
+                                            current
+                                            @endif><a href="{{ route('locale', 'en') }}">EN</a></li>
+                                </ul>
                             </div>
                         </div>
-                        <div class="menu-wrap">
-                            <ul>
-                                <li><a href="{{route('about')}}">@lang('main.about_service')</a></li>
-                                <li><a href="{{route('contactspage')}}">@lang('main.contacts')</a></li>
-                            </ul>
-                        </div>
-                        <div class="auth">
-                            @auth
-                                <a href="{{ route('profile.edit') }}"><img src="{{route('index')}}/img/user_w.svg"
-                                                                           alt="">
-                                    @lang('main.welcome_log') {{ \Illuminate\Support\Facades\Auth::user()->name }}</a>
-                            @else
-                                <a href="{{ route('extranet') }}"><img src="{{route('index')}}/img/user_w.svg" alt="">
-                                    @lang('main.login')</a>
-                            @endif
-                        </div>
+                    </div>
+                    <div class="auth">
+                        <a href="{{ route('login') }}">Войти</a>
                     </div>
                 </div>
-                <div class="col-lg-10 col-md-9 col-8 d-xl-none d-lg-none d-block">
-                    <div class="wrap">
-                        <div class="auth">
-                            @auth
-                                <a href="{{ route('profile.edit') }}"><img src="{{route('index')}}/img/user_w.svg"
-                                                                           alt="">
-                                    @lang('main.welcome_log') {{ \Illuminate\Support\Facades\Auth::user()->name }}</a>
-                            @else
-                                <a href="{{ route('extranet') }}"><img src="{{route('index')}}/img/user_w.svg" alt="">
-                                    @lang('main.login')</a>
-                            @endif
-                        </div>
-                        <nav>
-                            <a href="#" class="toggle-mnu d-xl-none d-lg-none"><span></span></a>
-                            <ul>
-                                <li><a href="{{route('about')}}">@lang('main.about_service')</a></li>
-                                <li><a href="{{route('contactspage')}}">@lang('main.contacts')</a></li>
-                                {{--                                <li><a href="#"><img src="{{route('index')}}/img/kg.svg" alt=""> Кыргыз тили </a></li>--}}
-                                <li @if(session('locale')=='ru')
-                                        current
-                                        @endif><a href="{{ route('locale', 'ru') }}"><img
-                                                src="{{route('index')}}/img/ru.svg" alt=""> Русский</a></li>
-                                <li @if(session('locale')=='en')
-                                        current
-                                        @endif><a href="{{ route('locale', 'en') }}"><img
-                                                src="{{route('index')}}/img/en.svg" alt=""> English</a></li>
-                            </ul>
-                        </nav>
+            </div>
+            <div class="col-lg-10 col-md-9 col-8 d-xl-none d-lg-none d-block">
+                <div class="wrap">
+                    <div class="auth">
+                        <a href="{{ route('login') }}">Войти</a>
                     </div>
+                    <nav>
+                        <a href="#" class="toggle-mnu d-xl-none d-lg-none"><span></span></a>
+                        <ul>
+                            <li><a href="{{route('service')}}">@lang('main.about_service')</a></li>
+                            <li><a href="{{route('contactspage')}}">@lang('main.contacts')</a></li>
+                            <a href="{{ route('index') }}">RU</a>
+                        </ul>
+                    </nav>
                 </div>
-            @endauth
+            </div>
         </div>
 
     </div>
@@ -186,14 +145,15 @@
 
 @yield('content')
 
+
 <footer>
     <div class="footer">
         <div class="container">
             <div class="row">
-                <div class="col-lg-2 col-md-4">
+                <div class="col-lg-3 col-md-4">
                     <div class="footer-item">
                         <div class="logo">
-                            <img src="{{ route('index') }}/img/logo_b.svg" alt="">
+                            <img src="{{ route('index') }}/img/logo_foot.svg" alt="">
                         </div>
                     </div>
                 </div>
@@ -202,45 +162,43 @@
                         <ul>
                             <li>{{ $contacts->first()->__('address') }}</li>
                             <li><a href="tel:{{ $contacts->first()->phone }}">{{ $contacts->first()->phone }}</a></li>
+                            <li><a href="mailto:{{ $contacts->first()->email }}">{{ $contacts->first()->email }}</a></li>
                             <li><a href="{{ $contacts->first()->instagram }}" target="_blank">Instagram</a></li>
                             <li><a href="https://wa.me/{{ $contacts->first()->whatsapp }}" target="_blank">WhatsApp</a>
                             </li>
                         </ul>
                     </div>
                 </div>
-                <div class="col-lg-2 col-md-4">
+                <div class="col-lg-3 col-md-4">
                     <div class="footer-item">
                         <ul>
-                            <li><a href="{{ route('about') }}">@lang('main.about_service')</a></li>
-                            <li><a href="{{ route('aboutus') }}">@lang('main.about_company')</a></li>
-                            <li><a href="{{ route('hotels') }}">@lang('main.cities_and_countries')</a></li>
+                            <li><a href="{{ route('service') }}">@lang('main.about_service')</a></li>
+                            <li><a href="{{ route('about') }}">@lang('main.about_company')</a></li>
                             <li><a href="#">@lang('main.blog')</a></li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="col-lg-2 col-md-4">
-                    <div class="footer-item">
-                        <ul>
-                            <li><a href="{{ route('companies') }}">@lang('main.companies_services')</a></li>
-                            <li><a href="{{ route('apartments') }}">@lang('main.apartments')</a></li>
-                            <li><a href="{{ route('objects') }}">@lang('main.hotels_properties')</a></li>
-                            <li><a href="{{ route('objects') }}">@lang('main.tour_operators')</a></li>
                         </ul>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-4">
                     <div class="footer-item">
                         <ul>
+                            <li><a href="{{ route('companies') }}">@lang('main.companies_services')</a></li>
+                            <li><a href="{{ route('apartments') }}">@lang('main.apartments')</a></li>
+                            <li><a href="{{ route('objects') }}">@lang('main.hotels_properties')</a></li>
+                            <li><a href="{{ route('objects') }}">@lang('main.tour_operators')</a></li>
                             <li><a href="{{ route('rules') }}">@lang('main.booking_terms')</a></li>
-                            <li><a href="{{ route('privacy') }}">@lang('main.privacy')</a></li>
-                            <li><a href="{{ route('legal') }}">@lang('main.legal')</a></li>
                         </ul>
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="copy">@lang('main.copy') &copy; {{ date('Y') }} staybook.asia</div>
+            <div class="row copy">
+                <div class="col-lg-4">
+                    <p>@lang('main.copy') &copy; {{ date('Y') }} staybook.asia</p>
+                </div>
+                <div class="col-lg-4 center">
+                    <a href="{{ route('privacy') }}">@lang('main.privacy')</a>
+                </div>
+                <div class="col-lg-4 right">
+                    <a href="{{ route('legal') }}">@lang('main.legal')</a>
                 </div>
             </div>
         </div>
@@ -249,13 +207,13 @@
 
 <script src="{{ route('index') }}/js/scripts.min.js?ver=1.1"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+{{--<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>--}}
 <script>
     $(document).ready(function () {
-        $('#city').select2({
-            placeholder: "Выберите город",
-            allowClear: true
-        });
+        // $('#city').select2({
+        //     placeholder: "Выберите город",
+        //     allowClear: true
+        // });
 
         // 1) читаем hidden, подставляем дефолты если пусто/Invalid
         let start = moment($('#arrivalDate').val(), 'YYYY-MM-DD', true);

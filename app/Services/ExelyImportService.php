@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Services;
 
 use App\Models\CancellationRule;
@@ -11,7 +10,6 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
-
 class ExelyImportService
 {
     public function handle(): void

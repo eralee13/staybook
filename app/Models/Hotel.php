@@ -14,7 +14,6 @@ class Hotel extends Model
     use SoftDeletes;
 //    use QueryCacheable;
 //    protected $cacheFor = 0;
-
     protected $hidden = [
         'created_at',
         'updated_at',
@@ -30,33 +29,26 @@ class Hotel extends Model
     ];
 
     protected $guarded = [];
-
     public function rooms()
     {
         return $this->hasMany(Room::class);
     }
-
     public function rates()
     {
         return $this->hasMany(Rate::class);
     }
-
-
     public function amenity()
     {
         return $this->hasOne(Amenity::class);
     }
-
     public function scopeByCode($query, $code)
     {
         return $query->where('code', $code);
     }
-
     public function meals()
     {
         return $this->hasMany(Meal::class);
     }
-
     public function city()
     {
         return $this->belongsTo(City::class);
