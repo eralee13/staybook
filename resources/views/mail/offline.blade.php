@@ -99,6 +99,10 @@
                     <td align="right" style="color: #000; font-size: 16px;">{{ $offline->email}}</td>
                 </tr>
                 <tr>
+                    <td><strong>Phone:</strong></td>
+                    <td align="right" style="color: #000; font-size: 16px;">{{ $offline->phone}}</td>
+                </tr>
+                <tr>
                     <td><strong>Message:</strong></td>
                     <td align="right" style="color: #000; font-size: 16px;">{{ $offline->message}}</td>
                 </tr>

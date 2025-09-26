@@ -146,7 +146,6 @@ Route::middleware('set_locale')->group(function () {
 
     //-----search
     Route::get('/search', [SearchController::class, 'smartSearch'])->name('search');        // результаты
-    //Route::get('/api/suggest', [SearchController::class, 'suggest'])->name('api.suggest'); // подсказки
     Route::get('/suggest', [SearchController::class, 'suggest'])->name('suggest');
 
     //local
@@ -208,18 +207,6 @@ Route::middleware('set_locale')->group(function () {
     Route::get('/book/reserve/etg', [\App\Http\Controllers\BookingEtgController::class, 'book_reserve_etg'])->name('book_reserve_etg');
     Route::get('/book/cancel/etg', [\App\Http\Controllers\BookingEtgController::class, 'cancel_calculate_etg'])->name('cancel_calculate_etg');
     Route::get('/book/cancel/confirm/etg', [\App\Http\Controllers\BookingEtgController::class, 'cancel_confirm_etg'])->name('cancel_confirm_etg');
-
-    //HotelStar
-//    Route::prefix('hotelstar')->group(function () {
-//        Route::post('/search', [HotelStarController::class, 'search']);
-//        Route::post('/actualize', [HotelStarController::class, 'actualize']);
-//        Route::post('/book', [HotelStarController::class, 'book']);
-//
-//        Route::post('/cancel', [HotelStarController::class, 'cancel']);
-//        Route::post('/info', [HotelStarController::class, 'info']);
-//        Route::post('/message', [HotelStarController::class, 'sendMessage']);
-//        Route::post('/message-list', [HotelStarController::class, 'messageList']);
-//    });
 
     //email
     Route::post('contact_mail', [MainController::class, 'contact_mail'])->name('contact_mail');

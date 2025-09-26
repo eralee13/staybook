@@ -1,10 +1,28 @@
 @php use App\Models\Hotel; @endphp
-@extends('layouts.head')
+@extends('layouts.master')
 
 @section('title', 'Оформление заказа')
 
 @section('content')
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        setTimeout(function () {
+            $('#timeoutModal').modal('show');
+            setTimeout(function () {
+                window.location.href = "{{ route('index') }}";
+            }, 4000);
+        }, 600000);
+    </script>
 
+    <style>
+        body{
+            font-family: Unbounded,sans-serif;
+        }
+        .page{
+            padding-bottom: 60px;
+        }
+    </style>
     @auth
         <div class="page order">
             <div class="container">
@@ -250,17 +268,6 @@
                 </div>
             </div>
         </div>
-
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-        <script>
-            setTimeout(function () {
-                $('#timeoutModal').modal('show');
-                setTimeout(function () {
-                    window.location.href = "{{ route('index') }}";
-                }, 4000);
-            }, 600000);
-        </script>
 
     @else
         @include('layouts.auth')

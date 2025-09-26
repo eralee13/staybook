@@ -114,24 +114,24 @@ class SearchController extends Controller
      */
     public function search(Request $request)
     {
-        // Города для фильтра/подсказок (как и было)
-        $cities  = City::whereNull('country_id')->orderBy('title')->get();
+        // Города для фильтра/подсказок
+        $cities = City::whereNull('country_id')->orderBy('title')->get();
 
         // Валюта/курсы
-        $fxBase  = session('currency', 'USD');
+        $fxBase = session('currency', 'USD');
         $fxRates = app(\App\Services\FXService::class)->getRatesBaseCentral() ?? [];
 
         // ---------- Гости/комнаты: безопасный парс ----------
-        $roomsInput   = Arr::wrap($request->input('rooms')); // [] если null/скаляр
-        $totalAdults  = 0;
+        $roomsInput = Arr::wrap($request->input('rooms')); // [] если null/скаляр
+        $totalAdults = 0;
         $allChildAges = [];
 
         foreach ($roomsInput as $room) {
-            $totalAdults += (int) Arr::get($room, 'adults', 0);
+            $totalAdults += (int)Arr::get($room, 'adults', 0);
 
             $childAges = Arr::get($room, 'childAges', []);
             foreach (Arr::wrap($childAges) as $age) {
-                $age = is_numeric($age) ? (int) $age : null;
+                $age = is_numeric($age) ? (int)$age : null;
                 if ($age !== null && $age >= 0) {
                     $allChildAges[] = $age;
                 }
@@ -140,7 +140,6 @@ class SearchController extends Controller
 
         // ---------- Базовый запрос отелей ----------
         $hotelQuery = Hotel::with([
-            // подгружаем тарифы и фильтруем по доступности, питанию и занятости дат
             'rates' => function ($q) use ($request, $totalAdults) {
                 if ($request->filled('rooms')) {
                     $q->where('availability', '>=', $totalAdults);
@@ -150,7 +149,7 @@ class SearchController extends Controller
                 }
                 if ($request->filled('start_d') && $request->filled('end_d')) {
                     $start = $request->input('start_d');
-                    $end   = $request->input('end_d');
+                    $end = $request->input('end_d');
                     $q->whereDoesntHave('bookings', function ($b) use ($start, $end) {
                         $b->where('status', 'reserved')->where(function ($qb) use ($start, $end) {
                             $qb->whereBetween('arrivalDate', [$start, $end])
@@ -163,18 +162,17 @@ class SearchController extends Controller
                     });
                 }
             },
-            'city' // на случай, если есть связь для фильтра по названию города
+            'city'
         ]);
 
         // ---------- Фильтр по городу ----------
         $cityId = $request->input('city_id');
 
         if (Schema::hasColumn('hotels', 'city_id')) {
-            // схема с FK есть
             if ($cityId) {
-                $hotelQuery->where('city_id', (int) $cityId);
+                $hotelQuery->where('city_id', (int)$cityId);
             } elseif ($request->filled('city')) {
-                $rawCity       = (string) $request->input('city', '');
+                $rawCity = (string)$request->input('city', '');
                 $cityForSearch = trim(preg_replace('/^\s*\d+\s*-\s*/u', '', $rawCity));
                 if ($cityForSearch !== '') {
                     $cityLc = mb_strtolower($cityForSearch);
@@ -190,16 +188,14 @@ class SearchController extends Controller
                 }
             }
         } else {
-            // схемы с city_id нет — работаем по названию
             if ($cityId) {
-                // конвертируем city_id -> название города и фильтруем по текстовому полю hotels.city
-                $cityTitle = \App\Models\City::whereKey($cityId)->value('title');
+                $cityTitle = City::whereKey($cityId)->value('title');
                 if ($cityTitle) {
                     $cityLc = mb_strtolower($cityTitle);
                     $hotelQuery->whereRaw('LOWER(city) LIKE ?', ["%{$cityLc}%"]);
                 }
             } elseif ($request->filled('city')) {
-                $rawCity       = (string) $request->input('city', '');
+                $rawCity = (string)$request->input('city', '');
                 $cityForSearch = trim(preg_replace('/^\s*\d+\s*-\s*/u', '', $rawCity));
                 if ($cityForSearch !== '') {
                     $cityLc = mb_strtolower($cityForSearch);
@@ -214,24 +210,24 @@ class SearchController extends Controller
 
         // ---------- Фильтр по рейтингу ----------
         if ($request->filled('rating')) {
-            $hotelQuery->where('rating', '>=', (int) $request->input('rating'));
+            $hotelQuery->where('rating', '>=', (int)$request->input('rating'));
         }
 
         // ---------- Локальные отели ----------
         $local = $hotelQuery->where('status', 1)->get();
 
         $localHotels = $local
-            ->filter(fn($hotel) => empty($hotel->exely_id)) // только те, что не в Exely
+            ->filter(fn($hotel) => empty($hotel->exely_id)) // только не-Exely
             ->map(function ($hotel) use ($fxRates) {
-                $minRate  = (float) (($hotel->rates?->min('price')) ?? 0.0);
+                $minRate = (float)(($hotel->rates?->min('price')) ?? 0.0);
                 $currency = $hotel->rates?->first()?->currency ?? 'USD';
-                $rateFrom = (float) ($fxRates[$currency] ?? 1.0);
+                $rateFrom = (float)($fxRates[$currency] ?? 1.0);
                 $priceUsd = $rateFrom > 0 ? $minRate / $rateFrom : $minRate;
 
                 return [
                     'source' => 'local',
-                    'hotel'  => $hotel,
-                    'price'  => round($priceUsd, 2),
+                    'hotel' => $hotel,
+                    'price' => round($priceUsd, 2), // приводим к USD для единообразной сортировки
                 ];
             });
 
@@ -239,7 +235,7 @@ class SearchController extends Controller
         $propertyIds = $local
             ->pluck('exely_id')
             ->filter(fn($v) => filled($v))
-            ->map(fn($id) => (string) $id)
+            ->map(fn($id) => (string)$id)
             ->unique()
             ->values()
             ->all();
@@ -249,28 +245,27 @@ class SearchController extends Controller
         if (!empty($propertyIds)) {
             try {
                 $payload = [
-                    'propertyIds'  => array_values($propertyIds),
-                    'adults'       => (int) $totalAdults,
-                    'childAges'    => array_values($allChildAges), // даже если пусто — []
-                    'arrivalDate'  => (string) $request->input('arrivalDate', now()->format('Y-m-d')),
-                    'departureDate'=> (string) $request->input('departureDate', now()->addDay()->format('Y-m-d')),
+                    'propertyIds' => array_values($propertyIds),
+                    'adults' => (int)$totalAdults,
+                    'childAges' => array_values($allChildAges),
+                    'arrivalDate' => (string)$request->input('arrivalDate', now()->format('Y-m-d')),
+                    'departureDate' => (string)$request->input('departureDate', now()->addDay()->format('Y-m-d')),
                 ];
 
                 $response = Http::timeout(30)
                     ->connectTimeout(5)
                     ->retry(2, 100)
                     ->accept('application/json')
-                    ->withHeaders(['x-api-key' => (string) config('services.exely.key')])
-                    ->post(rtrim((string) config('services.exely.base_url'), '/') . '/search/v1/properties/room-stays/search', $payload);
+                    ->withHeaders(['x-api-key' => (string)config('services.exely.key')])
+                    ->post(rtrim((string)config('services.exely.base_url'), '/') . '/search/v1/properties/room-stays/search', $payload);
 
                 if ($response->successful()) {
-                    // object() оставим, но обернём чтение полей через data_get ниже
                     $results = $response->object();
                 } else {
                     Log::warning('Exely search failed', [
-                        'status'  => $response->status(),
+                        'status' => $response->status(),
                         'payload' => $payload,
-                        'body'    => $response->body(),
+                        'body' => $response->body(),
                     ]);
                 }
             } catch (ConnectionException $e) {
@@ -281,57 +276,73 @@ class SearchController extends Controller
         }
 
         // ---------- Нормализуем Exely-ответ ----------
-        $exelyRoomStays = collect(data_get($results, 'roomStays', [])); // [] если null
+        $exelyRoomStays = collect(data_get($results, 'roomStays', []));
         $exelyHotels = $exelyRoomStays->map(function ($roomStay) use ($fxRates) {
-            $basePrice = (float) data_get($roomStay, 'total.priceBeforeTax', 0);
-            $currency  = (string) (data_get($roomStay, 'currencyCode', 'USD') ?? 'USD');
-            $rateFrom  = (float) ($fxRates[$currency] ?? 1.0);
-            $priceUsd  = $rateFrom > 0 ? $basePrice / $rateFrom : $basePrice;
+            $basePrice = (float)data_get($roomStay, 'total.priceBeforeTax', 0);
+            $currency = (string)(data_get($roomStay, 'currencyCode', 'USD') ?? 'USD');
+            $rateFrom = (float)($fxRates[$currency] ?? 1.0);
+            $priceUsd = $rateFrom > 0 ? $basePrice / $rateFrom : $basePrice;
 
             $propertyId = data_get($roomStay, 'propertyId');
             $hotelModel = $propertyId ? Hotel::where('exely_id', $propertyId)->first() : null;
 
             return [
-                'source'   => 'exely',
+                'source' => 'exely',
                 'roomStay' => $roomStay,
-                'hotel'    => $hotelModel,
-                'price'    => round($priceUsd, 2),
+                'hotel' => $hotelModel,
+                'price' => round($priceUsd, 2), // к USD
             ];
         });
 
-        // ---------- Объединяем и сортируем ----------
+        // ---------- Объединяем ----------
         $allHotels = $localHotels->concat($exelyHotels)->values();
 
-        // Поиск по названию отеля (если передан title)
+        // ---------- Схлопываем до 1 записи на отель с минимальной ценой ----------
+        $byHotel = $allHotels->groupBy(function ($item) {
+            $hid = data_get($item, 'hotel.id');
+            return $hid ? 'local:' . $hid : 'exely:' . (string)data_get($item, 'roomStay.propertyId');
+        });
+
+        $hotelsMin = $byHotel->map(function ($items) {
+            $best = $items->sortBy('price', SORT_NUMERIC)->first();
+            return [
+                'source' => data_get($best, 'source'),
+                'hotel' => data_get($best, 'hotel'),
+                'roomStay' => data_get($best, 'roomStay'),
+                'price' => (float)data_get($best, 'price', 0), // USD
+                'min_price' => (float)data_get($best, 'price', 0), // алиас
+            ];
+        })->values();
+
+        // ---------- Поиск по названию ----------
         if ($request->filled('title')) {
-            $needle = mb_strtolower((string) $request->input('title'));
-            $allHotels = $allHotels->filter(function ($item) use ($needle) {
-                $title    = mb_strtolower((string) data_get($item, 'hotel.title', ''));
-                $title_en = mb_strtolower((string) data_get($item, 'hotel.title_en', ''));
+            $needle = mb_strtolower((string)$request->input('title'));
+            $hotelsMin = $hotelsMin->filter(function ($item) use ($needle) {
+                $title = mb_strtolower((string)data_get($item, 'hotel.title', ''));
+                $title_en = mb_strtolower((string)data_get($item, 'hotel.title_en', ''));
                 return str_contains($title, $needle) || str_contains($title_en, $needle);
             })->values();
         }
 
-        // Сортировки
-        $sort = (string) $request->input('sort', '');
-        if ($sort === 'lowest_price') {
-            $allHotels = $allHotels->sortBy('price')->values();
-        } elseif ($sort === 'highest_price') {
-            $allHotels = $allHotels->sortByDesc('price')->values();
+        // ---------- Сортировки (по умолчанию: lowest_price) ----------
+        $sort = (string)$request->input('sort', 'lowest_price');
+        switch ($sort) {
+            case 'highest_price':
+                $hotelsMin = $hotelsMin->sortByDesc('min_price', SORT_NUMERIC)->values();
+                break;
+            case 'lowest_price':
+            default:
+                $hotelsMin = $hotelsMin->sortBy('min_price', SORT_NUMERIC)->values();
+                break;
         }
-        // Если нужно сортировать по названию — можно раскомментировать:
-        // elseif ($sort === 'title_asc') {
-        //     $allHotels = $allHotels->sortBy(fn($h) => mb_strtolower($h['hotel']->title ?? ''))->values();
-        // } elseif ($sort === 'title_desc') {
-        //     $allHotels = $allHotels->sortByDesc(fn($h) => mb_strtolower($h['hotel']->title ?? ''))->values();
-        // }
 
+        // Рендер
         return view('pages.search.search', [
-            'allHotels' => $allHotels,
-            'fxBase'    => $fxBase,
-            'fxRates'   => $fxRates,
-            'request'   => $request,
-            'cities'    => $cities,
+            'allHotels' => $hotelsMin, // уже один элемент на отель, отсортировано
+            'fxBase' => $fxBase,
+            'fxRates' => $fxRates,
+            'request' => $request,
+            'cities' => $cities,
         ]);
     }
 

@@ -28,9 +28,9 @@ class CancelRuleController extends Controller
 
     public function create(Request $request)
     {
-        $hotel_id = $request->session()->get('hotel_id');
-        $rates = Rate::where('hotel_id', $hotel_id)->get();
-        return view('auth.cancellations.form', compact('hotel_id', 'rates'));
+        $hotel = $request->session()->get('hotel_id');
+        $rates = Rate::where('hotel_id', $hotel)->get();
+        return view('auth.cancellations.form', compact('hotel', 'rates'));
     }
 
     /**

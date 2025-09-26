@@ -22,7 +22,7 @@
                                 <div class="col-lg-4 col-md-6">
                                     <div class="form-group">
                                         <input type="text" id="searchbox" name="city" placeholder="@lang('main.city_or_hotel')"
-                                               autocomplete="off" value="{{ request('q') }}">
+                                               autocomplete="off" value="{{ request('q') }}" required>
                                         <div id="suggest" class="suggest hidden"></div>
                                         <input type="hidden" name="city_id" id="city_id">
                                         <style>

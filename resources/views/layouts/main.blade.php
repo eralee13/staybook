@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200..900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{route('index')}}/css/main.min.css?ver=1.2">
+    <link rel="stylesheet" href="{{route('index')}}/css/main.min.css?ver=1.3">
     <link rel="stylesheet" href="{{route('index')}}/css/style.css?ver=1.1">
 
     <!-- Google tag (gtag.js) -->
@@ -210,7 +210,7 @@
     </footer>
 
 
-    <script src="{{ route('index') }}/js/scripts.min.js?ver=1.1"></script>
+    <script src="{{ route('index') }}/js/scripts.min.js?ver=1.2"></script>
 
     {{--<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>--}}
     <script>

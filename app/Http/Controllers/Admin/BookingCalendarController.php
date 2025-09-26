@@ -25,9 +25,22 @@ class BookingCalendarController extends Controller
             return redirect()->route('index');
         }
 
-        $hotelId    = (int)($request->hotel ?? 14);
-        $hotel      = Hotel::find($hotelId);
-        $hotelslist = Hotel::select('id', 'title')->orderBy('title', 'asc')->get();
+        $user = Auth::user();
+
+        // 1) Список отелей для селекта
+        $hotelsQuery = Hotel::select('id', 'title')->orderBy('title', 'asc');
+
+        // если админ — показываем все, иначе только свои
+        if (!$user->hasRole('Admin')) {
+            $hotelsQuery->where('user_id', $user->id);
+        }
+
+        $hotelslist = $hotelsQuery->get();
+
+        $requestedId = (int) $request->hotel;
+        $hotelId = $requestedId && $hotelslist->contains('id', $requestedId)
+            ? $requestedId
+            : optional($hotelslist->first())->id;
 
         $startDate = Carbon::now()->startOfDay();
         $endDate   = Carbon::now()->copy()->addDays(60)->endOfDay();

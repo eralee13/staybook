@@ -39,7 +39,6 @@ class RateController extends Controller
     {
         $hotel = $request->session()->get('hotel_id');
         $rooms = Room::where('hotel_id', $hotel)->get();
-        dd($rooms);
         $meals = Meal::all();
         $cancellations = CancellationRule::where('hotel_id', $hotel)->get();
         return view('auth.rates.form', compact('rooms', 'hotel', 'meals', 'cancellations'));

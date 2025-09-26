@@ -1,8 +1,17 @@
-@extends('layouts.head')
+@extends('layouts.master')
 
 @section('title', 'Бронь оформлена')
 
 @section('content')
+
+    <style>
+        body{
+            font-family: Unbounded,sans-serif;
+        }
+        .page{
+            padding-bottom: 60px;
+        }
+    </style>
 
     @auth
     <div class="page order">

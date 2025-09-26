@@ -33,18 +33,18 @@
                     <div class="col-md-12">
                         <div class="type">
                             <div class="type-item current">
-                                <a href="{{ route('index') }}">Отели и номера</a>
+                                <a href="{{ route('index') }}">@lang('main.hotels_and_rooms')</a>
                             </div>
                             <div class="type-item">
-                                <a href="{{ route('offline') }}">Оффлайн запрос</a>
+                                <a href="{{ route('offline') }}">@lang('main.offline')</a>
                             </div>
                         </div>
                         <form action="{{ route('search') }}" method="GET">
                             <div class="row">
                                 <div class="col-lg-4 col-md-12">
                                     <div class="form-group">
-                                        <input type="text" id="searchbox" name="city" placeholder="Город или отель"
-                                               autocomplete="off" value="{{ $request->city }}">
+                                        <input type="text" id="searchbox" name="city" placeholder="@lang('main.city_or_hotel')"
+                                               autocomplete="off" value="{{ $request->city }}" required>
                                         <div id="suggest" class="suggest hidden"></div>
                                         <input type="hidden" name="city_id" id="city_id">
                                         <style>
