@@ -1,7 +1,7 @@
 @extends('layouts.master')
 
 @section('title')
-    @dump($hsroom)
+    {{-- @dump($hsroom) --}}
 
     @section('content')
         @php
@@ -119,35 +119,7 @@
                     </div>
                     <div class="row">
                         <div class="col-md-12">
-                            
-                            <div class="tariffs availabity">
-                                <h4>@lang('main.available')</h4>
-
-                                <div class="d-flex mb-3" style="gap: 5%;">
-                                    <label for="increase">@lang('main.increase_text')</label>
-                                    {{-- <input type="checkbox" name="increase" id="increase"> --}}
-                                    <select name="increase_percent_select" id="increase_percent_select" style="padding: 5px; border: 1px solid #ccc; border-radius: 5px;">
-                                        <option value="0">0 %</option>
-                                        <option value="5">5 %</option>
-                                        <option value="10">10 %</option>
-                                        <option value="15">15 %</option>
-                                        <option value="20">20 %</option>
-                                    </select>
-                                </div>
-
-                                <script>
-                                    document.getElementById('increase_percent_select').addEventListener('change', function() {
-                                        let val = this.value;
-                                        // ищем скрытое поле по атрибуту name
-                                        document.querySelectorAll('input[name="increase_percent"]').forEach(function(input) {
-                                            input.value = val;
-                                        });
-                                    });
-                                </script>
-
-                                {{-- @include('pages.search.hotelstar.rooms', ['hsroom' => $hsroom, 'tmimages' => $tmimages]) --}}
-                                
-                            </div>
+                            @include('pages.search.hotelstar.rooms', ['hsroom' => $hsroom, 'tmimages' => $tmimages])
                         </div>
                     </div>
                 </div>

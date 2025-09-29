@@ -284,12 +284,13 @@
                                 <div class="descr">@lang('main.room'): {{ $request->room_name }}</div>
                                 <div class="descr">@lang('main.rate'): {{ $request->rate_name }}</div>
                                 <div class="date">@lang('main.check-in/check-out'): {{ $arrival }} {{ $hotel->checkin }}
-                                    - {{ $departure }} {{ $hotel->checkout }} (UTC {{ $request->utc }})
+                                    - {{ $departure }} {{ $hotel->checkout }} (UTC+0)
+                                    {{-- {{ $request->utc }} --}}
                                 </div>
                                 <div class="cancel">@lang('main.cancellation_policy'):
                                     @if($request->refundable == true)
                                         
-                                        @lang('main.free_cancellation') {{ $request->cancelDate }} UTC {{$request->utc}}. <br>
+                                        @lang('main.free_cancellation') {{ $request->cancelDate }} UTC+0 <br>
                                             
                                         @lang('main.cancellation_amount_tm'): {{ round($cancelConverted) }} {{ $request->currency ?? '$' }}
                                     @else

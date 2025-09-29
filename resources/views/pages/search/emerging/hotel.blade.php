@@ -92,7 +92,7 @@
                                            @foreach($hotel->metapolicy_struct as $k => $policy)
 
                                                 @continue(!$policy)
-                                                @continue($k == 'meal')
+                                                {{-- @continue($k == 'meal') --}}
                                                 <div class="row mb-3">
                                                     
                                                         <strong>@lang('main.'.$k)</strong>

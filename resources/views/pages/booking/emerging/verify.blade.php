@@ -76,7 +76,7 @@
                                     {{ \Carbon\Carbon::parse($request->departureDate)->format('d.m.Y') }}
                                 @endif
                                 
-                                (UTC {{ $request->utc }})
+                                (UTC+0)
                             </td>
                         </tr>
                         <tr>
@@ -89,7 +89,7 @@
                                 @if($request->refundable == true)
                                     
                                         @lang('main.free_cancellation') {{ \Carbon\Carbon::parse($request->cancelDate)->format('d.m.Y') }} 
-                                        (UTC {{ $request->utc }})
+                                        (UTC+0)
                                        
                                         @lang('main.cancellation_amount_tm'):  {{ round($request->cancelPrice) }} {{ $request->currency ?? '$' }}
                                         

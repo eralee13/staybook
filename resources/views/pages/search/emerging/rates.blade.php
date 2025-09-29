@@ -5,11 +5,12 @@
             $totalPrice = number_format( ($price / $coef ) , 2, '.', '');
             $rooms = $request->input('rooms', []);
             $payment = $rate['payment_options']['payment_types'][0];
+            // $localDate = Carbon\Carbon::parse($payment['cancellation_penalties']['policies'][0]['end_at'], 'UTC')->setTimezone(trim($hotel->utc));
+            // $localDate = $localDate->format('d-m-Y H:i:s');
 
             if($payment['cancellation_penalties']['free_cancellation_before'] == true){
 
                 $pay_end_date = Carbon\Carbon::createFromDate($payment['cancellation_penalties']['policies'][0]['end_at'])->format('d.m.Y H:i:s');
-
                 
                 $penaltPrice = $payment['cancellation_penalties']['policies'][1]['amount_charge'] ?? 0;
                 $penaltyPrice = number_format( ( (float)$penaltPrice  / $coef), 2, '.', '');
@@ -47,12 +48,14 @@
                 <div class="item meal">
                         <div class="name">{{ $rate['meal'] ?? 'No breakfast' }}</div>
                 </div>
-            
+                
             <div class="item cancel">
                 <div class="name">@lang('main.cancellation_policy'):
 
                     @if($payment['cancellation_penalties']['free_cancellation_before'] == true)
-                        @lang('main.free_cancellation') {{ $pay_end_date }} UTC {{$hotel->utc}}. <br>
+                        @lang('main.free_cancellation') {{ $pay_end_date }} UTC+0
+                         {{-- {{$hotel->utc}}  --}}
+                         <br>
                         @lang('main.cancellation_amount_tm'):  {{ round($cancelConverted ) }} {{ $symbol }}
                     @else
                         @lang('main.non_refundable')

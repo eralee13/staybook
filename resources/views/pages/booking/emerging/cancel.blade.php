@@ -12,7 +12,7 @@
                     <h1 data-aos="fade-up" data-aos-duration="2000">@lang('main.booking_cancellation')</h1>
 
                         @if(isset($cancelRule->is_refundable) && $cancelRule->is_refundable == true)
-                            <p>@lang('main.free_cancellation') {{ $cancelDate }} (UTC {{ $hotel->utc }}). <br>
+                            <p>@lang('main.free_cancellation') {{ $cancelDate }} (UTC+0). <br>
                                 @lang('main.cancellation_amount_tm'): {{ round($book->cancel_penalty) }} {{ $book->currency ?? '$' }}</p>
                         @else
                             @lang('main.non_refundable'): {{ round($book->cancel_penalty) }} {{ $book->currency ?? 'USD' }}

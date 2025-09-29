@@ -18,7 +18,7 @@
         $sortedRoom = [];
     }
 @endphp --}}
-@dump($hsroom)
+
 @foreach($hsroom as $room)
     <div class="row" style="margin-top: 30px">
         <div class="col-md-3">

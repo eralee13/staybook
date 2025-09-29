@@ -27,13 +27,13 @@
                         {{--                            <li>Дата отмены: {{ $cancel_date }}</li>--}}
                         <li>
                             @if(isset($cancelRule->is_refundable) && $cancelRule->is_refundable == true)
-                                <td>@lang('main.free_cancellation') {{ $cancelDate }} (UTC {{ $hotel->utc }}). <br>
+                                <td>@lang('main.free_cancellation') {{ $cancelDate }} (UTC+0). <br>
                                     @lang('main.cancellation_amount_tm'): {{ round($book->cancel_penalty) }} {{ $book->currency ?? '$' }}</td>
                             @else
                                 @lang('main.non_refundable'): {{ round($book->cancel_penalty) }} {{ $book->currency ?? 'USD' }}
                             @endif
                         <li>@lang('main.hotel'): {{ $hotel->title }}</li>
-                        <li>@lang('main.date_checkin/checkout'): {{ $arrival }} {{ $hotel->checkin }} - {{ $departure }} {{ $hotel->checkout }} (UTC {{ $hotel->utc }})</li>
+                        <li>@lang('main.date_checkin/checkout'): {{ $arrival }} {{ $hotel->checkin }} - {{ $departure }} {{ $hotel->checkout }} (UTC+0)</li>
                         <li>@lang('main.room_type'): {{ $room->title ?? ''}}</li>
                         <li>@lang('main.rate'): {{ $rate->title ?? ''}}</li>
                         <li>@lang('main.count_adult'): {{ $book->adult ?? ''}}</li>

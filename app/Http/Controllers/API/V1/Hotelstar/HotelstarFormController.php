@@ -144,14 +144,14 @@ class HotelstarFormController extends Controller
             "currency"    => $fxBase,
             "3d_hotelstar"=> null,
         ]);
-            // dd($payload);
+            // dump($payload);
             $response = Http::withHeaders([
                     'X-HS-Token' => $this->apiKey,
                     'Content-Type' => 'application/json',
                 ])
                 ->post($this->url . '/search', $payload);
 
-                // dd($response->json());
+                dump($response->json());
 
             return $response->json();
                 
@@ -181,6 +181,7 @@ class HotelstarFormController extends Controller
 
         $city = explode('-', $request->city);
         $searchParams = [];
+        // $searchParams = ['region_id' => 67005]; // Moscow
 
         if (is_numeric($request->city)) {
             $searchParams['hotel_ids'] = [(int)$request->city];
@@ -199,19 +200,19 @@ class HotelstarFormController extends Controller
             ]),
             "search_item" => [
                 "hash"        => $request->hash,
-                "provider_id" => $request->provider_id,
+                "provider_id" => (int)$request->provider_id,
             ],
         ];
 
             
-            // dd($payload);
+            dump($payload);
             $response = Http::timeout(31)->withHeaders([
                     'X-HS-Token' => $this->apiKey,
                     'Content-Type' => 'application/json',
                 ])
                 ->post($this->url . '/actualize', $payload);
 
-                // dd($response->json());
+                // dump($response->json());
 
             return $response->json();
                 
