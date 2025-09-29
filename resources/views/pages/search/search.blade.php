@@ -1013,7 +1013,7 @@
                                             </div>
                                             @endif
                                             <div class="btn-wrap">
-                                                @if( $hotel->apiName == 'TM')
+                                                @if( $hotel->apiName == 'TM' )
 
                                                     <div class="btn-wrap">
                                                         <form action="{{ route('hotel_tm', ["hid" => $hotel->hid]) }}">
@@ -1036,7 +1036,8 @@
                                                             <input type="hidden" name="meal_id" value="{{       $request->meal_id }}">
                                                             <input type="hidden" name="api_name"
                                                                 value="{{ $hotel->apiName ?? '' }}">
-                                            
+                                                            <input type="hidden" name="nationality" value="{{ $request->nationality ?? '' }}">
+
                                                             <button class="more">Показать все номера</button>
                                                         </form>
                                                     </div>
@@ -1063,6 +1064,7 @@
                                                             <input type="hidden" name="meal_id" value="{{       $request->meal_id }}">
                                                             <input type="hidden" name="apiHotelId"
                                                                 value="{{ $hotel->apiHotelId ?? '' }}">
+                                                            <input type="hidden" name="nationality" value="{{ $request->nationality ?? '' }}">
                                             
                                                             <button class="more">Показать все номера</button>
                                                         </form>
@@ -1094,7 +1096,8 @@
                                                                 value="{{ $hotel->hash ?? '' }}">
                                                             <input type="hidden" name="provider_id" 
                                                                 value="{{ $hotel->provider_id ?? '' }}">
-                                            
+                                                            <input type="hidden" name="nationality" value="{{ $request->nationality ?? '' }}">
+                                                            
                                                             <button class="more">Показать все номера</button>
                                                         </form>
                                                     </div>

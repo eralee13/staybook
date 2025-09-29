@@ -110,21 +110,25 @@ class EmergingFormController extends Controller
         }
 
         $city = explode('-', $request->city);
+        $payload = [
+            "checkin" => $request->arrivalDate,
+            "checkout" => $request->departureDate,
+            "residency" => $request->nationality,
+            "language" => $this->language,
+            "guests" => $guests,
+            "timeout" => 30,
+            "region_id" => (int)$city[0],
+            "currency" => "USD"
+        ];
 
             $response = Http::timeout(31)->withBasicAuth($this->keyId, $this->apiKey)
                 ->withHeaders([
                     'Content-Type' => 'application/json',
                 ])
-                ->post($this->url . '/search/serp/region/', [
-                    "checkin" => $request->arrivalDate,
-                    "checkout" => $request->departureDate,
-                    // "residency" => $request->residency ?? null,
-                    "language" => $this->language,
-                    "guests" => $guests,
-                    "timeout" => 30,
-                    "region_id" => (int)$city[0],
-                    "currency" => "USD"
-                ]);
+                ->post($this->url . '/search/serp/region/', $payload);
+
+            Log::channel('emerging')->info('Search /search/serp/region/ - Payload ', $payload);
+
                 // dd($response->json());
             return $response->json();
                 
@@ -155,7 +159,7 @@ class EmergingFormController extends Controller
         $payload = [
                     "checkin" => $request->arrivalDate,
                     "checkout" => $request->departureDate,
-                    // "residency" => "gb",
+                    "residency" => $request->nationality,
                     "language" => $this->language,
                     "guests" => $guests,
                     "timeout" => 30,
