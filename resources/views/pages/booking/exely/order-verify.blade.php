@@ -19,6 +19,7 @@
     <style>
         body{
             font-family: Unbounded,sans-serif;
+            background-color: rgba(246, 246, 246, 1) !important;
         }
         .page{
             padding-bottom: 60px;
@@ -29,7 +30,7 @@
         <div class="page order">
             <div class="container">
                 <div class="row">
-                    <div class="col-lg-12 col-md-12">
+                    <div class="col-lg-8 col-md-12">
                         @if(isset($order->errors))
                             @foreach ($order->errors as $error)
                                 <div class="alert alert-danger">
@@ -60,96 +61,83 @@
                                         // формат UTC±HH:00
                                         $offset = sprintf('UTC%+03d:00', $hours);
                                     @endphp
-                                    <h1>@lang('main.order_confirmation')</h1>
+                                    <h1><img src="{{ route('index') }}/img/arrow-left.svg" alt=""> @lang('main.order_confirmation')</h1>
 
-                                    <table>
-                                        <tr>
-                                            <td>@lang('main.hotel'):</td>
-                                            <td>{{ $hotel->__('title') }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>@lang('main.price'):</td>
-                                            <td>{{ $request->brut_price }} {{ $request->currency }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>@lang('main.cancellation_policy'):</td>
+                                    <div class="order-item">
+                                        <p><span>@lang('main.hotel')</span>: {{ $hotel->__('title') }}</p>
+                                    </div>
+                                    <div class="order-item">
+                                        <p><span>@lang('main.price')</span>: {{ $request->brut_price }} {{ $request->currency }}</p>
+                                    </div>
+                                    <div class="order-item">
+                                        <p><span>@lang('main.cancellation_policy')</span>:
                                             @if($cancelPossible->freeCancellationPossible == true)
-                                                <td>@lang('main.free_cancellation') {{ $cancelLocal }} ({{ $offset }}).
+                                                @lang('main.free_cancellation') {{ $cancelLocal }} ({{ $offset }}).
                                                     @lang('main.cancellation_amount')
-                                                    : {{ $request->cancel_brut_price }} {{ $request->currency }}</td>
+                                                    : {{ $request->cancel_brut_price }} {{ $request->currency }}
                                             @else
-                                                <td>@lang('main.cancellation_amount')
-                                                    : {{ $request->cancel_brut_price }} {{ $request->currency }}</td>
+                                                @lang('main.cancellation_amount')
+                                                    : {{ $request->cancel_brut_price }} {{ $request->currency }}
                                             @endif
-                                        </tr>
-
-                                        @foreach($order->booking->roomStays as $room)
-                                            <tr>
-                                                <td>@lang('main.full_name'):</td>
-                                                <td>
-                                                    @foreach($room->guests as $guest)
-                                                        <div class="name">{{ $guest->firstName }}</div>
-                                                    @endforeach
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>@lang('main.full_name') @lang('main.child'):</td>
-                                                <td>
-                                                    @foreach($room->guests as $guest)
-                                                        <div class="name">{{ $guest->middleName }}</div>
-                                                    @endforeach
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>@lang('main.dates'):</td>
-                                                @php
-                                                    $arrival = \Carbon\Carbon::createFromDate($room->stayDates->arrivalDateTime)->format('d.m.Y H:i');
-                                                    $departure = \Carbon\Carbon::createFromDate($room->stayDates->departureDateTime)->format('d.m.Y H:i');
-                                                @endphp
-                                                <td>{{ $arrival }} - {{ $departure }}
-                                                    @if($order->booking->cancellationPolicy->freeCancellationDeadlineLocal == null)
-                                                        (UTC {{ $hotel_utc }})
-                                                    @endif
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>@lang('main.rate'):</td>
-                                                <td>{{ $room->ratePlan->name }}</td>
-                                            </tr>
-                                            <tr>
-                                                <td>@lang('main.count_adult'):</td>
-                                                <td>{{ $room->guestCount->adultCount }}</td>
-                                            </tr>
-                                            <tr>
-                                                <td>@lang('main.count_child'):</td>
-                                                @php
-                                                    $childAgesInput = (array) $request->input('childAges', []);
+                                        </p>
+                                    </div>
+                                    @foreach($order->booking->roomStays as $room)
+                                        <div class="order-item">
+                                            <p>@lang('main.full_name'): @foreach($room->guests as $guest)
+                                                    {{ $guest->firstName }}
+                                                @endforeach</p>
+                                        </div>
+                                        <div class="order-item">
+                                            <p>@lang('main.full_name') @lang('main.child'):
+                                            @foreach($room->guests as $guest)
+                                                {{ $guest->middleName }}
+                                            @endforeach
+                                            </p>
+                                        </div>
+                                        <div class="order-item">
+                                            <p>@lang('main.dates'):
+                                            @php
+                                                $arrival = \Carbon\Carbon::createFromDate($room->stayDates->arrivalDateTime)->format('d.m.Y H:i');
+                                                $departure = \Carbon\Carbon::createFromDate($room->stayDates->departureDateTime)->format('d.m.Y H:i');
+                                            @endphp
+                                            {{ $arrival }} - {{ $departure }}
+                                                @if($order->booking->cancellationPolicy->freeCancellationDeadlineLocal == null)
+                                                    (UTC {{ $hotel_utc }})
+                                                @endif
+                                            </p>
+                                        </div>
+                                        <div class="order-item">
+                                            <p>@lang('main.rate'): {{ $room->ratePlan->name }}</p>
+                                        </div>
+                                        <div class="order-item">
+                                            <p>@lang('main.count_adult'): {{ $room->guestCount->adultCount }}</p>
+                                        </div>
+                                        <div class="order-item">
+                                            <p>@lang('main.count_child'):
+                                            @php
+                                                $childAgesInput = (array) $request->input('childAges', []);
                                                 $childAges = collect($childAgesInput)
-                                                    ->flatMap(fn($ageString) => explode(',', $ageString)) // "2,4" → ["2", "4"]
-                                                    ->map(fn($age) => (int) trim($age))                   // убираем пробелы и делаем числа
-                                                    ->filter(fn($age) => $age > 0)                        // убираем пустые/нулевые
-                                                    ->values()                                            // пересобираем индексы
-                                                    ->toArray();
+                                                ->flatMap(fn($ageString) => explode(',', $ageString)) // "2,4" → ["2", "4"]
+                                                ->map(fn($age) => (int) trim($age)) // убираем пробелы и делаем числа
+                                                ->filter(fn($age) => $age > 0) // убираем пустые/нулевые
+                                                ->values() // пересобираем индексы
+                                                ->toArray();
 
                                                 $count = count($childAges);
-                                                @endphp
-                                                <td>{{ $childCount }} @if($count > 0)
-                                                        (@lang('main.age'): {{ implode(', ', $childAges) }}
-                                                    @endif</td>
-                                                {{--                                    <td>{{ implode(',', explode($order->booking->roomStays[0]->guestCount->childAges)) }}</td>--}}
-                                                {{--                                    <td>{{ count($order->booking->roomStays[0]->guestCount->guestCount->childAges) }}</td>--}}
-                                            </tr>
-                                            <tr>
-                                                <td>@lang('main.room'):</td>
-                                                <td>{{ $room->roomType->name }}</td>
-                                            </tr>
-                                        @endforeach
-                                        <tr>
-                                            <td>@lang('main.message'):</td>
-                                            <td>{{ $order->booking->customer->comment }}</td>
-                                        </tr>
-                                    </table>
-
+                                            @endphp
+                                            {{ $childCount }} @if($count > 0)
+                                                (@lang('main.age'): {{ implode(', ', $childAges) }}
+                                            @endif </p>
+                                        </div>
+                                        <div class="order-item">
+                                            <p>@lang('main.room'): {{ $room->roomType->name }}</p>
+                                        </div>
+                                    @endforeach
+                                    @if($request->comment)
+                                        <div class="order-item">
+                                            <p><span>@lang('main.message')</span>: {{ $order->booking->customer->comment }}</p>
+                                        </div>
+                                    @endif
                                     <div class="btn-wrap">
                                         <form action="{{ route('book_reserve_exely') }}" method="get">
                                             <input type="hidden" name="propertyId"

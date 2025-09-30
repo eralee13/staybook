@@ -1,34 +1,38 @@
-@extends('layouts.filter_mini')
+@extends('layouts.master')
 
 @section('title', 'Отели')
 
 @section('content')
     @auth
-        <div class="page places about">
+        <div class="page places hotels">
             <div class="container">
                 <div class="row">
                     <h1>@lang('main.hotels')</h1>
                     @foreach($hotels as $hotel)
                         <div class="col-lg-4 col-md-6">
                             <div class="places-item">
-                                    <span class="img-wrap">
+                                <div class="img-wrap">
+                                    <a href="{{ route('hotel', $hotel->code) }}">
                                         @if($hotel->image)
-                                            <a href="{{ route('hotel', $hotel->code) }}">
-                                                <img src="{{ Storage::url($hotel->image) }}" alt="">
-                                            </a>
+                                            <img src="{{ Storage::url($hotel->image) }}" alt="">
                                         @else
-                                            <a href="{{ route('hotel', $hotel->code) }}">
-                                                <img src="{{ route('index')}}/img/noimage.png" alt="">
-                                            </a>
+                                            <img src="{{ route('index')}}/img/noimage.png" alt="">
                                         @endif
-                                    </span>
+                                    </a>
+                                </div>
                                 <div class="text-wrap">
-                                    <div class="address">{{ $hotel->city }}</div>
+                                    <div class="row">
+                                        <div class="col-md-10">
+                                            <div class="address">{{ $hotel->city }}</div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            @if($hotel->rating)
+                                                <div class="rating"><img src="{{ route('index') }}/img/star.svg"
+                                                                         alt=""> {{ $hotel->rating }}</div>
+                                            @endif
+                                        </div>
+                                    </div>
                                     <h5>{{ $hotel->title }}</h5>
-                                    @if($hotel->rating)
-                                        <div class="rating"><img src="{{ route('index') }}/img/star.svg"
-                                                                 alt=""> {{ $hotel->rating }}</div>
-                                    @endif
                                 </div>
                             </div>
                         </div>

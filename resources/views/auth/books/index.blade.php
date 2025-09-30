@@ -34,35 +34,17 @@
         </div>
         <div class="status-container" style="display: flex; justify-content: space-around; align-items: center;">
             <div class="e-search">
-
                 <div class="form-group">
                     <label for="">Выберите отель</label>
-                    @can('edit-contact')
-                        <select name="hotel_id" id="hotel_id" class="form-control" style="width: 200px"
-                                onchange="window.location.href = '{{ route(Route::currentRouteName(), ['hotel' => '__HOTEL__']) }}'.replace('__HOTEL__', this.value)">
-                            @foreach ($hotelslist as $hotel)
-                                <option value="{{ $hotel->id }}" {{ request()->route('hotel') == $hotel->id ? 'selected' : '' }}>
-                                    {{ $hotel->title }}
-                                </option>
-                            @endforeach
-                        </select>
-                    @endcan
-                    @hasrole('Hotel')
-                    @php
-                    $hot = \App\Models\Hotel::where('id', $hotel)->first();
-                    @endphp
                     <select name="hotel_id" id="hotel_id" class="form-control" style="width: 200px"
                             onchange="window.location.href = '{{ route(Route::currentRouteName(), ['hotel' => '__HOTEL__']) }}'.replace('__HOTEL__', this.value)">
-                            @if($hot)
-                                <option value="{{ $hot->id }}">{{ $hot->title }}</option>
-                            @else
-                                <option disabled>Отель не найден</option>
-                            @endif
+                        @foreach ($hotelslist as $hotel)
+                            <option value="{{ $hotel->id }}" {{ request()->route('hotel') == $hotel->id ? 'selected' : '' }}>
+                                {{ $hotel->title }}
+                            </option>
+                        @endforeach
                     </select>
-                    @endhasrole
                 </div>
-
-
                 @php
                     use Carbon\Carbon;
 
@@ -124,11 +106,11 @@
             </div>
         </div>
 
-        @if($exelyEmpty)
-            <div class="alert alert-warning">
-                ⚠️ Нет доступных номеров от Exely на выбранные даты.
-            </div>
-        @endif
+{{--        @if($exelyEmpty)--}}
+{{--            <div class="alert alert-warning">--}}
+{{--                ⚠️ Нет доступных номеров от Exely на выбранные даты.--}}
+{{--            </div>--}}
+{{--        @endif--}}
 
         <div id="warning" class="alert alert-warning"></div>
 
@@ -195,7 +177,8 @@
 <style>
     #calendar {
         background-color: #fff;
-        padding: 30px;
+        padding: 20px;
+        border-radius: 30px;
     }
 
     .fc-datagrid-cell-main {

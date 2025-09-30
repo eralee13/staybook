@@ -25,36 +25,6 @@
                             $hotelTz = $hotel->timezone ?? config('app.timezone', 'UTC');
                             $hotelUtcOffset = \Carbon\Carbon::now($hotelTz)->format('P');
 
-                            // маппинг иконок
-                            $iconMap = [
-                                'wi-fi'                 => 'wifi.svg',
-                                'интернет'              => 'wifi.svg',
-                                'Доступ в интернет'     => 'wifi.svg',
-                                'чайный набор'          => 'tea.svg',
-                                'Питание включено'      => 'meal.svg',
-                                'минеральная вода'      => 'water.svg',
-                                'сауна'                 => 'sauna.svg',
-                                'сейф'                  => 'safe.svg',
-                                'Двуспальная кровать'   => 'bed2.svg',
-                                'Гладильные принадлежности' => 'iron.svg',
-                                'Ванная комната'        => 'bath.svg',
-                                'Сауна'                 => 'sauna.svg',
-                                'Сейф'                  => 'safe.svg',
-                                'Минибар'               => 'minibar.svg',
-                                'Кондиционер'           => 'cond.svg',
-                                'Туалетные принадлежности' => 'toilet.svg',
-                                'Душ'                   => 'shower.svg',
-                                'Звукоизоляция'         => 'sound.svg',
-                                'Фен'                   => 'dry.svg',
-                                'Постельное бельё'      => 'bed_sheets.svg',
-                                'Халат'                 => 'robe.svg',
-                                'Шкаф'                  => 'closet.svg',
-                                'Телефон'               => 'phone_hotel.svg',
-                                'Отопление'             => 'heating.svg',
-                                'Письменный стол'       => 'table.svg',
-                                'Минеральная вода'      => 'water.svg',
-                            ];
-
                             // валюта
                             $fxBase = $fxBase ?? 'USD';
                             $fxRates = $fxRates ?? [];
@@ -65,9 +35,10 @@
                             // группировка номеров (rooms может не быть)
                             $groupedRooms = collect($rooms ?? [])->groupBy(fn($r) => data_get($r, 'roomType.id'));
                         @endphp
-                        <h1>{{ $hotel->city ?? '' }}</h1>
                         <div class="row">
-                            <div class="col-md-7">
+                            <div class="col-md-12">
+                                <h1>{{ $hotel->city ?? '' }}</h1>
+                                <h3>{{ $hotel->title ?? '' }}</h3>
                                 @if(!empty(optional($hotel)->image))
                                     <div class="fotorama" data-allowfullscreen="true" data-nav="thumbs" data-loop="true"
                                          data-autoplay="30000">
@@ -85,13 +56,10 @@
                             </div>
                         </div>
 
-                        <h3>{{ $hotel->title ?? '' }}</h3>
-
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="tariffs availabity">
                                     <h4>@lang('main.available')</h4>
-
                                     <div class="row" style="margin-top: 30px">
                                         @foreach($groupedRooms as $roomTypeIdKey => $roomRates)
                                             @php
@@ -105,33 +73,32 @@
                                                 }
                                             @endphp
 
-                                            <div class="col-md-3">
+                                            <div class="col-lg-3 col-md-5">
                                                 <div class="room">
-                                                    @if ($roomModel && $roomModel->image)
-                                                        <img src="{{ Storage::url($roomModel->image) }}" alt="">
-                                                    @else
-                                                        <img loading="lazy" src="{{ route('index')}}/img/noimage.png"
-                                                             alt="">
-                                                    @endif
-
                                                     @if($roomModel)
-                                                        <h5>{{ $roomModel?->__('title') }}</h5>
+                                                        <div class="wrap">
+                                                            <div class="img-wrap">
+                                                                @if ($roomModel->image)
+                                                                    <img src="{{ Storage::url($roomModel->image) }}" alt="">
+                                                                @else
+                                                                    <img loading="lazy"
+                                                                         src="{{ route('index')}}/img/noimage.png"
+                                                                         alt="">
+                                                                @endif
+                                                            </div>
+                                                            <div class="text-wrap">
+                                                                <h5>{{ $roomModel?->__('title') }}</h5>
+                                                            </div>
+                                                        </div>
                                                         <div class="amenities">
                                                             <div class="amenities-item">
-                                                                <img src="{{ route('index') }}/img/icons/area.svg"
+                                                                <img src="{{ route('index') }}/img/icons/check.svg"
                                                                      alt="">
                                                                 <div class="name">{{ $roomModel->area }} кв. м</div>
                                                             </div>
-
                                                             @foreach($amenitiesList as $amenity)
-                                                                @php
-                                                                    $iconFile = 'check.svg';
-                                                                    foreach ($iconMap as $keyword => $filename) {
-                                                                        if (mb_stripos($amenity, $keyword) !== false) { $iconFile = $filename; break; }
-                                                                    }
-                                                                @endphp
                                                                 <div class="amenities-item">
-                                                                    <img src="{{ asset('img/icons/' . $iconFile) }}"
+                                                                    <img src="{{ asset('img/icons/check.svg') }}"
                                                                          alt="{{ $amenity }}">
                                                                     <div class="name">{{ $amenity }}</div>
                                                                 </div>
@@ -141,14 +108,10 @@
                                                 </div>
                                             </div>
 
-                                            <div class="col-md-9">
+                                            <div class="col-lg-9 col-md-7">
                                                 <div class="tariff-wrap">
                                                     <div class="owl-carousel owl-tariffs">
                                                         @foreach($roomRates as $room)
-                                                            @can('edit-contact')
-                                                                Осталось квот: {{ data_get($room, 'availability') }}
-                                                            @endcan
-
                                                             @php
                                                                 $arrival   = optional(\Carbon\Carbon::parse(data_get($room, 'stayDates.arrivalDateTime')))->timezone($hotelTz)->format('d.m.Y H:i');
                                                                 $departure = optional(\Carbon\Carbon::parse(data_get($room, 'stayDates.departureDateTime')))->timezone($hotelTz)->format('d.m.Y H:i');
@@ -170,6 +133,10 @@
                                                             @endphp
 
                                                             <div class="tariffs-item">
+                                                                @can('edit-contact')
+                                                                    <small>Осталось
+                                                                        квот: {{ data_get($room, 'availability') }}</small>
+                                                                @endcan
                                                                 @if(data_get($room, 'fullPlacementsName'))
                                                                     <h5>{{ data_get($room, 'fullPlacementsName') }}</h5>
                                                                 @endif
@@ -186,10 +153,8 @@
                                                                 <div class="item meal">
                                                                     <div class="name">{{ data_get($room, 'mealPlanCode') }}</div>
                                                                 </div>
-
                                                                 <div class="item cancel">
                                                                     <div class="name">
-                                                                        @lang('main.cancellation_policy'):
                                                                         @if(data_get($room, 'cancellationPolicy.freeCancellationPossible') === true)
                                                                             @lang('main.free_cancellation') {{ $cancelDate }}
                                                                             (UTC {{ $hotelUtcOffset }}).
@@ -209,7 +174,6 @@
                                                                     @endcan
                                                                     {{ round($brutConv) }} {{ $symbol }}
                                                                 </div>
-
                                                                 <div class="btn-wrap">
                                                                     <form action="{{ route('order_exely', data_get($room, 'roomType.id')) }}">
                                                                         <input type="hidden" name="propertyId"
@@ -286,114 +250,108 @@
                                         @endforeach
                                     </div>
                                 </div>
-                            </div>
-
-                            <div class="address" style="margin-top: 20px">
-                                <img src="{{ route('index') }}/img/marker_in.svg" alt="">
-                                {{ $hotel->address ?? '' }}
-                            </div>
-
-                            @if(!empty($hotel?->description))
-                                <h4>@lang('main.description')</h4>
-                                {!! $hotel?->__('description') !!}
-                            @endif
-
-                            @if(!empty($amenities))
-                                @php
-                                    // Нормализуем удобства в единый массив строк
-                                    $amenitiesList = collect(
-                                        is_string($amenities)
-                                            ? preg_split('/[,\n;]+/u', $amenities)   // одна строка -> разбить
-                                            : (array)$amenities                       // массив/коллекция
-                                    )
-                                    // Если внутри есть элементы-строки с запятыми, разрежем и их
-                                    ->flatMap(function ($item) {
-                                        if (is_string($item)) {
-                                            return preg_split('/[,\n;]+/u', $item);
-                                        }
-                                        return (array)$item;
-                                    })
-                                    ->map(fn($v) => trim((string)$v))
-                                    ->filter()            // убрать пустые
-                                    ->unique()            // убрать дубли
-                                    ->values();
-
-                                    // Маппинг иконок (если не доступен в этой области — продублируй)
-                                    $iconMap = $iconMap ?? [
-                                        'wi-fi' => 'wifi.svg',
-                                        'интернет' => 'wifi.svg',
-                                        'Доступ в интернет' => 'wifi.svg',
-                                        'чайный набор' => 'tea.svg',
-                                        'Питание включено' => 'meal.svg',
-                                        'минеральная вода' => 'water.svg',
-                                        'сауна' => 'sauna.svg',
-                                        'сейф' => 'safe.svg',
-                                        'Двуспальная кровать' => 'bed2.svg',
-                                        'Гладильные принадлежности' => 'iron.svg',
-                                        'Ванная комната' => 'bath.svg',
-                                        'Минибар' => 'minibar.svg',
-                                        'Кондиционер' => 'cond.svg',
-                                        'Туалетные принадлежности' => 'toilet.svg',
-                                        'Душ' => 'shower.svg',
-                                        'Звукоизоляция' => 'sound.svg',
-                                        'Фен' => 'dry.svg',
-                                        'Постельное бельё' => 'bed_sheets.svg',
-                                        'Халат' => 'robe.svg',
-                                        'Шкаф' => 'closet.svg',
-                                        'Телефон' => 'phone_hotel.svg',
-                                        'Отопление' => 'heating.svg',
-                                        'Письменный стол' => 'table.svg',
-                                        'Минеральная вода' => 'water.svg',
-                                    ];
-                                @endphp
-
-                                @if($amenitiesList->isNotEmpty())
-                                    <div class="amenities">
-                                        <h4>@lang('main.amenities')</h4>
-                                        @foreach($amenitiesList as $amenity)
-                                            @php
-                                                $iconFile = 'check.svg';
-                                                foreach ($iconMap as $keyword => $filename) {
-                                                    if (mb_stripos($amenity, $keyword) !== false) { $iconFile = $filename; break; }
-                                                }
-                                            @endphp
-                                            <div class="amenities-item">
-                                                <img src="{{ asset('img/icons/' . $iconFile) }}"
-                                                     alt="{{ $amenity }}"
-                                                     style="width:20px;height:20px;margin-right:8px;">
-                                                <span class="name">{{ $amenity }}</span>
-                                            </div>
-                                        @endforeach
+                                @if(!empty($hotel?->description))
+                                    <h4>@lang('main.description')</h4>
+                                    <div class="descr">
+                                        {!! $hotel?->__('description') !!}
                                     </div>
                                 @endif
-                            @endif
 
-                            <div class="maps">
-                                <h4>@lang('main.location')</h4>
-                                <script src="https://maps.api.2gis.ru/2.0/loader.js"></script>
-                                <div id="map" style="width: 100%; height: 300px;"></div>
-                                @php
-                                    $lat = $hotel->lat ?? 0;
-                                    $lng = $hotel->lng ?? 0;
-                                @endphp
-                                <script>
-                                    DG.then(function () {
-                                        var map = DG.map('map', {
-                                            center: [{{ $lat }}, {{ $lng }}],
-                                            zoom: 12
+                                @if(!empty($amenities))
+                                    @php
+                                        // Нормализуем удобства в единый массив строк
+                                        $amenitiesList = collect(
+                                            is_string($amenities)
+                                                ? preg_split('/[,\n;]+/u', $amenities)   // одна строка -> разбить
+                                                : (array)$amenities                       // массив/коллекция
+                                        )
+                                        // Если внутри есть элементы-строки с запятыми, разрежем и их
+                                        ->flatMap(function ($item) {
+                                            if (is_string($item)) {
+                                                return preg_split('/[,\n;]+/u', $item);
+                                            }
+                                            return (array)$item;
+                                        })
+                                        ->map(fn($v) => trim((string)$v))
+                                        ->filter()            // убрать пустые
+                                        ->unique()            // убрать дубли
+                                        ->values();
+                                    @endphp
+
+                                    @if($amenitiesList->isNotEmpty())
+                                        <div class="row amenities">
+                                            <h4>@lang('main.amenities')</h4>
+                                            @foreach($amenitiesList as $amenity)
+                                                <div class="col-lg-4 col-md-6">
+                                                    <div class="amenities-item">
+                                                        <img src="{{ asset('img/icons/check.svg') }}"
+                                                             alt="{{ $amenity }}"
+                                                             style="width:20px;height:20px;margin-right:8px;">
+                                                        <span class="name">{{ $amenity }}</span>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                @endif
+
+                                <div class="maps">
+                                    <h4>@lang('main.location')</h4>
+                                    <!-- Подключение стилей Leaflet -->
+                                    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+                                    <div id="map"></div>
+                                    <!-- Подключение скрипта Leaflet -->
+                                    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+                                    <script>
+                                        var lat = {{ $hotel->lat }};
+                                        var lng = {{ $hotel->lng }};
+                                        var map = L.map('map').setView([lat, lng], 15);
+
+                                        // Добавление слоя OpenStreetMap
+                                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                        }).addTo(map);
+
+                                        var marker = null; // Переменная для хранения последнего маркера
+
+                                        // Если есть начальные координаты, устанавливаем маркер
+                                        if (lat && lng) {
+                                            marker = L.marker([lat, lng]).addTo(map)
+                                                .bindPopup('Широта: ' + lat.toFixed(6) + '<br>Долгота: ' + lng.toFixed(6))
+                                                .openPopup();
+                                        }
+
+                                        // // Добавление масштаба
+                                        L.control.scale().addTo(map);
+
+                                        // Обработчик клика по карте
+                                        map.on('click', function (e) {
+                                            var lat = e.latlng.lat;  // Широта
+                                            var lng = e.latlng.lng;  // Долгота
+
+                                            // Удаление старого маркера, если он есть
+                                            if (marker) {
+                                                map.removeLayer(marker);
+                                            }
+
+                                            // Обновление значений в полях ввода
+                                            document.getElementById('lat').value = lat.toFixed(6);
+                                            document.getElementById('lng').value = lng.toFixed(6);
+
+                                            // Добавление маркера на выбранную точку
+                                            if (lat && lng) {
+                                                marker = L.marker([lat, lng]).addTo(map)
+                                                    .bindPopup('Широта: ' + lat.toFixed(6) + '<br>Долгота: ' + lng.toFixed(6))
+                                                    .openPopup();
+                                            }
                                         });
-
-                                        DG.marker([{{ $lat }}, {{ $lng }}], {scrollWheelZoom: false})
-                                            .addTo(map)
-                                            .bindLabel(@json($hotel->title ?? ''), {static: true});
-                                    });
-                                </script>
-                                <div class="address">
-                                    <img src="{{ route('index') }}/img/marker_in.svg" alt="">
-                                    {{ $hotel?->__('address') }}
+                                    </script>
+                                    <div class="address">
+                                        <img src="{{ route('index') }}/img/marker_in.svg" alt="">
+                                        {{ $hotel?->__('address') }}
+                                    </div>
                                 </div>
                             </div>
-
                         </div>
                     </div>
                 </div>

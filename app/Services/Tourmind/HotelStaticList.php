@@ -159,6 +159,7 @@ class HotelStaticList
                                 'description_en'=> (string) data_get($h, 'Description.Location', ''),
                                 'image'         => '', // превью кладём в images таблицу ниже
                                 'status'        => 1,
+                                'apiName' => 'tm'
                             ]
                         );
 

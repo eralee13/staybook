@@ -7,6 +7,7 @@
     <style>
         body{
             font-family: Unbounded,sans-serif !important;
+            background-color: rgba(246, 246, 246, 1) !important;
         }
         .page{
             padding-bottom: 60px;
@@ -17,7 +18,7 @@
         <div class="page order">
             <div class="container">
                 <div class="row">
-                    <div class="col-lg-12 col-md-12">
+                    <div class="col-lg-8 col-md-12">
                         @php
                             $hotel = \App\Models\Hotel::where('id', $request->propertyId)->first();
                             $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
@@ -31,127 +32,100 @@
                             $cancelDate = \Carbon\Carbon::parse($request->arrivalDate)->subDays($cancel->free_cancellation_days)->format('d.m.Y H:i');
                             $timezone = \Carbon\Carbon::parse($hotel->timezone)->format('P');
                         @endphp
-                        <h1>@lang('main.order_confirmation')</h1>
-                        <table>
-                            <tr>
-                                <td>@lang('main.hotel'):</td>
-                                <td>{{ $hotel->__('title') }}</td>
-                            </tr>
-                            <tr>
-                                <td>@lang('main.room'):</td>
-                                <td>{{ $room->__('title') }}</td>
-                            </tr>
-                            <tr>
-                                <td>@lang('main.rate'):</td>
-                                <td>{{ $rate->__('title') }}</td>
-                            </tr>
-                            <tr>
-                                <td>@lang('main.count_room')</td>
-                                <td>{{ $request->roomCount }}</td>
-                            </tr>
-                            <tr>
-                                <td>@lang('main.count_adult'):</td>
-                                <td>{{ $request->adult }}</td>
-                            </tr>
-                            <tr>
-                                <td>@lang('main.count_child'):</td>
-                                <td>{{ $request->child ?? 0 }}</td>
-                            </tr>
-                            <tr>
-                                <td>@lang('main.dates'):</td>
-                                <td>{{ $arrival }} {{ $hotel->checkin }} - {{ $departure }} {{ $hotel->checkout }}
-                                    (UTC {{ $hotel_utc }})
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>@lang('main.price'):</td>
-                                <td>{{ $request->sum }} {{ $request->currency ?? '$' }}</td>
-                            </tr>
-                            <tr>
-                                <td>@lang('main.cancellation_policy'):</td>
-                                @if($cancel->cancel_policy === 'free_until_checkin')
-                                    <td>@lang('main.free_cancellation') {{ $freeDate }}
-                                        UTC {{ $timezone }}</td>
+                        <h1><img src="{{ route('index') }}/img/arrow-left.svg" alt=""> @lang('main.order_confirmation')</h1>
+                        <div class="order-item">
+                            <p><span>@lang('main.hotel')</span>: {{ $hotel->__('title') }}</p>
+                        </div>
+                        <div class="order-item">
+                            <p><span>@lang('main.room')</span>: {{ $room->__('title') }}</p>
+                        </div>
+                        <div class="order-item">
+                            <p><span>@lang('main.rate')</span>: {{ $rate->__('title') }}</p>
+                        </div>
+                        <div class="order-item">
+                            <p><span>@lang('main.count_room')</span>: {{ $request->roomCount }}</p>
+                        </div>
+                        <div class="order-item">
+                            <p><span>@lang('main.count_adult')</span>: {{ $request->adult }}</p>
+                        </div>
+                        <div class="order-item">
+                            <p><span>@lang('main.count_child')</span>: {{ $request->child ?? 0 }}</p>
+                        </div>
+                        <div class="order-item">
+                            <p><span>@lang('main.dates')</span>: {{ $arrival }} {{ $hotel->checkin }} - {{ $departure }} {{ $hotel->checkout }}
+                                (UTC {{ $hotel_utc }})</p>
+                        </div>
+                        <div class="order-item">
+                            <p><span>@lang('main.price')</span>: {{ $request->sum }} {{ $request->currency ?? '$' }}</p>
+                        </div>
+                        <div class="order-item">
+                            <p><span>@lang('main.cancellation_policy')</span>: @if($cancel->cancel_policy === 'free_until_checkin')
+                                   @lang('main.free_cancellation') {{ $freeDate }}
+                                        UTC {{ $timezone }}
 
                                 @elseif($cancel->cancel_policy === 'free_then_penalty')
                                     @if(now()->lte($cancelDate))
-                                        <td> @lang('main.free_cancellation') {{ $cancelDate }}
+                                        @lang('main.free_cancellation') {{ $cancelDate }}
                                             UTC {{ $timezone }}
                                     @else
-                                        <td>@lang('main.cancellation_is_not_avaialble')
+                                        @lang('main.cancellation_is_not_avaialble')
                                             .
                                             @endif
-                                            @lang('main.cancellation_amount')
-                                            : {{ $request->cancelPrice }} {{ $request->currency }}</td>
+                                            {{ $request->cancelPrice }} {{ $request->currency }}
                                         @else
-                                            <td>@lang('main.cancellation_amount')
-                                                : {{ $request->cancelPrice }} {{ $request->currency }}
-                                            </td>
+                                            {{ $request->cancelPrice }} {{ $request->currency }}
                                         @endif
-                            </tr>
-                            <tr>
-                                <td>@lang('main.full_name'):</td>
-                                <td>
-                                    @php
-                                        $names = [];
-                                        for ($i = 1; $i <= 8; $i++) {
-                                            $field = 'title' . $i;
-                                            if ($request->filled($field)) {
-                                                $names[] = $request->$field;
-                                            }
+                            </p>
+                        </div>
+                        <div class="order-item">
+                            <p><span>@lang('main.full_name')</span>: @php
+                                $names = [];
+                                for ($i = 1; $i <= 8; $i++) {
+                                    $field = 'title' . $i;
+                                    if ($request->filled($field)) {
+                                        $names[] = $request->$field;
+                                    }
+                                }
+                            @endphp
+                                {{ implode(', ', $names) }}</p>
+                        </div>
+                        @if($request->child_name1)
+                        <div class="order-item">
+                            <p><span>@lang('main.full_name') @lang('main.child')</span>:
+                                @php
+                                    $ch_names = [];
+                                    for ($i = 1; $i <= 8; $i++) {
+                                        $field = 'child_name' . $i;
+                                        if ($request->filled($field)) {
+                                            $ch_names[] = $request->$field;
                                         }
-                                    @endphp
-                                    <div class="name">{{ implode(', ', $names) }}</div>
-                                </td>
-                            </tr>
-                            @if($request->child_name1)
-                                <tr>
-                                    <td>@lang('main.full_name') @lang('main.child'):</td>
-                                    <td>
-                                        @php
-                                            $ch_names = [];
-                                            for ($i = 1; $i <= 8; $i++) {
-                                                $field = 'child_name' . $i;
-                                                if ($request->filled($field)) {
-                                                    $ch_names[] = $request->$field;
-                                                }
-                                            }
-                                        @endphp
-                                        <div class="name">{{ implode(', ', $ch_names) }}</div>
-                                    </td>
-                                </tr>
-                            @endif
-                            <tr>
-                                <td>@lang('main.phone'):</td>
-                                <td>
-                                    <div class="name">{{ $request->phone }}</div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Email:</td>
-                                <td>
-                                    <div class="name">{{ $request->email }}</div>
-                                </td>
-                            </tr>
-                            @if($request->checkin_request == 1)
-                                <tr>
-                                    <td>@lang('main.late_checkin')</td>
-                                    <td>{{ $request->checkin_time }}</td>
-                                </tr>
-                            @endif
-                            @if($request->checkout_request == 1)
-                                <tr>
-                                    <td>@lang('main.late_checkout')</td>
-                                    <td>{{ $request->checkout_time }}</td>
-                                </tr>
-                            @endif
-                            @if($request->comment)
-                                <tr>
-                                    <td>@lang('main.message'):</td>
-                                    <td>{{ $request->comment }}</td>
-                                </tr>
-                            @endif
-                        </table>
+                                    }
+                                @endphp
+                                {{ implode(', ', $ch_names) }}
+                            </p>
+                        </div>
+                        @endif
+                        <div class="order-item">
+                            <p><span>@lang('main.phone')</span>: {{ $request->phone }}</p>
+                        </div>
+                        <div class="order-item">
+                            <p><span>Email</span>: {{ $request->email }}</p>
+                        </div>
+                        @if($request->checkin_request == 1)
+                        <div class="order-item">
+                            <p><span>@lang('main.late_checkin')</span>: {{ $request->checkin_time }}</p>
+                        </div>
+                        @endif
+                        @if($request->checkout_request == 1)
+                        <div class="order-item">
+                            <p><span>@lang('main.late_checkout')</span>: {{ $request->checkout_time }}</p>
+                        </div>
+                        @endif
+                        @if($request->comment)
+                        <div class="order-item">
+                            <p><span>@lang('main.message')</span>: {{ $request->comment }}</p>
+                        </div>
+                        @endif
 
                         <div class="btn-wrap">
                             <form action="{{ route('book_reserve') }}" method="get">

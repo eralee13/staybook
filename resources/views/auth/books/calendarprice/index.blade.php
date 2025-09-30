@@ -20,7 +20,8 @@
                 <div class="tabs">
                     <ul>
                         <li @routeactive(
-                        'bookcalendar.index')><a href="{{route('bookcalendar.index', $hotel)}}" class="more">Квоты</a></li>
+                        'bookcalendar.index')><a href="{{route('bookcalendar.index', $hotel)}}"
+                                                 class="more">Квоты</a></li>
                         <li @routeactive(
                         'bookcalendarprice.index')><a href="{{route('bookcalendarprice.index', $hotel)}}">Цены</a></li>
                     </ul>
@@ -31,29 +32,14 @@
             <div class="e-search">
                 <div class="form-group">
                     <label for="">Выберите отель</label>
-                    @can('edit-contact')
-                        <select name="hotel_id" id="hotel_id" class="form-control" style="width: 200px"
-                                onchange="window.location.href = '{{ route(Route::currentRouteName(), ['hotel' => '__HOTEL__']) }}'.replace('__HOTEL__', this.value)">
-                            @foreach ($hotelslist as $hotel)
-                                <option value="{{ $hotel->id }}" {{ request()->route('hotel') == $hotel->id ? 'selected' : '' }}>
-                                    {{ $hotel->title }}
-                                </option>
-                            @endforeach
-                        </select>
-                    @endcan
-                    @hasrole('Hotel')
-                    @php
-                        $hot = \App\Models\Hotel::where('id', $hotel)->first();
-                    @endphp
                     <select name="hotel_id" id="hotel_id" class="form-control" style="width: 200px"
                             onchange="window.location.href = '{{ route(Route::currentRouteName(), ['hotel' => '__HOTEL__']) }}'.replace('__HOTEL__', this.value)">
-                        @if($hot)
-                            <option value="{{ $hot->id }}">{{ $hot->title }}</option>
-                        @else
-                            <option disabled>Отель не найден</option>
-                        @endif
+                        @foreach ($hotelslist as $hotel)
+                            <option value="{{ $hotel->id }}" {{ request()->route('hotel') == $hotel->id ? 'selected' : '' }}>
+                                {{ $hotel->title }}
+                            </option>
+                        @endforeach
                     </select>
-                    @endhasrole
                 </div>
                 @php
                     use Carbon\Carbon;
@@ -62,7 +48,7 @@
                     $endDate = Carbon::now()->endOfMonth()->format('Y-m-d');
 
                     // Получаем текущую локаль Laravel
-                    $locale = app()->getLocale(); // 'ru', 'en', и т.д.
+                    $locale = app()->getLocale();
                 @endphp
 
                 <script src="https://code.jquery.com/jquery-3.7.1.min.js"
@@ -127,25 +113,25 @@
     @if($hotel->exely_id != null)
 
     @else
-    <!-- Modal -->
-    <div class="modal fade" id="createBookingModal" tabindex="-1" aria-labelledby="createBookingLabel"
-         aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        Создание брони для:
-                    </h5>
-                    <ul class="list-unstyled small text-muted mb-2">
-                        <li>🏨 <strong id="modalHotelName">—</strong></li>
-                        <li>🛏 <strong id="modalRoomName">—</strong></li>
-                        <li>💵 <strong id="modalRateName">—</strong></li>
-                    </ul>
+        <!-- Modal -->
+        <div class="modal fade" id="createBookingModal" tabindex="-1" aria-labelledby="createBookingLabel"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            Создание брони для:
+                        </h5>
+                        <ul class="list-unstyled small text-muted mb-2">
+                            <li>🏨 <strong id="modalHotelName">—</strong></li>
+                            <li>🛏 <strong id="modalRoomName">—</strong></li>
+                            <li>💵 <strong id="modalRateName">—</strong></li>
+                        </ul>
 
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
-                </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                    </div>
                     <div class="modal-body">
-                        <form id="createBookingForm" action="{{ route('bookcalendar.create') }}" method="post">
+                        <form id="createBookingForm" action="{{ route('bookcalendarprice.create') }}" method="post">
                             <div id="bookingError" class="alert alert-danger d-none" role="alert"></div>
 
                             <input type="hidden" name="hotel_id" id="modalHotelId">
@@ -162,7 +148,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="modalAllotment" class="form-label">Стоимость</label>
-                                <input type="number" class="form-control" id="modalAllotment" name="allotment" value="1"
+                                <input type="number" class="form-control" id="modalAllotment" name="allotment"
                                        required>
                             </div>
 
@@ -170,9 +156,9 @@
                         </form>
                     </div>
 
+                </div>
             </div>
         </div>
-    </div>
     @endif
 
 @endsection

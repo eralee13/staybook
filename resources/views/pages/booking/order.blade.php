@@ -11,7 +11,8 @@
                 width: auto;
             }
             body{
-                font-family: Unbounded,sans-serif !important;
+                font-family: Unbounded, sans-serif !important;
+                background-color: rgba(246, 246, 246, 1) !important;
             }
             .page{
                 padding-bottom: 60px;
@@ -21,13 +22,66 @@
             <div class="container">
                 <div class="row">
                     <div class="col-md-12">
-                        <h3><a href="search.html"><img src="{{ route('index') }}/img/icons/arrow-left.svg" alt=""></a>
+                        <h1><img src="{{ route('index') }}/img/arrow-left.svg" alt="">
                             @lang('main.booking')
-                        </h3>
+                        </h1>
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-lg-8 col-md-12 order-xl-1 order-lg-1 order-2">
+                    <div class="col-lg-4 col-md-12">
+                        @php
+                            $hotel = Hotel::where('exely_id', $request->propertyId)->orWhere('id', $request->propertyId)->first();
+                            $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
+                            $cancel_utc = \Carbon\Carbon::createFromDate($request->cancelDate)->format('P');
+                            $room = \App\Models\Room::where('id', $request->room_id)->firstOrFail();
+                            $rate = \App\Models\Rate::where('id', $request->rate_id)->firstOrFail();
+                            $cancel = \App\Models\CancellationRule::where('id', $request->cancellation_id)->firstOrFail();
+                            $cancelDate = \Carbon\Carbon::parse($request->arrivalDate)->subDays($cancel->free_cancellation_days)->format('d.m.Y H:i');
+                            $freeDate = \Carbon\Carbon::parse($request->arrivalDate)->format('d.m.Y H:i');
+                            $timezone = \Carbon\Carbon::parse($hotel->timezone)->format('P');
+                        @endphp
+                        <div class="sidebar">
+                            @if($hotel->image)
+                                <img src="{{ Storage::url($hotel->image) }}" alt="">
+                            @else
+                                <img src="{{ route('index')}}/img/noimage.png" alt="">
+                            @endif
+                            <div class="text-wrap">
+                                <div class="descr">@lang('main.hotel'): {{ $hotel->__('title') }}</div>
+                                <div class="descr">@lang('main.room'): {{ $room->__('title') }}</div>
+                                <div class="descr">@lang('main.rate'): {{ $rate->__('title') }}</div>
+                                <div class="date">@lang('main.check-in/check-out')
+                                    : {{ $arrival }} {{ $hotel->checkin }}
+                                    - {{ $departure }} {{ $hotel->checkout }} (UTC {{ $hotel_utc }})
+                                </div>
+                                <div class="cancel">@lang('main.cancellation_policy'):
+                                    @if($cancel->cancel_policy === 'free_until_checkin')
+                                        @lang('main.free_cancellation') {{ $freeDate }}
+                                        UTC {{ $timezone }}
+                                    @elseif($cancel->cancel_policy === 'free_then_penalty')
+                                        @if(now()->lte($cancelDate))
+                                            @lang('main.free_cancellation') {{ $cancelDate }}
+                                            UTC {{ $timezone }}
+                                        @else
+                                            @lang('main.cancellation_is_not_avaialble').
+                                        @endif
+                                        {{ $request->cancelPrice }} {{ $request->currency }}
+                                    @else
+                                        {{ $request->cancelPrice }} {{ $request->currency }}
+                                    @endif
+                                </div>
+                                <div class="row mt">
+                                    <div class="col-md-8">
+                                        <div class="total">@lang('main.total')</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="price">{{ $request->sum }} {{ $request->currency}}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-8 col-md-12">
                         <h5>@lang('main.trip')</h5>
                         <form action="{{ route('book_verify') }}">
                             <input type="hidden" name="propertyId" value="{{ $request->propertyId }}">
@@ -36,7 +90,7 @@
                             <input type="hidden" name="room_id" value="{{ $request->room_id }}">
                             <input type="hidden" name="rate_id" value="{{ $request->rate_id }}">
                             <input type="hidden" name="meal_id" value="{{ $request->meal_id }}">
-                            <input type="hidden" name="roomCount" value="{{ $request->roomCount }}">
+                            <input type="hidden" name="roomCount" value="{{ $request->roomCount ?? 1 }}">
                             <input type="hidden" name="childAges[]" value="{{ implode(',', $request->childAges) }}">
                             <input type="hidden" name="cancellation_id" value="{{ $request->cancellation_id }}">
                             <input type="hidden" name="cancelDate" value="{{ $request->cancelDate }}">
@@ -46,45 +100,47 @@
                             <input type="hidden" name="sum" value="{{ round($request->sum) }}">
                             <input type="hidden" name="currency" value="{{ $request->currency }}">
                             <input type="hidden" name="source_sym" value="{{ $request->source_sym }}">
-                            <div class="row">
-                                @for ($i = 1; $i <= $request->adult; $i++)
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <div class="label">
-                                                @if($i === 1)
+                            @for ($i = 1; $i <= $request->adult; $i++)
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label for="">@if($i === 1)
+                                                @lang('main.full_name')
+                                            @else
+                                                #{{ $i }} @lang('main.full_name')
+                                            @endif</label>
+                                        <input type="text" name="title{{ $i }}" placeholder="@if($i === 1)
                                                     @lang('main.full_name')
                                                 @else
                                                     #{{ $i }} @lang('main.full_name')
-                                                @endif
-                                            </div>
-                                            <input type="text" name="title{{ $i }}" placeholder="Асанов А.А."
-                                                   value="{{ $i === 1 && Auth::check() ? Auth::user()->name : '' }}"
-                                                   required>
-                                        </div>
+                                                @endif"
+                                               value="{{ $i === 1 && Auth::check() ? Auth::user()->name : '' }}"
+                                               required>
                                     </div>
-                                @endfor
-                                @for ($i = 1; $i <= $request->child; $i++)
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <div class="label">
-                                                @if($i === 1)
-                                                    @lang('main.full_name') @lang('main.child')
-                                                @else
-                                                    #{{ $i }} @lang('main.full_name') @lang('main.child')
-                                                @endif
-                                            </div>
-                                            <input type="text" name="child_name{{ $i }}" placeholder="Усенов У.У."
-                                                   required>
+                                </div>
+                            @endfor
+                            @for ($i = 1; $i <= $request->child; $i++)
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <div class="label">
+                                            @if($i === 1)
+                                                @lang('main.full_name') @lang('main.child')
+                                            @else
+                                                #{{ $i }} @lang('main.full_name') @lang('main.child')
+                                            @endif
                                         </div>
+                                        <input type="text" name="child_name{{ $i }}" placeholder="Усенов У.У."
+                                               required>
                                     </div>
-                                @endfor
-                                <div class="col-md-3">
+                                </div>
+                            @endfor
+                            <div class="row">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <div class="label">@lang('main.count_adult')</div>
                                         <input type="text" name="adult" value="{{ $request->adult }}" readonly>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <div class="label">@lang('main.count_child')</div>
                                         <input type="text" name="child" value="{{ $request->child }}" readonly>
@@ -106,55 +162,55 @@
                                         <input type="email" name="email" value="{{ Auth::user()->email }}" required>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="form-group check">
-                                        <input type="checkbox" name="checkin_request" id="late_checkin" value="1" {{ old('checkin_request') ? 'checked' : '' }}>
-                                        <label for="late_checkin">@lang('main.late_checkin')</label>
-                                        <select name="checkin_time" id="">
-                                            <option>@lang('admin.choose')</option>
-                                            @for ($hour = 06; $hour <= 14; $hour++)
-                                                @php $time = sprintf('%02d:00', $hour); @endphp
-                                                <option value="{{ $time }}" {{ old('checkin_time') == $time ? 'selected' : '' }}>{{ $time }}</option>
-                                            @endfor
-                                        </select>
-                                    </div>
-                                </div>
+{{--                                <div class="col-md-6">--}}
+{{--                                    <div class="form-group check">--}}
+{{--                                        <input type="checkbox" name="checkin_request" id="late_checkin" value="1" {{ old('checkin_request') ? 'checked' : '' }}>--}}
+{{--                                        <label for="late_checkin">@lang('main.late_checkin')</label>--}}
+{{--                                        <select name="checkin_time" id="">--}}
+{{--                                            <option>@lang('admin.choose')</option>--}}
+{{--                                            @for ($hour = 06; $hour <= 14; $hour++)--}}
+{{--                                                @php $time = sprintf('%02d:00', $hour); @endphp--}}
+{{--                                                <option value="{{ $time }}" {{ old('checkin_time') == $time ? 'selected' : '' }}>{{ $time }}</option>--}}
+{{--                                            @endfor--}}
+{{--                                        </select>--}}
+{{--                                    </div>--}}
+{{--                                </div>--}}
 
-                                <div class="col-md-6">
-                                    <div class="form-group check">
-                                        <input type="checkbox" name="checkout_request" id="late_checkout" value="1" {{ old('checkout_request') ? 'checked' : '' }}>
-                                        <label for="late_checkout">@lang('main.late_checkout')</label>
-                                        <select name="checkout_time" id="">
-                                            <option>@lang('admin.choose')</option>
-                                            @for ($hour = 12; $hour <= 18; $hour++)
-                                                @php $time = sprintf('%02d:00', $hour); @endphp
-                                                <option value="{{ $time }}" {{ old('checkout_time') == $time ? 'selected' : '' }}>{{ $time }}</option>
-                                            @endfor
-                                        </select>
-                                    </div>
-                                </div>
-                                    <script>
-                                        document.addEventListener("DOMContentLoaded", function () {
-                                            let checkin = document.getElementById('late_checkin');
-                                            let checkinTime = document.querySelector('[name="checkin_time"]');
-                                            checkinTime.style.display = checkin.checked ? 'block' : 'none';
-                                            checkin.addEventListener('change', () => {
-                                                checkinTime.style.display = checkin.checked ? 'block' : 'none';
-                                            });
+{{--                                <div class="col-md-6">--}}
+{{--                                    <div class="form-group check">--}}
+{{--                                        <input type="checkbox" name="checkout_request" id="late_checkout" value="1" {{ old('checkout_request') ? 'checked' : '' }}>--}}
+{{--                                        <label for="late_checkout">@lang('main.late_checkout')</label>--}}
+{{--                                        <select name="checkout_time" id="">--}}
+{{--                                            <option>@lang('admin.choose')</option>--}}
+{{--                                            @for ($hour = 12; $hour <= 18; $hour++)--}}
+{{--                                                @php $time = sprintf('%02d:00', $hour); @endphp--}}
+{{--                                                <option value="{{ $time }}" {{ old('checkout_time') == $time ? 'selected' : '' }}>{{ $time }}</option>--}}
+{{--                                            @endfor--}}
+{{--                                        </select>--}}
+{{--                                    </div>--}}
+{{--                                </div>--}}
+{{--                                    <script>--}}
+{{--                                        document.addEventListener("DOMContentLoaded", function () {--}}
+{{--                                            let checkin = document.getElementById('late_checkin');--}}
+{{--                                            let checkinTime = document.querySelector('[name="checkin_time"]');--}}
+{{--                                            checkinTime.style.display = checkin.checked ? 'block' : 'none';--}}
+{{--                                            checkin.addEventListener('change', () => {--}}
+{{--                                                checkinTime.style.display = checkin.checked ? 'block' : 'none';--}}
+{{--                                            });--}}
 
-                                            let checkout = document.getElementById('late_checkout');
-                                            let checkoutTime = document.querySelector('[name="checkout_time"]');
-                                            checkoutTime.style.display = checkout.checked ? 'block' : 'none';
-                                            checkout.addEventListener('change', () => {
-                                                checkoutTime.style.display = checkout.checked ? 'block' : 'none';
-                                            });
-                                        });
-                                    </script>
+{{--                                            let checkout = document.getElementById('late_checkout');--}}
+{{--                                            let checkoutTime = document.querySelector('[name="checkout_time"]');--}}
+{{--                                            checkoutTime.style.display = checkout.checked ? 'block' : 'none';--}}
+{{--                                            checkout.addEventListener('change', () => {--}}
+{{--                                                checkoutTime.style.display = checkout.checked ? 'block' : 'none';--}}
+{{--                                            });--}}
+{{--                                        });--}}
+{{--                                    </script>--}}
                                 <div class="col-md-12">
                                     <div class="form-group">
                                         @include('auth.layouts.error', ['fieldname' => 'comment'])
                                         <label for="">@lang('main.message')</label>
-                                        <textarea name="comment" rows="3"></textarea>
+                                        <input type="text" name="comment">
                                     </div>
                                 </div>
                             </div>
@@ -230,78 +286,6 @@
                                     @endhasrole
                             </div>
                         </form>
-                    </div>
-                    <div class="col-lg-4 col-md-12 order-xl-2 order-lg-2 order-1">
-                        @php
-                            $hotel = Hotel::where('exely_id', $request->propertyId)->orWhere('id', $request->propertyId)->first();
-                            $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
-                            $cancel_utc = \Carbon\Carbon::createFromDate($request->cancelDate)->format('P');
-                            $room = \App\Models\Room::where('id', $request->room_id)->firstOrFail();
-                            $rate = \App\Models\Rate::where('id', $request->rate_id)->firstOrFail();
-                            $cancel = \App\Models\CancellationRule::where('id', $request->cancellation_id)->firstOrFail();
-                            $cancelDate = \Carbon\Carbon::parse($request->arrivalDate)->subDays($cancel->free_cancellation_days)->format('d.m.Y H:i');
-                            $freeDate = \Carbon\Carbon::parse($request->arrivalDate)->format('d.m.Y H:i');
-                            $timezone = \Carbon\Carbon::parse($hotel->timezone)->format('P');
-                        @endphp
-                        <div class="sidebar">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <img src="{{ Storage::url($hotel->image) }}" alt="">
-                                </div>
-                                <div class="col-md-8">
-                                    <div class="descr">@lang('main.hotel'): {{ $hotel->__('title') }}</div>
-                                    <div class="descr">@lang('main.room'): {{ $room->__('title') }}</div>
-                                    <div class="descr">@lang('main.rate'): {{ $rate->__('title') }}</div>
-                                    <div class="date">@lang('main.check-in/check-out')
-                                        : {{ $arrival }} {{ $hotel->checkin }}
-                                        - {{ $departure }} {{ $hotel->checkout }} (UTC {{ $hotel_utc }})
-                                    </div>
-                                    <div class="cancel">@lang('main.cancellation_policy'):
-                                        @if($cancel->cancel_policy === 'free_until_checkin')
-                                            @lang('main.free_cancellation') {{ $freeDate }}
-                                            UTC {{ $timezone }}
-
-                                        @elseif($cancel->cancel_policy === 'free_then_penalty')
-                                            @if(now()->lte($cancelDate))
-                                                @lang('main.free_cancellation') {{ $cancelDate }}
-                                                UTC {{ $timezone }}
-                                            @else
-                                                @lang('main.cancellation_is_not_avaialble').
-                                            @endif
-                                            @lang('main.cancellation_amount')
-                                            :
-                                            {{ $request->cancelPrice }} {{ $request->currency }}
-
-                                        @else
-                                            @lang('main.cancellation_amount')
-                                            :
-                                            {{ $request->cancelPrice }} {{ $request->currency }}
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                            {{--                        <div class="line"></div>--}}
-                            {{--                        <h5>Детализация цены</h5>--}}
-                            {{--                        <div class="row">--}}
-                            {{--                            <div class="col-md-8">--}}
-                            {{--                                <div class="price-item">--}}
-                            {{--                                    <div class="name">36,000 {{ $request->currency }} * 2 ночи</div>--}}
-                            {{--                                </div>--}}
-                            {{--                            </div>--}}
-                            {{--                            <div class="col-md-4">--}}
-                            {{--                                <div class="price">{{ $request->price }} {{ $request->currency }}</div>--}}
-                            {{--                            </div>--}}
-                            {{--                        </div>--}}
-                            <div class="line"></div>
-                            <div class="row mt">
-                                <div class="col-md-8">
-                                    <div class="total">@lang('main.total')</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="price">{{ $request->sum }} {{ $request->currency}}</div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>

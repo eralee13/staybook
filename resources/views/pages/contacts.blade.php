@@ -17,22 +17,58 @@
                             <p>For any other inquiries: <a href="mailto:{{ $contacts->email }}">{{ $contacts->email }}</a></p>
                         @endif
 
-                        <script src="https://maps.api.2gis.ru/2.0/loader.js"></script>
-                        <div id="map" style="width: 100%; height: 450px;"></div>
-                        <script>
-                            DG.then(function () {
-                                var map = DG.map('map', {
-                                    center: [42.839085, 74.584437],
-                                    zoom: 16
-                                });
+                        <div class="maps">
+                            <h4>@lang('main.location')</h4>
+                            <!-- Подключение стилей Leaflet -->
+                            <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+                            <div id="map"></div>
+                            <!-- Подключение скрипта Leaflet -->
+                            <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+                            <script>
+                                var lat = 42.839085;
+                                var lng = 74.584437;
+                                var map = L.map('map').setView([lat, lng], 16);
 
-                                DG.marker([42.839085, 74.584437], { scrollWheelZoom: false })
-                                    .addTo(map)
-                                    .bindLabel('StayBook', {
-                                        static: true
-                                    });
-                            });
-                        </script>
+                                // Добавление слоя OpenStreetMap
+                                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                }).addTo(map);
+
+                                var marker = null; // Переменная для хранения последнего маркера
+
+                                // Если есть начальные координаты, устанавливаем маркер
+                                if (lat && lng) {
+                                    marker = L.marker([lat, lng]).addTo(map)
+                                        .bindPopup('Широта: ' + lat.toFixed(6) + '<br>Долгота: ' + lng.toFixed(6))
+                                        .openPopup();
+                                }
+
+                                // // Добавление масштаба
+                                L.control.scale().addTo(map);
+
+                                // Обработчик клика по карте
+                                map.on('click', function (e) {
+                                    var lat = e.latlng.lat;  // Широта
+                                    var lng = e.latlng.lng;  // Долгота
+
+                                    // Удаление старого маркера, если он есть
+                                    if (marker) {
+                                        map.removeLayer(marker);
+                                    }
+
+                                    // Обновление значений в полях ввода
+                                    document.getElementById('lat').value = lat.toFixed(6);
+                                    document.getElementById('lng').value = lng.toFixed(6);
+
+                                    // Добавление маркера на выбранную точку
+                                    if (lat && lng) {
+                                        marker = L.marker([lat, lng]).addTo(map)
+                                            .bindPopup('Широта: ' + lat.toFixed(6) + '<br>Долгота: ' + lng.toFixed(6))
+                                            .openPopup();
+                                    }
+                                });
+                            </script>
+                        </div>
                     </div>
                 </div>
             </div>

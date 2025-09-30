@@ -106,21 +106,26 @@
                         </div>
                     </div>
                     <div class="auth">
-                        <a href="{{ route('login') }}">Войти</a>
+                        <a href="{{ route('login') }}">@lang('main.login')</a>
                     </div>
                 </div>
             </div>
             <div class="col-lg-10 col-md-9 col-8 d-xl-none d-lg-none d-block">
                 <div class="wrap">
                     <div class="auth">
-                        <a href="{{ route('login') }}">Войти</a>
+                        <a href="{{ route('login') }}">@lang('main.login')</a>
                     </div>
                     <nav>
                         <a href="#" class="toggle-mnu d-xl-none d-lg-none"><span></span></a>
                         <ul>
                             <li><a href="{{route('service')}}">@lang('main.about_service')</a></li>
                             <li><a href="{{route('contactspage')}}">@lang('main.contacts')</a></li>
-                            <a href="{{ route('index') }}">RU</a>
+                            <li @if(session('locale')=='ru')
+                                    current
+                                    @endif><a href="{{ route('locale', 'ru') }}">RU</a></li>
+                            <li @if(session('locale')=='en')
+                                    current
+                                    @endif><a href="{{ route('locale', 'en') }}">EN</a></li>
                         </ul>
                     </nav>
                 </div>
@@ -145,19 +150,18 @@
 
 @yield('content')
 
-
 <footer>
     <div class="footer">
         <div class="container">
             <div class="row">
-                <div class="col-lg-3 col-md-4">
+                <div class="col-lg-3 col-md-6">
                     <div class="footer-item">
                         <div class="logo">
                             <img src="{{ route('index') }}/img/logo_foot.svg" alt="">
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-4">
+                <div class="col-lg-3 col-md-6">
                     <div class="footer-item">
                         <ul>
                             <li>{{ $contacts->first()->__('address') }}</li>
@@ -169,7 +173,7 @@
                         </ul>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-4">
+                <div class="col-lg-3 col-md-6">
                     <div class="footer-item">
                         <ul>
                             <li><a href="{{ route('service') }}">@lang('main.about_service')</a></li>
@@ -178,7 +182,7 @@
                         </ul>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-4">
+                <div class="col-lg-3 col-md-6">
                     <div class="footer-item">
                         <ul>
                             <li><a href="{{ route('companies') }}">@lang('main.companies_services')</a></li>
@@ -191,13 +195,13 @@
                 </div>
             </div>
             <div class="row copy">
-                <div class="col-lg-4">
+                <div class="col-lg-4 col-md-4">
                     <p>@lang('main.copy') &copy; {{ date('Y') }} staybook.asia</p>
                 </div>
-                <div class="col-lg-4 center">
+                <div class="col-lg-4 col-md-4 center">
                     <a href="{{ route('privacy') }}">@lang('main.privacy')</a>
                 </div>
-                <div class="col-lg-4 right">
+                <div class="col-lg-4 col-md-4 right">
                     <a href="{{ route('legal') }}">@lang('main.legal')</a>
                 </div>
             </div>
@@ -290,5 +294,4 @@
 <!-- /Yandex.Metrika counter -->
 
 </body>
-
 </html>

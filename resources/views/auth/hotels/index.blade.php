@@ -7,30 +7,26 @@
     <div class="page hotels">
         <div class="container">
             <div class="row">
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <form>
                         <input type="text" name="search" id="search" placeholder="@lang('admin.search')"
                                class="form-control"
                                onfocus="this.value=''">
                     </form>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-6">
                     <div class="add">
-                        <a href="{{ route('hotels.create') }}" class="more"><i class="fa-regular fa-plus"></i>
-                            @lang('admin.add_hotel')</a>
+                        <a href="{{ route('hotels.create') }}" class="more">@lang('admin.add_hotel')</a>
                     </div>
                 </div>
-{{--                <div class="col-md-4">--}}
-{{--                    <div class="add">--}}
-{{--                        <a href="{{ route('hotel.create') }}" class="more add">@lang('admin.use_assistant')</a>--}}
-{{--                    </div>--}}
-{{--                </div>--}}
             </div>
             <div class="row">
                 <div class="col-md-12">
                     <div id="search_list"></div>
                     @admin
-                        @lang('admin.count_hotels'): {{ $chotel->count() }}
+                        <div class="count">
+                            @lang('admin.count_hotels'): {{ $chotel->count() }}
+                        </div>
                     @endadmin
                     <table>
                         <tr>
@@ -56,10 +52,10 @@
                                     <form action="{{ route('hotels.destroy', $hotel) }}" method="post">
                                         <ul>
                                             @can('edit-contact')
-                                                <a href="{{ route('hotels.show', $hotel) }}" class="select-hotel" data-hotel="{{ $hotel->id }}"><img src="{{ route('index') }}/img/icons/eye.svg" alt=""></a>
+                                                <a href="{{ route('hotels.show', $hotel) }}" class="select-hotel" data-hotel="{{ $hotel->id }}"><img src="{{ route('index') }}/img/icons/eye.svg" class="view" alt=""></a>
                                             @else
                                             @if($hotel->status === 1)
-                                                <a href="{{ route('hotels.show', $hotel) }}" class="select-hotel" data-hotel="{{ $hotel->id }}"><img src="{{ route('index') }}/img/icons/eye.svg" alt=""></a>
+                                                <a href="{{ route('hotels.show', $hotel) }}" class="select-hotel" data-hotel="{{ $hotel->id }}"><img src="{{ route('index') }}/img/icons/eye.svg" class="view" alt=""></a>
                                             @endif
                                             @endif
                                             @csrf

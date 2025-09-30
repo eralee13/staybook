@@ -1,32 +1,15 @@
-@php use App\Models\Image;use Carbon\Carbon;use Illuminate\Support\Facades\Http; @endphp
+@php
+    use App\Models\Image;
+    use Carbon\Carbon;
+    use Illuminate\Support\Facades\Storage;
+@endphp
+
 @extends('layouts.main')
 
 @section('title', 'Поиск')
 
 @section('content')
     @auth
-
-        <style>
-            .map-sticky {
-                position: sticky;
-                top: 80px; /* отступ от верхнего края окна (подгони под высоту хедера) */
-                z-index: 1; /* чтобы не перекрывать другие элементы */
-            }
-            #map {
-                width: 100%;
-                height: calc(100vh - 120px); /* подгони «120px» при необходимости */
-            }
-            @media (max-width: 991.98px) {
-                .map-sticky {
-                    position: static;
-                }
-
-                #map {
-                    height: 400px;
-                }
-            }
-        </style>
-
         <div class="main-filter">
             <div class="container-fluid">
                 <div class="row">
@@ -72,7 +55,8 @@
                                                 align-items: center
                                             }
 
-                                            .suggest-item:hover, .suggest-item.active {
+                                            .suggest-item:hover,
+                                            .suggest-item.active {
                                                 background: #f3f4f6
                                             }
 
@@ -129,14 +113,13 @@
                                                     }
                                                     box.innerHTML = list.map((it, i) => {
                                                         const rating = it.rating ? `<span class="s-badge">★ ${it.rating}</span>` : '';
-                                                        const type = it.type === 'hotel'
-                                                            ? '<span class="s-badge">Отель</span>'
-                                                            : '<span class="s-badge">Город</span>';
-                                                        const alt = it.alt && it.alt !== it.label
-                                                            ? ` · <span class="s-sub">${it.alt}</span>` : '';
+                                                        const type = it.type === 'hotel' ?
+                                                            '<span class="s-badge">Отель</span>' :
+                                                            '<span class="s-badge">Город</span>';
+                                                        const alt = it.alt && it.alt !== it.label ?
+                                                            ` · <span class="s-sub">${it.alt}</span>` : '';
                                                         const city = it.city ? `<div class="s-sub">${it.city}</div>` : '';
-                                                        return `
-<div class="suggest-item" data-idx="${i}">
+                                                        return `<div class="suggest-item" data-idx="${i}">
   <div>
     <div class="s-title">${it.label} ${rating}${alt} ${type}</div>
     ${city}
@@ -149,7 +132,9 @@
                                                 async function fetchSuggest(q) {
                                                     try {
                                                         const resp = await fetch(url + '?q=' + encodeURIComponent(q), {
-                                                            headers: {'Accept': 'application/json'},
+                                                            headers: {
+                                                                'Accept': 'application/json'
+                                                            },
                                                             cache: 'no-store',
                                                         });
                                                         const ct = resp.headers.get('content-type') || '';
@@ -237,7 +222,9 @@
                                                     [...box.querySelectorAll('.suggest-item')].forEach((el, i) => {
                                                         el.classList.toggle('active', i === activeIdx);
                                                         if (i === activeIdx) {
-                                                            el.scrollIntoView({block: 'nearest'});
+                                                            el.scrollIntoView({
+                                                                block: 'nearest'
+                                                            });
                                                         }
                                                     });
                                                 }
@@ -262,307 +249,309 @@
                                     </div>
                                 </div>
                                 <div class="col-lg-4 col-md-6">
-                                    @php
-                                        // 1) Берём массив комнат из запроса (если нет – пустой массив)
-                                        $roomsData = $request->input('rooms', []);
+                                    <div class="form-group">
+                                        @php
+                                            // 1) Берём массив комнат из запроса (если нет – пустой массив)
+                                            $roomsData = $request->input('rooms', []);
 
-                                        // 2) Сразу подсчитываем общее кол-во комнат, взрослых и детей
-                                        $roomCount     = count($roomsData);
-                                        $totalAdults   = 0;
-                                        $totalChildren = 0;
+                                            // 2) Сразу подсчитываем общее кол-во комнат, взрослых и детей
+                                            $roomCount = count($roomsData);
+                                            $totalAdults = 0;
+                                            $totalChildren = 0;
 
-                                        foreach ($roomsData as $r) {
+                                            foreach ($roomsData as $r) {
                                             $totalAdults += (int) ($r['adults'] ?? 0);
                                             $totalChildren += count($r['childAges'] ?? []);
-                                        }
+                                            }
 
-                                        // 3) Готовим JSON для передачи в JS (чтобы JS сразу знал структуру rooms)
-                                        $roomsJson = json_encode($roomsData, JSON_UNESCAPED_UNICODE);
-                                    @endphp
-                                    {{-- Фильтр комнат --}}
-                                    {{-- Общая сводка (клик открывает окно) --}}
-                                    <a href="javascript:void(0)"
-                                       id="rooms-summary">
-                                        @lang('main.room'): 1, @lang('main.adult'): 1, @lang('main.child'): 0
-                                    </a>
+                                            // 3) Готовим JSON для передачи в JS (чтобы JS сразу знал структуру rooms)
+                                            $roomsJson = json_encode($roomsData, JSON_UNESCAPED_UNICODE);
+                                        @endphp
+                                        {{-- Фильтр комнат --}}
+                                        {{-- Общая сводка (клик открывает окно) --}}
+                                        <a href="javascript:void(0)"
+                                           id="rooms-summary">
+                                            @lang('main.room'): 1, @lang('main.adult'): 1, @lang('main.child'): 0
+                                        </a>
 
-                                    {{-- Полупрозрачный оверлей --}}
-                                    <div id="rooms-panel-overlay"
-                                         class="fixed inset-0 bg-black bg-opacity-50 hidden z-40"></div>
+                                        {{-- Полупрозрачный оверлей --}}
+                                        <div id="rooms-panel-overlay"
+                                             class="fixed inset-0 bg-black bg-opacity-50 hidden z-40"></div>
 
-                                    <div id="rooms-panel">
-                                        <div class="flex justify-between items-center">
-                                            <h3 class="text-lg font-medium">@lang('main.guests_and_rooms')</h3>
-                                            <div class="close-btn">
+                                        <div id="rooms-panel">
+                                            <div class="flex justify-between items-center">
+                                                <h3 class="text-lg font-medium">@lang('main.guests_and_rooms')</h3>
+                                                <div class="close-btn">
+                                                    <a href="javascript:void(0)"
+                                                       id="panel-close"
+                                                       class="text-gray-500 hover:text-gray-700 text-xl">&times;</a>
+                                                </div>
+                                            </div>
+
+                                            {{-- Кнопка добавить комнату --}}
+                                            <div class="add-btn">
                                                 <a href="javascript:void(0)"
-                                                   id="panel-close"
-                                                   class="text-gray-500 hover:text-gray-700 text-xl">&times;</a>
+                                                   id="add-room"
+                                                   class="inline-block text-blue-600 hover:underline text-sm mb-4">
+                                                    @lang('main.add_room')
+                                                </a>
+                                            </div>
+
+                                            {{-- Сюда будут рендериться комнаты --}}
+                                            <div id="rooms-container" class="space-y-4"></div>
+
+                                            <div class="mt-4 text-right">
+                                                <button id="panel-apply" class="more">
+                                                    @lang('main.ready')
+                                                </button>
                                             </div>
                                         </div>
 
-                                        {{-- Кнопка добавить комнату --}}
-                                        <div class="add-btn">
-                                            <a href="javascript:void(0)"
-                                               id="add-room"
-                                               class="inline-block text-blue-600 hover:underline text-sm mb-4">
-                                                @lang('main.add_room')
-                                            </a>
-                                        </div>
-
-                                        {{-- Сюда будут рендериться комнаты --}}
-                                        <div id="rooms-container" class="space-y-4"></div>
-
-                                        <div class="mt-4 text-right">
-                                            <button id="panel-apply" class="more">
-                                                @lang('main.ready')
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {{-- Шаблон одной комнаты --}}
-                                    <template id="room-template">
-                                        <div class="guest-room"
-                                             data-index="__INDEX__">
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <h4 class="flex justify-between items-center text-sm font-medium mb-3">
-                                                        <span class="room-number">__NUM__</span> @lang('main.room')
-                                                    </h4>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="remove-btn">
-                                                        <a href="javascript:void(0)"
-                                                           class="remove-room text-red-500 hover:text-red-700 text-xs ml-2">
-                                                            @lang('main.delete')
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {{-- скрытое поле для взрослых --}}
-                                            <input type="hidden"
-                                                   name="rooms[__INDEX__][adults]"
-                                                   value="1"
-                                                   class="input-adults">
-
-                                            {{-- сводка по комнате --}}
-                                            <a href="javascript:void(0)"
-                                               class="guest-summary flex justify-between items-center w-full border border-gray-300
-              rounded-md px-4 py-2 bg-white text-sm hover:border-blue-500">
-                                                <span class="summary-text">1 @lang('main.adult')</span>
-                                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor"
-                                                     viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                          stroke-width="2"
-                                                          d="M19 9l-7 7-7-7"/>
-                                                </svg>
-                                            </a>
-
-                                            {{-- дропдаун --}}
-                                            <div class="guest-dropdown hidden absolute z-20 mt-1 w-full bg-white border border-gray-200
-                rounded-md shadow-lg p-4">
+                                        {{-- Шаблон одной комнаты --}}
+                                        <template id="room-template">
+                                            <div class="guest-room"
+                                                 data-index="__INDEX__">
                                                 <div class="row">
                                                     <div class="col-md-6">
-                                                        <span class="text-sm">@lang('main.count_adult')</span>
-                                                        <div class="flex items-center">
-                                                            <button class="dec-adult">−</button>
-                                                            <span class="count-adult mx-3 w-5 text-center text-sm">1</span>
-                                                            <button class="inc-adult">+</button>
-                                                        </div>
+                                                        <h4 class="flex justify-between items-center text-sm font-medium mb-3">
+                                                            <span class="room-number">__NUM__</span> @lang('main.room')
+                                                        </h4>
                                                     </div>
                                                     <div class="col-md-6">
-                                                        <div class="flex justify-between items-center mb-4">
-                                                            <span class="text-sm">@lang('main.count_child')</span>
+                                                        <div class="remove-btn">
+                                                            <a href="javascript:void(0)"
+                                                               class="remove-room text-red-500 hover:text-red-700 text-xs ml-2">
+                                                                @lang('main.delete')
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {{-- скрытое поле для взрослых --}}
+                                                <input type="hidden"
+                                                       name="rooms[__INDEX__][adults]"
+                                                       value="1"
+                                                       class="input-adults">
+
+                                                {{-- сводка по комнате --}}
+                                                <a href="javascript:void(0)"
+                                                   class="guest-summary flex justify-between items-center w-full border border-gray-300
+              rounded-md px-4 py-2 bg-white text-sm hover:border-blue-500">
+                                                    <span class="summary-text">1 @lang('main.adult')</span>
+                                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor"
+                                                         viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                              stroke-width="2"
+                                                              d="M19 9l-7 7-7-7" />
+                                                    </svg>
+                                                </a>
+
+                                                {{-- дропдаун --}}
+                                                <div class="guest-dropdown hidden absolute z-20 mt-1 w-full bg-white border border-gray-200
+                rounded-md shadow-lg p-4">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <span class="text-sm">@lang('main.count_adult')</span>
                                                             <div class="flex items-center">
-                                                                <button class="dec-child">−</button>
-                                                                <span class="count-child mx-3 w-5 text-center text-sm">0</span>
-                                                                <button class="inc-child">+</button>
+                                                                <button class="dec-adult">−</button>
+                                                                <span class="count-adult mx-3 w-5 text-center text-sm">1</span>
+                                                                <button class="inc-adult">+</button>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="flex justify-between items-center mb-4">
+                                                                <span class="text-sm">@lang('main.count_child')</span>
+                                                                <div class="flex items-center">
+                                                                    <button class="dec-child">−</button>
+                                                                    <span class="count-child mx-3 w-5 text-center text-sm">0</span>
+                                                                    <button class="inc-child">+</button>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <div class="children-ages space-y-2 mb-4"></div>
-                                                <div class="text-right">
-                                                    <button class="apply-guests">@lang('main.apply')
-                                                    </button>
+                                                    <div class="children-ages space-y-2 mb-4"></div>
+                                                    <div class="text-right">
+                                                        <button class="apply-guests">@lang('main.apply')
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </template>
+                                        </template>
 
-                                    <script>
-                                        document.addEventListener('DOMContentLoaded', () => {
-                                            const MAX_ROOMS = 4;
-                                            const summaryBtn = document.getElementById('rooms-summary');
-                                            const overlay = document.getElementById('rooms-panel-overlay');
-                                            const panel = document.getElementById('rooms-panel');
-                                            const closeBtn = document.getElementById('panel-close');
-                                            const applyBtn = document.getElementById('panel-apply');
-                                            const addRoomBtn = document.getElementById('add-room');
-                                            const roomsContainer = document.getElementById('rooms-container');
-                                            const tpl = document.getElementById('room-template').innerHTML;
-                                            let nextIndex = 0;
+                                        <script>
+                                            document.addEventListener('DOMContentLoaded', () => {
+                                                const MAX_ROOMS = 4;
+                                                const summaryBtn = document.getElementById('rooms-summary');
+                                                const overlay = document.getElementById('rooms-panel-overlay');
+                                                const panel = document.getElementById('rooms-panel');
+                                                const closeBtn = document.getElementById('panel-close');
+                                                const applyBtn = document.getElementById('panel-apply');
+                                                const addRoomBtn = document.getElementById('add-room');
+                                                const roomsContainer = document.getElementById('rooms-container');
+                                                const tpl = document.getElementById('room-template').innerHTML;
+                                                let nextIndex = 0;
 
-                                            function openPanel() {
-                                                overlay.classList.remove('hidden');
-                                                panel.classList.add('open');
-                                            }
+                                                function openPanel() {
+                                                    overlay.classList.remove('hidden');
+                                                    panel.classList.add('open');
+                                                }
 
-                                            function closePanel() {
-                                                panel.classList.remove('open');
-                                                overlay.classList.add('hidden');
-                                            }
+                                                function closePanel() {
+                                                    panel.classList.remove('open');
+                                                    overlay.classList.add('hidden');
+                                                }
 
-                                            function updateGlobalSummary() {
-                                                const rooms = roomsContainer.querySelectorAll('.guest-room');
-                                                const roomCount = rooms.length;
-                                                let adultsTotal = 0;
-                                                let childrenTotal = 0;
-                                                rooms.forEach(r => {
-                                                    adultsTotal += +r.querySelector('.count-adult').textContent;
-                                                    childrenTotal += +r.querySelector('.count-child').textContent;
-                                                });
-                                                summaryBtn.textContent =
-                                                    `@lang('main.room'): ${roomCount}, @lang('main.adult'): ${adultsTotal}, @lang('main.child'): ${childrenTotal}`;
-                                                summaryBtn.classList.toggle('opacity-50', roomCount >= MAX_ROOMS);
-                                                summaryBtn.classList.toggle('pointer-events-none', roomCount >= MAX_ROOMS);
-                                            }
-
-                                            function reindexRooms() {
-                                                roomsContainer.querySelectorAll('.guest-room').forEach((r, i) => {
-                                                    r.dataset.index = i;
-                                                    r.querySelector('.room-number').textContent = i + 1;
-                                                    r.querySelector('.input-adults').name = `rooms[${i}][adults]`;
-                                                    // корректим name для каждого селекта детей
-                                                    r.querySelectorAll('.children-ages select').forEach((sel, ci) => {
-                                                        sel.name = `rooms[${i}][childAges][${ci}]`;
+                                                function updateGlobalSummary() {
+                                                    const rooms = roomsContainer.querySelectorAll('.guest-room');
+                                                    const roomCount = rooms.length;
+                                                    let adultsTotal = 0;
+                                                    let childrenTotal = 0;
+                                                    rooms.forEach(r => {
+                                                        adultsTotal += +r.querySelector('.count-adult').textContent;
+                                                        childrenTotal += +r.querySelector('.count-child').textContent;
                                                     });
+                                                    summaryBtn.textContent =
+                                                        `@lang('main.room'): ${roomCount}, @lang('main.adult'): ${adultsTotal}, @lang('main.child'): ${childrenTotal}`;
+                                                    summaryBtn.classList.toggle('opacity-50', roomCount >= MAX_ROOMS);
+                                                    summaryBtn.classList.toggle('pointer-events-none', roomCount >= MAX_ROOMS);
+                                                }
+
+                                                function reindexRooms() {
+                                                    roomsContainer.querySelectorAll('.guest-room').forEach((r, i) => {
+                                                        r.dataset.index = i;
+                                                        r.querySelector('.room-number').textContent = i + 1;
+                                                        r.querySelector('.input-adults').name = `rooms[${i}][adults]`;
+                                                        // корректим name для каждого селекта детей
+                                                        r.querySelectorAll('.children-ages select').forEach((sel, ci) => {
+                                                            sel.name = `rooms[${i}][childAges][${ci}]`;
+                                                        });
+                                                    });
+                                                    updateGlobalSummary();
+                                                }
+
+                                                function addRoom() {
+                                                    if (roomsContainer.children.length >= MAX_ROOMS) return;
+                                                    const idx = nextIndex++;
+                                                    const num = roomsContainer.children.length + 1;
+                                                    roomsContainer.insertAdjacentHTML(
+                                                        'beforeend',
+                                                        tpl.replace(/__INDEX__/g, idx).replace(/__NUM__/g, num)
+                                                    );
+                                                    reindexRooms();
+                                                }
+
+                                                function updateRoomSummary(room) {
+                                                    const aCount = +room.querySelector('.count-adult').textContent;
+                                                    const cCount = +room.querySelector('.count-child').textContent;
+                                                    const parts = [`${aCount} ${aCount === 1 ? '{{__('main.adult')}}' : '{{__('main.adult')}}'}`];
+                                                    if (cCount) parts.push(`${cCount} ${cCount === 1 ? '{{__('main.child')}}' : '{{__('main.child')}}'}`);
+                                                    room.querySelector('.summary-text').textContent = parts.join(', ');
+                                                    room.querySelector('.input-adults').value = aCount;
+                                                    updateGlobalSummary();
+                                                }
+
+                                                // Открытие/закрытие
+                                                summaryBtn.addEventListener('click', e => {
+                                                    e.preventDefault();
+                                                    openPanel();
                                                 });
-                                                updateGlobalSummary();
-                                            }
-
-                                            function addRoom() {
-                                                if (roomsContainer.children.length >= MAX_ROOMS) return;
-                                                const idx = nextIndex++;
-                                                const num = roomsContainer.children.length + 1;
-                                                roomsContainer.insertAdjacentHTML(
-                                                    'beforeend',
-                                                    tpl.replace(/__INDEX__/g, idx).replace(/__NUM__/g, num)
-                                                );
-                                                reindexRooms();
-                                            }
-
-                                            function updateRoomSummary(room) {
-                                                const aCount = +room.querySelector('.count-adult').textContent;
-                                                const cCount = +room.querySelector('.count-child').textContent;
-                                                const parts = [`${aCount} ${aCount === 1 ? '{{__('main.adult')}}' : '{{__('main.adult')}}'}`];
-                                                if (cCount) parts.push(`${cCount} ${cCount === 1 ? '{{__('main.child')}}' : '{{__('main.child')}}'}`);
-                                                room.querySelector('.summary-text').textContent = parts.join(', ');
-                                                room.querySelector('.input-adults').value = aCount;
-                                                updateGlobalSummary();
-                                            }
-
-                                            // Открытие/закрытие
-                                            summaryBtn.addEventListener('click', e => {
-                                                e.preventDefault();
-                                                openPanel();
-                                            });
-                                            closeBtn.addEventListener('click', e => {
-                                                e.preventDefault();
-                                                closePanel();
-                                            });
-                                            applyBtn.addEventListener('click', e => {
-                                                e.preventDefault();
-                                                closePanel();
-                                            });
-                                            overlay.addEventListener('click', closePanel);
-
-                                            // Добавить комнату
-                                            addRoomBtn.addEventListener('click', e => {
-                                                e.preventDefault();
-                                                addRoom();
-                                            });
-
-                                            // Делегируем клики по документу
-                                            document.addEventListener('click', e => {
-                                                // если событие не в панели — игнор
-                                                if (!e.target.closest('.guest-room') &&
-                                                    !e.target.closest('#rooms-summary') &&
-                                                    !e.target.closest('#add-room')) {
-                                                    return;
-                                                }
-
-                                                const room = e.target.closest('.guest-room');
-
-                                                if (e.target.closest('.remove-room')) {
+                                                closeBtn.addEventListener('click', e => {
                                                     e.preventDefault();
-                                                    room.remove();
-                                                    reindexRooms();
-                                                    return;
-                                                }
-                                                if (e.target.closest('.guest-summary')) {
+                                                    closePanel();
+                                                });
+                                                applyBtn.addEventListener('click', e => {
                                                     e.preventDefault();
-                                                    room.querySelector('.guest-dropdown').classList.toggle('hidden');
-                                                    return;
-                                                }
-                                                if (e.target.closest('.dec-adult')) {
+                                                    closePanel();
+                                                });
+                                                overlay.addEventListener('click', closePanel);
+
+                                                // Добавить комнату
+                                                addRoomBtn.addEventListener('click', e => {
                                                     e.preventDefault();
-                                                    const cnt = room.querySelector('.count-adult');
-                                                    if (+cnt.textContent > 1) cnt.textContent = +cnt.textContent - 1;
-                                                    updateRoomSummary(room);
-                                                    return;
-                                                }
-                                                if (e.target.closest('.inc-adult')) {
-                                                    e.preventDefault();
-                                                    const cnt = room.querySelector('.count-adult');
-                                                    if (+cnt.textContent < 8) cnt.textContent = +cnt.textContent + 1;
-                                                    updateRoomSummary(room);
-                                                    return;
-                                                }
-                                                if (e.target.closest('.dec-child')) {
-                                                    e.preventDefault();
-                                                    const cnt = room.querySelector('.count-child');
-                                                    if (+cnt.textContent > 0) cnt.textContent = +cnt.textContent - 1;
-                                                    // убираем последний селект
-                                                    const wrap = room.querySelector('.children-ages');
-                                                    if (wrap.lastElementChild) wrap.removeChild(wrap.lastElementChild);
-                                                    reindexRooms();
-                                                    updateRoomSummary(room);
-                                                    return;
-                                                }
-                                                if (e.target.closest('.inc-child')) {
-                                                    e.preventDefault();
-                                                    const cnt = room.querySelector('.count-child');
-                                                    if (+cnt.textContent < 3) {
-                                                        cnt.textContent = +cnt.textContent + 1;
-                                                        // создаём select для возраста
+                                                    addRoom();
+                                                });
+
+                                                // Делегируем клики по документу
+                                                document.addEventListener('click', e => {
+                                                    // если событие не в панели — игнор
+                                                    if (!e.target.closest('.guest-room') &&
+                                                        !e.target.closest('#rooms-summary') &&
+                                                        !e.target.closest('#add-room')) {
+                                                        return;
+                                                    }
+
+                                                    const room = e.target.closest('.guest-room');
+
+                                                    if (e.target.closest('.remove-room')) {
+                                                        e.preventDefault();
+                                                        room.remove();
+                                                        reindexRooms();
+                                                        return;
+                                                    }
+                                                    if (e.target.closest('.guest-summary')) {
+                                                        e.preventDefault();
+                                                        room.querySelector('.guest-dropdown').classList.toggle('hidden');
+                                                        return;
+                                                    }
+                                                    if (e.target.closest('.dec-adult')) {
+                                                        e.preventDefault();
+                                                        const cnt = room.querySelector('.count-adult');
+                                                        if (+cnt.textContent > 1) cnt.textContent = +cnt.textContent - 1;
+                                                        updateRoomSummary(room);
+                                                        return;
+                                                    }
+                                                    if (e.target.closest('.inc-adult')) {
+                                                        e.preventDefault();
+                                                        const cnt = room.querySelector('.count-adult');
+                                                        if (+cnt.textContent < 8) cnt.textContent = +cnt.textContent + 1;
+                                                        updateRoomSummary(room);
+                                                        return;
+                                                    }
+                                                    if (e.target.closest('.dec-child')) {
+                                                        e.preventDefault();
+                                                        const cnt = room.querySelector('.count-child');
+                                                        if (+cnt.textContent > 0) cnt.textContent = +cnt.textContent - 1;
+                                                        // убираем последний селект
                                                         const wrap = room.querySelector('.children-ages');
-                                                        const div = document.createElement('div');
-                                                        div.className = 'flex items-center';
-                                                        div.innerHTML = `<span class="mr-2 text-sm">@lang('main.age')</span>`;
-                                                        const sel = document.createElement('select');
-                                                        sel.className = 'border border-gray-300 rounded-md px-2 py-1 text-sm';
-                                                        for (let a = 0; a <= 18; a++) sel.insertAdjacentHTML('beforeend', `<option value="${a}">${a}</option>`);
-                                                        div.appendChild(sel);
-                                                        wrap.appendChild(div);
+                                                        if (wrap.lastElementChild) wrap.removeChild(wrap.lastElementChild);
                                                         reindexRooms();
                                                         updateRoomSummary(room);
+                                                        return;
                                                     }
-                                                    return;
-                                                }
-                                                if (e.target.closest('.apply-guests')) {
-                                                    e.preventDefault();
-                                                    room.querySelector('.guest-dropdown').classList.add('hidden');
-                                                }
-                                                if (e.target.closest('#rooms-summary') && !room) {
-                                                    // клик по сводке — уже обрабатывается выше
-                                                }
-                                            });
+                                                    if (e.target.closest('.inc-child')) {
+                                                        e.preventDefault();
+                                                        const cnt = room.querySelector('.count-child');
+                                                        if (+cnt.textContent < 3) {
+                                                            cnt.textContent = +cnt.textContent + 1;
+                                                            // создаём select для возраста
+                                                            const wrap = room.querySelector('.children-ages');
+                                                            const div = document.createElement('div');
+                                                            div.className = 'flex items-center';
+                                                            div.innerHTML = `<span class="mr-2 text-sm">@lang('main.age')</span>`;
+                                                            const sel = document.createElement('select');
+                                                            sel.className = 'border border-gray-300 rounded-md px-2 py-1 text-sm';
+                                                            for (let a = 0; a <= 18; a++) sel.insertAdjacentHTML('beforeend', `<option value="${a}">${a}</option>`);
+                                                            div.appendChild(sel);
+                                                            wrap.appendChild(div);
+                                                            reindexRooms();
+                                                            updateRoomSummary(room);
+                                                        }
+                                                        return;
+                                                    }
+                                                    if (e.target.closest('.apply-guests')) {
+                                                        e.preventDefault();
+                                                        room.querySelector('.guest-dropdown').classList.add('hidden');
+                                                    }
+                                                    if (e.target.closest('#rooms-summary') && !room) {
+                                                        // клик по сводке — уже обрабатывается выше
+                                                    }
+                                                });
 
-                                            // Инициализация: первая комната
-                                            addRoom();
-                                        });
-                                    </script>
+                                                // Инициализация: первая комната
+                                                addRoom();
+                                            });
+                                        </script>
+                                    </div>
                                 </div>
                                 <div class="col-lg-4 col-md-6 extra">
                                     <div class="form-group">
@@ -722,158 +711,11 @@
         </div>
         </div>
 
-
         <div class="page search" style="margin-bottom: 60px">
             <div class="container-fluid">
                 <div class="row">
-                    {{--                    <div class="col-md-2">--}}
-                    {{--                        <div class="sidebar">--}}
-                    {{--                            <div class="row mb-4">--}}
-                    {{--                                <div class="form-group">--}}
-                    {{--                                    <label for="">Поиск по названию</label>--}}
-                    {{--                                    <input type="text" id="search-input" class="form-control" placeholder="Поиск по названию...">--}}
-                    {{--                                </div>--}}
-                    {{--                                <div class="form-group">--}}
-                    {{--                                    <label for="">Сортировка</label>--}}
-                    {{--                                    <select id="sort-client" class="form-control w-auto">--}}
-                    {{--                                        <option value="">Сортировка</option>--}}
-                    {{--                                        <option value="price-asc">Цена ↑</option>--}}
-                    {{--                                        <option value="price-desc">Цена ↓</option>--}}
-                    {{--                                        <option value="title-asc">Название A-Я</option>--}}
-                    {{--                                        <option value="title-desc">Название Я-A</option>--}}
-                    {{--                                    </select>--}}
-                    {{--                                </div>--}}
-                    {{--                                <div class="form-group" id="property-type-filter">--}}
-                    {{--                                    <div id="active-filters" class="mt-3">--}}
-                    {{--                                        <strong>Активные фильтры:</strong>--}}
-                    {{--                                        <div id="filters-list" class="d-flex flex-wrap gap-2 mt-2"></div>--}}
-                    {{--                                    </div>--}}
-                    {{--                                    <label for="">@lang('admin.property_type')</label>--}}
-                    {{--                                    <div class="row">--}}
-                    {{--                                        @php--}}
-                    {{--                                            $types = [--}}
-                    {{--                                                'Hotel' => 'hotelb.svg',--}}
-                    {{--                                                'Hostel' => 'hostel.svg',--}}
-                    {{--                                                'Guesthouse' => 'guesthouse.svg',--}}
-                    {{--                                                'Apartments' => 'apartment.svg',--}}
-                    {{--                                                'Sanatorium' => 'sanatorium.svg',--}}
-                    {{--                                                'Glamping' => 'glamping.svg',--}}
-                    {{--                                            ];--}}
-                    {{--                                        @endphp--}}
-                    {{--                                        @foreach($types as $type => $icon)--}}
-                    {{--                                            <div class="col-md-4">--}}
-                    {{--                                                <div class="type-item {{ in_array($type, (array) request('type')) ? 'active' : '' }}">--}}
-                    {{--                                                    <input type="checkbox"--}}
-                    {{--                                                           id="type_{{ $loop->index }}"--}}
-                    {{--                                                           name="type[]"--}}
-                    {{--                                                           class="type-filter"--}}
-                    {{--                                                           value="{{ $type }}"--}}
-                    {{--                                                            {{ in_array($type, (array) request('type')) ? 'checked' : '' }}>--}}
-                    {{--                                                    <label for="type_{{ $loop->index }}">--}}
-                    {{--                                                        <img src="{{ asset('img/icons/' . $icon) }}" alt="{{ $type }}">--}}
-                    {{--                                                        {{ __($type) }}--}}
-                    {{--                                                    </label>--}}
-                    {{--                                                </div>--}}
-                    {{--                                            </div>--}}
-                    {{--                                        @endforeach--}}
-                    {{--                                    </div>--}}
-                    {{--                                </div>--}}
-                    {{--                                <div class="form-group mt-2">--}}
-                    {{--                                    <button type="button" id="clear-filters" class="more">--}}
-                    {{--                                        Сбросить фильтры--}}
-                    {{--                                    </button>--}}
-                    {{--                                </div>--}}
-
-                    {{--                                <style>--}}
-                    {{--                                    #search-input, #sort-client, #clear-filters {--}}
-                    {{--                                        padding: 12px 16px;--}}
-                    {{--                                        font-size: 16px;--}}
-                    {{--                                        border: 1px solid #ddd;--}}
-                    {{--                                        border-radius: 8px;--}}
-                    {{--                                        margin-right: 10px;--}}
-                    {{--                                        outline: none;--}}
-                    {{--                                        transition: all 0.2s ease-in-out;--}}
-                    {{--                                    }--}}
-
-                    {{--                                    #search-input:focus, #sort-client:focus {--}}
-                    {{--                                        border-color: #4a90e2;--}}
-                    {{--                                        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);--}}
-                    {{--                                    }--}}
-
-                    {{--                                    #clear-filters {--}}
-                    {{--                                        background-color: #f44336;--}}
-                    {{--                                        color: white;--}}
-                    {{--                                        border: none;--}}
-                    {{--                                        cursor: pointer;--}}
-                    {{--                                        width: 100%;--}}
-                    {{--                                        padding: 10px 15px;--}}
-                    {{--                                        margin: 0;--}}
-                    {{--                                    }--}}
-
-                    {{--                                    #clear-filters:hover {--}}
-                    {{--                                        background-color: #d32f2f;--}}
-                    {{--                                    }--}}
-
-                    {{--                                    .sidebar {--}}
-                    {{--                                        margin-bottom: 20px;--}}
-                    {{--                                        display: flex;--}}
-                    {{--                                        flex-wrap: wrap;--}}
-                    {{--                                        align-items: center;--}}
-                    {{--                                        gap: 10px;--}}
-                    {{--                                    }--}}
-                    {{--                                    #property-type-filter .type-item {--}}
-                    {{--                                        position: relative;--}}
-                    {{--                                        padding: 10px;--}}
-                    {{--                                        background: #fff;--}}
-                    {{--                                        border: 1px solid #ddd;--}}
-                    {{--                                        border-radius: 10px;--}}
-                    {{--                                        text-align: center;--}}
-                    {{--                                        transition: 0.2s;--}}
-                    {{--                                        cursor: pointer;--}}
-                    {{--                                    }--}}
-
-                    {{--                                    #property-type-filter .type-item.active,--}}
-                    {{--                                    #property-type-filter .type-item:hover {--}}
-                    {{--                                        border-color: #4a90e2;--}}
-                    {{--                                        box-shadow: 0 0 5px rgba(74, 144, 226, 0.4);--}}
-                    {{--                                    }--}}
-
-                    {{--                                    #property-type-filter .type-item input[type="checkbox"] {--}}
-                    {{--                                        display: none;--}}
-                    {{--                                    }--}}
-
-                    {{--                                    #property-type-filter .type-item label {--}}
-                    {{--                                        display: flex;--}}
-                    {{--                                        flex-direction: column;--}}
-                    {{--                                        align-items: center;--}}
-                    {{--                                        cursor: pointer;--}}
-                    {{--                                        font-size: 14px;--}}
-                    {{--                                    }--}}
-
-                    {{--                                    #property-type-filter .type-item img {--}}
-                    {{--                                        height: 32px;--}}
-                    {{--                                        margin-bottom: 5px;--}}
-                    {{--                                    }--}}
-
-                    {{--                                    #filters-list .filter-badge {--}}
-                    {{--                                        background-color: #e0e0e0;--}}
-                    {{--                                        color: #333;--}}
-                    {{--                                        padding: 6px 10px;--}}
-                    {{--                                        border-radius: 16px;--}}
-                    {{--                                        font-size: 14px;--}}
-                    {{--                                        display: flex;--}}
-                    {{--                                        align-items: center;--}}
-                    {{--                                        gap: 6px;--}}
-                    {{--                                    }--}}
-                    {{--                                    #filters-list .filter-badge .remove-btn {--}}
-                    {{--                                        cursor: pointer;--}}
-                    {{--                                        font-weight: bold;--}}
-                    {{--                                    }--}}
-                    {{--                                </style>--}}
-                    {{--                            </div>--}}
-                    {{--                        </div>--}}
-                    {{--                    </div>--}}
-                    <div class="col-md-7">
+                    {{-- Листинг --}}
+                    <div class="col-lg-7 col-md-12">
                         <div id="hotel-list">
                             @if($allHotels->isEmpty())
                                 <div class="alert alert-danger">@lang('main.not_hotel')</div>
@@ -882,6 +724,7 @@
                                 </div>
                             @else
                                 @foreach($allHotels as $item)
+                                    {{-- LOCAL --}}
                                     @if($item['source'] === 'local')
                                         @php
                                             $hotel = $item['hotel'];
@@ -891,168 +734,55 @@
                                             $amenityObj = \App\Models\Amenity::where('hotel_id', $hotel->id)->first();
                                             $amenities = $amenityObj && $amenityObj->services ? explode(',', $amenityObj->services) : [];
                                             $items = array_slice($amenities, 0, 8);
-                                            $iconMap = [
-                                                'wi-fi' => 'wifi.svg', 'интернет' => 'wifi.svg', 'Доступ в интернет' => 'wifi.svg',
-                                                                'чайный набор' => 'tea.svg', 'Питание включено' => 'meal.svg', 'минеральная вода' => 'water.svg',
-                                                                'сауна' => 'sauna.svg', 'сейф' => 'safe.svg', 'Двуспальная кровать' => 'bed2.svg',
-                                                                'Гладильные принадлежности' => 'iron.svg', 'Ванная комната' => 'bath.svg',
-                                                                'Минибар' => 'minibar.svg', 'Кондиционер' => 'cond.svg', 'Туалетные принадлежности' => 'toilet.svg',
-                                                                'Душ' => 'shower.svg', 'Звукоизоляция' => 'sound.svg', 'Фен' => 'dry.svg',
-                                                                'Постельное бельё' => 'bed_sheets.svg', 'Халат' => 'robe.svg', 'Шкаф' => 'closet.svg',
-                                                                'шкаф для одежды' => 'closet.svg', 'Телефон' => 'phone_hotel.svg', 'Отопление' => 'heating.svg',
-                                                                'Письменный стол' => 'table.svg', 'Минеральная вода' => 'water.svg'
-                                                            ];
-                                            // Если в GET-параметрах нет childAges — будет пустой массив
-                                            $childAges = $request->input('childAges', []);
-                                            // Если пришла строка вида "1, 9", разбираем её в массив ['1', '9']
-                                            if (is_string($childAges)) {
-                                                $childAges = array_filter(
-                                                    array_map('trim', explode(',', $childAges)),
-                                                    fn($v) => $v !== ''
-                                                );
-                                            }
-                                            // Убедимся, что теперь $childAges — именно массив (например [] или ['1','9'])
-                                            if (! is_array($childAges)) {
-                                                $childAges = [];
-                                            }
-                                            $totalAdults   = 0;
-                                            $totalChildren = 0;
-                                            if (!empty($request->rooms) && is_array($request->rooms)) {
-                                                foreach ($request->rooms as $room) {
-                                                    // Добавляем взрослых
-                                                    $totalAdults += (int) ($room['adults'] ?? 0);
-                                                    // Считаем детей в этой комнате
-                                                    $totalChildren += isset($room['childAges']) && is_array($room['childAges'])
-                                                                      ? count($room['childAges'])
-                                                                      : 0;
-                                                }
-                                            }
-                                            // Вычисляем количество ночей
-                                $arr    = Carbon::parse($request->arrivalDate);
-                                $dep    = Carbon::parse($request->departureDate);
-                                $nights = $arr->diffInDays($dep);
-                                $totalPrice = 0;
-                                // Получаем самый дешевый тариф по отелю (например, для всех комнат одинаковый)
-                                $rate = \App\Models\Rate::where('hotel_id', $hotel->id)
-                                         ->orderBy('price', 'asc')
-                                         ->first();
-                                if ($rate) {
-                                    $сhildAges = [];
-                                        $price_child = 0;
-                                        if (!empty($request->rooms) && is_array($request->rooms)) {
-                                            foreach ($request->rooms as $room) {
-                                                // Если в этой комнате задан массив childAges — перебираем и добавляем
-                                                if (!empty($room['childAges']) && is_array($room['childAges'])) {
-                                                    foreach ($room['childAges'] as $age) {
-                                                        $childAges[] = $age;
-                                                        $age = (int) $age;
-                                                        if ($age >= $rate->free_children_age) {
-                                                            $price_child += $rate->child_extra_fee;
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        if ($totalAdults >= 2) {
-                                            $price = ($rate->price2 + $price_child) * 1 * $nights;
-                                        } else {
-                                            $price = ($rate->price + $price_child) * 1 * $nights;
-                                        }
-                                }
+                                            // готовые поля конвертации из контроллера
+                                            $converted = $item['conv_total'];
+                                            $symbol    = $item['conv_symbol'];
                                         @endphp
-                                        @isset($price)
-                                            <div class="search-item" data-type="{{ $hotel->type ?? '' }}"
-                                                 data-id="{{ $hotel->id }}" data-title="{{ strtolower($title) }}"
-                                                 data-price="{{ $item['price'] }}">
-                                                <div class="row">
-                                                    <div class="col-md-5 order-xl-1 order-lg-1 order-1">
-                                                        <div class="img-wrap">
-                                                            @if($images->isNotEmpty())
-                                                                <div class="row">
-                                                                    <div class="col-md-6">
-                                                                        <div class="main">
-                                                                            @if($hotel->image)
-                                                                                <img src="{{ Storage::url($hotel->image) }}"
-                                                                                     alt="">
-                                                                            @elseif($first_image)
-                                                                                <img src="{{ Storage::url($first_image->image) }}"
-                                                                                     alt="">
-                                                                            @else
-                                                                                <img src="{{ route('index') }}/img/noimage.png"
-                                                                                     alt="">
-                                                                            @endif
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-md-6">
-                                                                        @foreach($images as $file)
-                                                                            <div class="primary">
-                                                                                <img src="{{ Storage::url($file->image) }}"
-                                                                                     alt="">
-                                                                            </div>
-                                                                        @endforeach
-                                                                    </div>
-                                                                </div>
-                                                            @else
+                                        <div class="search-item"
+                                             data-type="{{ $hotel->type ?? '' }}"
+                                             data-id="{{ $hotel->id }}"
+                                             data-title="{{ strtolower($title) }}"
+                                             data-price="{{ $item['price'] }}">
+                                            <div class="row">
+                                                <div class="col-md-6 order-xl-1 order-lg-1 order-1">
+                                                    <div class="img-wrap">
+                                                        <div class="owl-carousel owl-slider">
+                                                            <div class="slider-item">
                                                                 @if($hotel->image)
                                                                     <img src="{{ Storage::url($hotel->image) }}" alt="">
+                                                                @elseif($images)
+                                                                    @foreach($images as $file)
+                                                                        <div class="primary">
+                                                                            <img src="{{ Storage::url($file->image) }}"
+                                                                                 alt="">
+                                                                        </div>
+                                                                    @endforeach
                                                                 @else
                                                                     <img src="{{ route('index') }}/img/noimage.png"
                                                                          alt="">
                                                                 @endif
+                                                            </div>
+                                                        </div>
+                                                        <div class="text-wrap">
+                                                            <div class="price">
+                                                                @lang('main.from') {{ number_format((int)$converted, 0, '.', ' ') }} {{ $symbol }}
+                                                            </div>
+                                                            <div class="night">@lang('main.night')</div>
+                                                            @if($hotel->rating)
+                                                                <div class="rating">
+                                                                    {{ $hotel->rating }} <img src="{{ route('index') }}/img/star.svg" alt="">
+                                                                </div>
                                                             @endif
                                                         </div>
                                                     </div>
-                                                    <div class="col-md-7 order-xl-2 order-lg-2 order-2">
-                                                        <div class="row">
-                                                            <div class="col-md-9">
-                                                                <h4>{{ $hotel->__('title') }}</h4>
-                                                                @if($hotel->rating)
-                                                                    <div class="rating"><img
-                                                                                src="{{ route('index') }}/img/star.svg"
-                                                                                alt=""> {{ $hotel->rating }}</div>
-                                                                @endif
-                                                            </div>
-                                                            <div class="col-md-3">
-                                                                @php
-                                                                    $basePrice = round($price / 0.92);
-                                                                    $toCurrency = strtoupper($fxBase ?? 'USD');
-                                                                    $fxRates = [
-                                                                        'USD' => 87.5,
-                                                                        'RUB' => 1.1130,
-                                                                        'KGS' => 1,
-                                                                        'UZS' => 0.0070,
-                                                                        'KZT' => 0.175,
-                                                                    ];
-                                                                    $symbols = [
-                                                                        'USD' => '$',
-                                                                        'RUB' => '₽',
-                                                                        'KGS' => 'сом',
-                                                                        'UZS' => 'сўм',
-                                                                        'KZT' => 'T'
-                                                                    ];
-                                                                    $rateTo = $fxRates[$toCurrency] ?? 1;
-                                                                    $converted = app(\App\Services\FXService::class)->convert($basePrice, $rate->currency ?? 'USD', $fxBase);
-                                                                    $symbol = $symbols[$toCurrency] ?? $toCurrency;
-                                                                @endphp
-                                                                <div class="price">@lang('main.from') {{ number_format(round($converted), 0, '.', ' ') }}
-                                                                    {{ $symbol }}
-                                                                </div>
-                                                                <div class="night">@lang('main.night')</div>
-                                                            </div>
-                                                        </div>
+                                                </div>
+                                                <div class="col-md-6 order-xl-2 order-lg-2 order-2">
+                                                    <div class="wrap">
+                                                        <h4>{{ $hotel->__('title') }}</h4>
                                                         <div class="amenities">
                                                             @foreach($items as $amenity)
-                                                                @php
-                                                                    $iconFile = 'check.svg';
-                                                                    foreach ($iconMap as $keyword => $filename) {
-                                                                        if (mb_stripos($amenity, $keyword) !== false) {
-                                                                            $iconFile = $filename;
-                                                                            break;
-                                                                        }
-                                                                    }
-                                                                @endphp
                                                                 <div class="amenities-item">
-                                                                    <img src="{{ asset('img/icons/' . $iconFile) }}"
+                                                                    <img src="{{ asset('img/icons/check.svg') }}"
                                                                          alt="{{ $amenity }}">
                                                                     <div class="name">{{ $amenity }}</div>
                                                                 </div>
@@ -1065,131 +795,81 @@
                                                                        value="{{ $request->arrivalDate }}">
                                                                 <input type="hidden" name="departureDate"
                                                                        value="{{ $request->departureDate }}">
-                                                                {{--                                                                <input type="hidden" id="city" name="city"--}}
-                                                                {{--                                                                       value="{{ $request->city }}">--}}
-                                                                <input type="hidden" name="roomCount"
-                                                                       value="{{ $roomCount }}">
-                                                                <input type="hidden" name="adult"
-                                                                       value="{{ $totalAdults }}">
-                                                                <input type="hidden" name="child"
-                                                                       value="{{ $totalChildren }}">
-                                                                <input type="hidden" name="childAges[]"
-                                                                       value="{{ implode(', ', $childAges) }}">
-                                                                @foreach((array) $request->meal as $meal)
-                                                                    <input type="hidden" name="meal[]"
-                                                                           value="{{ $meal }}">
-                                                                @endforeach
+                                                                {{-- при необходимости добавьте adult/child из вашего виджета --}}
                                                                 <button class="more">@lang('main.show_all_rooms')</button>
                                                             </form>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        @endisset
+                                        </div>
+
+                                        {{-- EXELY --}}
                                     @elseif($item['source'] === 'exely')
                                         @php
-                                            $room = $item['roomStay'];
+                                            $room  = $item['roomStay'];
                                             $hotel = $item['hotel'];
                                             $title = is_object($hotel) ? $hotel->title : ($hotel['title'] ?? '');
                                             $images = \App\Models\Image::where('hotel_id', $hotel?->id)->get();
                                             $amenities = isset($hotel) && $hotel->amenity ? explode(',', $hotel->amenity->services) : [];
                                             $items = array_slice($amenities, 0, 8);
-                                            $iconMap = [
-                                                'wi-fi' => 'wifi.svg', 'интернет' => 'wifi.svg', 'Доступ в интернет' => 'wifi.svg',
-                                                'чайный набор' => 'tea.svg', 'Питание включено' => 'meal.svg', 'минеральная вода' => 'water.svg',
-                                                'сауна' => 'sauna.svg', 'сейф' => 'safe.svg', 'Двуспальная кровать' => 'bed2.svg',
-                                                'Гладильные принадлежности' => 'iron.svg', 'Ванная комната' => 'bath.svg',
-                                                'Минибар' => 'minibar.svg', 'Кондиционер' => 'cond.svg', 'Туалетные принадлежности' => 'toilet.svg',
-                                                'Душ' => 'shower.svg', 'Звукоизоляция' => 'sound.svg', 'Фен' => 'dry.svg',
-                                                'Постельное бельё' => 'bed_sheets.svg', 'Халат' => 'robe.svg', 'Шкаф' => 'closet.svg',
-                                                'шкаф для одежды' => 'closet.svg', 'Телефон' => 'phone_hotel.svg', 'Отопление' => 'heating.svg',
-                                                'Письменный стол' => 'table.svg', 'Минеральная вода' => 'water.svg'
-                                            ];
+                                            $converted = $item['conv_total'];
+                                            $symbol    = $item['conv_symbol'];
                                         @endphp
 
-                                        <div class="search-item" data-id="{{ $hotel->id }}"
-                                             data-type="{{ $hotel->type ?? '' }}" data-title="{{ strtolower($title) }}"
+                                        <div class="search-item"
+                                             data-id="{{ $hotel?->id }}"
+                                             data-type="{{ $hotel->type ?? '' }}"
+                                             data-title="{{ strtolower($title) }}"
                                              data-price="{{ $item['price'] }}">
                                             <div class="row">
-                                                <div class="col-md-5 order-xl-1 order-lg-1 order-1">
+                                                <div class="col-md-6 order-xl-1 order-lg-1 order-1">
                                                     <div class="img-wrap">
-                                                        @php
-                                                            $images = \App\Models\Image::where('hotel_id', $hotel->id)->get();
-                                                        @endphp
-                                                        @if($images->isNotEmpty())
-                                                            <div class="row">
-                                                                <div class="col-md-6 col-6">
-                                                                    <div class="main">
-                                                                        <img src="{{ Storage::url($images->first()->image) }}"
-                                                                             alt="">
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-md-6 col-6">
+                                                        <div class="owl-carousel owl-slider">
+                                                            <div class="slider-item">
+                                                                @if($hotel?->image)
+                                                                    <img src="{{ Storage::url($hotel->image) }}" alt="">
+                                                                @elseif($images->isNotEmpty())
+                                                                    <img src="{{ Storage::url($images->first()->image) }}"
+                                                                         alt="">
                                                                     @foreach($images->slice(1, 2) as $file)
                                                                         <div class="primary">
                                                                             <img src="{{ Storage::url($file->image) }}"
                                                                                  alt="">
                                                                         </div>
                                                                     @endforeach
-                                                                </div>
+                                                                @else
+                                                                    <img src="{{ route('index')}}/img/noimage.png"
+                                                                         alt="">
+                                                                @endif
                                                             </div>
-                                                        @else
-                                                            @if($hotel->image)
-                                                                <img src="{{ Storage::url($hotel->image) }}" alt="">
-                                                            @else
-                                                                <img src="{{ route('index')}}/img/noimage.png" alt="">
-                                                            @endif
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-7 order-xl-2 order-lg-2 order-2">
-                                                    <div class="row">
-                                                        <div class="col-md-7 col-8">
-                                                            <h4>{{ $hotel->title }}</h4>
-                                                            @if($hotel->rating)
+                                                        </div>
+                                                        <div class="text-wrap">
+                                                            <div class="price">
+                                                                @lang('main.from') {{ number_format((int)$converted, 0, '.', ' ') }} {{ $symbol }}
+                                                            </div>
+                                                            <div class="night">@lang('main.night')</div>
+                                                            @if($hotel?->rating)
                                                                 <div class="rating"><img
                                                                             src="{{ route('index') }}/img/star.svg"
                                                                             alt=""> {{ $hotel->rating }}</div>
                                                             @endif
                                                         </div>
-                                                        <div class="col-md-5 col-4">
-                                                            <div class="price">
-                                                                @php
-                                                                    $arr = Carbon::parse($request->arrivalDate);
-                                                                    $dep = Carbon::parse($request->departureDate);
-                                                                    $nights = $arr->diffInDays($dep);
-                                                                    $basePrice = round($room->total->priceBeforeTax / 0.92);
-                                                                    $toCurrency = strtoupper($fxBase ?? 'USD');
-                                                                    $rateTo = $fxRates[$toCurrency] ?? 1;
-                                                                    //$basePrice = $basePrice * $totalAdults;
-                                                                    $converted = app(\App\Services\FXService::class)->convert($basePrice, $room->currencyCode, $fxBase);
-                                                                    $symbol = $symbols[$toCurrency] ?? $toCurrency;
-                                                                @endphp
-                                                                @lang('main.from') {{ number_format(round($converted), 0, '.', ' ') }} {{ $symbol }}
-                                                            </div>
-                                                            <div class="night">@lang('main.night')</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 order-xl-2 order-lg-2 order-2">
+                                                    <div class="wrap">
+                                                        <h4>{{ $hotel?->title }}</h4>
+                                                        <div class="amenities">
+                                                            @foreach($items as $amenity)
+                                                                <div class="amenities-item">
+                                                                    <img src="{{ asset('img/icons/check.svg') }}"
+                                                                         alt="{{ $amenity }}">
+                                                                    <div class="name">{{ $amenity }}</div>
+                                                                </div>
+                                                            @endforeach
                                                         </div>
-                                                    </div>
-                                                    <div class="amenities">
-                                                        @foreach($items as $amenity)
-                                                            @php
-                                                                $iconFile = 'check.svg';
-                                                                foreach ($iconMap as $keyword => $filename) {
-                                                                    if (mb_stripos($amenity, $keyword) !== false) {
-                                                                        $iconFile = $filename;
-                                                                        break;
-                                                                    }
-                                                                }
-                                                            @endphp
-                                                            <div class="amenities-item">
-                                                                <img src="{{ asset('img/icons/' . $iconFile) }}"
-                                                                     alt="{{ $amenity }}">
-                                                                <div class="name">{{ $amenity }}</div>
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
-                                                    <div class="address">{{ $hotel->__('address') }}</div>
-                                                    <div class="btn-wrap">
+                                                        <div class="address">{{ $hotel?->__('address') }}</div>
                                                         <div class="btn-wrap">
                                                             <form action="{{ route('findHotelExely', $room->roomType->id) }}">
                                                                 <input type="hidden" name="propertyId"
@@ -1251,41 +931,39 @@
                                             </div>
                                         </div>
 
+                                        {{-- TOURMIND --}}
                                     @elseif($item['source'] === 'tm')
                                         @php
                                             $tm    = $item['tm'] ?? [];
                                             $hotel = $item['hotel'] ?? null;
 
-                                            // Заголовок/картинки/удобства из локальной модели отеля
-                                            $title   = $hotel?->title ?? ($tm['localData']['title'] ?? '');
-                                            $images = $hotel? Image::where('hotel_id', $hotel->id)->orderBy('id')->limit(2)->get() : collect();
-                                            $amenStr = $hotel && $hotel->amenity ? $hotel->amenity->services : ($tm['localData']['amenity']['services'] ?? '');
+                                            $title   = $hotel?->title ?? ($tm->title ?? ($tm->localData->title ?? ''));
+                                            $images  = $hotel ? Image::where('hotel_id', $hotel->id)->orderBy('id')->limit(2)->get() : collect();
+                                            $tmImages = collect($tm->images ?? ($tm->localData->images ?? []));
+                                            $amenStr = $hotel && $hotel->amenity ? $hotel->amenity->services : ($tm->localData->amenity->services ?? '');
                                             $amenities = $amenStr ? explode(',', $amenStr) : [];
                                             $items = array_slice($amenities, 0, 8);
 
                                             $iconMap = [
-                                                'wi-fi' => 'wifi.svg', 'интернет' => 'wifi.svg', 'Доступ в интернет' => 'wifi.svg',
-                                                'чайный набор' => 'tea.svg', 'Питание включено' => 'meal.svg', 'минеральная вода' => 'water.svg',
-                                                'сауна' => 'sauna.svg', 'сейф' => 'safe.svg', 'Двуспальная кровать' => 'bed2.svg',
-                                                'Гладильные принадлежности' => 'iron.svg', 'Ванная комната' => 'bath.svg',
-                                                'Минибар' => 'minibar.svg', 'Кондиционер' => 'cond.svg', 'Туалетные принадлежности' => 'toilet.svg',
-                                                'Душ' => 'shower.svg', 'Звукоизоляция' => 'sound.svg', 'Фен' => 'dry.svg',
-                                                'Постельное бельё' => 'bed_sheets.svg', 'Халат' => 'robe.svg', 'Шкаф' => 'closet.svg',
-                                                'шкаф для одежды' => 'closet.svg', 'Телефон' => 'phone_hotel.svg', 'Отопление' => 'heating.svg',
-                                                'Письменный стол' => 'table.svg', 'Минеральная вода' => 'water.svg'
+                                                'wi-fi'=>'wifi.svg','интернет'=>'wifi.svg','Доступ в интернет'=>'wifi.svg',
+                                                'чайный набор'=>'tea.svg','Питание включено'=>'meal.svg','минеральная вода'=>'water.svg',
+                                                'сауна'=>'sauna.svg','сейф'=>'safe.svg','Двуспальная кровать'=>'bed2.svg',
+                                                'Гладильные принадлежности'=>'iron.svg','Ванная комната'=>'bath.svg','Минибар'=>'minibar.svg',
+                                                'Кондиционер'=>'cond.svg','Туалетные принадлежности'=>'toilet.svg','Душ'=>'shower.svg',
+                                                'Звукоизоляция'=>'sound.svg','Фен'=>'dry.svg','Постельное бельё'=>'bed_sheets.svg',
+                                                'Халат'=>'robe.svg','Шкаф'=>'closet.svg','шкаф для одежды'=>'closet.svg',
+                                                'Телефон'=>'phone_hotel.svg','Отопление'=>'heating.svg','Письменный стол'=>'table.svg',
+                                                'Минеральная вода'=>'water.svg'
                                             ];
 
-                                            // Готовая сконвертированная цена и символ, пришли из unify-слоя
-                                            $converted = $item['conv_total'] ?? null;
-                                            $symbol    = $item['conv_symbol'] ?? '';
+                                            $converted = $item['conv_total'];
+                                            $symbol    = $item['conv_symbol'];
                                         @endphp
-
-                                        <div class="search-item"
-                                             data-id="{{ $hotel?->id }}"
-                                             data-type="{{ $hotel->type ?? '' }}"
+                                        <div class="search-item tm"
+                                             data-id="{{ $hotel?->id ?? ($tm->hid ?? '') }}"
+                                             data-type="{{ $hotel?->type ?? '' }}"
                                              data-title="{{ strtolower($title) }}"
                                              data-price="{{ $item['price'] }}">
-
                                             <div class="row">
                                                 <div class="col-md-5 order-xl-1 order-lg-1 order-1">
                                                     <div class="img-wrap">
@@ -1297,7 +975,6 @@
                                                                              alt="">
                                                                     </div>
                                                                 </div>
-
                                                                 <div class="col-md-6 col-6">
                                                                     @if($images->count() >= 2)
                                                                         <div class="primary">
@@ -1307,6 +984,8 @@
                                                                     @endif
                                                                 </div>
                                                             </div>
+                                                        @elseif($tmImages->count() >= 1)
+                                                            <img src="{{ $tmImages->first() }}" alt="">
                                                         @else
                                                             @if($hotel?->image)
                                                                 <img src="{{ Storage::url($hotel->image) }}" alt="">
@@ -1321,31 +1000,26 @@
                                                     <div class="row">
                                                         <div class="col-md-7 col-8">
                                                             <h4>{{ $title }}</h4>
-                                                            @if($hotel->rating)
-                                                                <div class="rating"><img
-                                                                            src="{{ route('index') }}/img/star.svg"
-                                                                            alt=""> {{ $hotel->rating }}</div>
+                                                            @if($hotel?->rating)
+                                                                <div class="rating">
+                                                                    <img src="{{ route('index') }}/img/star.svg"
+                                                                         alt=""> {{ $hotel->rating }}
+                                                                </div>
                                                             @endif
                                                         </div>
                                                         <div class="col-md-5 col-4">
                                                             <div class="price">
-                                                                @lang('main.from')
-                                                                {{ number_format((int) $converted, 0, '.', ' ') }}
-                                                                {{ $symbol }}
+                                                                @lang('main.from') {{ number_format((int)$converted, 0, '.', ' ') }} {{ $symbol }}
                                                             </div>
                                                             <div class="night">@lang('main.night')</div>
                                                         </div>
                                                     </div>
-
                                                     <div class="amenities">
                                                         @foreach($items as $amenity)
                                                             @php
                                                                 $iconFile = 'check.svg';
                                                                 foreach ($iconMap as $keyword => $filename) {
-                                                                    if (mb_stripos($amenity, $keyword) !== false) {
-                                                                        $iconFile = $filename;
-                                                                        break;
-                                                                    }
+                                                                    if (mb_stripos($amenity, $keyword) !== false) { $iconFile = $filename; break; }
                                                                 }
                                                             @endphp
                                                             <div class="amenities-item">
@@ -1355,22 +1029,14 @@
                                                             </div>
                                                         @endforeach
                                                     </div>
-
                                                     <div class="address">{{ $hotel?->__("address") }}</div>
-
                                                     <div class="btn-wrap">
                                                         <form action="{{ route('findHotel', $hotel?->code) }}">
                                                             <input type="hidden" name="arrivalDate"
                                                                    value="{{ $request->arrivalDate }}">
                                                             <input type="hidden" name="departureDate"
                                                                    value="{{ $request->departureDate }}">
-                                                            <input type="hidden" id="city" name="city"
-                                                                   value="{{ $request->city }}">
-                                                            <input type="hidden" name="adult"
-                                                                   value="{{ $totalAdults ?? '' }}">
-                                                            <input type="hidden" name="child"
-                                                                   value="{{ $totalChildren ?? '' }}">
-                                                            {{-- Если нужны спец.поля TM — добавьте их здесь из $tm --}}
+                                                            {{-- Добавьте нужные поля TM при переходе --}}
                                                             <button class="more">@lang('main.show_all_rooms')</button>
                                                         </form>
                                                     </div>
@@ -1381,23 +1047,25 @@
                                 @endforeach
                             @endif
                         </div>
-                        {{--                        <div class="text-center mt-4">--}}
-                        {{--                            <button id="load-more" class="more">Показать ещё</button>--}}
-                        {{--                        </div>--}}
                     </div>
-                    <div class="col-md-5">
+
+                    {{-- Карта --}}
+                    <div class="col-lg-5 col-md-12">
                         <div class="map-sticky">
                             <div id="map"></div>
                         </div>
+
                         @php
                             $hotelse = collect($allHotels)
                                 ->map(function ($item) {
-                                    // $item — массив
-                                    $h = $item['hotel'] ?? null;
-                                    $raw = $item[$item['source']] ?? null; // 'tm' | 'etg' | 'roomStay' для exely и т.д.
+                                    $h   = $item['hotel'] ?? null;
+                                    $raw = $item[$item['source']] ?? null; // 'tm' | 'roomStay' и т.д.
+
+                                    // id: локальный id, иначе TM hid
+                                    $id = $h->id ?? ($raw->hid ?? null);
 
                                     return [
-                                        'id'    => $h->id ?? null,
+                                        'id'    => $id,
                                         'name'  => $h->title_en ?? $h->title ?? '',
                                         'lat'   => isset($h?->lat) ? (float) $h->lat : null,
                                         'lng'   => isset($h?->lng) ? (float) $h->lng : null,
@@ -1410,10 +1078,9 @@
                                 ->values();
                         @endphp
 
-                                <!-- Подключение стилей Leaflet -->
+                        {{-- Leaflet --}}
                         <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
                         <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-                        <!-- MarkerCluster -->
                         <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
                         <link rel="stylesheet"
                               href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"/>
@@ -1422,76 +1089,45 @@
                         <script>
                             const hotels = @json($hotelse);
 
-                            // Инициализация карты
                             const map = L.map('map').setView([hotels[0]?.lat || 0, hotels[0]?.lng || 0], 9);
 
-                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                                maxZoom: 14,
-                            }).addTo(map);
+                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 14}).addTo(map);
 
-                            // Объект для связи id отеля с DOM-элементом списка
                             const listItems = {};
-
-                            // Создаем кластер-группу
                             const markers = L.markerClusterGroup();
 
-                            // Добавляем маркеры
                             hotels.forEach(hotel => {
                                 const popupContent = `
-                                <div class="d-flex align-items-center gap-2">
-                                <img
-                                    src="${hotel.img || '/img/noimage.png'}"
-                                    class="rounded"
-                                    style="width: 80px; height: 60px; object-fit: cover;"
-                                >
-                                <div>
-                                    <div class="fw-bold mb-1">${hotel.name}</div>
-                                    <div class="text-success fw-semibold"><strong>${hotel.total} ${hotel.curr}</strong></div>
-                                </div>
-                                </div>
-                            `;
+                          <div class="d-flex align-items-center gap-2">
+                            <img src="${hotel.img || '/img/noimage.png'}" class="rounded" style="width: 80px; height: 60px; object-fit: cover;">
+                            <div>
+                              <div class="fw-bold mb-1">${hotel.name}</div>
+                              <div class="text-success fw-semibold"><strong>${hotel.total} ${hotel.curr}</strong></div>
+                            </div>
+                          </div>`;
 
-                                const marker = L.marker([hotel.lat, hotel.lng]);
-
-                                marker.bindPopup(popupContent);
-
-                                // Открываем popup при наведении
+                                const marker = L.marker([hotel.lat, hotel.lng]).bindPopup(popupContent);
                                 marker.on('mouseover', () => marker.openPopup());
                                 marker.on('mouseout', () => marker.closePopup());
 
-                                // Найдём DOM элемент списка
+                                // Связь с листингом
                                 const li = document.querySelector(`div.search-item[data-id="${hotel.id}"]`);
                                 listItems[hotel.id] = li;
 
-                                // При клике на маркер выделяем элемент в списке и скроллим
                                 marker.on('click', () => {
                                     Object.values(listItems).forEach(el => {
                                         if (el) el.classList.remove('active');
                                     });
-
                                     if (li) {
                                         li.classList.add('active');
                                         li.scrollIntoView({behavior: 'smooth', block: 'center'});
                                     }
                                 });
 
-                                // Добавляем маркер в кластер-группу
                                 markers.addLayer(marker);
                             });
 
-                            // Добавляем кластер-группу на карту
                             map.addLayer(markers);
-
-
-                            // Для удобства, при клике на элемент списка тоже перемещаем карту к маркеру
-                            // li.addEventListener('click', () => {
-                            //     map.setView([hotel.lat, hotel.lng], 14);
-
-                            //     // Можно добавить выделение активного элемента
-                            //     Object.values(listItems).forEach(el => el.classList.remove('active'));
-                            //     li.classList.add('active');
-                            // });
-
                         </script>
                     </div>
                 </div>

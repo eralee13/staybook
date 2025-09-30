@@ -54,9 +54,9 @@ class HotelServices
         $this->MealTypeMap = [
             1 => 1, // Room Only         => No Breakfast
             2 => 2, // Bed & Breakfast   => Breakfast
-            3 => 6, // Half Board        => HalfBoard
-            4 => 7, // Full Board        => FullBoard
-            5 => 8, // All Inclusive     => AllInclusive
+            3 => 3, // Half Board        => HalfBoard
+            4 => 4, // Full Board        => FullBoard
+            5 => 5, // All Inclusive     => AllInclusive
         ];
         
     }

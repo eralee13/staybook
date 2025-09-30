@@ -16,10 +16,13 @@
     </script>
 
     <style>
-        body{
-            font-family: Unbounded,sans-serif;
+        body {
+            font-family: Unbounded, sans-serif;
+            background-color: rgba(246, 246, 246, 1) !important;
+            font-weight: 300 !important;
         }
-        .page{
+
+        .page {
             padding-bottom: 60px;
         }
     </style>
@@ -28,15 +31,50 @@
             <div class="container">
                 <div class="row">
                     <div class="col-md-12">
-                        <h3><a href="search.html"><img src="{{ route('index') }}/img/icons/arrow-left.svg" alt=""></a>
+                        <h1><img src="{{ route('index') }}/img/arrow-left.svg" alt="">
                             @lang('main.booking')
-                        </h3>
+                        </h1>
                     </div>
                 </div>
-
-
                 <div class="row">
-                    <div class="col-lg-8 col-md-12 order-xl-1 order-lg-1 order-2">
+                    <div class="col-lg-4 col-md-12">
+                        <div class="sidebar">
+                            @if($hotel->image)
+                                <img src="{{ Storage::url($hotel->image) }}" alt="">
+                            @else
+                                <img src="{{ route('index')}}/img/noimage.png" alt="">
+                            @endif
+                            <div class="text-wrap">
+                                <div class="descr">@lang('main.hotel') {{ $hotel->title }}</div>
+                                <div class="descr">{{ $request->categoryName }}</div>
+                                <div class="date">@lang('main.check-in/check-out')
+                                    : {{ $arrival }} {{ $hotel->checkin }}
+                                    - {{ $departure }} {{ $hotel->checkout }} (UTC {{ $hotel_utc }})
+                                </div>
+                                <div class="cancel">
+                                    @if($request->cancelPossible == true)
+                                        @lang('main.free_cancellation') {{ $request->cancelDate }} ({{ $offset }}).
+                                        @lang('main.cancellation_amount')
+                                        : {{ round($request->cancelPrice) }} {{ $request->currency }}
+                                    @else
+                                        @lang('main.cancellation_is_not_avaialble')
+                                        . @lang('main.cancellation_amount')
+                                        : {{ round($request->cancelPrice) }} {{ $request->currency }}
+                                    @endif
+                                </div>
+                                <div class="row mt">
+                                    <div class="col-md-8">
+                                        <div class="total">@lang('main.total')</div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="price">{{ $request->sum }} {{ $request->currency }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-8 col-md-12">
                         <h5>@lang('main.trip')</h5>
                         <form action="{{ route('book_verify_exely') }}">
                             @php
@@ -61,45 +99,45 @@
                             @endif
                             <input type="hidden" name="checkSum" value="{{ $request->checkSum }}">
                             <input type="hidden" name="servicesId" value="{{ $request->servicesId }}">
+                            @for ($i = 1; $i <= $request->adultCount; $i++)
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <div class="label">
+                                            @if($i === 1)
+                                                @lang('main.full_name')
+                                            @else
+                                                #{{ $i }} @lang('main.full_name')
+                                            @endif
+                                        </div>
+                                        <input type="text" name="title{{ $i }}" placeholder="Асанов А.А."
+                                               value=""
+                                               required>
+                                    </div>
+                                </div>
+                            @endfor
+                            @for ($i = 1; $i <= count($childs); $i++)
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <div class="label">
+                                            @if($i === 1)
+                                                @lang('main.full_name') @lang('main.child')
+                                            @else
+                                                #{{ $i }} @lang('main.full_name') @lang('main.child')
+                                            @endif
+                                        </div>
+                                        <input type="text" name="child_name{{ $i }}" placeholder="Усенов У.У."
+                                               required>
+                                    </div>
+                                </div>
+                            @endfor
                             <div class="row">
-                                @for ($i = 1; $i <= $request->adultCount; $i++)
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <div class="label">
-                                                @if($i === 1)
-                                                    @lang('main.full_name')
-                                                @else
-                                                    #{{ $i }} @lang('main.full_name')
-                                                @endif
-                                            </div>
-                                            <input type="text" name="title{{ $i }}" placeholder="Асанов А.А."
-                                                   value=""
-                                                   required>
-                                        </div>
-                                    </div>
-                                @endfor
-                                @for ($i = 1; $i <= count($childs); $i++)
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <div class="label">
-                                                @if($i === 1)
-                                                    @lang('main.full_name') @lang('main.child')
-                                                @else
-                                                    #{{ $i }} @lang('main.full_name') @lang('main.child')
-                                                @endif
-                                            </div>
-                                            <input type="text" name="child_name{{ $i }}" placeholder="Усенов У.У."
-                                                   required>
-                                        </div>
-                                    </div>
-                                @endfor
-                                <div class="col-md-3">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <div class="label">@lang('main.count_adult')</div>
                                         <input type="text" value="{{ $request->adultCount }}" readonly>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <div class="label">@lang('main.count_child')</div>
                                         @if (request()->filled('childAges'))
@@ -127,7 +165,7 @@
                                     <div class="form-group">
                                         @include('auth.layouts.error', ['fieldname' => 'comment'])
                                         <label for="">@lang('main.message')</label>
-                                        <textarea name="comment" rows="3"></textarea>
+                                        <input type="text" name="comment">
                                     </div>
                                 </div>
                             </div>
@@ -177,65 +215,24 @@
                             {{--                        </div>--}}
                             <div class="line"></div>
                             @if(app()->getLocale() == 'ru')
-                                Нажимая кнопку ниже, я принимаю условия (Правила отеля, установленные
-                                отельером, Основные правила для гостей, Правила StayBook в отношении повторного
-                                бронирования и возврата средств, Условия частичной предоплаты) и соглашаюсь, что StayBook может
-                                списать средства с моего способа оплаты, если ответственность за ущерб лежит на мне.
+                                <p>Нажимая кнопку ниже, я принимаю условия (Правила отеля, установленные
+                                    отельером, Основные правила для гостей, Правила StayBook в отношении повторного
+                                    бронирования и возврата средств, Условия частичной предоплаты) и соглашаюсь, что
+                                    StayBook может
+                                    списать средства с моего способа оплаты, если ответственность за ущерб лежит на мне.</p>
                             @else
-                                By clicking the button below, I accept the terms (House Rules set by the Host, Guest
-                                Code of Conduct, StayBook’s Rebooking and Refund Policy, Partial Prepayment Terms) and
-                                agree that StayBook may charge my payment method if I am responsible for any damage.
+                                <p>By clicking the button below, I accept the terms (House Rules set by the Host, Guest
+                                    Code of Conduct, StayBook’s Rebooking and Refund Policy, Partial Prepayment Terms) and
+                                    agree that StayBook may charge my payment method if I am responsible for any damage.</p>
                             @endif
                             <div class="btn-wrap">
                                 @hasrole('Demo')
-                                    <div class="alert alert-danger">Доступ ограничен</div>
+                                <div class="alert alert-danger">Доступ ограничен</div>
                                 @else
                                     <button class="more" id="saveBtn">@lang('main.confirm')</button>
-                                @endhasrole
+                                    @endhasrole
                             </div>
                         </form>
-                    </div>
-                    <div class="col-lg-4 col-md-12 order-xl-2 order-lg-2 order-1">
-                        <div class="sidebar">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    @if($hotel->image)
-                                        <img src="{{ Storage::url($hotel->image) }}" alt="">
-                                    @else
-                                        <img src="{{ route('index')}}/img/noimage.png" alt="">
-                                    @endif
-                                </div>
-                                <div class="col-md-8">
-                                    <div class="descr">@lang('main.hotel') {{ $hotel->title }}</div>
-                                    <div class="descr">{{ $request->categoryName }}</div>
-                                    <div class="date">@lang('main.check-in/check-out')
-                                        : {{ $arrival }} {{ $hotel->checkin }}
-                                        - {{ $departure }} {{ $hotel->checkout }} (UTC {{ $hotel_utc }})
-                                    </div>
-                                    <div class="cancel">@lang('main.cancellation_policy'):
-                                        @if($request->cancelPossible == true)
-                                            @lang('main.free_cancellation') {{ $request->cancelDate }} ({{ $offset }}).
-                                            Размер штрафа: {{ round($request->cancelPrice) }} {{ $request->currency }}
-                                        @else
-                                            @lang('main.cancellation_is_not_avaialble')
-                                            . @lang('main.cancellation_amount')
-                                            : {{ round($request->cancelPrice) }} {{ $request->currency }}
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="line"></div>
-                            <div class="row mt">
-                                <div class="col-md-8">
-                                    <div class="total">@lang('main.total')</div>
-                                </div>
-
-                                <div class="col-md-4">
-                                    <div class="price">{{ $request->sum }} {{ $request->currency }}</div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -246,7 +243,6 @@
                 padding-left: 50px;
             }
         </style>
-
         <div class="modal fade" id="timeoutModal" tabindex="-1" aria-labelledby="timeoutLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content text-center">

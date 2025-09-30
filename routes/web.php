@@ -153,7 +153,7 @@ Route::middleware('set_locale')->group(function () {
     Route::get('/search/hotel/{hotel}', [\App\Http\Controllers\SearchController::class, 'findHotel'])->name('findHotel');
 
     //exely
-    Route::get('/search/hotelex', [\App\Http\Controllers\SearchController::class, 'findHotelExely'])->name('findHotelExely');
+    Route::get('/search/hotel/ex/{hotel}', [\App\Http\Controllers\SearchController::class, 'findHotelExely'])->name('findHotelExely');
 
     //-----booking
     //local
