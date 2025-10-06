@@ -1,12 +1,7 @@
 @extends('layouts.head')
 
 @section('title', 'Бронирование')
-<span>/hotel/order/booking/form/</span>
-    @dump($order)
-<span>/hotel/order/booking/finish/</span>
-    @dump($finish)
-<span>/hotel/order/booking/finish/status/</span>
-    @dump($finishStatus)
+
 @section('content')
 
     <div class="page order">

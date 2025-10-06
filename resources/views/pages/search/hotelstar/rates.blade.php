@@ -1,43 +1,43 @@
 @foreach($rates as $rate)
     @php
-            $coef = config('app.main_coef');    
-            $price = $rate['price'] ?? 0;
-            $totalPrice = number_format( ($price / $coef ) , 2, '.', '');
-            $rooms = $request->input('rooms', []);
-            $payment = $rate['cancel_conditions'];
+        $coef = config('app.main_coef');    
+        $price = $rate['price'] ?? 0;
+        $totalPrice = number_format( ($price / $coef ) , 2, '.', '');
+        $rooms = $request->input('rooms', []);
+        $payment = $rate['cancel_conditions'];
 
-            if( !empty($payment['free_cancellation_before'])){
+        if( !empty($payment['free_cancellation_before'])){
 
-                $pay_end_date = Carbon\Carbon::createFromDate($payment['free_cancellation_before'])->format('d.m.Y H:i:s');
+            $pay_end_date = Carbon\Carbon::createFromDate($payment['free_cancellation_before'])->format('d.m.Y H:i:s');
 
-            }else{
-                $pay_end_date = '';
-            }
+        }else{
+            $pay_end_date = '';
+        }
 
-                // находим free
-                $fullPolicy = collect($payment['policies'])
-                                ->where('type', '!=', 'free')
-                                ->first();
+            // находим free
+            $fullPolicy = collect($payment['policies'])
+                            ->where('type', '!=', 'free')
+                            ->first();
 
-                // берем сумму
-                $fullAmount = $fullPolicy['penalty']['amount'] ?? 0;
-                $penaltyCurr = $fullPolicy['penalty']['currency'] ?? $rate['currency'];
-                $penaltPrice = $fullAmount;
-                $penaltyPrice = number_format( ( (float)$penaltPrice  / $coef), 2, '.', '');
+            // берем сумму
+            $fullAmount = $fullPolicy['penalty']['amount'] ?? 0;
+            $penaltyCurr = $fullPolicy['penalty']['currency'] ?? $rate['currency'];
+            $penaltPrice = $fullAmount;
+            $penaltyPrice = number_format( ( (float)$penaltPrice  / $coef), 2, '.', '');
 
-            $toCurrency = strtoupper($fxBase ?? 'USD');
+        $toCurrency = strtoupper($fxBase ?? 'USD');
 
-            $symbols = [
-                'USD' => '$',
-                'RUB' => '₽',
-                'KGS' => 'сом',
-                'UZS' => 'сўм',
-            ];
+        $symbols = [
+            'USD' => '$',
+            'RUB' => '₽',
+            'KGS' => 'сом',
+            'UZS' => 'сўм',
+        ];
 
-            $converted = app(\App\Services\FXService::class)->convert($totalPrice, $rate['currency'], $fxBase);
-            $symbol = $symbols[$toCurrency] ?? $toCurrency;
-            $cancelConverted = app(\App\Services\FXService::class)->convert($penaltyPrice, $penaltyCurr, $fxBase);
-            $meal = collect($rate['meals'])->firstWhere('included', true);
+        $converted = app(\App\Services\FXService::class)->convert($totalPrice, $rate['currency'], $fxBase);
+        $symbol = $symbols[$toCurrency] ?? $toCurrency;
+        $cancelConverted = app(\App\Services\FXService::class)->convert($penaltyPrice, $penaltyCurr, $fxBase);
+        $meal = collect($rate['meals'])->firstWhere('included', true);
     @endphp
     
         <div class="tariffs-item">
@@ -52,7 +52,17 @@
             </div>
 
                 <div class="item meal">
-                    <div class="name">{{ $meal['name'] ?? 'No breakfast' }}</div>
+                    <div class="name">
+                        @if( isset($rate['meals'][0]['name']) )
+                            @foreach($rate['meals'] as $mealOption)
+                                @if($mealOption['included'] == true)
+                                    {{ $mealOption['name'] }}
+                                @endif
+                            @endforeach
+                        @else
+                            {{ __('main.no_meal') }}
+                        @endif
+                    </div>
                 </div>
             
             <div class="item cancel">
@@ -73,10 +83,10 @@
                 @lang('main.all_taxes_excluded')</div>
                 <span style="font-size: 13px;">@lang('main.pay_at_hotel')</span><br>
 
-                    @foreach($payment['tax_data']['taxes'] as $tax)
+                    {{-- @foreach($payment['tax_data']['taxes'] as $tax)
                         @if($tax['included_by_supplier'] == false)
                             <span style="font-size: 13px;"><strong>
-                            {{-- проверка: если ключ это строка и есть перевод --}}
+                            проверка: если ключ это строка и есть перевод
                             @if(is_string($tax['name']) && Lang::has('main.'.$tax['name']))
                                 @lang('main.'.$tax['name'])
                             @else
@@ -84,10 +94,10 @@
                             @endif : </strong>
                             {{ $tax['amount']}} {{ $tax['currency_code'] }}</span><br>
                         @endif
-                    @endforeach
+                    @endforeach --}}
 
             <div class="btn-wrap">
-                <form action="{{ route('order_etg') }}">
+                <form action="{{ route('order_hs') }}">
                     <input type="hidden" name="arrivalDate" value="{{ $request->arrivalDate }}">
                     <input type="hidden" name="departureDate" value="{{ $request->departureDate }}">
                         @foreach ($rooms as $i => $room)
@@ -104,8 +114,11 @@
                     <input type="hidden" name="room_id" value="{{ $rate['room_id'] }}">
                     <input type="hidden" name="room_name" value="{{ $rate['room_name'] }}">
                     <input type="hidden" name="rate_name" value="{{ $rate['room_name'] }}">
+                    <input type="hidden" name="city" value="{{ $request->city }}">
+                    
                     {{-- <input type="hidden" name="bedTypeDesc" value="{{ $rate['room_data_trans']['bedding_type'] }}"> --}}
-                    <input type="hidden" name="book_hash" value="{{ $rate['hash'] }}">
+                    <input type="hidden" name="hash" value="{{ $rate['hash'] }}">
+                    <input type="hidden" name="provider_id" value="{{ $rate['provider_id'] }}">
                     {{-- <input type="hidden" name="match_hash" value="{{ $rate['match_hash'] }}"> --}}
                     <input type="hidden" name="refundable" value="{{ $payment['free_cancellation_before'] }}">
                     <input type="hidden" name="cancelDate"
@@ -121,7 +134,7 @@
                     <input type="hidden" name="utc"  value="{{ $hotel->utc }}">
                     <input type="hidden" name="etgimage"  value="{{ $tmimage }}">
                     <input type="hidden" name="increase_percent">
-                    
+            
                     <button class="more" id="order">@lang('main.book')</button>
                 </form>
             </div>

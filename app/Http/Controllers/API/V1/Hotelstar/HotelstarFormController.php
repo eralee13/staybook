@@ -212,13 +212,13 @@ class HotelstarFormController extends Controller
                 ])
                 ->post($this->url . '/actualize', $payload);
 
-                // dump($response->json());
+            dump($response->json());
 
             return $response->json();
                 
     }
 
-    public function startOrder(Request $request)
+    public function metaOrder(Request $request)
     {   
         $userId = Auth::id();
         $language = app()->getLocale();
@@ -228,54 +228,135 @@ class HotelstarFormController extends Controller
         $childs = 0;
         $roomCount=0;
         $guests = [];
+        $fxBase = session('currency', 'USD');
+        $early_check_in = $request->early_check_in ?? '';
+        $late_check_out = $request->late_check_out ?? '';
 
-            foreach ($rooms as $room) {
-                $roomCount++;
-                // Взрослые
-                $adults += (int) ($room['adults'] ?? 0);
-                $adultse = (int) ($room['adults'] ?? 0);
+        $roomGuests = [];
+        $childIndex = 0;
+        $adultIndex = 0;
 
-                $children = [];
-                if (!empty($room['childAges']) && is_array($room['childAges'])) {
-                    foreach ($room['childAges'] as $age) {
-                        $children[] = (int) $age;
-                        $allChildAges[] = (int) $age;
-                        $childs++;
-                    }
+        foreach ($rooms as $room) {
+            $roomCount++;
+            // Взрослые
+            $adults += (int) ($room['adults'] ?? 0);
+            $adultse = (int) ($room['adults'] ?? 0);
+
+            // Дети
+            $children = [];
+            if (!empty($room['childAges']) && is_array($room['childAges'])) {
+                foreach ($room['childAges'] as $age) {
+                    $children[] = (int) $age;
+                    $allChildAges[] = (int) $age;
+                    $childs++;
                 }
-
-                $guests[] = [
-                    'adults' => $adultse,
-                    'children' => $children,
-                ];
             }
 
-        $persons = [];
+            // Взрослые в этом номере
+            $adultCount = (int)($room['adults'] ?? 0);
+            for ($i = 0; $i < $adultCount; $i++) {
+                $fname = trim($request->input('paxfname' . $adultIndex, ''));
+                $parts = preg_split('/\s+/', $fname, 3);
+
+                $lastName  = $parts[0] ?? '';
+                $firstName = $parts[1] ?? '';
+                $thirdName = $parts[2] ?? '';
+
+                $roomGuests[] = [
+                    "name" => $firstName,
+                    "surname"  =>trim($lastName . ' ' . $thirdName),
+                    "is_child" => false,
+                ];
+
+                $adultIndex++;
+            }
+
+            // Дети в этом номере
+            if (!empty($room['childAges']) && is_array($room['childAges'])) {
+                foreach ($room['childAges'] as $age) {
+                    $fname = trim($request->input('child_name' . $childIndex, ''));
+                    $parts = preg_split('/\s+/', $fname, 3);
+
+                    $lastName  = $parts[0] ?? '';
+                    $firstName = $parts[1] ?? '';
+                    $thirdName = $parts[2] ?? '';
+
+                    $roomGuests[] = [
+                        'name' => $firstName,
+                        'surname'  => trim($lastName . ' ' . $thirdName),
+                        'age'        => (int)$age,
+                        'is_child'   => true,
+                    ];
+
+                    $childIndex++;
+                }
+            }
+
+        }
+
+        $city = explode('-', $request->city);
+        $searchParams = [];
+        // $searchParams = ['region_id' => 67005]; // Moscow
+
+        if (is_numeric($request->city)) {
+            $searchParams['hotel_ids'] = [(int)$request->city];
+        } else {
+            $searchParams['region_id'] = (int)$city[0];
+        }
+
+        $meals = [];
+        $meal_reguest = $request->payable_meal;
+
+            if( !empty($meal_reguest) ){
+                
+                foreach ($meal_reguest as $key => $value) {
+                    $meals[] = ['code' => explode('-', $value)[0]];
+                }
+            }
+
+        
+        
+        $extras = [];
+            if( $early_check_in ){
+                $early_check_in = explode('-', $request->early_check_in)[0];
+
+                    $extras[] = [
+                        'code' => 'early_check_in',
+                        'value' => ['time' => $early_check_in],
+                    ];
+            }
+            if( $late_check_out ){
+                $late_check_out = explode('-', $request->late_check_out)[0];
+
+                    $extras[] = [
+                        'code' => 'late_check_out',
+                        'value' => ['time' => $late_check_out],
+                    ];
+            }
+
         // $mappingMeals = $this->mappingMeals();
         $payload = [
                 "partner_order_id" => $request->token,
-                "email" => $request->email,
+                "email" => 'itsupport@staybook.asia', //$request->email, Email оформителя заказа
                 "phone" => $request->phone,
-                "persons" => $persons,
-                "search_data" => [
-                        "hotel_ids" =>$hids,
-                        "region_id" => (int)$city[0],
+                "persons" => $roomGuests,
+                "search_data" => array_merge($searchParams, [
                         "check_in" => $request->arrivalDate,
                         "check_out" => $request->departureDate,
-                        "adults" => $adultCount,
-                        "children" => $children,
-                        "currency" => "RUB",
+                        "adults"       => $adultCount,
+                        "children"     => $children,
+                        "currency" => $fxBase,
                         "3d_hotelstar" => null,
-                ],
+                ]),
                 "search_item" => [
                     "hash" => $request->hash,
-                    "provider_id" => $request->provider_id,
+                    "provider_id" => (int)$request->provider_id,
                 ],
-                "meals" => [],
-                "extra_fields" => [],
+                "meals" => $meals,
+                "extras" => $extras,
                 "client_remarks" => $request->comment,
                 "partner_price" => $request->totalPrice,
-                "extras" => [],
+                "extra_fields" => [],
         ];
 
         $response = Http::timeout(31)->withHeaders([
@@ -284,35 +365,28 @@ class HotelstarFormController extends Controller
             ])
             ->post($this->url . '/book', $payload);
 
-        $res = json_decode( $response->body() );
+            $res = json_decode( $response->body() );
             
+            dump($payload);
+            dump($res);
+
             // Проверка на существование локального брони
         $existbook = Book::where('book_token', $request->token)->first();
 
-        if( !$existbook && isset($res->data->item_id) ){
+        if( !$existbook && isset($res->status) && $res->status == 1 || $res->status == 2 ){
 
-            $item_id = $res->data->item_id;
-            $order_id = $res->data->order_id;
-            $etoken = $res->data->partner_order_id;
-            $amount; $curr; $paystype;
-        
-            foreach( $res->data->payment_types as $paytype ){
+            $amount; $curr; 
+            // Расшифровка статусов:
+            //     1 - Новый
+            //     2 - Оформлен
+            //     3 - Отменен
+            //     4 - Отклонен
+            //     10 - Ожидает подтверждения бронирования*
+            //     20 - Ожидает подтверждения отмены*
+            //     30 - Ожидает подтверждения изменений*
+            //     500 - Ошибка бронирования
 
-                    // "amount" => "225"
-                    // "currency_code" => "USD"
-                    // "is_need_credit_card_data" => false
-                    // "is_need_cvc" => false
-                    // "recommended_price" => null
-                    // "type" => "deposit" || now
-
-                    if( $paytype->currency_code == 'USD'){
-                        $amount = $paytype->amount;
-                        $curr = $paytype->currency_code;
-                        $paystype = $paytype->type;
-                    }
-            }
-
-            $room = Room::where('title_en', $request->room_name)->first();
+            $room = Room::where('hotelstar_id', $request->room_id)->first();
             
             if ( empty($room) ){
 
@@ -421,8 +495,8 @@ class HotelstarFormController extends Controller
                             'title' => $request->rate_name ?? '',
                             'title_en' => $request->rate_name ?? '',
                             'desc_en' => null,
-                            'bed_type' => $request->bedTypeDesc ?? '',
-                            'meal_id' => $mappingMeals[$request->meal_id] ?? '',
+                            'bed_type' => $room->bedTypeDesc ?? '',
+                            'meal_id' => $request->meal_id ?? 1,
                             'allotment' => null,
                             'adult' => $adults ?? 1,
                             'child' => $childs ?? 0,
@@ -466,8 +540,10 @@ class HotelstarFormController extends Controller
                             'arrivalDate' => $request->arrivalDate,
                             'departureDate' => $request->departureDate,
                             'status' => 'Pending',
+                            'early_in' => $early_check_in,
+                            'late_out' => $late_check_out,
                             'user_id' => $userId,
-                            'api_type' => 'emerging',
+                            'api_type' => 'hotelstar',
                             'agent_ref' => '',
                         ]
                     );
@@ -477,7 +553,6 @@ class HotelstarFormController extends Controller
                         }
         }
 
-            // dd( json_decode($response->body()) );
         return $response->json();
 
     }

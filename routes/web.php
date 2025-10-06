@@ -210,11 +210,11 @@ Route::middleware('set_locale')->group(function () {
     
     // Hotelstar
     Route::get('/hotelehs/{hid}', [\App\Http\Controllers\SearchController::class, 'hotel_hs'])->name('hotel_hs');
-    Route::get('/book/order/hs', [\App\Http\Controllers\BookingEtgController::class, 'order_hs'])->name('order_hs');
-    Route::get('/book/verify/hs', [\App\Http\Controllers\BookingEtgController::class, 'book_verify_hs'])->name('book_verify_hs');
-    Route::get('/book/reserve/hs', [\App\Http\Controllers\BookingEtgController::class, 'book_reserve_hs'])->name('book_reserve_hs');
-    Route::get('/book/cancel/hs', [\App\Http\Controllers\BookingEtgController::class, 'cancel_calculate_hs'])->name('cancel_calculate_hs');
-    Route::get('/book/cancel/confirm/hs', [\App\Http\Controllers\BookingEtgController::class, 'cancel_confirm_hs'])->name('cancel_confirm_hs');
+    Route::get('/book/order/hs', [\App\Http\Controllers\BookingHsController::class, 'order_hs'])->name('order_hs');
+    Route::get('/book/verify/hs', [\App\Http\Controllers\BookingHsController::class, 'book_verify_hs'])->name('book_verify_hs');
+    Route::get('/book/reserve/hs', [\App\Http\Controllers\BookingHsController::class, 'book_reserve_hs'])->name('book_reserve_hs');
+    Route::get('/book/cancel/hs', [\App\Http\Controllers\BookingHsController::class, 'cancel_calculate_hs'])->name('cancel_calculate_hs');
+    Route::get('/book/cancel/confirm/hs', [\App\Http\Controllers\BookingHsController::class, 'cancel_confirm_hs'])->name('cancel_confirm_hs');
 
     //Route::get('/order/{order}', [PageController::class, 'order'])->name('order');
     Route::get('/testsearch', [PageController::class, 'testsearch'])->name('testsearch');

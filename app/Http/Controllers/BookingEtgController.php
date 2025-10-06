@@ -129,7 +129,7 @@ class BookingEtgController extends Controller
 
                             $finish = $this->callWithRetryFinish(
                                 fn() => $emergingForm->bookingFinish($request, $data),
-                                30,
+                                61,
                                 [
                                     'retryable' => ['timeout', 'unknown', '5xx'],
                                     'fatal'     => ['insufficient_b2b_balance', 'booking_form_expired', 'rate_not_found', 'return_path_required'],
@@ -149,7 +149,7 @@ class BookingEtgController extends Controller
                                 // $emergingStatus = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
                                 $finishStatus = $this->callWithRetryStatus(
                                     fn() => $emergingForm->finishStatus($request),
-                                    30,
+                                    61,
                                     [
                                         'retryable' => ['timeout', 'unknown', '5xx'],
                                         'fatal' => ['block', 'charge', '3ds', 'soldout', 'provider', 'book_limit', 'not_allowed', 'booking_finish_did_not_succeed']
@@ -238,7 +238,7 @@ class BookingEtgController extends Controller
                 Log::channel('emerging')->warning('Retry after failure: ' . $e->getMessage());
             }
 
-            sleep(1);
+            sleep(2);
         } while (time() - $start < $timeoutSeconds);
 
         throw new \Exception('Timeout waiting for valid response');
@@ -284,7 +284,7 @@ class BookingEtgController extends Controller
                 Log::channel('emerging')->warning('Retry after failure: ' . $e->getMessage());
             }
 
-            sleep(1);
+            sleep(2);
         } while (time() - $start < $timeoutSeconds);
 
         throw new \Exception('Timeout waiting for valid response');

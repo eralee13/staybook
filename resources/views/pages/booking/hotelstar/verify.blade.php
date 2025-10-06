@@ -81,7 +81,7 @@
                         </tr>
                         <tr>
                             <td>@lang('main.price'):</td>     
-                            <td>{{ round($request->sum) }} {{ $request->currency ?? '$' }}</td>
+                            <td>{{ round($request->totalPrice) }} {{ $request->currency ?? '$' }}</td>
                         </tr>
                         <tr>
                             <td>@lang('main.cancel_rule'):</td>
@@ -123,11 +123,12 @@
                     </table>
 
                 <div class="btn-wrap">
-                    <form action="{{ route('book_reserve_etg') }}" method="get">
+                    <form action="{{ route('book_reserve_hs') }}" method="get">
                         <input type="hidden" name="arrivalDate" value="{{ $request->arrivalDate }}">
                         <input type="hidden" name="departureDate" value="{{ $request->departureDate }}">
                         <input type="hidden" name="hotel_id" value="{{ $request->hotel_id }}">
                         <input type="hidden" name="meal_id" value="{{ $request->meal_id }}">
+                        <input type="hidden" name="city" value="{{ $request->city }}">
 
                             @foreach ($request->input('rooms', []) as $i => $room)
                                 <input type="hidden" name="rooms[{{ $i }}][adults]" value="{{ $room['adults'] }}">
@@ -139,20 +140,21 @@
                                 @endif
                             @endforeach
                             
-                        <input type="hidden" name="book_hash" value="{{ $request->book_hash }}">
-                        <input type="hidden" name="match_hash" value="{{ $request->match_hash }}">
+                        <input type="hidden" name="hash" value="{{ $request->hash }}">
+                        <input type="hidden" name="provider_id" value="{{ $request['provider_id'] }}">
+                        <input type="hidden" name="room_id" value="{{ $request->room_id }}">
                         <input type="hidden" name="room_name" value="{{ $request->room_name }}">
                         <input type="hidden" name="rate_name" value="{{ $request->rate_name }}">
-                        <input type="hidden" name="bedTypeDesc" value="{{ $request->bedTypeDesc }}">
+                        {{-- <input type="hidden" name="bedTypeDesc" value="{{ $request->bedTypeDesc }}"> --}}
                         <input type="hidden" name="refundable" value="{{ $request->refundable }}">
                         <input type="hidden" name="cancelDate" value="{{ $request->cancelDate }}">
                         <input type="hidden" name="cancelPrice" value="{{ $request->cancelPrice }}">
                         <input type="hidden" name="currency"  value="{{ $request->currency }}">
                         <input type="hidden" name="utc" value="{{ $request->utc }}">
                         <input type="hidden" name="price" value="{{ $request->price }}">
-                        <input type="hidden" name="sum" value="{{ $request->sum }}">
+                        <input type="hidden" name="totalPrice" value="{{ $request->totalPrice }}">
                         <input type="hidden" name="token" value="{{ $token }}">
-                        <input type="hidden" name="citizenship" value="KGS">
+                        
                         <input type="hidden" name="comment" value="{{ $request->comment }}">
                         <input type="hidden" name="phone" value="{{ $request->phone }}">
                         <input type="hidden" name="email" value="{{ $request->email }}">
@@ -173,7 +175,7 @@
 </div>
 <script>
 
-    let secondsLeft = localStorage.getItem('booking_etg_secondsLeft');
+    let secondsLeft = localStorage.getItem('booking_hs_secondsLeft');
     if (secondsLeft === null) {
     secondsLeft = 600;
     } else {
@@ -202,7 +204,7 @@
 
         document.getElementById('countdown').innerText = formatTime(secondsLeft);
         secondsLeft--;
-        localStorage.setItem('booking_etg_secondsLeft', secondsLeft);
+        localStorage.setItem('booking_hs_secondsLeft', secondsLeft);
     }
 
     tick(); // первый вызов сразу
@@ -210,7 +212,7 @@
 
     document.getElementById('booking').addEventListener('click', function() {
         clearInterval(countdownInterval); // Остановить таймер
-        localStorage.removeItem('booking_etg_secondsLeft'); // Очистить данные
+        localStorage.removeItem('booking_hs_secondsLeft'); // Очистить данные
     });
 </script>
 @endsection

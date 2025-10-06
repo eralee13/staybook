@@ -4,9 +4,6 @@
 
 @section('content')
 
-<span>/hotel/prebook/</span>
-    @dump($preBook)
-
 @php
     $rooms = $request->input('rooms', []);
         $totalAdults    = 0;
@@ -28,16 +25,11 @@
                 }
             }
 
-    // if( $preBook['data']['changes']['price_changed'] == true ){
-        $coef = config('app.main_coef'); 
-        $price = $preBook['data']['hotels'][0]['rates'][0]['payment_options']['payment_types'][0]['amount'];
-        $penaltPrice = $preBook['data']['hotels'][0]['rates'][0]['payment_options']['payment_types'][0]['cancellation_penalties']['policies'][1]['amount_charge'] ?? 0;
-        $totalPrice = number_format( ($price / $coef ) , 2, '.', '');
-        $penaltyPrice = number_format( ($penaltPrice / $coef ) , 2, '.', '');
-        $converted = app(\App\Services\FXService::class)->convert($totalPrice, $request->currency, $fxBase);
-        $cancelConverted = app(\App\Services\FXService::class)->convert($penaltyPrice, $request->currency, $fxBase);
-        $rateChanged = $preBook['data']['hotels']['0']['rates'][0];
-    // }
+        // $coef = config('app.main_coef'); 
+        // $totalPrice = number_format( ($request->totalPrice / $coef ) , 2, '.', '');
+        // $penaltyPrice = number_format( ($request->cancelPrice / $coef ) , 2, '.', '');
+        // $converted = app(\App\Services\FXService::class)->convert($totalPrice, $request->currency, $fxBase);
+        // $cancelConverted = app(\App\Services\FXService::class)->convert($penaltyPrice, $request->currency, $fxBase);
 @endphp
 
     <div class="page order">
@@ -57,7 +49,7 @@
                         </div>
                     </div>
 
-                    @if($message == 'price_changed_text')
+                    {{-- @if($message == 'price_changed_text')
                         <div class="alert alert-warning" role="alert">
                             @lang('main.'.$message)
                         </div>
@@ -65,23 +57,24 @@
                         <div class="alert alert-danger" role="alert">
                             @lang('main.'.$message)
                         </div>
-                    @endif
+                    @endif --}}
 
-                    @if($throwMessage)
+                    {{-- @if($throwMessage)
                         <div class="alert alert-danger" role="alert">
                             {{ $throwMessage }}
                         </div>
-                    @endif
+                    @endif --}}
 
                     <h5>@lang('main.trip')</h5>
 
-                    <form action="{{ route('book_verify_etg') }}">
+                    <form action="{{ route('book_verify_hs') }}">
                         <input type="hidden" name="arrivalDate" value="{{ $request->arrivalDate }}">
                         <input type="hidden" name="departureDate" value="{{ $request->departureDate }}">
                         <input type="hidden" name="hotel_id" value="{{ $request->hotel_id }}">
                         <input type="hidden" name="room_id" value="{{ $request->room_id }}">
                         <input type="hidden" name="rate_id" value="{{ $request->rate_id }}">
                         <input type="hidden" name="meal_id" value="{{ $request->meal_id }}">
+                        <input type="hidden" name="city" value="{{ $request->city }}">
 
                             @foreach ($request->input('rooms', []) as $i => $room)
                                 <input type="hidden" name="rooms[{{ $i }}][adults]" value="{{ $room['adults'] }}">
@@ -93,11 +86,12 @@
                                 @endif
                             @endforeach
 
-                        <input type="hidden" name="book_hash" value="{{ $rateChanged['book_hash'] ?? $request->book_hash }}">
-                        <input type="hidden" name="match_hash" value="{{ $rateChanged['match_hash'] ?? $request->match_hash }}">
+                        <input type="hidden" name="hash" value="{{ $request['hash'] }}">
+                        <input type="hidden" name="provider_id" value="{{ $request['provider_id'] }}">
+                        <input type="hidden" name="room_id" value="{{ $request->room_id }}">
                         <input type="hidden" name="room_name" value="{{ $request->room_name }}">
                         <input type="hidden" name="rate_name" value="{{ $request->rate_name }}">
-                        <input type="hidden" name="bedTypeDesc" value="{{ $request->bedTypeDesc }}">
+                        {{-- <input type="hidden" name="bedTypeDesc" value="{{ $request->bedTypeDesc }}"> --}}
                         <input type="hidden" name="refundable" value="{{ $request->refundable }}">
                         <input type="hidden" name="cancelDate" value="{{ $request->cancelDate }}">
                         <input type="hidden" name="cancelPriceAnullation" value="{{ $request->cancelPriceAnullation }}">
@@ -105,8 +99,7 @@
                         <input type="hidden" name="currency"  value="{{ $request->currency }}">
                         <input type="hidden" name="utc" value="{{ $request->utc }}">
                         <input type="hidden" name="price" value="{{ $request->price }}">
-                        <input type="hidden" name="sum" value="{{ $request->totalPrice }}">
-                       
+                        <input type="hidden" name="totalPrice" value="{{ $request->totalPrice }}">
 
                         <div class="row">
                             <div class="col-md-6">
@@ -151,6 +144,65 @@
                                 </div>
                             </div>
                             
+                            <div class="col-md-12">
+                                <div class="row">
+                                    <h5>@lang('main.payable_services')</h5>
+
+                                    @if( isset($actualize['search_item']['meals'][0]['included']) && 
+                                            !empty($actualize['search_item']['meals'][0]['included']) == false )
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label for="paxfname">@lang('main.meal')</label>
+                                                <select name="payable_meal" class="extra">
+                                                    <option value="">@lang('main.select_value')</option>
+                                                    @foreach($actualize['search_item']['meals'] as $item)
+
+                                                        @if($item['included'] == false)
+                                                            <option value="{{ $item['code'] }}-{{ $item['price'] }}">
+                                                                {{ $item['name'] }} ({{ $item['price'] }} {{ $item['currency'] }})
+                                                            </option>
+                                                        @endif
+
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    @if( !empty($earlyCheckIn) )
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label for="paxfname">@lang('main.check_in')</label>
+                                                <select name="early_check_in" class="extra">
+                                                    <option value="">@lang('main.select_value')</option>
+                                                    @foreach($earlyCheckIn as $item)
+                                                        <option value="{{ $item['value']['time'] }}-{{ $item['price'] }}">
+                                                            {{ $item['name'] }} ({{ $item['price'] }} {{ $item['currency'] }})
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </div>
+                                    @endif
+                                    
+                                    @if( !empty($lateCheckOut) )
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label for="paxfname">@lang('main.check_out')</label>
+                                                <select name="late_check_out" class="extra">
+                                                    <option value="">@lang('main.select_value')</option>
+                                                    @foreach($lateCheckOut as $item)
+                                                        <option value="{{ $item['value']['time'] }}-{{ $item['price'] }}">
+                                                            {{ $item['name'] }} ({{ $item['price'] }} {{ $item['currency'] }})
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </div>
+                                    @endif
+                                    
+                                </div>
+                            </div>
                             {{-- map quests --}}
                                 <h5>@lang('main.quests')</h5>
                                 @for ($i = 0; $i < $totalAdults; $i++)
@@ -177,32 +229,7 @@
                                         </div>
                                     @endfor   
                                 @endif 
-                                <script>
-                                    document.querySelectorAll('.only-latin').forEach(function(input) {
-                                        input.addEventListener('input', function() {
-                                             this.value = this.value.replace(/[^a-zа-яё\s]/gi, '');
-                                        });
-                                    });
-
-                                    function validateFullName(value) {
-                                        // Должно быть минимум два слова (Имя Фамилия), допускается 3 слова (Имя Отчество Фамилия)
-                                        let regex = /^([A-Za-zА-Яа-яЁё]+)\s+([A-Za-zА-Яа-яЁё]+)(\s+[A-Za-zА-Яа-яЁё]+)?$/;
-                                        return regex.test(value.trim());
-                                    }
-
-                                    document.querySelector('form').addEventListener('submit', function(e) {
-                                        let inputs = document.querySelectorAll('.only-latin');
-                                        let message = "{{ __('main.fio_validate_order') }}";
-                                        for (let input of inputs) {
-                                            if (!validateFullName(input.value)) {
-                                                e.preventDefault();
-                                                alert(message);
-                                                return false;
-                                            }
-                                        }
-                                    });
-
-                                </script>
+                               
                         </div>
                         {{-- <div class="line"></div>
                         <div class="row">
@@ -289,10 +316,13 @@
                                         
                                         @lang('main.free_cancellation') {{ $request->cancelDate }} UTC {{$request->utc}}. <br>
                                             
-                                        @lang('main.cancellation_amount_tm'): {{ round($cancelConverted) }} {{ $request->currency ?? '$' }}
+                                        @lang('main.cancellation_amount_tm'): {{ round($request->cancelPrice) }} {{ $request->currency ?? '$' }}
                                     @else
                                         @lang('main.non_refundable')
                                     @endif
+                                </div>
+                                <div>
+
                                 </div>
                             </div>
                         </div>  
@@ -303,7 +333,7 @@
                                 <div class="total">@lang('main.total')</div>
                             </div>
                             <div class="col-md-4">
-                                <div class="price">{{ round($converted ?? $request->totalPrice) }} {{ $request->currency ?? '$'}}</div>
+                                <div class="price"><span id="total">{{ round($request->totalPrice) }}</span> {{ $request->currency ?? '$'}}</div>
                             </div>
                         </div>
                     </div>
@@ -319,7 +349,7 @@
     </style>
     <script>
 
-        let secondsLeft = localStorage.getItem('booking_etg_secondsLeft');
+        let secondsLeft = localStorage.getItem('booking_hs_secondsLeft');
         console.log(secondsLeft);
         if (secondsLeft === null) {
         secondsLeft = 600;
@@ -342,7 +372,7 @@
                     alertShown = true;
                     clearInterval(countdownInterval); // остановить интервал
                     alert("Время бронирования истекло. Пожалуйста, начните заново.");
-                    localStorage.removeItem('booking_etg_secondsLeft'); // Очистить данные
+                    localStorage.removeItem('booking_hs_secondsLeft'); // Очистить данные
                     window.location.href = "{{ route('index') }}";
                 }
                 return;
@@ -350,10 +380,62 @@
 
             document.getElementById('countdown').innerText = formatTime(secondsLeft);
             secondsLeft--;
-            localStorage.setItem('booking_etg_secondsLeft', secondsLeft);
+            localStorage.setItem('booking_hs_secondsLeft', secondsLeft);
         }
 
         tick(); // первый вызов сразу
         countdownInterval = setInterval(tick, 1000);
+    </script>
+    <script>
+        function calculateTotal() {
+            let total = {{ round($request->totalPrice) }};
+
+            document.querySelectorAll('.extra').forEach(select => {
+                let value = select.value; // например "3:00-6.46"
+                if (value) {
+                    let parts = value.split('-'); // ["3:00", "6.46"]
+                    let price = parseFloat(parts[1]) || 0;
+                    total += price;
+                }
+            });
+
+            document.getElementById('total').textContent = Math.round(total);
+            document.getElementsByName('totalPrice')[0].value = total.toFixed(2);
+        }
+
+        // слушаем изменения
+        document.querySelectorAll('.extra').forEach(select => {
+            select.addEventListener('change', calculateTotal);
+        });
+
+        // первый расчет при загрузке
+        calculateTotal();
+
+    </script>
+    <script>
+        document.querySelectorAll('.only-latin').forEach(function(input) {
+            input.addEventListener('input', function() {
+                    this.value = this.value.replace(/[^a-zа-яё\s]/gi, '');
+            });
+        });
+
+        function validateFullName(value) {
+            // Должно быть минимум два слова (Имя Фамилия), допускается 3 слова (Имя Отчество Фамилия)
+            let regex = /^([A-Za-zА-Яа-яЁё]+)\s+([A-Za-zА-Яа-яЁё]+)(\s+[A-Za-zА-Яа-яЁё]+)?$/;
+            return regex.test(value.trim());
+        }
+
+        document.querySelector('form').addEventListener('submit', function(e) {
+            let inputs = document.querySelectorAll('.only-latin');
+            let message = "{{ __('main.fio_validate_order') }}";
+            for (let input of inputs) {
+                if (!validateFullName(input.value)) {
+                    e.preventDefault();
+                    alert(message);
+                    return false;
+                }
+            }
+        });
+
     </script>
 @endsection

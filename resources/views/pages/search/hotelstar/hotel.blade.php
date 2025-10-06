@@ -118,7 +118,7 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-12">
+                        <div class="col-md-12 tariffs availabity">
                             @include('pages.search.hotelstar.rooms', ['hsroom' => $hsroom, 'tmimages' => $tmimages])
                         </div>
                     </div>

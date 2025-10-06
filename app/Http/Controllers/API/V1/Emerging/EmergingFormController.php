@@ -513,7 +513,7 @@ class EmergingFormController extends Controller
         $payload = [
                 // "timeout" => 30,
                 "user" => [
-                        "email" => $request->email, 
+                        "email" => 'itsupport@staybook.asia', //$request->email, 
                         "comment" => $request->comment, 
                         "phone" => $request->phone 
                     ], 
