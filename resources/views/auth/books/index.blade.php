@@ -14,113 +14,89 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
 
 @section('content')
-    <div class="container-fluid mt-5">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="tabs">
-                    <ul>
-                        <li @routeactive(
-                        'bookcalendar.index')><a
-                                href="{{ route('bookcalendar.index', $hotel) }}"
-                                class="more">Квоты</a>
-                        </li>
-                        <li @routeactive(
-                        'bookcalendarprice.index')><a
-                                href="{{ route('bookcalendarprice.index', $hotel) }}">Цены</a>
-                        </li>
-                    </ul>
+    <div class="page">
+        <div class="container-fluid">
+            <div class="row list-btn">
+                <div class="col-md-4">
+                    <a class="current" href="{{ route('bookcalendar.index', $hotel) }}">Квоты</a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ route('bookcalendarprice.index', $hotel) }}">Цены</a>
                 </div>
             </div>
-        </div>
-        <div class="status-container" style="display: flex; justify-content: space-around; align-items: center;">
-            <div class="e-search">
-                <div class="form-group">
-                    <label for="">Выберите отель</label>
-                    <select name="hotel_id" id="hotel_id" class="form-control" style="width: 200px"
-                            onchange="window.location.href = '{{ route(Route::currentRouteName(), ['hotel' => '__HOTEL__']) }}'.replace('__HOTEL__', this.value)">
-                        @foreach ($hotelslist as $hotel)
-                            <option value="{{ $hotel->id }}" {{ request()->route('hotel') == $hotel->id ? 'selected' : '' }}>
-                                {{ $hotel->title }}
-                            </option>
-                        @endforeach
-                    </select>
+            <div class="row select-hotel">
+                <div class="col-md-8" style="margin-top: 20px">
+                    <div class="form-group">
+                        <label for="">Выберите отель</label>
+                        <select name="hotel_id" id="hotel_id"
+                                onchange="window.location.href = '{{ route(Route::currentRouteName(), ['hotel' => '__HOTEL__']) }}'.replace('__HOTEL__', this.value)">
+                            @foreach ($hotelslist as $hotel)
+                                <option value="{{ $hotel->id }}" {{ request()->route('hotel') == $hotel->id ? 'selected' : '' }}>
+                                    {{ $hotel->title }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
-                @php
-                    use Carbon\Carbon;
-
-                    // Добавляем 1 месяц вперёд и устанавливаем на 1 и 2 число
-                    $startDate = Carbon::now()->startOfMonth()->format('Y-m-d');
-                    $endDate = Carbon::now()->endOfMonth()->format('Y-m-d');
-
-
-                    // Получаем текущую локаль Laravel
-                    $locale = app()->getLocale(); // 'ru', 'en', и т.д.
-                @endphp
-
-                <script src="https://code.jquery.com/jquery-3.7.1.min.js"
-                        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
-                        crossorigin="anonymous"></script>
-
-                <script>
-                    $(function () {
-                        const locale = "{{ $locale }}";
-
-                        // локализация для разных языков
-                        const localeSettings = {
-
-                            ru: {
-                                format: 'YYYY-MM-DD',
-                                separator: ' - ',
-                                applyLabel: 'Применить',
-                                cancelLabel: 'Отмена',
-                                fromLabel: 'С',
-                                toLabel: 'По',
-                                weekLabel: 'Н',
-                                customRangeLabel: 'Выбрать вручную',
-                                daysOfWeek: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
-                                monthNames: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
-                                    'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
-                                firstDay: 1,
-
-                            }
-                        };
-
-                    });
-                </script>
-
+                <div class="col-md-4">
+                    <div class="status-wrap">
+                        <div class="status">
+                            <span class="status-label" style="display: flex; align-items: center;">
+                                <div class="status-color"></div>
+                                Нет квот
+                            </span>
+                        </div>
+                        <div class="status">
+                            <span class="status-label" style="display: flex; align-items: center;">
+                                <div class="status-color" style="background-color: #7EB554;"></div>
+                                Есть квоты
+                            </span>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div style="width: 30%"></div>
-            <div class="status" style="display: flex; align-items: center; margin-right: 20px;">
-                <span class="status-label" style="display: flex; align-items: center;">
-                    <div class="status-color"
-                         style="background-color: #d95d5d; width: 15px; height: 15px; margin-right: 5px;"></div>
-                    Нет квот
-                </span>
-            </div>
-            <div class="status" style="display: flex; align-items: center; margin-right: 20px;">
-                <span class="status-label" style="display: flex; align-items: center;">
-                    <div class="status-color"
-                         style="background-color: #39bb43; width: 15px; height: 15px; margin-right: 5px;"></div>
-                    Есть квоты
-                </span>
-            </div>
+            @php
+                use Carbon\Carbon;
+
+                // Добавляем 1 месяц вперёд и устанавливаем на 1 и 2 число
+                $startDate = Carbon::now()->startOfMonth()->format('Y-m-d');
+                $endDate = Carbon::now()->endOfMonth()->format('Y-m-d');
+
+                $locale = app()->getLocale();
+                $id = $request->route('hotel');
+                $hotel = \App\Models\Hotel::where('id', $id)->first();
+            @endphp
+
+            <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+                    integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+                    crossorigin="anonymous"></script>
+
+            <script>
+                $(function () {
+                    const locale = "{{ $locale }}";
+                    // локализация для разных языков
+                    const localeSettings = {
+                        ru: {
+                            format: 'YYYY-MM-DD',
+                            separator: ' - ',
+                            applyLabel: 'Применить',
+                            cancelLabel: 'Отмена',
+                            fromLabel: 'С',
+                            toLabel: 'По',
+                            weekLabel: 'Н',
+                            customRangeLabel: 'Выбрать вручную',
+                            daysOfWeek: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
+                            monthNames: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+                                'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
+                            firstDay: 1,
+
+                        }
+                    };
+                });
+            </script>
+            <div id="calendar"></div>
         </div>
-
-{{--        @if($exelyEmpty)--}}
-{{--            <div class="alert alert-warning">--}}
-{{--                ⚠️ Нет доступных номеров от Exely на выбранные даты.--}}
-{{--            </div>--}}
-{{--        @endif--}}
-
-        <div id="warning" class="alert alert-warning"></div>
-
-        <div id="calendar"></div>
     </div>
-
-    @php
-        $id = $request->route('hotel');
-        $hotel = \App\Models\Hotel::where('id', $id)->first();
-    @endphp
 
     @if($hotel && $hotel->exely_id != null)
 
@@ -134,10 +110,10 @@
                         <h5 class="modal-title">
                             Создание брони для:
                         </h5>
-                        <ul class="list-unstyled small text-muted mb-2">
-                            <li>🏨 <strong id="modalHotelName">—</strong></li>
-                            <li>🛏 <strong id="modalRoomName">—</strong></li>
-                            <li>💵 <strong id="modalRateName">—</strong></li>
+                        <ul>
+                            <li><strong id="modalHotelName">—</strong></li>
+                            <li><strong id="modalRoomName">—</strong></li>
+                            <li><strong id="modalRateName">—</strong></li>
                         </ul>
 
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
@@ -175,12 +151,6 @@
 @endsection
 
 <style>
-    #calendar {
-        background-color: #fff;
-        padding: 20px;
-        border-radius: 30px;
-    }
-
     .fc-datagrid-cell-main {
         white-space: pre-line;
     }

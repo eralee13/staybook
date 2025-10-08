@@ -5,7 +5,7 @@
 @section('content')
 
     @auth
-    <div class="page">
+    <div class="page order">
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 col-md-12">

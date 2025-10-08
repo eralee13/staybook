@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function () {
         eventContent: function(arg) {
             const title = arg.event?.title ?? '';
             return {
-                html: `<div style="padding: 5px; text-align: center; font-weight: bold">${title}</div>`
+                html: `<div style="padding: 5px; text-align: center; font-weight: normal">${title}</div>`
             };
         },
 
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const color = event.backgroundColor || event._def?.ui?.backgroundColor;
             const title = event.title;
 
-            if (event.extendedProps.description && color === '#d95d5d' && event.extendedProps.open_time) {
+            if (event.extendedProps.description && color === '#CA6561' && event.extendedProps.open_time) {
                 const open = event.extendedProps.open_time ?? '—';
                 const close = event.extendedProps.close_time ?? '—';
 
@@ -264,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function () {
             position: 'fixed',
             top: '20px',
             right: '20px',
-            backgroundColor: type === 'danger' ? '#dc3545' : '#28a745',
+            backgroundColor: type === 'danger' ? '#CA6561' : '#7EB554',
             color: 'white',
             padding: '10px 20px',
             borderRadius: '6px',

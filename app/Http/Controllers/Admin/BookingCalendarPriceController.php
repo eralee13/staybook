@@ -30,9 +30,10 @@ class BookingCalendarPriceController extends Controller
             ->orderBy('title', 'asc');
 
         // если админ — показываем все, иначе только свои
-        if (!$user->hasRole('Super Admin')) {
+        if (!$user->hasRole('Super Admin') && !$user->hasRole('Manager')) {
             $hotelsQuery->where('user_id', $user->id);
         }
+
 
         $hotelslist = $hotelsQuery->get();
 

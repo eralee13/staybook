@@ -5,7 +5,7 @@
 @section('content')
 
     <div class="page">
-        <div class="container">
+        <div class="container-fluid">
             <div class="row">
                 <div class="col-md-3">
                     @include('auth.layouts.sidebar')
@@ -23,8 +23,8 @@
                                 datasets: [{
                                     label: 'Бронирования по датам',
                                     data: @json($counts),
-                                    borderColor: 'rgba(75, 192, 192, 1)',
-                                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                    borderColor: 'rgba(0, 97, 174, 1)',
+                                    backgroundColor: 'rgba(0, 97, 174, 0.2)',
                                     fill: true,
                                     tension: 0.3
                                 }]
@@ -43,7 +43,7 @@
                         });
                     </script>
 
-                    <canvas id="roomRateChart" height="100"></canvas>
+                    <canvas id="roomRateChart" height="100" style="margin-top: 60px"></canvas>
                     <script>
                         const ctx2 = document.getElementById('roomRateChart').getContext('2d');
                         const chart2 = new Chart(ctx2, {
@@ -53,8 +53,8 @@
                                 datasets: [{
                                     label: 'Количество',
                                     data: [{{ $roomCount }}, {{ $rateCount }}],
-                                    backgroundColor: ['rgba(54, 162, 235, 0.6)', 'rgba(255, 206, 86, 0.6)'],
-                                    borderColor: ['rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)'],
+                                    backgroundColor: ['rgba(120, 194, 82, 0.6)', 'rgba(0, 160, 213, 0.5)'],
+                                    borderColor: ['rgba(120, 194, 82, 1)', 'rgba(0, 160, 213, 1)'],
                                     borderWidth: 1
                                 }]
                             },

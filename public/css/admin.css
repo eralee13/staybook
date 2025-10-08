@@ -1,5 +1,6 @@
 :root {
     --blue: #0163b4;
+    --green: #78c252;
 }
 
 .admin table ul {
@@ -31,6 +32,48 @@
 
 .admin a.add {
     background-color: #74bb39;
+    border-radius: 30px;
+}
+.room_list_btn a{
+    background-color: #fff;
+    display: block;
+    color: #333;
+    text-align: center;
+    text-decoration: none;
+    padding: 12px 30px;
+    border-radius: 30px;
+    transition: all .3s ease;
+}
+.room_list_btn a.current{
+    background-color: rgba(23,90,151,.3);
+    color: var(--blue);
+    font-weight: 400;
+}
+.room_list_btn a:hover{
+    background-color: var(--blue);
+    color: #fff;
+}
+.list_btn a{
+    background-color: var(--blue);
+    display: block;
+    color: #fff;
+    text-align: center;
+    text-decoration: none;
+    padding: 12px 30px;
+    border-radius: 30px;
+    transition: all .3s ease;
+}
+.list-item{
+    margin: 20px 0;
+}
+.list-item img{
+    border-radius: 30px;
+    border: 2px solid var(--green)
+}
+#calendar {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 30px;
 }
 
 /*.admin a.view{*/
@@ -51,10 +94,12 @@
 /*    line-height: 1.2;*/
 /*}*/
 .admin form .cancel {
-    padding: 9px 30px;
-    margin-left: 10px;
-    background-color: red;
-    border-radius: 8px;
+    background-color: var(--blue);
+    color: #fff;
+    padding: 12px 30px;
+    display: block;
+    border-radius: 30px;
+    text-align: center;
 }
 
 .admin .input-group {
@@ -63,6 +108,8 @@
 
 .admin label {
     display: block;
+    font-size: 14px;
+    margin-bottom: 5px;
 }
 
 .admin .form-label label {
@@ -77,12 +124,31 @@
     max-width: 200px;
     max-height: 200px;
 }
+.admin table img.prod{
+    border-radius: 10px;
+    border: 2px solid var(--green);
+    width: 139px;
+    height: 100px;
+    object-fit: cover;
+}
+.admin table form img{
+    max-width: 20px;
+}
 
 .admin form input[type="checkbox"] {
     display: inline-block;
     width: auto;
     height: auto;
     margin-right: 5px;
+}
+.admin .images img {
+    max-width: 100%;
+    height: 280px;
+    object-fit: cover;
+    width: 100%;
+    margin-bottom: 20px;
+    border-radius: 30px;
+    border: 2px solid #78c252;
 }
 
 .dashboard .sliders, .dashboard .reviews {
@@ -156,7 +222,7 @@
 }
 
 .admin .modal-content .status .fa-regular {
-    color: green;
+    color: var(--green);
 }
 
 .bottom ul {
@@ -180,7 +246,7 @@
 
 .mainhotels .add a {
     display: inline-block;
-    background-color: #74bb39;
+    background-color: var(--green)
 }
 
 /*.admin .sidebar ul li a{*/
@@ -188,7 +254,7 @@
 /*    background-color: #fff;*/
 /*}*/
 header .status.active, .bills .status {
-    color: #74bb39;
+    color: var(--green)
 }
 
 header ul.lang {
@@ -256,12 +322,12 @@ header .logo img {
 }
 
 .bookings .stick {
-    background-color: #74bb39;
+    background-color: var(--green);
     color: #fff;
 }
 
 .bookings .status i {
-    color: #74bb39;
+    color: var(--green);
 }
 
 .img-wrap {
@@ -274,14 +340,32 @@ header .logo img {
 
 .admin .img-item form .delete {
     position: absolute;
-    right: 12px;
-    top: 5px;
-    padding: 2px 5px;
-    font-size: 12px;
-    padding: 0px 5px 2px;
-    font-size: 12px;
-    background: red;
+    right: 8px;
+    top: 8px;
+    background: rgba(246, 246, 246, 0.5);
     color: #fff;
+    border-radius: 100%;
+    width: 40px;
+    height: 40px;
+    margin-left: 0;
+    padding: 0;
+}
+.admin .img-item form img{
+    border: none;
+    border-radius: 0;
+    margin-left: 0;
+    max-width: 24px;
+}
+.images{
+    margin-top: 40px;
+}
+.images .img-item{
+    height: auto;
+    border: none;
+}
+.images .img-item img{
+    border: 1px solid var(--green);
+    border-radius: 30px;
 }
 
 .admin .date, .admin .name {
@@ -352,52 +436,282 @@ nav ul li a {
 .admin #calendar table td {
     padding: 0;
 }
-
+#calendar{
+    font-family: Unbounded,sans-serif;
+}
 .fc .fc-timeline-slot-cushion {
     text-decoration: none;
     color: #000;
 }
-
-.tabs ul li {
-    display: inline-block;
-    margin-right: 10px;
+.fc .fc-scrollgrid-section-header.fc-scrollgrid-section-sticky > *{
+    padding: 0;
+}
+.fc .fc-scrollgrid table{
+    margin: 0;
+}
+.fc .fc-scrollgrid-section-footer.fc-scrollgrid-section-sticky > *{
+    padding: 0;
 }
 
-.tabs ul li a {
+.list-btn a {
     padding: 10px 30px;
     background-color: #fff;
-    border-radius: 5px;
+    border-radius: 30px;
     color: #333;
     text-decoration: none;
-    font-size: 14px;
     transition: all .3s ease;
+    display: block;
+    text-align: center;
 }
 
-.tabs ul li.current a {
+.list-btn a.current {
     background-color: var(--blue);
     color: #fff;
 }
-
+.select-hotel select{
+    border-radius: 30px;
+}
+.select-hotel .status{
+    display: inline-block;
+    position: relative;
+    top: 60px;
+    margin: 0 20px;
+}
+.select-hotel .status .status-color{
+    border-radius: 5px;
+    background-color: #CA6561;
+    width: 15px;
+    height: 15px;
+    margin-right: 5px;
+}
+.select-hotel .status-wrap{
+    text-align: right;
+}
+.modal-backdrop{
+    z-index: 5;
+}
+.fc .fc-toolbar-title{
+    color: var(--blue);
+    font-weight: normal;
+}
+.fc .fc-button-primary{
+    border: none;
+    border-radius: 30px;
+    background-color: var(--blue);
+    padding: 10px 30px;
+}
+.fc .fc-button-group .fc-button-primary{
+    background-color: #fff;
+    color: #333;
+    padding: 0;
+    outline: none;
+}
+.fc .fc-datagrid-cell-cushion{
+    font-weight: 300;
+}
+.fc-timeline-event > * {
+    font-weight: 300;
+}
+.admin form button.more{
+    padding: 12px 30px;
+}
 .admin form button.delete {
-    background-color: red;
+    background-color: var(--blue);
     color: #fff;
-    font-size: 10px;
-    padding: 5px 10px;
-    margin-left: 5px;
+    padding: 12px 30px;
+    display: block;
 }
 
-body input, body textarea {
-    border: 1px solid #ddd;
+body input, body textarea, body select {
+    border: none;
+    outline: none;
+    background-color: #fff;
 }
 
 .border-wrap {
     border: 1px solid #ddd;
-    border-radius: 5px;
+    border-radius: 30px;
     padding: 10px;
-    margin: 0;
     margin: 20px 0;
 }
 .admin .sidebar ul li img{
     position: relative;
     top: -2px;
+}
+:root{
+    --cb-size: 30px;              /* размер квадрата чекбокса */
+    --cb-radius: 5px;            /* скругление */
+    --cb-border: 2px;
+    --accent: #54b25a;            /* зелёный чек */
+    --text: #0b0b0b;
+    --muted: #8b8b8b;
+    --surface: #ffffff;
+    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 6px 24px rgba(0,0,0,.06);
+    --focus: 0 0 0 3px rgba(84,178,90,.25);
+    font-synthesis-weight:none;
+}
+/* Базовая разметка опции */
+.option{
+    display:grid;
+    grid-template-columns: var(--cb-size) 1fr;
+    align-items:center;
+    gap:18px;
+    font-size: 16px;
+    line-height: 1.1;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Скрываем нативный чекбокс, оставляя доступность */
+.option input{
+    position:absolute;
+    opacity:0;
+    width:0; height:0;
+}
+
+/* Визуальная коробка чекбокса */
+.box{
+    width:var(--cb-size);
+    height:var(--cb-size);
+    border-radius: var(--cb-radius);
+    background: var(--surface);
+    border: var(--cb-border) solid #e6e6e6;
+    display: inline-block;
+    place-items:center;
+    box-shadow: var(--shadow);
+    transition: border-color .18s ease, transform .12s ease, background .18s ease;
+}
+
+/* Галочка (SVG) скрыта по умолчанию */
+.box svg{
+    width: 100%;
+    height: 100%;
+    display:none;
+    position: relative;
+    left: 2px;
+}
+.admin .name{
+    display: inline-block;
+    position: relative;
+    top: -9px;
+    margin-left: 10px;
+    opacity: 1;
+}
+
+/* Hover для всей зоны клика */
+.option:hover .box{
+    transform: translateY(-1px);
+}
+
+/* Состояние :checked */
+.option input:checked + .box{
+    border-color: transparent;
+    background: var(--surface);
+}
+.option input:checked + .box svg{
+    display:block;
+}
+.option input:checked + .box svg path{
+    fill: var(--accent);
+}
+
+/* Фокус-контур для доступности (по Tab) */
+.option input:focus-visible + .box{
+    box-shadow: var(--focus), var(--shadow);
+}
+
+/* Неактивное/заблокированное при желании */
+.option[aria-disabled="true"]{
+    opacity:.5; pointer-events:none;
+}
+.custom-select {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.custom-select select {
+    appearance: none;          /* Убираем стандартную стрелку */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+
+    width: 100%;
+    padding: 12px 40px 12px 16px; /* Отступ справа под стрелку */
+    border: none;
+    border-radius: 50px;
+    background-color: #fff;
+    font-size: 18px;
+    color: #555;
+    box-shadow: 0 0 0 1px #eee;
+    cursor: pointer;
+}
+
+/* Кастомная стрелка */
+.custom-select::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 18px;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    transform: translateY(-50%);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #777; /* цвет стрелки */
+}
+
+/* Hover / Focus эффекты */
+.custom-select select:hover {
+    box-shadow: 0 0 0 2px #f0a040;
+}
+
+.custom-select select:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #f0a040;
+}
+@media(max-width: 767px){
+    .admin header .profile {
+        position: relative;
+        top: -10px;
+    }
+    header nav{
+        margin-left: 0;
+    }
+    header nav .toggle-mnu{
+        top: 10px;
+    }
+    header nav ul{
+        top: 0;
+    }
+    .admin .table-wrap{
+        overflow-y: scroll;
+        width: 100%;
+    }
+    .admin .hotels input{
+        margin-bottom: 15px;
+    }
+    .admin .alert-success{
+        font-size: 14px;
+        padding: 6px 15px;
+    }
+    .list-btn a{
+        margin-bottom: 10px;
+    }
+    .select-hotel .status-wrap{
+        text-align: left;
+    }
+    .select-hotel .status{
+        margin-bottom: 20px;
+        top: 0;
+    }
+    .fc .fc-button-primary{
+        margin-bottom: 10px;
+    }
+    .fc .fc-toolbar-title{
+        font-size: 18px;
+    }
+    .print, .room_list_btn a {
+        margin-bottom: 10px;
+    }
 }

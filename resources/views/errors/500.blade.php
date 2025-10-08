@@ -1,10 +1,20 @@
-@extends('layouts.head')
+@extends('layouts.master')
 
 @section('title', 'Ошибка 500')
 
 @section('content')
 
-    <div class="page about">
+    <style>
+        .page {
+            padding: 90px 0 200px;
+        }
+
+        .btn-wrap {
+            margin-top: 40px;
+        }
+    </style>
+
+    <div class="page">
         <div class="container">
             <div class="row">
                 <div class="col-md-12">

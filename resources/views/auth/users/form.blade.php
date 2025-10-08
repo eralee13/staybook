@@ -1,3 +1,4 @@
+@php use Illuminate\Support\Facades\Auth; @endphp
 @extends('auth.layouts.master')
 
 @isset($user)
@@ -19,7 +20,7 @@
     </style>
 
     <div class="page admin">
-        <div class="container">
+        <div class="container-fluid">
             <div class="row">
                 <div class="col-md-3">
                     @include('auth.layouts.sidebar')
@@ -171,16 +172,22 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="mb3 col-md-12 d-flex justify-content-end" style="gap: 20px">
-                            <button type="button" class="btn more" onclick="generatePassword()">@lang("main.generate_password")</button>
-                            <button type="button" class="btn more" id="togglePasswordVisibility">
-                                👁️ @lang('main.show_password')
+                        <div style="text-align: left; margin: 20px 0;">
+                            <button type="button" onclick="generatePassword()">@lang("admin.generate_password")</button>
+                            <button type="button" id="togglePasswordVisibility">
+                               @lang('main.show_password')
                             </button>
                         </div>
                             
                         @csrf
-                        <button class="more">@lang('admin.send')</button>
-                        <a href="{{url()->previous()}}" class="btn delete cancel">@lang('admin.cancel')</a>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button class="more">@lang('admin.send')</button>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="{{url()->previous()}}" class="btn delete cancel">@lang('admin.cancel')</a>
+                            </div>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -202,7 +209,7 @@
                 }
             });
 
-            this.textContent = showing ? '🙈 ' + showingText : '👁️ ' + hiddenText;
+            this.textContent = showing ? + showingText : + hiddenText;
         });
     </script>
     <script>

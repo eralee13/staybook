@@ -535,9 +535,9 @@ class HotelController extends Controller
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Title</th>
-                            <th>Address</th>
-                            <th>Action</th>
+                            <th>Заголовок</th>
+                            <th>Адрес</th>
+                            <th>Управление</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -549,7 +549,7 @@ class HotelController extends Controller
                             <td>
                                 <ul>
                                     <a href="<?php echo route('hotels.show', $row->id) ?>"><img
-                                                src="<?php echo route('index') ?>/img/icons/eye.svg" alt=""></a>
+                                                src="<?php echo route('index') ?>/img/icons/eye.svg" class="view"></a>
                                 </ul>
                             </td>
                         </tr>

@@ -3,7 +3,7 @@
 @section('content')
 
     <div class="page admin">
-        <div class="container">
+        <div class="container-fluid">
             <div class="row">
                 <div class="col-md-3">
                     @include('auth.layouts.sidebar')
@@ -44,8 +44,14 @@
                                     @endforelse
                                 </select>
                             </div>
-                            <button class="more">@lang('admin.send')</button>
-                            <a href="{{url()->previous()}}" class="btn delete cancel">@lang('admin.cancel')</a>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <button class="more">@lang('admin.send')</button>
+                                </div>
+                                <div class="col-md-6">
+                                    <a href="{{url()->previous()}}" class="btn delete cancel">@lang('admin.cancel')</a>
+                                </div>
+                            </div>
                         </form>
                 </div>
             </div>

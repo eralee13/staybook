@@ -5,7 +5,7 @@
 @section('content')
 
     <div class="page admin bookings">
-        <div class="container">
+        <div class="container-fluid">
             <div class="row">
                 <div class="col-md-3">
                     @include('auth.layouts.sidebar')
@@ -13,7 +13,7 @@
                 <div class="col-md-9">
                     <form method="GET" class="mb-3">
                         <div class="row">
-                            <div class="col-md-4">
+                            <div class="col-md-9">
                                 <label for="month">Фильтр по месяцу</label>
                                 <select name="month" id="month" class="form-control" onchange="this.form.submit()">
                                     <option value="">Все месяцы</option>
@@ -27,102 +27,92 @@
                                     @endforeach
                                 </select>
                             </div>
-                        </div>
-                    </form>
-                    @if($books->isNotEmpty())
-                        <div class="row align-items-center aic">
-                            <div class="col-md-9">
-                                <h1>@lang('admin.bookings')</h1>
-                            </div>
                             <div class="col-md-3">
+                                <label for="" style="color: transparent">1</label>
                                 <div class="btn-wrap">
-                                    <a class="btn add" href="{{ route('excel-books') }}">
-                                      @lang('admin.export_excel')
+                                    <a class="btn add" style="display: block; text-align: center;" href="{{ route('excel-books') }}">
+                                        @lang('admin.export_excel')
                                     </a>
                                 </div>
                             </div>
                         </div>
-                        <table>
-                            <tr>
-                                <th>#</th>
-                                <th>@lang('admin.booking')</th>
-                                <th>@lang('admin.guests')</th>
-                                <th>@lang('admin.hotel')</th>
-                                <th>@lang('admin.plans')</th>
-                                <th>@lang('admin.dates_of_stay')</th>
-                                <th>@lang('admin.price')</th>
-{{--                                <th>@lang('admin.action')</th>--}}
-                            </tr>
-                            <tbody>
-                            @foreach($books as $book)
+                    </form>
+                    @if($books->isNotEmpty())
+                        <div class="table-wrap">
+                            <table>
                                 <tr>
-                                    <td>{{ $loop->iteration }}</td>
-                                    <td>
-                                        <div class="title"># {{ $book->id }}</div>
-                                        {{--                                        <div class="stick">B2B</div>--}}
-                                        <div class="date">@lang('admin.created') {{ $book->created_at }}</div>
-                                    </td>
-                                    <td>
-                                        <div class="title">{{ $book->title1 }}</div>
-                                        <div class="date">{{ $book->adult }} @lang('admin.adult')</div>
-                                        @if($book->child > 0)
-                                            <div class="date">{{ $book->child }} @lang('admin.child')</div>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @php
-                                            $hotel = \App\Models\Hotel::where('id', $book->hotel_id)->orWhere('exely_id', $book->hotel_id)->first();
-                                        @endphp
-                                        {{ $hotel->__('title') }}
-                                    </td>
-                                    <td>
-                                        @php
-                                            $room = \App\Models\Room::where('id', $book->room_id)->orWhere('exely_id', $book->room_id)->first();
-                                            $plan = \App\Models\Rate::where('room_id', $book->room_id)->first();
-                                        @endphp
-                                        @isset($room)
-                                            <div class="title">{{ $room->__('title') }}</div>
-                                        @endisset
-
-                                        @isset($plan)
-                                            <div class="title">{{ $plan->__('title') }}</div>
-                                        @endisset
-                                    </td>
-                                    <td>{{ $book->showStartDate() }} - {{ $book->showEndDate() }}</td>
-                                    <td>
-                                        @if($book->sum != 1)
-                                            <div class="title">{{ $book->sum }}
-                                                @if($book->currency)
-                                                    {{ $book->currency }}
-                                                @else
-                                                    $
-                                                @endif
-                                            </div>
+                                    <th>#</th>
+                                    <th>@lang('admin.booking')</th>
+                                    <th>@lang('admin.guests')</th>
+                                    <th>@lang('admin.hotel')</th>
+                                    <th>@lang('admin.plans')</th>
+                                    <th>@lang('admin.dates_of_stay')</th>
+                                    <th>@lang('admin.price')</th>
+                                    {{--                                <th>@lang('admin.action')</th>--}}
+                                </tr>
+                                <tbody>
+                                @foreach($books as $book)
+                                    @php
+                                        $hotel = \App\Models\Hotel::where('id', $book->hotel_id)->orWhere('exely_id', $book->hotel_id)->first();
+                                        $room = \App\Models\Room::where('id', $book->room_id)->orWhere('exely_id', $book->room_id)->first();
+                                        $plan = \App\Models\Rate::where('room_id', $book->room_id)->first();
+                                    @endphp
+                                    <tr>
+                                        <td>{{ $loop->iteration }}</td>
+                                        <td>
+                                            <div class="title"># {{ $book->id }}</div>
+                                            {{--                                        <div class="stick">B2B</div>--}}
+                                            <div class="date">@lang('admin.created') {{ $book->created_at }}</div>
+                                        </td>
+                                        <td>
+                                            <div class="title">{{ $book->title1 }}</div>
+                                            <div class="date">{{ $book->adult }} @lang('admin.adult')</div>
+                                            @if($book->child > 0)
+                                                <div class="date">{{ $book->child }} @lang('admin.child')</div>
+                                            @endif
+                                        </td>
+                                        @isset($hotel)
+                                        <td>
+                                            {{ $hotel->__('title') }}
+                                        </td>
                                         @else
-                                            <div class="title">$ {{ $book->price }}</div>
-                                        @endif
-                                        <div class="status">
-                                            @if($book->status == 'Reserved')
-                                                <div class="alert alert-success">
-                                                    {{ $book->status }}
+                                            <td></td>
+                                        @endisset
+                                        <td>
+                                            @isset($room)
+                                                <div class="title">{{ $room->__('title') }}</div>
+                                            @endisset
+
+                                            @isset($plan)
+                                                <div class="title">{{ $plan->__('title') }}</div>
+                                            @endisset
+                                        </td>
+                                        <td>{{ $book->showStartDate() }} - {{ $book->showEndDate() }}</td>
+                                        <td>
+                                            @if($book->sum != 1)
+                                                <div class="title">{{ $book->sum }}
+                                                    @if($book->currency)
+                                                        {{ $book->currency }}
+                                                    @else
+                                                        $
+                                                    @endif
                                                 </div>
                                             @else
-                                                <div class="alert alert-danger">
-                                                    {{ $book->status }}
-                                                </div>
+                                                <div class="title">$ {{ $book->price }}</div>
                                             @endif
-                                        </div>
-                                    </td>
-{{--                                    <td>--}}
-{{--                                            <ul>--}}
-{{--                                                <a href="{{ route('allbooks.show', $book)}}"><img src="{{ route('index') }}/img/icons/eye.svg" alt=""></a>--}}
-{{--                                            </ul>--}}
-{{--                                    </td>--}}
-                                </tr>
-                            @endforeach
-                            </tbody>
-                        </table>
-
+                                            <div class="status">
+                                                @if($book->status == 'Reserved')
+                                                    <span style="color: var(--green)">{{ $book->status }}</span>
+                                                @else
+                                                    <span style="color: #CA6561">{{ $book->status }}</span>
+                                                @endif
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                         {{ $books->links('pagination::bootstrap-4') }}
                     @else
                         <h2 style="text-align: center">@lang('admin.bookings_not_found')</h2>

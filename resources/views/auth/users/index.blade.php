@@ -4,7 +4,7 @@
 @section('content')
 
     <div class="page admin">
-        <div class="container">
+        <div class="container-fluid">
             <div class="row">
                 <div class="col-md-3">
                     @include('auth.layouts.sidebar')
@@ -19,43 +19,45 @@
                                 @lang('admin.add')</a>
                         </div>
                     </div>
-                    <table class="table">
-                        <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Email</th>
-                            <th>@lang('admin.name')</th>
-                            <th>@lang('admin.role')</th>
-                            <th>@lang('admin.action')</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        @foreach($users as $user)
+                    <div class="table-wrap">
+                        <table class="table">
+                            <thead>
                             <tr>
-                                <td>{{ $user->id }}</td>
-                                <td>{{ $user->email }}</td>
-                                <td>{{ $user->name }}</td>
-                                <td>
-                                    @forelse ($user->getRoleNames() as $role)
-                                        <div class="alert alert-success">{{ $role }}</div>
-                                    @empty
-                                    @endforelse
-                                </td>
-                                <td>
-                                    <form action="{{ route('users.destroy', $user) }}" method="post">
-                                        <ul>
-                                            <li><a href="{{ route('users.edit', $user)
-                                            }}"><img src="{{ route('index') }}/img/icons/edit.svg" alt=""></a></li>
-                                            @csrf
-                                            @method('DELETE')
-                                            <button><img src="{{ route('index') }}/img/icons/trash.svg" alt=""></a></button>
-                                        </ul>
-                                    </form>
-                                </td>
+                                <th>ID</th>
+                                <th>Email</th>
+                                <th>@lang('admin.name')</th>
+                                <th>@lang('admin.role')</th>
+                                <th>@lang('admin.action')</th>
                             </tr>
-                        @endforeach
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                            @foreach($users as $user)
+                                <tr>
+                                    <td>{{ $user->id }}</td>
+                                    <td>{{ $user->email }}</td>
+                                    <td>{{ $user->name }}</td>
+                                    <td>
+                                        @forelse ($user->getRoleNames() as $role)
+                                            <div class="alert alert-success">{{ $role }}</div>
+                                        @empty
+                                        @endforelse
+                                    </td>
+                                    <td>
+                                        <form action="{{ route('users.destroy', $user) }}" method="post">
+                                            <ul>
+                                                <li><a href="{{ route('users.edit', $user)
+                                            }}"><img src="{{ route('index') }}/img/icons/edit.svg" alt=""></a></li>
+                                                @csrf
+                                                @method('DELETE')
+                                                <button><img src="{{ route('index') }}/img/icons/trash.svg" alt=""></a></button>
+                                            </ul>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                     {{ $users->links('pagination::bootstrap-4') }}
                 </div>
             </div>

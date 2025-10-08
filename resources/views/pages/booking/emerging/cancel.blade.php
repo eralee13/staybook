@@ -1,11 +1,11 @@
-@extends('layouts.head')
+@extends('layouts.master')
 
 @section('title', 'Отмена брони')
 
 @section('content')
 
 
-    <div class="page">
+    <div class="page order">
         <div class="container">
             <div class="row">
                 <div class="col-lg-6 col-md-12">

@@ -15,20 +15,17 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200..900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{route('index')}}/css/main.min.css?ver=1.3">
+    <link rel="stylesheet" href="{{route('index')}}/css/main.min.css?ver=1.5">
     <link rel="stylesheet" href="{{route('index')}}/css/style.css?ver=1.1">
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-JWCJ1YQVHX"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
-
         function gtag() {
             dataLayer.push(arguments);
         }
-
         gtag('js', new Date());
-
         gtag('config', 'G-JWCJ1YQVHX');
     </script>
 
@@ -46,9 +43,11 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-3 col-md-3 col-4">
-                    <a href="{{route('index')}}">
-                        <img src="{{route('index')}}/img/logo.svg" alt="">
-                    </a>
+                    <div class="logo">
+                        <a href="{{route('index')}}">
+                            <img src="{{route('index')}}/img/logo.svg" alt="">
+                        </a>
+                    </div>
                 </div>
                 <div class="col-lg-4 d-xl-block d-lg-block d-none">
                     <div class="menu-wrap">
@@ -107,26 +106,35 @@
                             </div>
                         </div>
                         <div class="auth">
-                            <a href="{{ route('login') }}">@lang('main.login')</a>
+                            @auth
+                                <a href="{{ route('profile.edit') }}">{{ \Illuminate\Support\Facades\Auth::user()->name }}</a>
+                            @else
+                                <a href="{{ route('extranet') }}">@lang('main.login')</a>
+                            @endif
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-10 col-md-9 col-8 d-xl-none d-lg-none d-block">
                     <div class="wrap">
                         <div class="auth">
-                            <a href="{{ route('login') }}">@lang('main.login')</a>
+                            @auth
+                                <a href="{{ route('profile.edit') }}">{{ \Illuminate\Support\Facades\Auth::user()->name }}</a>
+                            @else
+                                <a href="{{ route('extranet') }}">@lang('main.login')</a>
+                            @endif
                         </div>
                         <nav>
                             <a href="#" class="toggle-mnu d-xl-none d-lg-none"><span></span></a>
                             <ul>
                                 <li><a href="{{route('service')}}">@lang('main.about_service')</a></li>
                                 <li><a href="{{route('contactspage')}}">@lang('main.contacts')</a></li>
+                                <hr>
                                 <li @if(session('locale')=='ru')
                                         current
-                                        @endif><a href="{{ route('locale', 'ru') }}">RU</a></li>
+                                        @endif><a href="{{ route('locale', 'ru') }}">Русский</a></li>
                                 <li @if(session('locale')=='en')
                                         current
-                                        @endif><a href="{{ route('locale', 'en') }}">EN</a></li>
+                                        @endif><a href="{{ route('locale', 'en') }}">English</a></li>
                             </ul>
                         </nav>
                     </div>
@@ -153,7 +161,7 @@
 
 
     <footer>
-        <div class="footer">
+        <div class="footer d-xl-block d-lg-block d-none">
             <div class="container">
                 <div class="row">
                     <div class="col-lg-3 col-md-6">
@@ -209,62 +217,122 @@
                 </div>
             </div>
         </div>
+
+        <div class="footer d-xl-none d-lg-none d-block">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-3 col-md-6">
+                        <div class="footer-item">
+                            <div class="logo">
+                                <img src="{{ route('index') }}/img/logo_foot.svg" alt="">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="footer-item">
+                            <ul>
+                                <li>{{ $contacts->first()->__('address') }}</li>
+                                <li><a href="tel:{{ $contacts->first()->phone }}">{{ $contacts->first()->phone }}</a></li>
+                                <li><a href="mailto:{{ $contacts->first()->email }}">{{ $contacts->first()->email }}</a></li>
+                                <li><a href="{{ $contacts->first()->instagram }}" target="_blank">Instagram</a></li>
+                                <li><a href="https://wa.me/{{ $contacts->first()->whatsapp }}" target="_blank">WhatsApp</a>
+                                </li>
+                                <li><a href="{{ route('service') }}">@lang('main.about_service')</a></li>
+                                <li><a href="{{ route('about') }}">@lang('main.about_company')</a></li>
+                                <li><a href="#">@lang('main.blog')</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="footer-item">
+                            <ul>
+                                <li><a href="{{ route('companies') }}">@lang('main.companies_services')</a></li>
+                                <li><a href="{{ route('apartments') }}">@lang('main.apartments')</a></li>
+                                <li><a href="{{ route('objects') }}">@lang('main.hotels_properties')</a></li>
+                                <li><a href="{{ route('objects') }}">@lang('main.tour_operators')</a></li>
+                                <li><a href="{{ route('rules') }}">@lang('main.booking_terms')</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="row copy">
+                    <div class="col-6">
+                        <a href="{{ route('privacy') }}">@lang('main.privacy')</a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{{ route('legal') }}">@lang('main.legal')</a>
+                    </div>
+                    <div class="col-12">
+                        <p>@lang('main.copy') &copy; {{ date('Y') }} staybook.asia</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </footer>
 
 
     <script src="{{ route('index') }}/js/scripts.min.js?ver=1.2"></script>
 
     {{--<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>--}}
-    <script>
-        $(document).ready(function () {
-            // $('#city').select2({
-            //     placeholder: "Выберите город",
-            //     allowClear: true
-            // });
-
-            // 1) читаем hidden, подставляем дефолты если пусто/Invalid
+        <script>
+            $(function () {
             let start = moment($('#arrivalDate').val(), 'YYYY-MM-DD', true);
-            let end = moment($('#departureDate').val(), 'YYYY-MM-DD', true);
+            let end   = moment($('#departureDate').val(), 'YYYY-MM-DD', true);
 
             if (!start.isValid()) start = moment().startOf('day');
             if (!end.isValid() || end.isSameOrBefore(start)) end = start.clone().add(1, 'day');
 
-            // 2) инициализация одного DRP на поле заезда
-            $('#arrivalDisplay').daterangepicker({
-                autoApply: true,
-                autoUpdateInput: false, // сами заполним оба инпута
-                startDate: start,
-                endDate: end,
-                minDate: moment().startOf('day'),
-                locale: {
-                    format: "DD.MM.YYYY",
-                    separator: " - ",
-                    applyLabel: "Применить",
-                    cancelLabel: "Отмена",
-                    fromLabel: "С",
-                    toLabel: "По",
-                    customRangeLabel: "Произвольно",
-                    weekLabel: "W",
-                    daysOfWeek: ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"],
-                    monthNames: ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"],
-                    firstDay: 1
-                }
-            }, function (s, e) {
-                // 3) обновляем hidden (ISO) и видимые (RU-формат)
-                $('#arrivalDate').val(s.format('YYYY-MM-DD'));
-                $('#departureDate').val(e.format('YYYY-MM-DD'));
-                $('#arrivalDisplay').val(s.format('DD.MM.YYYY'));
-                $('#departureDisplay').val(e.format('DD.MM.YYYY'));
-            });
+            let selectingDeparture = false;
 
-            // 4) первичное отображение в видимых полях
+            const picker = $('#arrivalDisplay').daterangepicker({
+            singleDatePicker: true,         // <— теперь выбирается только одна дата!
+            autoApply: true,
+            autoUpdateInput: false,
+            minDate: moment().startOf('day'),
+            locale: {
+            format: "DD.MM.YYYY",
+            applyLabel: "Применить",
+            cancelLabel: "Отмена",
+            fromLabel: "С",
+            toLabel: "По",
+            customRangeLabel: "Произвольно",
+            weekLabel: "W",
+            daysOfWeek: ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"],
+            monthNames: ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"],
+            firstDay: 1
+        }
+        }, function (chosenDate) {
+            if (selectingDeparture) {
+            const checkin = moment($('#arrivalDate').val(), 'YYYY-MM-DD');
+            let checkout = chosenDate.clone().startOf('day');
+
+            // не позволяем выезду быть раньше въезда
+            if (checkout.isSameOrBefore(checkin, 'day')) {
+            checkout = checkin.clone().add(1, 'day');
+        }
+            $('#departureDate').val(checkout.format('YYYY-MM-DD'));
+            $('#departureDisplay').val(checkout.format('DD.MM.YYYY'));
+        } else {
+            const checkin = chosenDate.clone().startOf('day');
+            const checkout = checkin.clone().add(1, 'day');
+            $('#arrivalDate').val(checkin.format('YYYY-MM-DD'));
+            $('#departureDate').val(checkout.format('YYYY-MM-DD'));
+            $('#arrivalDisplay').val(checkin.format('DD.MM.YYYY'));
+            $('#departureDisplay').val(checkout.format('DD.MM.YYYY'));
+        }
+            selectingDeparture = false;
+        });
+
+            // начальные значения
             $('#arrivalDisplay').val(start.format('DD.MM.YYYY'));
             $('#departureDisplay').val(end.format('DD.MM.YYYY'));
 
-            // 5) если хотите открывать календарь и по клику на выезд:
+            // открытие календаря по клику на выезд
             $('#departureDisplay').on('focus click', function () {
-                $('#arrivalDisplay').trigger('click');
-            });
+            selectingDeparture = true;
+            picker.data('daterangepicker').setStartDate(moment($('#departureDate').val(), 'YYYY-MM-DD'));
+            picker.data('daterangepicker').show();
+        });
         });
     </script>
 

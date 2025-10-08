@@ -71,10 +71,10 @@
                                     @endif
                                 </div>
                                 <div class="row mt">
-                                    <div class="col-md-8">
+                                    <div class="col-md-8 col-8">
                                         <div class="total">@lang('main.total')</div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-4 col-4">
                                         <div class="price">{{ $request->sum }} {{ $request->currency}}</div>
                                     </div>
                                 </div>

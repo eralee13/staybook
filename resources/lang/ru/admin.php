@@ -185,6 +185,11 @@ return [
     'export_excel' => 'Выгрузить в Excel',
     'late_checkin' => 'Ранний заезд',
     'late_checkout' => 'Поздний выезд',
+    'password_confirmation' => 'Подтверждение пароля',
+    'generate_password' => 'Генерация пароля',
+    'hide_password' => 'Скрыть пароль',
+    'create' => 'Создать',
+    'all_users' => 'Все пользователи'
 
 
 

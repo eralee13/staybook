@@ -29,9 +29,10 @@ class BookingCalendarController extends Controller
             ->where('apiName', 'local')
             ->orderBy('title', 'asc');
 
-        if (!$user->hasRole('Super Admin')) {
+        if (!$user->hasRole('Super Admin') && !$user->hasRole('Manager')) {
             $hotelsQuery->where('user_id', $user->id);
         }
+
         $hotelslist = $hotelsQuery->get();
 
         $requestedId = (int) $request->hotel;

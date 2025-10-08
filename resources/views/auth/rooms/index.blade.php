@@ -5,69 +5,74 @@
 @section('content')
 
     <div class="page admin">
-        <div class="container">
+        <div class="container-fluid">
             <div class="row">
                 <div class="col-md-3">
                     @include('auth.layouts.sidebar')
                 </div>
                 <div class="col-md-9">
                     <div class="row align-items-center aic">
-                        <div class="col-md-7">
+                        <div class="col-md-12">
                             <h6>{{ $hotel->__('title') }}</h6>
                             <h1>@lang('admin.rooms')</h1>
                         </div>
-                        <div class="col-md-5">
-                            <div class="btn-wrap">
-                                <a class="btn add" href="{{ route('rooms.create') }}"><i class="fa-solid
-                                fa-plus"></i> @lang('admin.add_room')</a>
-                            </div>
+                    </div>
+                    <div class="row room_list_btn">
+                        <div class="col-md-4">
+                            <a href="{{ route('rates.index') }}" @routeactive('rate*')>@lang('admin.plans')</a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="{{ route('cancellations.index') }}" @routeactive('cancel*')>@lang('admin.cancel_fines')</a>
+                        </div>
+                        <div class="col-md-4">
+                            <a class="btn add" href="{{ route('rooms.create') }}">@lang('admin.add_room')</a>
                         </div>
                     </div>
-
                     @if($rooms->isNotEmpty())
-                        @include('auth.layouts.subroom')
-                        <table class="table">
-                            <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>@lang('admin.image')</th>
-                                <th>@lang('admin.title')</th>
-                                <th>@lang('admin.title') Local</th>
-                                <th>@lang('admin.area')</th>
-                                <th>@lang('admin.action')</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            @foreach($rooms as $room)
-                                <tr>
-                                    <td>{{ $loop->iteration }}</td>
-                                    <td>
-                                        @if ($room->image)
-                                            <img src="{{ Storage::url($room->image) }}" alt="{{ $room->__('title') }}" width="100px">
-                                        @else
-                                            <img src="{{ route('index') }}/img/noimage.png" alt="" width="100px">
-                                        @endif
-                                    </td>
-                                    <td>{{ $room->__('title') }}</td>
-                                    <td>{{ $room->__('title_local') }}</td>
-                                    <td>{{ $room->area }} м<sup>2</sup></td>
-                                    <td>
-                                        <form action="{{ route('rooms.destroy', $room) }}" method="post">
-                                            <ul>
-{{--                                                <li><a href="{{ route('rooms.show', $room)--}}
-{{--                                            }}"><img src="{{ route('index') }}/img/icons/eye.svg" alt=""></a></li>--}}
-                                                <li><a href="{{ route('rooms.edit', $room)
+                       <div class="table-wrap">
+                           <table class="table">
+                               <thead>
+                               <tr>
+                                   <th>#</th>
+                                   <th>@lang('admin.image')</th>
+                                   <th>@lang('admin.title')</th>
+                                   <th>@lang('admin.title') Local</th>
+                                   <th>@lang('admin.area')</th>
+                                   <th>@lang('admin.action')</th>
+                               </tr>
+                               </thead>
+                               <tbody>
+                               @foreach($rooms as $room)
+                                   <tr>
+                                       <td>{{ $loop->iteration }}</td>
+                                       <td>
+                                           @if ($room->image)
+                                               <img src="{{ Storage::url($room->image) }}" alt="{{ $room->__('title') }}" class="prod">
+                                           @else
+                                               <img src="{{ route('index') }}/img/noimage.png" class="prod">
+                                           @endif
+                                       </td>
+                                       <td>{{ $room->__('title') }}</td>
+                                       <td>{{ $room->__('title_local') }}</td>
+                                       <td>{{ $room->area }} м<sup>2</sup></td>
+                                       <td>
+                                           <form action="{{ route('rooms.destroy', $room) }}" method="post">
+                                               <ul>
+                                                   {{--                                                <li><a href="{{ route('rooms.show', $room)--}}
+                                                   {{--                                            }}"><img src="{{ route('index') }}/img/icons/eye.svg" alt=""></a></li>--}}
+                                                   <li><a href="{{ route('rooms.edit', $room)
                                             }}"><img src="{{ route('index') }}/img/icons/edit.svg" alt=""></a></li>
-                                                @csrf
-                                                @method('DELETE')
-                                                <button onclick="return confirm('Do you want to delete this?');"><img src="{{ route('index') }}/img/icons/trash.svg" alt=""></button>
-                                            </ul>
-                                        </form>
-                                    </td>
-                                </tr>
-                            @endforeach
-                            </tbody>
-                        </table>
+                                                   @csrf
+                                                   @method('DELETE')
+                                                   <button onclick="return confirm('Do you want to delete this?');"><img src="{{ route('index') }}/img/icons/trash.svg" alt=""></button>
+                                               </ul>
+                                           </form>
+                                       </td>
+                                   </tr>
+                               @endforeach
+                               </tbody>
+                           </table>
+                       </div>
                         {{ $rooms->links('pagination::bootstrap-4') }}
                     @else
                         <h2 style="text-align: center">@lang('admin.rooms_not_found')</h2>

@@ -1,3 +1,4 @@
+@php use Illuminate\Support\Str; @endphp
 @extends('auth.layouts.master')
 
 @isset($hotel)
@@ -9,23 +10,65 @@
 @section('content')
 
     <style>
-        .admin .img-wrap img {
-            max-width: 100%;
-            height: 12vh;
-            object-fit: cover;
-            width: 100%;
-        }
-        .output{
+        .output {
             color: red;
             font-size: 12px;
         }
-        .output.agree{
+        .output.agree {
             color: green;
+        }
+        #map {
+            width: 100%;
+            height: 500px;
+        }
+        .amenities label {
+            display: inline-block;
+        }
+        .img-item {
+            margin: 10px 0;
+            border-radius: 30px;
+            border: 2px solid var(--green);
+            background-color: #fafafa;
+            text-align: center;
+            transition: box-shadow 0.3s;
+            max-width: 100%;
+            object-fit: cover;
+            height: 200px;
+        }
+
+        .img-item:hover {
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .ck-rounded-corners .ck.ck-editor__top .ck-sticky-panel .ck-toolbar, .ck.ck-editor__top .ck-sticky-panel .ck-toolbar.ck-rounded-corners {
+            border-top-left-radius: 30px;
+            border-top-right-radius: 30px;
+        }
+
+        .ck.ck-editor__main > .ck-editor__editable:not(.ck-focused) {
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+        }
+
+        .select2-container--default .select2-selection--single {
+            border-radius: 30px !important;
+            height: 50px !important;
+            border: none !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 50px !important;
+            padding: 0px 15px !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 50px;
+            border: none;
         }
     </style>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
     <div class="page admin">
-        <div class="container">
+        <div class="container-fluid">
             <div class="row">
                 <div class="col-md-3">
                     @include('auth.layouts.sidebar')
@@ -65,8 +108,7 @@
                                 <div class="form-group">
                                     <label for="">@lang('admin.title') EN</label>
                                     <input type="text" name="title_en" value="{{ old('title_en', isset($hotel) ?
-                                $hotel->title_en :
-                             null) }}">
+                                $hotel->title_en : null) }}">
                                     @error('title_en')
                                     <div class="alert alert-danger">{{ $message }}</div>
                                     @enderror
@@ -83,8 +125,7 @@
                         <div class="form-group">
                             <label for="">@lang('admin.description') EN</label>
                             <textarea name="description_en" id="editor1" rows="3">{{ old('description_en', isset
-                            ($hotel) ?
-                            $hotel->description_en : null) }}</textarea>
+                            ($hotel) ? $hotel->description_en : null) }}</textarea>
                             @include('auth.layouts.error', ['fieldname' => 'description_en'])
                         </div>
                         <script src="https://cdn.tiny.cloud/1/yxonqgmruy7kchzsv4uizqanbapq2uta96cs0p4y91ov9iod/tinymce/6/tinymce.min.js"
@@ -112,7 +153,7 @@
                                     <p>Важно: валюта объекта размещения может отличаться от валюты договора, в которой
                                         вы будете получать выплаты от нас.</p>
                                 @else
-                                    <p>Please specify the currency in which prices for your property will be displayed
+                                    <p>Please spey the currency in which prices for your property will be displayed
                                         to users. Important: The property currency may differ from the contract currency
                                         in which you will receive payments from us.</p>
                                 @endif
@@ -120,21 +161,7 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="">@lang('admin.property_currency')</label>
-                                            <select name="currency" id="currency">
-                                                @isset($hotel)
-                                                    <option @if($hotel->currency)
-                                                                selected>
-                                                        {{ $hotel->currency }}@endif</option>
-                                                @else
-                                                    <option>@lang('admin.choose')</option>
-                                                @endisset
-                                                <option value="USD" {{ old('currency') == 'USD' ? 'selected' : '' }}>
-                                                    USD
-                                                </option>
-                                                <option value="KGS" {{ old('currency') == 'KGS' ? 'selected' : '' }}>
-                                                    KGS
-                                                </option>
-                                            </select>
+                                            .custo
                                             @include('auth.layouts.error', ['fieldname' => 'currency'])
                                         </div>
                                     </div>
@@ -146,32 +173,34 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="type">@lang('admin.property_type')</label>
-                                    <select name="type" id="type">
-                                        @isset($hotel)
-                                            <option @if($hotel->type)
-                                                        selected>
-                                                {{ $hotel->type }}</option>
-                                        @else
-                                            <option>@lang('admin.choose')</option>
-                                        @endif
-                                        @endisset
-                                        <option value="Hotel" {{ old('type') == 'Hotel' ? 'selected' : '' }}>@lang('admin.hotel')</option>
-                                        <option value="Small Hotel" {{ old('type') == 'Small Hotel' ? 'selected' : '' }}>@lang('admin.small_hotel')</option>
-                                        <option value="Apart Hotel" {{ old('type') == 'Apart Hotel' ? 'selected' : '' }}>@lang('admin.apart_hotel')</option>
-                                        <option value="Guesthouse" {{ old('type') == 'Guesthouse' ? 'selected' : '' }}>@lang('admin.guesthouse')</option>
-                                        <option value="Hostel" {{ old('type') == 'Hostel' ? 'selected' : '' }}>@lang('admin.hostel')</option>
-                                        <option value="Apartments" {{ old('type') == 'Apartments' ? 'selected' : '' }}>@lang('admin.apartments')</option>
-                                        <option value="Holiday guesthouse" {{ old('type') == 'Holiday guesthouse' ? 'selected' : '' }}>@lang('admin.holiday_guesthouse')</option>
-                                        <option value="Sanatorium" {{ old('type') == 'Sanatorium' ? 'selected' : '' }}>@lang('admin.sanatorium')</option>
-                                        <option value="Holiday camp" {{ old('type') == 'Holiday camp' ? 'selected' : '' }}>@lang('admin.holiday_camp')</option>
-                                        <option value="Resort complex" {{ old('type') == 'Resort complex' ? 'selected' : '' }}>@lang('admin.resort_complex')</option>
-                                        <option value="Resort" {{ old('type') == 'Resort' ? 'selected' : '' }}>@lang('admin.resort')</option>
-                                        <option value="Glamping" {{ old('type') == 'Glamping' ? 'selected' : '' }}>@lang('admin.glamping')</option>
-                                        <option value="Yurt camp" {{ old('type') == 'Yurt camp' ? 'selected' : '' }}>@lang('admin.yurt_camp')</option>
-                                        <option value="Campsite" {{ old('type') == 'Campsite' ? 'selected' : '' }}>@lang('admin.campsite')</option>
-                                        <option value="Cabins" {{ old('type') == 'Cabins' ? 'selected' : '' }}>@lang('admin.cabins')</option>
-                                        <option value="Long stay" {{ old('type') == 'Long stay' ? 'selected' : '' }}>@lang('admin.long_stay')</option>
-                                    </select>
+                                    <div class="custom-select">
+                                        <select name="type" id="type">
+                                            @isset($hotel)
+                                                <option @if($hotel->type)
+                                                            selected>
+                                                    {{ $hotel->type }}</option>
+                                            @else
+                                                <option>@lang('admin.choose')</option>
+                                            @endif
+                                            @endisset
+                                            <option value="Hotel" {{ old('type') == 'Hotel' ? 'selected' : '' }}>@lang('admin.hotel')</option>
+                                            <option value="Small Hotel" {{ old('type') == 'Small Hotel' ? 'selected' : '' }}>@lang('admin.small_hotel')</option>
+                                            <option value="Apart Hotel" {{ old('type') == 'Apart Hotel' ? 'selected' : '' }}>@lang('admin.apart_hotel')</option>
+                                            <option value="Guesthouse" {{ old('type') == 'Guesthouse' ? 'selected' : '' }}>@lang('admin.guesthouse')</option>
+                                            <option value="Hostel" {{ old('type') == 'Hostel' ? 'selected' : '' }}>@lang('admin.hostel')</option>
+                                            <option value="Apartments" {{ old('type') == 'Apartments' ? 'selected' : '' }}>@lang('admin.apartments')</option>
+                                            <option value="Holiday guesthouse" {{ old('type') == 'Holiday guesthouse' ? 'selected' : '' }}>@lang('admin.holiday_guesthouse')</option>
+                                            <option value="Sanatorium" {{ old('type') == 'Sanatorium' ? 'selected' : '' }}>@lang('admin.sanatorium')</option>
+                                            <option value="Holiday camp" {{ old('type') == 'Holiday camp' ? 'selected' : '' }}>@lang('admin.holiday_camp')</option>
+                                            <option value="Resort complex" {{ old('type') == 'Resort complex' ? 'selected' : '' }}>@lang('admin.resort_complex')</option>
+                                            <option value="Resort" {{ old('type') == 'Resort' ? 'selected' : '' }}>@lang('admin.resort')</option>
+                                            <option value="Glamping" {{ old('type') == 'Glamping' ? 'selected' : '' }}>@lang('admin.glamping')</option>
+                                            <option value="Yurt camp" {{ old('type') == 'Yurt camp' ? 'selected' : '' }}>@lang('admin.yurt_camp')</option>
+                                            <option value="Campsite" {{ old('type') == 'Campsite' ? 'selected' : '' }}>@lang('admin.campsite')</option>
+                                            <option value="Cabins" {{ old('type') == 'Cabins' ? 'selected' : '' }}>@lang('admin.cabins')</option>
+                                            <option value="Long stay" {{ old('type') == 'Long stay' ? 'selected' : '' }}>@lang('admin.long_stay')</option>
+                                        </select>
+                                    </div>
                                     @include('auth.layouts.error', ['fieldname' => 'type'])
                                 </div>
                             </div>
@@ -179,23 +208,25 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="">@lang('admin.timezone')</label>
-                                    <select name="timezone" id="timezone">
-                                        @isset($hotel)
-                                            <option value="{{ $hotel->timezone }}"
-                                                    selected>{{ $hotel->timezone }}</option>
-                                        @else
-                                            <option value="">@lang('admin.choose')</option>
-                                        @endisset
-                                        @foreach($timezones as $timezone)
+                                    <div class="custom-select">
+                                        <select name="timezone" id="timezone">
                                             @isset($hotel)
-                                                @if($hotel->timezone != $timezone)
-                                                    <option value="{{ $timezone }}" {{ old('timezone') == $timezone ? 'selected' : '' }}>{{ $timezone }}</option>
-                                                @endif
+                                                <option value="{{ $hotel->timezone }}"
+                                                        selected>{{ $hotel->timezone }}</option>
                                             @else
-                                                <option value="{{ $timezone }}" {{ old('timezone') == $timezone ? 'selected' : '' }}>{{ $timezone }}</option>
+                                                <option value="">@lang('admin.choose')</option>
                                             @endisset
-                                        @endforeach
-                                    </select>
+                                            @foreach($timezones as $timezone)
+                                                @isset($hotel)
+                                                    @if($hotel->timezone != $timezone)
+                                                        <option value="{{ $timezone }}" {{ old('timezone') == $timezone ? 'selected' : '' }}>{{ $timezone }}</option>
+                                                    @endif
+                                                @else
+                                                    <option value="{{ $timezone }}" {{ old('timezone') == $timezone ? 'selected' : '' }}>{{ $timezone }}</option>
+                                                @endisset
+                                            @endforeach
+                                        </select>
+                                    </div>
                                     @include('auth.layouts.error', ['fieldname' => 'timezone'])
                                 </div>
                             </div>
@@ -203,40 +234,44 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="">@lang('admin.checkin')</label>
-                                    <select name="checkin" id="">
-                                        @isset($hotel)
-                                            <option @if($hotel->checkin)
-                                                        selected>
-                                                {{ $hotel->checkin }}</option>
-                                        @else
-                                            <option>@lang('admin.choose')</option>
-                                        @endif
-                                        @endisset
-                                        @for ($hour = 13; $hour <= 23; $hour++)
-                                            @php $time = sprintf('%02d:00', $hour); @endphp
-                                            <option value="{{ $time }}" {{ old('checkin') == $time ? 'selected' : '' }}>{{ $time }}</option>
-                                        @endfor
-                                    </select>
+                                    <div class="custom-select">
+                                        <select name="checkin" id="">
+                                            @isset($hotel)
+                                                <option @if($hotel->checkin)
+                                                            selected>
+                                                    {{ $hotel->checkin }}</option>
+                                            @else
+                                                <option>@lang('admin.choose')</option>
+                                            @endif
+                                            @endisset
+                                            @for ($hour = 13; $hour <= 23; $hour++)
+                                                @php $time = sprintf('%02d:00', $hour); @endphp
+                                                <option value="{{ $time }}" {{ old('checkin') == $time ? 'selected' : '' }}>{{ $time }}</option>
+                                            @endfor
+                                        </select>
+                                    </div>
                                     @include('auth.layouts.error', ['fieldname' => 'checkin'])
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="">@lang('admin.checkout')</label>
-                                    <select name="checkout" id="">
-                                        @isset($hotel)
-                                            <option @if($hotel->checkout)
-                                                        selected>
-                                                {{ $hotel->checkout }}</option>
-                                        @else
-                                            <option>@lang('admin.choose')</option>
-                                        @endif
-                                        @endisset
-                                        @for ($hour = 01; $hour <= 13; $hour++)
-                                            @php $time = sprintf('%02d:00', $hour); @endphp
-                                            <option value="{{ $time }}" {{ old('checkout') == $time ? 'selected' : '' }}>{{ $time }}</option>
-                                        @endfor
-                                    </select>
+                                    <div class="custom-select">
+                                        <select name="checkout" id="">
+                                            @isset($hotel)
+                                                <option @if($hotel->checkout)
+                                                            selected>
+                                                    {{ $hotel->checkout }}</option>
+                                            @else
+                                                <option>@lang('admin.choose')</option>
+                                            @endif
+                                            @endisset
+                                            @for ($hour = 01; $hour <= 13; $hour++)
+                                                @php $time = sprintf('%02d:00', $hour); @endphp
+                                                <option value="{{ $time }}" {{ old('checkout') == $time ? 'selected' : '' }}>{{ $time }}</option>
+                                            @endfor
+                                        </select>
+                                    </div>
                                     @include('auth.layouts.error', ['fieldname' => 'checkout'])
                                 </div>
                             </div>
@@ -244,19 +279,21 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="rating">@lang('admin.rating')</label>
-                                    <select name="rating" id="rating">
-                                        @isset($hotel)
-                                            <option @if($hotel->rating)
-                                                        selected>
-                                                {{ $hotel->rating }}</option>
-                                        @else
-                                            <option>@lang('admin.choose')</option>
-                                        @endif
-                                        @endisset
-                                        <option value="norating">@lang('admin.norating')</option>
-                                        <option value="4" {{ old('rating') == 4 ? 'selected' : '' }}>4</option>
-                                        <option value="5" {{ old('rating') == 5 ? 'selected' : '' }}>5</option>
-                                    </select>
+                                    <div class="custom-select">
+                                        <select name="rating" id="rating">
+                                            @isset($hotel)
+                                                <option @if($hotel->rating)
+                                                            selected>
+                                                    {{ $hotel->rating }}</option>
+                                            @else
+                                                <option>@lang('admin.choose')</option>
+                                            @endif
+                                            @endisset
+                                            <option value="norating">@lang('admin.norating')</option>
+                                            <option value="4" {{ old('rating') == 4 ? 'selected' : '' }}>4</option>
+                                            <option value="5" {{ old('rating') == 5 ? 'selected' : '' }}>5</option>
+                                        </select>
+                                    </div>
                                     @include('auth.layouts.error', ['fieldname' => 'rating'])
                                 </div>
                             </div>
@@ -269,18 +306,6 @@
                                     @include('auth.layouts.error', ['fieldname' => 'city'])
                                 </div>
                             </div>
-
-                            <style>
-                                .select2-container--default .select2-selection--single {
-                                    height: 50px;
-                                    line-height: 50px;
-                                    display: block;
-                                }
-
-                                .select2-container--default .select2-selection--single .select2-selection__rendered {
-                                    line-height: 50px;
-                                }
-                            </style>
 
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -300,13 +325,6 @@
                             </div>
 
                             <div class="col-md-12">
-                                <label for="">@lang('admin.choose')</label>
-                                <style>
-                                    #map {
-                                        width: 100%;
-                                        height: 500px;
-                                    }
-                                </style>
                                 <!-- Подключение стилей Leaflet -->
                                 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
@@ -406,93 +424,12 @@
                                 <div class="form-group">
                                     <label for="">@lang('admin.photo')</label>
                                     @isset($hotel->image)
-                                        <img src="{{ Storage::url($hotel->image) }}" alt="">
+                                        <img src="{{ Storage::url($hotel->image) }}" alt="" class="img-item">
                                     @endisset
                                     <input type="file" name="image">
                                     @include('auth.layouts.error', ['fieldname' => 'image'])
                                 </div>
                             </div>
-
-                            <style>
-                                .img-item {
-                                    border: 1px solid #e0e0e0;
-                                    padding: 10px;
-                                    margin-bottom: 20px;
-                                    border-radius: 10px;
-                                    background-color: #fafafa;
-                                    text-align: center;
-                                    transition: box-shadow 0.3s;
-                                }
-
-                                .img-item:hover {
-                                    box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
-                                }
-
-                                .img-item img {
-                                    max-width: 100%;
-                                    border-radius: 6px;
-                                    object-fit: cover;
-                                    height: 120px;
-                                }
-
-                                .pretty-checkbox {
-                                    position: relative;
-                                    padding-left: 30px;
-                                    cursor: pointer;
-                                    user-select: none;
-                                    font-size: 14px;
-                                    display: inline-block;
-                                    margin-top: 10px;
-                                }
-
-                                .pretty-checkbox input[type="checkbox"] {
-                                    position: absolute;
-                                    opacity: 0;
-                                    cursor: pointer;
-                                }
-
-                                .pretty-checkbox .checkmark {
-                                    position: absolute;
-                                    top: 0;
-                                    left: 0;
-                                    height: 20px;
-                                    width: 20px;
-                                    background-color: #eee;
-                                    border-radius: 4px;
-                                    transition: background-color 0.3s;
-                                    border: 1px solid #ccc;
-                                }
-
-                                .pretty-checkbox:hover input ~ .checkmark {
-                                    background-color: #d6f1ff;
-                                }
-
-                                .pretty-checkbox input:checked ~ .checkmark {
-                                    background-color: #00bcd4;
-                                    border-color: #00bcd4;
-                                }
-
-                                .pretty-checkbox .checkmark:after {
-                                    content: "";
-                                    position: absolute;
-                                    display: none;
-                                }
-
-                                .pretty-checkbox input:checked ~ .checkmark:after {
-                                    display: block;
-                                }
-
-                                .pretty-checkbox .checkmark:after {
-                                    left: 6px;
-                                    top: 2px;
-                                    width: 6px;
-                                    height: 12px;
-                                    border: solid white;
-                                    border-width: 0 2px 2px 0;
-                                    transform: rotate(45deg);
-                                }
-                            </style>
-
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="">@lang('admin.images')</label>
@@ -529,64 +466,70 @@
                             {{--                                    $hotel->top : null) }}">--}}
                             {{--                                </div>--}}
                             {{--                            </div>--}}
-
                             <div class="amenities">
                                 @foreach($serviceCategories as $category => $services)
                                     <div class="row">
                                         <h5 class="col-md-12 mt-3">{{ $category }}</h5>
-
                                         @foreach($services as $service)
                                             @php
                                                 $inputId = Str::slug($service);
                                                 $checked = in_array($service, old('services', $amenities ?? []));
                                             @endphp
-
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <input type="checkbox"
-                                                           id="{{ $inputId }}"
-                                                           name="services[]"
-                                                           value="{{ $service }}"
-                                                            {{ $checked ? 'checked' : '' }}>
-                                                    <label for="{{ $inputId }}">{{ $service }}</label>
+                                                    <label for="{{ $inputId }}" class="option">
+                                                        <input type="checkbox"
+                                                               id="{{ $inputId }}"
+                                                               name="services[]"
+                                                               value="{{ $service }}"
+                                                                {{ $checked ? 'checked' : '' }}>
+                                                        <span class="box" aria-hidden="true">
+                                                            <svg viewBox="0 0 24 24" role="presentation"
+                                                                 focusable="false">
+                                                              <path d="M9.2 17.6c-.4 0-.8-.2-1.1-.5l-3.9-4a1.6 1.6 0 1 1 2.2-2.2l2.8 2.9 6.6-7a1.6 1.6 0 1 1 2.4 2.1l-7.7 8.2c-.3.3-.7.5-1.3.5z"/>
+                                                            </svg>
+                                                          </span>
+                                                        <span class="name">{{ $service }}</span>
+                                                    </label>
                                                 </div>
                                             </div>
                                         @endforeach
                                     </div>
                                 @endforeach
                             </div>
-
-                            <style>
-                                .amenities label{
-                                    display: inline-block;
-                                }
-                            </style>
-
                             @can('edit-contact')
-                                <div class="col-md-6">
+                                <div class="col-md-12">
                                     <div class="form-group">
                                         <label for="">@lang('admin.status')</label>
-                                        <select name="status">
-                                            @if(isset($hotel))
-                                                @if($hotel->status == 1)
-                                                    <option value="{{$hotel->status}}">@lang('admin.active')</option>
-                                                    <option value="0">@lang('admin.disable')</option>
+                                        <div class="custom-select">
+                                            <select name="status">
+                                                @if(isset($hotel))
+                                                    @if($hotel->status == 1)
+                                                        <option value="{{$hotel->status}}">@lang('admin.active')</option>
+                                                        <option value="0">@lang('admin.disable')</option>
+                                                    @else
+                                                        <option value="{{$hotel->status}}">@lang('admin.disable')</option>
+                                                        <option value="1">@lang('admin.active')</option>
+                                                    @endif
                                                 @else
-                                                    <option value="{{$hotel->status}}">@lang('admin.disable')</option>
                                                     <option value="1">@lang('admin.active')</option>
+                                                    <option value="0">@lang('admin.disable')</option>
                                                 @endif
-                                            @else
-                                                <option value="1">@lang('admin.active')</option>
-                                                <option value="0">@lang('admin.disable')</option>
-                                            @endif
-                                        </select>
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
                             @endcan
                         </div>
                         @csrf
-                        <button class="more">@lang('admin.send')</button>
-                        <a href="{{url()->previous()}}" class="btn delete cancel">@lang('admin.cancel')</a>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button class="more">@lang('admin.send')</button>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="{{url()->previous()}}" class="btn delete cancel">@lang('admin.cancel')</a>
+                            </div>
+                        </div>
                     </form>
                 </div>
             </div>

@@ -8,9 +8,31 @@
 
 @section('content')
 
+    <style>
+        .ck-rounded-corners .ck.ck-editor__top .ck-sticky-panel .ck-toolbar, .ck.ck-editor__top .ck-sticky-panel .ck-toolbar.ck-rounded-corners {
+            border-top-left-radius: 30px;
+            border-top-right-radius: 30px;
+        }
+
+        .ck.ck-editor__main > .ck-editor__editable:not(.ck-focused) {
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+        }
+
+        .select2-container--default .select2-selection--single {
+            border-radius: 30px !important;
+            height: 50px !important;
+            border: none !important;
+        }
+
+    </style>
+
     <div class="page admin">
         <div class="container">
             <div class="row">
+                <div class="col-md-3">
+                    @include('auth.layouts.sidebar')
+                </div>
                 <div class="col-md-9">
                     @isset($page)
                         <h1>Редактировать страницу {{ $page->title }}</h1>
@@ -71,16 +93,26 @@
                                         console.error(error);
                                     });
                             </script>
-                            <div class="form-group">
-                                @isset($page->image)
-                                <img src="{{ Storage::url($page->image) }}" alt="">
-                                @endisset
-                                <label for="">Изображение</label>
-                                <input type="file" name="image">
+                            <div class="row images">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        @isset($page->image)
+                                            <img src="{{ Storage::url($page->image) }}">
+                                        @endisset
+                                        <label for="">Изображение</label>
+                                        <input type="file" name="image">
+                                    </div>
+                                </div>
                             </div>
                         @csrf
-                        <button class="more">Отправить</button>
-                            <a href="{{url()->previous()}}" class="btn delete cancel">Отмена</a>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button class="more">Отправить</button>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="{{url()->previous()}}" class="btn delete cancel">Отмена</a>
+                            </div>
+                        </div>
                     </form>
                 </div>
             </div>

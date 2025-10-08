@@ -57,6 +57,24 @@
 
             .offline form .count-wrap label {
                 color: #333;
+                font-size: 14px;
+            }
+            .count-wrap{
+                background-color: #f5f5f5;
+            }
+            .form-control:disabled, .form-control[readonly]{
+                background-color: #f5f5f5;
+                border: none;
+            }
+            .input-group .btn{
+                border: none;
+                background-color: #fff;
+            }
+            @media(max-width: 767px){
+                .count-wrap{
+                    background-color: #f5f5f5;
+                    text-align: center;
+                }
             }
         </style>
 
@@ -68,7 +86,7 @@
                             <div class="type-item">
                                 <a href="{{route('index')}}">@lang('main.hotels_and_rooms')</a>
                             </div>
-                            <div class="type-item current">
+                            <div class="type-item off current">
                                 <a href="{{ route('offline') }}">@lang('main.offline')</a>
                             </div>
                         </div>
@@ -225,9 +243,9 @@
                             <div class="count-wrap">
                                 <div class="row">
                                     <div class="col-md-12">
-                                        <label for="">@lang('main.guests')</label>
+                                        <label for="" class="d-xl-block d-lg-block d-none">@lang('main.guests')</label>
                                     </div>
-                                    <div class="col-md-2 col-6">
+                                    <div class="col-md-2 col-12">
                                         <label class="form-label">@lang('main.count_adult')</label>
                                         <div class="input-group">
                                             <button type="button" class="btn btn-outline-secondary"
@@ -242,7 +260,7 @@
                                     </div>
 
                                     <!-- Дети -->
-                                    <div class="col-md-2 col-6">
+                                    <div class="col-md-2 col-12">
                                         <label class="form-label">@lang('main.count_child')</label>
                                         <div class="input-group">
                                             <button type="button" class="btn btn-outline-secondary"

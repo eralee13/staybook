@@ -5,7 +5,7 @@
 @section('content')
 
     <div class="page hotels">
-        <div class="container">
+        <div class="container-fluid">
             <div class="row">
                 <div class="col-md-6">
                     <form>
@@ -24,49 +24,59 @@
                 <div class="col-md-12">
                     <div id="search_list"></div>
                     @admin
-                        <div class="count">
-                            @lang('admin.count_hotels'): {{ $chotel->count() }}
-                        </div>
+                    <div class="count">
+                        @lang('admin.count_hotels'): {{ $chotel->count() }}
+                    </div>
                     @endadmin
-                    <table>
-                        <tr>
-                            <th>ID</th>
-                            <th>@lang('admin.title')</th>
-                            <th>@lang('admin.address')</th>
-                            <th>@lang('admin.status')</th>
-                            <th>@lang('admin.action')</th>
-                        </tr>
-                        @foreach($hotels as $hotel)
+                    <div class="table-wrap">
+                        <table>
                             <tr>
-                                <td>{{ $hotel->id }}</td>
-                                <td>{{ $hotel->__('title') }}</td>
-                                <td>{{ $hotel->__('address') ?? $hotel->address_en }}</td>
-                                <td>
-                                    @if($hotel->status === 1)
-                                        <div class="alert alert-success">@lang('admin.active')</div>
-                                    @else
-                                        <div class="alert alert-danger">@lang('admin.disable')</div>
-                                    @endif
-                                </td>
-                                <td>
-                                    <form action="{{ route('hotels.destroy', $hotel) }}" method="post">
-                                        <ul>
-                                            @can('edit-contact')
-                                                <a href="{{ route('hotels.show', $hotel) }}" class="select-hotel" data-hotel="{{ $hotel->id }}"><img src="{{ route('index') }}/img/icons/eye.svg" class="view" alt=""></a>
-                                            @else
-                                            @if($hotel->status === 1)
-                                                <a href="{{ route('hotels.show', $hotel) }}" class="select-hotel" data-hotel="{{ $hotel->id }}"><img src="{{ route('index') }}/img/icons/eye.svg" class="view" alt=""></a>
-                                            @endif
-                                            @endif
-                                            @csrf
-                                            @method('DELETE')
-                                            <button onclick="return confirm('Do you want to delete this?');"><img src="{{ route('index') }}/img/icons/trash.svg" alt=""></button>
-                                        </ul>
-                                    </form>
-                                </td>
+                                <th>ID</th>
+                                <th>@lang('admin.title')</th>
+                                <th>@lang('admin.address')</th>
+                                <th>@lang('admin.status')</th>
+                                <th>@lang('admin.action')</th>
                             </tr>
-                        @endforeach
-                    </table>
+                            @foreach($hotels as $hotel)
+                                <tr>
+                                    <td>{{ $hotel->id }}</td>
+                                    <td>{{ $hotel->__('title') }}</td>
+                                    <td>{{ $hotel->__('address') ?? $hotel->address_en }}</td>
+                                    <td>
+                                        @if($hotel->status === 1)
+                                            <div class="alert alert-success">@lang('admin.active')</div>
+                                        @else
+                                            <div class="alert alert-danger">@lang('admin.disable')</div>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <form action="{{ route('hotels.destroy', $hotel) }}" method="post">
+                                            <ul>
+                                                @can('edit-contact')
+                                                    <a href="{{ route('hotels.show', $hotel) }}" class="select-hotel"
+                                                       data-hotel="{{ $hotel->id }}"><img
+                                                                src="{{ route('index') }}/img/icons/eye.svg"
+                                                                class="view" style="max-width: 25px"></a>
+                                                @else
+                                                    @if($hotel->status === 1)
+                                                        <a href="{{ route('hotels.show', $hotel) }}"
+                                                           class="select-hotel" data-hotel="{{ $hotel->id }}"><img
+                                                                    src="{{ route('index') }}/img/icons/eye.svg"
+                                                                    class="view" style="max-width: 25px"></a>
+                                                    @endif
+                                                @endif
+                                                @csrf
+                                                @method('DELETE')
+                                                <button onclick="return confirm('Do you want to delete this?');"><img
+                                                            src="{{ route('index') }}/img/icons/trash.svg" alt="">
+                                                </button>
+                                            </ul>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </table>
+                    </div>
                     {{ $hotels->links('pagination::bootstrap-4') }}
                 </div>
             </div>

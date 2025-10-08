@@ -5,7 +5,7 @@
 @section('content')
 
     <div class="page admin">
-        <div class="container">
+        <div class="container-fluid">
             <div class="row">
                 <div class="col-md-3">
                     @include('auth.layouts.sidebar')
@@ -22,36 +22,38 @@
                             </div>
                         </div>
                     </div>
-                    <table class="table">
-                        <thead>
-                        <tr>
-                            <th>Код</th>
-                            <th>Название</th>
-                            <th>Действия</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        @foreach($pages as $page)
+                    <div class="table-wrap">
+                        <table class="table">
+                            <thead>
                             <tr>
-                                <td>{{ $page->code }}</td>
-                                <td>{{ $page->title }}</td>
-                                <td>
-                                    <form action="{{ route('pages.destroy', $page) }}" method="post">
-                                        <ul>
-                                            <li><a href="{{ route('pages.show', $page)
-                                            }}"><img src="{{ route('index') }}/img/icons/eye.svg" alt=""></a></li>
-                                            <li><a href="{{ route('pages.edit', $page)
-                                            }}"><img src="{{ route('index') }}/img/icons/edit.svg" alt=""></a></li>
-                                            @csrf
-                                            @method('DELETE')
-                                            <button><img src="{{ route('index') }}/img/icons/trash.svg" alt=""></button>
-                                        </ul>
-                                    </form>
-                                </td>
+                                <th>Код</th>
+                                <th>Название</th>
+                                <th>Действия</th>
                             </tr>
-                        @endforeach
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                            @foreach($pages as $page)
+                                <tr>
+                                    <td>{{ $page->code }}</td>
+                                    <td>{{ $page->title }}</td>
+                                    <td>
+                                        <form action="{{ route('pages.destroy', $page) }}" method="post">
+                                            <ul>
+                                                <li><a href="{{ route('pages.show', $page)
+                                            }}"><img src="{{ route('index') }}/img/icons/eye.svg" alt=""></a></li>
+                                                <li><a href="{{ route('pages.edit', $page)
+                                            }}"><img src="{{ route('index') }}/img/icons/edit.svg" alt=""></a></li>
+                                                @csrf
+                                                @method('DELETE')
+                                                <button><img src="{{ route('index') }}/img/icons/trash.svg" alt=""></button>
+                                            </ul>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                     {{ $pages->links('pagination::bootstrap-4') }}
                 </div>
             </div>

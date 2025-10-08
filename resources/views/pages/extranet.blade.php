@@ -108,9 +108,31 @@
                             </div>
                             <h3>StayBook — это больше, чем просто OTA. Это часть большой экосистемы Silk Way
                                 Group, которая объединяет:</h3>
+                            <div class="owl-carousel owl-vant d-xl-none d-lg-none d-block">
+                                <div class="who-item">
+                                    <div class="descr">Silk Way Travel (Outbound) - выездной туризм и корпоративные поездки
+                                    </div>
+                                </div>
+                                <div class="who-item">
+                                    <div class="descr">Silk Way Travel (Inbound)приём туристов в Кыргызстан и Центральную
+                                        Азию</div>
+                                </div>
+                                <div class="who-item">
+                                    <div class="descr">Free Way — внутренний и молодежный туризм</div>
+                                </div>
+                                <div class="who-item">
+                                    <div class="descr">Silk Way Logistics — трансферы, деловые поездки, встречи в аэропорту
+                                    </div>
+                                </div>
+                                <div class="who-item">
+                                    <div class="descr">StayBook OTA - технологичная B2B платформа для бронирований по всему
+                                        региону
+                                    </div>
+                                </div>r
+                            </div>
                         </div>
                     </div>
-                    <div class="row justify-content-center">
+                    <div class="row justify-content-center d-xl-flex d-lg-flex d-none">
                         <div class="col-lg-4 col-md-6">
                             <div class="who-item">
                                 <div class="descr">Silk Way Travel (Outbound) - выездной туризм и корпоративные поездки

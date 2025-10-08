@@ -27,8 +27,10 @@ class ListbookController extends Controller
     public function index(Request $request)
     {
         $hotel = $request->session()->get('hotel_id');
-        $books = Book::where('hotel_id', $hotel)->where('api_type', '!=', 'calendar')->latest()->paginate(40);
-
+        $books = Book::where('hotel_id', $hotel)
+            ->whereNotIn('api_type', ['calendar_allotment', 'calendar_price', 'calendar'])
+            ->latest()
+            ->paginate(40);
         return view('auth.listbooks.index', compact('books'));
     }
 

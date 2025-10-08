@@ -5,7 +5,7 @@
 @section('content')
 
     <div class="page admin offlineings">
-        <div class="container">
+        <div class="container-fluid">
             <div class="row">
                 <div class="col-md-3">
                     @include('auth.layouts.sidebar')
@@ -14,65 +14,78 @@
                     @if($offlines->isNotEmpty())
                         <h1>@lang('admin.offlines')</h1>
                         @foreach($offlines as $offline)
-                            <table>
-                                <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="title">ФИО:</div>
-                                        <div class="value">{{ $offline->name }}</div>
-                                    </td>
-                                    <td>
-                                        <div class="title">Номер телефона:</div>
-                                        <div class="value">{{ $offline->phone }}</div>
-                                    </td>
-                                    <td>
-                                        <div class="title">Email:</div>
-                                        <div class="value">{{ $offline->email }}</div>
-                                    </td>
-                                    <td>
-                                        <div class="title">Комменатрий:</div>
-                                        <div class="value">{{ $offline->message }}</div>
-                                    </td>
-                                    <td>
-                                        <div class="title">Кол-во:</div>
-                                        <div class="value">{{ $offline->room_count }} ном. {{ $offline->adult }} взрос. {{ $offline->child }} дет. ({{ implode(', ', json_decode($offline->childAges, true)) }} лет)</div>
-                                    </td>
-                                    <td>
-                                        <div class="title">Дата создания:</div>
-                                        @php
-                                            $date = \Carbon\Carbon::createFromDate($offline->created_at)->format('d.m.Y H:i')
-                                        @endphp
-                                        <div class="value">{{ $date }}</div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="title">Даты заезда:</div>
-                                        <div class="value">{{ $offline->showStartDate() }} - {{ $offline->showEndDate() }}</div>
-                                    </td>
-                                    <td>
-                                        <div class="title">Стоимость:</div>
-                                        <div class="value">$ {{ $offline->min_price }} - {{ $offline->max_price }}</div>
-                                    </td>
-                                    <td>
-                                        <div class="title">Город</div>
-                                        <div class="value">{{ $offline->city }} <div class="alert alert-warning">{{ $offline->meal }}</div>
-                                    </td>
-                                    <td>
-                                        <div class="title">Тип</div>
-                                        <div class="value">{{ $offline->type }}, {{ $offline->accommodation }}, {{ $offline->type_room }}</div></div>
-                                    </td>
-                                    <td>
-                                        <div class="title">Рейтинг</div>
-                                        <div class="value">{{ $offline->rating }}</div>
-                                    </td>
-                                    <td>
-                                        <a href="{{ route('offlines.show', $offline)}}"><img
-                                                    src="{{ route('index') }}/img/icons/eye.svg" alt=""></a>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
+                            <div class="table-wrap">
+                                <table>
+                                    <tbody>
+                                    <tr>
+                                        <td style="border-top: none"><b>ФИО:</b></td>
+                                        <td style="border-top: none">{{ $offline->name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><b>Номер телефона:</b></td>
+                                        <td>{{ $offline->phone }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><b>Email:</b></td>
+                                        <td>{{ $offline->email }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><b>Комментарий:</b></td>
+                                        <td>{{ $offline->message }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><b>Кол-во:</b></td>
+                                        <td>{{ $offline->room_count }} ном. {{ $offline->adult }}
+                                            взрос. {{ $offline->child }} дет.
+                                            ({{ implode(', ', json_decode($offline->childAges, true)) }} лет)
+                                        </td>
+                                    </tr>
+                                    @php
+                                        $date = \Carbon\Carbon::createFromDate($offline->created_at)->format('d.m.Y H:i')
+                                    @endphp
+                                    <tr>
+                                        <td><b>Дата создания:</b></td>
+                                        <td>{{ $date }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><b>Даты заезда:</b></td>
+                                        <td>{{ $offline->showStartDate() }} - {{ $offline->showEndDate() }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><b>Стоимость:</b></td>
+                                        <td>$ {{ $offline->min_price }} - {{ $offline->max_price }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><b>Город:</b></td>
+                                        <td>{{ $offline->city }}</td>
+                                    </tr>
+                                    @isset($offline->meal)
+                                        <tr>
+                                            <td><b>Тип питания:</b></td>
+                                            <td>{{ $offline->meal }}</td>
+                                        </tr>
+                                    @endisset
+                                    <tr>
+                                        <td><b>Тип:</b></td>
+                                        <td>{{ $offline->type }}, {{ $offline->accommodation }}
+                                            , {{ $offline->type_room }}
+                                            /td>
+                                    </tr>
+                                    <tr>
+                                        <td><b>Рейтинг:</b></td>
+                                        <td>{{ $offline->rating }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><b>Управление</b></td>
+                                        <td>
+                                            <a href="{{ route('offlines.show', $offline)}}"><img
+                                                        src="{{ route('index') }}/img/icons/eye.svg"
+                                                        style="max-width: 24px"></a>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         @endforeach
                     @else
                         <h2 style="text-align: center">@lang('admin.offlineings_not_found')</h2>
@@ -81,34 +94,4 @@
             </div>
         </div>
     </div>
-    <style>
-        table {
-            border-radius: 10px;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-
-        table tbody {
-            margin-bottom: 20px;
-        }
-
-        table tr {
-            background-color: #fff;
-        }
-
-        table td, table th {
-            padding: 20px;
-            border-color: #f5f5f5;
-        }
-
-        .title {
-            font-size: 12px;
-            opacity: .6;
-        }
-
-        .value {
-            font-size: 14px;
-        }
-    </style>
-
 @endsection

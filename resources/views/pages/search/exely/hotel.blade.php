@@ -356,6 +356,7 @@
                     </div>
                 </div>
             </div>
+        </div>
     @else
         @include('layouts.auth')
     @endauth

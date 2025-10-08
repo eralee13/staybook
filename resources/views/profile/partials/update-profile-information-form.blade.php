@@ -1,4 +1,4 @@
-<h2>@lang('admin.profile')</h2>
+<h2 style="margin-top: 0">@lang('admin.profile')</h2>
 {{--<form id="send-verification" method="post" action="{{ route('verification.send') }}">--}}
 {{--    @csrf--}}
 {{--    <button class="more">Отправить</button>--}}

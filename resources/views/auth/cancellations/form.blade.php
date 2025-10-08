@@ -82,13 +82,21 @@
     </script>
 
     <div class="page admin">
-        <div class="container">
+        <div class="container-fluid">
             <div class="row">
-                <div class="col-md-2">
+                <div class="col-md-3">
                     @include('auth.layouts.sidebar')
                 </div>
-                <div class="col-md-10">
-                    @include('auth.layouts.subroom')
+                <div class="col-md-9">
+                    <div class="row room_list_btn" style="margin-bottom: 20px">
+                        <div class="col-md-4">
+                            <a href="{{ route('rates.index') }}" @routeactive('rate*')>@lang('admin.plans')</a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="{{ route('cancellations.index') }}"
+                               @routeactive('cancel*')>@lang('admin.cancel_fines')</a>
+                        </div>
+                    </div>
                     @isset($cancellation)
                         <h1>@lang('admin.edit') {{ $cancellation->title }}</h1>
                     @else
@@ -120,24 +128,26 @@
                                 <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'penalty_type'])
                                     <label for="">@lang('admin.choose') @lang('admin.rate')</label>
-                                    <select name="rate_id" id="">
-                                        @isset($cancellation)
-                                            @if($cancellation->rate_id && $cancellation->rate)
-                                                <option selected value="{{ $cancellation->rate_id }}">
-                                                    {{ $cancellation->rate->__('title') }}
-                                                </option>
-                                            @else
-                                                <option>@lang('admin.choose')</option>
-                                            @endif
-                                        @endisset
-                                        @foreach($rates as $rate)
-                                            @php
-                                                $canc = \App\Models\CancellationRule::where('rate_id', $rate->id)->first();
-                                            @endphp
-                                            <option value="{{ $rate->id }}">{{ $rate?->__('title') }}
-                                                - {{ $canc?->__('title') ?? ''}}</option>
-                                        @endforeach
-                                    </select>
+                                    <div class="custom-select">
+                                        <select name="rate_id" id="">
+                                            @isset($cancellation)
+                                                @if($cancellation->rate_id && $cancellation->rate)
+                                                    <option selected value="{{ $cancellation->rate_id }}">
+                                                        {{ $cancellation->rate->__('title') }}
+                                                    </option>
+                                                @else
+                                                    <option>@lang('admin.choose')</option>
+                                                @endif
+                                            @endisset
+                                            @foreach($rates as $rate)
+                                                @php
+                                                    $canc = \App\Models\CancellationRule::where('rate_id', $rate->id)->first();
+                                                @endphp
+                                                <option value="{{ $rate->id }}">{{ $rate?->__('title') }}
+                                                    - {{ $canc?->__('title') ?? ''}}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
 
@@ -217,25 +227,28 @@
                                         $hot = \App\Models\Hotel::where('id', $hotel)->first();
                                     @endphp
                                     <label for="">@lang('admin.type_fine')</label>
-                                    <select name="penalty_type" id="">
-                                        @isset($cancellation)
-                                            <option @if($cancellation->penalty_type)
-                                                        selected>
-                                                {{ $cancellation->penalty_type }}</option>
-                                        @else
-                                            <option>@lang('admin.choose')</option>
-                                        @endif
-                                        @endisset
-                                        <option value="fixed">@lang('admin.fixed_amount')</option>
-                                        <option value="percent">@lang('admin.percent_from_total')</option>
-                                        <option value="night">@lang('admin.number_nights')</option>
-                                    </select>
+                                    <div class="custom-select">
+                                        <select name="penalty_type" id="">
+                                            @isset($cancellation)
+                                                <option @if($cancellation->penalty_type)
+                                                            selected>
+                                                    {{ $cancellation->penalty_type }}</option>
+                                            @else
+                                                <option>@lang('admin.choose')</option>
+                                            @endif
+                                            @endisset
+                                            <option value="fixed">@lang('admin.fixed_amount')</option>
+                                            <option value="percent">@lang('admin.percent_from_total')</option>
+                                            <option value="night">@lang('admin.number_nights')</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
 
                             <div class="col-md-6 d-none" id="penalty-nights-block">
                                 <div class="form-group">
-                                    <label for="penalty_nights">@lang('admin.number_nights') ({{ $hot->currency }})</label>
+                                    <label for="penalty_nights">@lang('admin.number_nights') ({{ $hot->currency }}
+                                        )</label>
                                     <input type="number" name="penalty_nights" class="form-control"
                                            value="{{ old('penalty_nights', $cancellation->penalty_nights ?? '') }}">
                                 </div>
@@ -261,10 +274,15 @@
 
                         </div>
                         @csrf
-                        <button class="more">@lang('admin.send')</button>
-                        <a href="{{url()->previous()}}" class="btn delete cancel">@lang('admin.cancel')</a>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button class="more">@lang('admin.send')</button>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="{{url()->previous()}}" class="btn delete cancel">@lang('admin.cancel')</a>
+                            </div>
+                        </div>
                     </form>
-
                 </div>
             </div>
         </div>
