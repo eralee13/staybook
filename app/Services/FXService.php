@@ -44,6 +44,7 @@ class FXService
                 }
 
                 $json = $response->json();
+                
                 Log::debug('FX.kg /central full json', $json);
                 
                 return [
@@ -97,7 +98,7 @@ class FXService
         $uzs = $rates['uzs'] ?? null;
         $kzt = $rates['kzt'] ?? null;
         $cny = $rates['cny'] ?? null;
-
+        // dump($rates);
         return match (strtoupper($baseCurrency)) {
             'USD' => [
                 'USD' => 1.0,
@@ -107,11 +108,11 @@ class FXService
                 'KZT' => $kzt > 0 ? round($usd / $kzt, 4) : 0.0,
             ],
             'RUB' => [
-                'USD' => $usd > 0 ? round($rub / $usd, 4) : 0.0,
+                'USD' => $usd > 0 ? round($usd, 4) : 0.0,
                 'KGS' => round($rub, 4),
                 'RUB' => 1.0,
-                'UZS' => $uzs > 0 ? round($rub / $uzs, 4) : 0.0,
-                'KZT' => $kzt > 0 ? round($rub / $kzt, 4) : 0.0,
+                'UZS' => $uzs > 0 ? round($uzs, 4) : 0.0,
+                'KZT' => $kzt > 0 ? round($kzt, 4) : 0.0,
             ],
             'UZS' => [
                 'USD' => $usd > 0 && $uzs > 0 ? round($uzs / $usd, 4) : 0.0,
@@ -157,10 +158,10 @@ class FXService
         $from = strtoupper($from);
         $to = strtoupper($to);
         $rates = $this->getRatesBaseCentral($from);
-        // dd($rates);
+        // dump($rates);
         $rateFrom = $rates[$from] ?? null;
         $rateTo = $rates[$to] ?? null;
-
+        // dump($rateFrom, $rateTo);
 
         if ($from == 'CNY'){
             if (!$rateFrom || !$rateTo || $rateFrom <= 0 || $rateTo <= 0) {
@@ -175,13 +176,28 @@ class FXService
 
             return round($converted, 0);
 
+        }elseif($from == 'RUB'){
+
+            if (!$rateFrom || !$rateTo || $rateFrom <= 0) {
+                return $amount;
+            }
+
+            // Из рублей в другую валюту
+            $converted = $amount / $rateTo;
+            
+            if($to == 'KGS'){
+                $converted = $amount * $rateTo;
+            }
+
+            return round($converted, 2);
+
         }else{
 
             if (!$rateFrom || !$rateTo || $rateFrom <= 0) {
                 return $amount;
             }
 
-            $amountInUsd = $from !== 'USD' ? $amount / $rateFrom : $amount;
+            $amountInUsd = $from !== 'USD' ? ($amount / $rateFrom) : $amount;
             return round($to !== 'USD' ? $amountInUsd * $rateTo : $amountInUsd, 2);
         }
         

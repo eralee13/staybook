@@ -1,4 +1,13 @@
 <?php
+// Описание полей ответа с ошибками
+// code - int - внутренний код ошибки сервиса
+    // 50000 - неопасная внутренняя ошибка сервиса, ничего страшного, можно попробовать позже
+    // 50001 - опасная внутренняя ошибка сервиса, необходима ручная проверка заказа
+    // 40000 - от клиента получен неверный запрос
+    // 40001 - результаты поиска устарели, необходимо повторно отправить запрос на поиск
+    // 40400 - запрашиваемый ресурс не найден
+// message - string - текст ошибки
+// errors - object - описание ошибок валидации запроса в формате "название поля": "ответ валидатора"
 
 namespace App\Http\Controllers\API\V1\Hotelstar;
 
@@ -109,7 +118,7 @@ class HotelstarFormController extends Controller
     {
         $rooms = $request->input('rooms', []); // если нет — пустой массив
         $guests = [];
-        $fxBase = session('currency', 'USD');
+        // $fxBase = session('currency', 'RUB');
 
         foreach ($rooms as $room) {
             $adultCount = (int) ($room['adults'] ?? 0);
@@ -141,7 +150,7 @@ class HotelstarFormController extends Controller
             "check_out"   => $request->departureDate,
             "adults"      => $adultCount,
             "children"    => $children,
-            "currency"    => $fxBase,
+            "currency"    => "RUB",
             "3d_hotelstar"=> null,
         ]);
             // dump($payload);
@@ -150,6 +159,66 @@ class HotelstarFormController extends Controller
                     'Content-Type' => 'application/json',
                 ])
                 ->post($this->url . '/search', $payload);
+
+                dump($response->json());
+
+            return $response->json();
+                
+    }
+
+    public function searchAsyncHotelsByCityOrId(Request $request, $session)
+    {
+        $rooms = $request->input('rooms', []); // если нет — пустой массив
+        $guests = [];
+        // $fxBase = session('currency', 'RUB');
+
+        foreach ($rooms as $room) {
+            $adultCount = (int) ($room['adults'] ?? 0);
+
+            $children = [];
+            if (!empty($room['childAges']) && is_array($room['childAges'])) {
+                foreach ($room['childAges'] as $age) {
+                    $children[] = (int) $age;
+                }
+            }
+
+            $guests[] = [
+                'adults'   => $adultCount,
+                'children' => $children,
+            ];
+        }
+
+        $city = explode('-', $request->city);
+        $searchParams = [];
+
+        if (is_numeric($request->city)) {
+            $searchParams['hotel_ids'] = [(int)$request->city];
+        } else {
+            $searchParams['region_id'] = (int)$city[0];
+        }
+
+        if( empty($session['session']) ){
+            $params = '/async_search';
+        }else{
+            $params = '/async_search/' . $session['hash'] .'?session='. $session['session'];
+        }
+        
+
+        $payload = array_merge($searchParams, [
+            "check_in"    => $request->arrivalDate,
+            "check_out"   => $request->departureDate,
+            "adults"      => $adultCount,
+            "children"    => $children,
+            "currency"    => "RUB",
+            "3d_hotelstar"=> null,
+        ]);
+            // dump($payload);
+
+            $response = Http::withHeaders([
+                    'X-HS-Token' => $this->apiKey,
+                    'Content-Type' => 'application/json',
+                ])
+                ->post($this->url . $params, $payload);
 
                 dump($response->json());
 
@@ -195,7 +264,7 @@ class HotelstarFormController extends Controller
                 "check_out"    => $request->departureDate,
                 "adults"       => $adultCount,
                 "children"     => $children,
-                "currency"     => $fxBase,
+                "currency"     => "RUB",
                 "3d_hotelstar" => null,
             ]),
             "search_item" => [
@@ -265,7 +334,7 @@ class HotelstarFormController extends Controller
                 $roomGuests[] = [
                     "name" => $firstName,
                     "surname"  =>trim($lastName . ' ' . $thirdName),
-                    "is_child" => false,
+                    // "is_child" => false,
                 ];
 
                 $adultIndex++;
@@ -334,18 +403,19 @@ class HotelstarFormController extends Controller
                     ];
             }
 
+            $phone = preg_replace('/\D/', '', $request->phone);
         // $mappingMeals = $this->mappingMeals();
         $payload = [
                 "partner_order_id" => $request->token,
                 "email" => 'itsupport@staybook.asia', //$request->email, Email оформителя заказа
-                "phone" => $request->phone,
+                "phone" => $phone,
                 "persons" => $roomGuests,
                 "search_data" => array_merge($searchParams, [
                         "check_in" => $request->arrivalDate,
                         "check_out" => $request->departureDate,
                         "adults"       => $adultCount,
                         "children"     => $children,
-                        "currency" => $fxBase,
+                        "currency" => "RUB",
                         "3d_hotelstar" => null,
                 ]),
                 "search_item" => [
@@ -355,9 +425,10 @@ class HotelstarFormController extends Controller
                 "meals" => $meals,
                 "extras" => $extras,
                 "client_remarks" => $request->comment,
-                "partner_price" => $request->totalPrice,
-                "extra_fields" => [],
+                "partner_price" => (float)$request->totalPrice,
         ];
+
+        log::channel('hotelstar')->info('Create Order Payload - ', [$payload]);
 
         $response = Http::timeout(31)->withHeaders([
                 'X-HS-Token' => $this->apiKey,
@@ -368,14 +439,15 @@ class HotelstarFormController extends Controller
             $res = json_decode( $response->body() );
             
             dump($payload);
-            dump($res);
+            dump($response->json());
+        
+            log::channel('hotelstar')->info('Create Order Response - ', [$response->json()]);
 
             // Проверка на существование локального брони
         $existbook = Book::where('book_token', $request->token)->first();
 
-        if( !$existbook && isset($res->status) && $res->status == 1 || $res->status == 2 ){
+        if( !$existbook && isset($res->status) && ($res->status == 1 || $res->status == 2) ){
 
-            $amount; $curr; 
             // Расшифровка статусов:
             //     1 - Новый
             //     2 - Оформлен
@@ -502,12 +574,12 @@ class HotelstarFormController extends Controller
                             'child' => $childs ?? 0,
                             'children_allowed' => 0,
                             'free_children_age' => 0,
-                            'currency' => $curr,
                             'price' => $request->price,
                             'price2' => null,
                             'child_extra_fee' => 0,
                             'availability' => 0,
-                            'total_price' => round($totalPrice),
+                            'total_price' => $totalPrice,
+                            'currency' => $request->currency ?? $fxbase,
                             'cancellation_rule_id' => $ruleid ?? null,
                             
                         ]
@@ -515,7 +587,7 @@ class HotelstarFormController extends Controller
 
                     $book = Book::firstOrCreate(
                         [
-                            'book_token' => $etoken,
+                            'book_token' => $request->token,
                         ],
                         [
                             'title' => $guests ?? '',
@@ -531,11 +603,12 @@ class HotelstarFormController extends Controller
                             'child' => $childs,
                             'childages' => $childAges ?? '',
                             'price' => $request->price,
+                            'source_sym' => 'RUB',
                             'sum' => $totalPrice,
                             'utc' => $request->utc,
                             'cancellation_id' => $ruleid,
                             'cancel_penalty' => $request->cancelPrice,
-                            'currency' => $curr,
+                            'currency' => $request->currency ?? $fxBase,
                             'cancel_date' => $cancelDate ?? $utcdatetime,
                             'arrivalDate' => $request->arrivalDate,
                             'departureDate' => $request->departureDate,
@@ -553,9 +626,61 @@ class HotelstarFormController extends Controller
                         }
         }
 
-        return $response->json();
+        return $res;
 
     }
 
+    public function metaCancelOrder(Request $request){
+
+        $payload = [
+                "partner_order_id" => $request->number,
+                "partner_penalty" => (float)$request->cancelPrice ?? 0,
+        ];
+
+        $response = Http::timeout(31)->withHeaders([
+                'X-HS-Token' => $this->apiKey,
+                'Content-Type' => 'application/json',
+            ])
+            ->post($this->url . '/cancel', $payload);
+
+            $cancel = json_decode( $response->body() );
+            
+            dump($payload);
+            dump($cancel);
+
+        return $cancel;
+    }
+
+    public function metaCallback(Request $request){
+        
+        // Вебхук для получения статуса брони
+        // Проверим наличие нужных полей
+        if (!$request->has('token') || !$request->has('status')) {
+            return response()->json(['error' => 'Missing token or status'], 400);
+        }
+
+        $token = $request->input('token');
+        $status = $request->input('status');
+
+        // Найдём бронь по токену
+        $booking = Book::where('partner_order_id', $token)->first();
+
+        if (!$booking) {
+            Log::warning("Booking not found for token: {$token}");
+            return response()->json(['error' => 'Booking not found'], 404);
+        }
+
+        // Обновим статус брони
+        $booking->status = $status;
+        $booking->save();
+
+        // if( $token && $status){
+        //     Book::where('book_token', $token)->update(['status' => 'Reserved']);
+        // }
+
+        log::channel('hotelstar')->info('Callback Data - ', [$request->all()]);
+
+        return response()->json(['status' => 'success'], 200);
+    }
 
 }

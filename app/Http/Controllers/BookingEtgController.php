@@ -358,13 +358,13 @@ class BookingEtgController extends Controller
             if( isset($cancel->status) && $cancel->status == 'ok' ){
                 // dd($cancel);
                 $cancelFee = $cancel->data->amount_payable->amount;
-                $cancelFee = ($cancelFee * $this->coef) + $cancelFee;
+                $cancelFee = $cancelFee / $this->coef;
                 $curr = $cancel->data->amount_payable->currency_code;
 
                 Book::where('book_token', $request->number)->update([
                     'status' => 'Cancelled', 
-                    'cancel_penalty' => $cancelFee, 
-                    'currency' => $curr
+                    // 'cancel_penalty' => $cancelFee, 
+                    // 'currency' => $curr
                 ]);
 
                 $book = Book::where('book_token', $request->number)->first();

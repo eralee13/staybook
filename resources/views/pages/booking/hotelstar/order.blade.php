@@ -153,7 +153,7 @@
                                         <div class="col-md-4">
                                             <div class="form-group">
                                                 <label for="paxfname">@lang('main.meal')</label>
-                                                <select name="payable_meal" class="extra">
+                                                <select name="payable_meal[]" class="extra">
                                                     <option value="">@lang('main.select_value')</option>
                                                     @foreach($actualize['search_item']['meals'] as $item)
 

@@ -15,9 +15,10 @@
                     @else
                         <h1 data-aos="fade-up" data-aos-duration="2000">@lang('main.error_book_not_cancelled')</h1>
                         @if( empty($message) )
-                            <p>@lang('main.error_book_not_cancelled_description')</p>
+                            <p><strong>@lang('main.error_book_not_cancelled_description')</strong></p>
+                            {{-- Попробуйте нажать "Проверить статус". Если отмена всё же не была произведена, обратитесь к вашему менеджеру по работе с клиентами! --}}
                         @else
-                            <p>@lang('main.' . $message)</p>
+                            <p><strong>@lang('main.' . $message)</strong></p>
                         @endif
                         
                         <div class="alert alert-danger">@lang('main.status'): @lang('main.' . $book->status)</div>
@@ -28,9 +29,9 @@
                         <li>
                             @if(isset($cancelRule->is_refundable) && $cancelRule->is_refundable == true)
                                 <td>@lang('main.free_cancellation') {{ $cancelRule->end_date }} (UTC {{ $hotel->utc }}). <br>
-                                    @lang('main.cancellation_amount_tm'): {{ $book->cancel_penalty }} {{ $book->currency ?? '$' }}</td>
+                                    @lang('main.cancellation_amount_tm'): {{ round($book->cancel_penalty) }} {{ $book->currency ?? '$' }}</td>
                             @else
-                                @lang('main.non_refundable'): {{ $book->cancel_penalty }} {{ $book->currency ?? 'USD' }}
+                                @lang('main.non_refundable'): {{ round($book->cancel_penalty) }} {{ $book->currency ?? 'USD' }}
                             @endif
                         <li>@lang('main.hotel'): {{ $hotel->title }}</li>
                         <li>@lang('main.date_checkin/checkout'): {{ $arrival }} {{ $hotel->checkin }} - {{ $departure }} {{ $hotel->checkout }} (UTC {{ $hotel->utc }})</li>
@@ -39,7 +40,12 @@
                         <li>@lang('main.count_adult'): {{ $book->adult ?? ''}}</li>
                     </ul>
 
-                    <a href="{{ route('index') }}" class="more btn">@lang('main.go_home')</a>
+                    <div class="btn-wrap d-flex gap-3" style="gap: 10px;">
+                        <a href="{{ route('index') }}" class="more btn">@lang('main.go_home')</a>
+                        <button class="btn more" onclick="location.reload()">
+                            @lang('main.check_status')
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

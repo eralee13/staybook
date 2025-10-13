@@ -39,7 +39,12 @@
                         <li>@lang('main.count_adult'): {{ $book->adult ?? ''}}</li>
                     </ul>
 
-                    <a href="{{ route('index') }}" class="more btn">@lang('main.go_home')</a>
+                    <div class="btn-wrap d-flex gap-3" style="gap: 10px;">
+                        <a href="{{ route('index') }}" class="more btn">@lang('main.go_home')</a>
+                        <button class="btn more" onclick="location.reload()">
+                            @lang('main.check_status')
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

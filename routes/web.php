@@ -234,3 +234,8 @@ Route::get('/clear-cache', function () {
     return "Cache cleared successfully";
 });
 
+Route::get('/actualize-currency', function () {
+    $cacheKey = 'fx_central_rates';
+    return  Cache::get($cacheKey);
+});
+

@@ -1097,7 +1097,7 @@
                                                             <input type="hidden" name="provider_id" 
                                                                 value="{{ $hotel->provider_id ?? '' }}">
                                                             <input type="hidden" name="nationality" value="{{ $request->nationality ?? '' }}">
-                                                            
+
                                                             <button class="more">Показать все номера</button>
                                                         </form>
                                                     </div>
@@ -1109,7 +1109,7 @@
 
                                         <div class="col-md-2 order-xl-3 order-lg-3 order-2">
                                             <div class="price">
-                                        
+                                                
                                                 @lang('main.from') {{ $hotel->conv_total }} {{ $hotel->conv_symbol }}
                                                 </div>
                                             <div class="night">@lang('main.night')</div>
@@ -1188,6 +1188,9 @@
                                         font-weight: bold;
                                         font-size: 16px;
                                         color: #ffffff;
+                                    }
+                                    header .wrap .lang-wrap .overwrap.active {
+                                        z-index: 999999;
                                     }
                                     
                                 </style>

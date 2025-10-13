@@ -8,14 +8,14 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 col-md-12">
-
+                    
                     @if($message == 'Booking successfully created' 
                         || $message == 'This booking already exists' 
                         || $message == 'Booking is pending confirmation from the hotel'
                             )
                         <h1>@lang('main.Congratulations')</h1>
 
-                            <div class="alert alert-primary" role="alert">
+                            <div class="alert alert-success" role="alert">
                                 <strong>@lang('main.'.$message)</strong>
                             </div>
                     @else
@@ -59,7 +59,7 @@
                         </ul>
                         <div class="bnt-wrap">
                             @if($book->status != 'Cancelled')
-                                <form action="{{ route('cancel_calculate_etg', $book->id) }}">
+                                <form action="{{ route('cancel_calculate_hs', $book->id) }}">
                                     <input type="hidden" name="number" value="{{ $book->book_token }}">
                                     <button class="more">@lang('main.cancel_booking')</button>
                                 </form>
@@ -73,9 +73,12 @@
 
                         </div>
                     @else
-                        <div class="bnt-wrap">
+                        <div class="bnt-wrap d-flex gap-3" style="gap: 10px;">
                             <button class="more" onclick="location.href='{{ route('index') }}'">
                                 @lang('main.go_home')
+                            </button>
+                            <button class="btn more" onclick="location.reload()">
+                                @lang('main.check_status')
                             </button>
                         </div>
                     @endif
@@ -112,7 +115,7 @@
     </style>
     <script>
         document.getElementById('order').addEventListener('click', function() {
-            localStorage.removeItem('booking_etg_secondsLeft'); // Очистить данные
+            localStorage.removeItem('booking_hs_secondsLeft'); // Очистить данные
         });
     </script>
     {{-- <script>
