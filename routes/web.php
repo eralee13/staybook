@@ -145,7 +145,9 @@ Route::middleware('set_locale')->group(function () {
 
     //-----search
     Route::get('/search', [SearchController::class, 'smartSearch'])->name('search');
-    Route::get('/suggest', [SearchController::class, 'suggest'])->name('search.suggest');
+    // routes/web.php
+    Route::get('/search/suggest', [\App\Http\Controllers\SearchController::class, 'suggest'])
+        ->name('search.suggest'); // вне middleware('auth')
 
     //local
     Route::get('/search/hotel', [\App\Http\Controllers\SearchController::class, 'search'])->name('search');

@@ -17,30 +17,13 @@ use App\Models\Contact;
 use App\Models\Page;
 use App\Models\Hotel;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class PageController extends Controller
 {
-    public function suggest(Request $request)
-    {
-        $q = Str::lower(trim((string)$request->get('q','')));
-        if ($q === '') return response()->json([]);
-
-        $countries = Country::selectRaw("id, name, alpha2, 'country' as type")
-            ->whereRaw('LOWER(name) LIKE ?', ["%{$q}%"])
-            ->orWhere('alpha2', Str::upper($q))
-            ->orWhere('code', Str::upper($q))
-            ->limit(5)->get();
-
-        $cities = City::selectRaw("id, title as name, country_code, 'city' as type")
-            ->whereRaw('LOWER(title) LIKE ?', ["%{$q}%"])
-            ->orWhereRaw('LOWER(name) LIKE ?', ["%{$q}%"])
-            ->orWhereRaw('LOWER(code) LIKE ?', ["%{$q}%"])
-            ->limit(10)->get();
-
-        return response()->json($countries->concat($cities)->values());
-    }
 
     private function resolveLocation(string $q = null): array
     {
@@ -57,7 +40,7 @@ class PageController extends Controller
             $country = Country::query()
                 ->where('alpha2', $norm2($qLower))
                 ->orWhere('code', Str::upper($qLower))
-                ->orWhereRaw('LOWER(name) LIKE ?', ["%{$qLower}%"])
+                ->orWhereRaw('LOWER(title) LIKE ?', ["%{$qLower}%"])
                 ->first();
         }
 
@@ -70,7 +53,7 @@ class PageController extends Controller
                 ->where(function($w){
                     $w->whereRaw('LOWER(title) = ?', ['bishkek'])
                         ->orWhereRaw('LOWER(title) = ?', ['бишкек'])
-                        ->orWhereRaw('LOWER(name)  = ?', ['bishkek'])
+                        ->orWhereRaw('LOWER(title)  = ?', ['bishkek'])
                         ->orWhere('code', 'bishkek');
                 })->first();
 
@@ -78,7 +61,7 @@ class PageController extends Controller
                 $city = City::whereIn('country_code',['KG','KGS'])
                     ->where(function($w) use ($qLower){
                         $w->whereRaw('LOWER(title) LIKE ?', ["%{$qLower}%"])
-                            ->orWhereRaw('LOWER(name)  LIKE ?', ["%{$qLower}%"])
+                            ->orWhereRaw('LOWER(title)  LIKE ?', ["%{$qLower}%"])
                             ->orWhereRaw('LOWER(code)  LIKE ?', ["%{$qLower}%"]);
                     })->first();
             }
@@ -92,7 +75,7 @@ class PageController extends Controller
             $city = City::where('country_id',$country->id)
                 ->where(function($w) use ($qLower){
                     $w->whereRaw('LOWER(title) LIKE ?', ["%{$qLower}%"])
-                        ->orWhereRaw('LOWER(name)  LIKE ?', ["%{$qLower}%"])
+                        ->orWhereRaw('LOWER(title)  LIKE ?', ["%{$qLower}%"])
                         ->orWhereRaw('LOWER(code)  LIKE ?', ["%{$qLower}%"]);
                 })->orderBy('title')->first();
         }
@@ -101,7 +84,7 @@ class PageController extends Controller
         if (!$city && $qLower !== '') {
             $city = City::where(function($w) use ($qLower){
                 $w->whereRaw('LOWER(title) LIKE ?', ["%{$qLower}%"])
-                    ->orWhereRaw('LOWER(name)  LIKE ?', ["%{$qLower}%"])
+                    ->orWhereRaw('LOWER(title)  LIKE ?', ["%{$qLower}%"])
                     ->orWhereRaw('LOWER(code)  LIKE ?', ["%{$qLower}%"]);
             })->orderBy('title')->first();
             if ($city && !$country) $country = $city->country;
@@ -113,29 +96,115 @@ class PageController extends Controller
     public function index(Request $request)
     {
         $q = trim((string)$request->get('q',''));
-        $country = null; $city = null;
+        $country = null;
+        $city    = null;
 
-        // --- резолвер ---
-        [$country, $city] = $this->resolveLocation($q);
+        // --- 0) Попытка штатного резолвера (как у вас было) ---
+        try {
+            [$country, $city] = $this->resolveLocation($q);
+        } catch (\Throwable $e) {
+            Log::warning('resolveLocation failed: '.$e->getMessage());
+            $country = $country ?? null;
+            $city    = $city ?? null;
+        }
 
-        // Отели строго по city_id (если нашли город)
-        $hotels = collect();
-        if ($city) {
-            $hotels = Hotel::where('city_id', $city->id)->get();
-
-            // fallback для старых данных без city_id — по строковому названию:
-            if ($hotels->isEmpty()) {
-                $hotels = Hotel::whereIn('city', array_filter([$city->title, $city->name, 'Bishkek','Бишкек']))->get();
+        // --- 1) Если резолвер город не дал — пробуем найти город по title LIKE ---
+        if (!$city && $q !== '') {
+            $like = '%'.mb_strtolower($q).'%';
+            $city = City::whereRaw('LOWER(title) LIKE ?', [$like])->first();
+            if ($city) {
+                Log::debug('City resolved by LIKE', ['city_id' => $city->id, 'title' => $city->title]);
             }
         }
-        $tomorrow = Carbon::tomorrow()->format('Y-m-d');
+
+        // --- 2) Спец-кейсы для Бишкек/Кыргызстан/KGS (country_code = KGS) ---
+        $isKgsQuery = function(string $s): bool {
+            $t = mb_strtolower($s);
+            return in_array($t, ['бишкек','bishkek','frunze','фрунзе','kgs','kg','кыргызстан','kyrgyzstan']);
+        };
+
+        $hotels = collect();
+
+        if ($city) {
+            // 2.1 Нормальный путь — по city_id
+            $hotels = Hotel::with(['city','amenity','images'])
+                ->where('city_id', $city->id)
+                ->orderByDesc('rating')
+                ->get();
+
+            // 2.2 Фолбэк по строковому полю hotels.city (только если колонка существует)
+            if ($hotels->isEmpty() && Schema::hasColumn('hotels','city')) {
+                $variants = array_values(array_unique(array_filter([
+                    $city->title,
+                    'Bishkek','Бишкек','Frunze','Фрунзе',
+                ])));
+                $hotels = Hotel::with(['city','amenity','images'])
+                    ->whereIn('city', $variants)
+                    ->orderByDesc('rating')
+                    ->get();
+                if ($hotels->isNotEmpty()) {
+                    Log::debug('Hotels loaded by legacy string city field', ['variants' => $variants]);
+                }
+            }
+        } else {
+            // 3) Город не распознан
+            if ($q !== '') {
+                // 3.1 Кыргызстан — фолбэк по country_code=KGS
+                if ($isKgsQuery($q)) {
+                    $hotels = Hotel::with(['city','amenity','images'])
+                        ->whereHas('city', fn($c) => $c->where('country_code','KGS'))
+                        ->orderByDesc('rating')
+                        ->get();
+                    Log::debug('Hotels loaded by country_code=KGS', ['count' => $hotels->count()]);
+                }
+
+                // 3.2 Если пусто, пробуем искать по названию города (whereHas city.title like)
+                if ($hotels->isEmpty()) {
+                    $like = '%'.mb_strtolower($q).'%';
+                    $hotels = Hotel::with(['city','amenity','images'])
+                        ->whereHas('city', fn($c) => $c->whereRaw('LOWER(title) LIKE ?', [$like]))
+                        ->orderByDesc('rating')
+                        ->get();
+                    if ($hotels->isNotEmpty()) {
+                        Log::debug('Hotels loaded by whereHas city.title LIKE', ['q' => $q, 'count' => $hotels->count()]);
+                    }
+                }
+
+                // 3.3 Если всё ещё пусто — ищем по названию отеля
+                if ($hotels->isEmpty()) {
+                    $like = '%'.mb_strtolower($q).'%';
+                    $hotels = Hotel::with(['city','amenity','images'])
+                        ->where(function($w) use ($like) {
+                            $w->whereRaw('LOWER(title) LIKE ?', [$like])
+                                ->orWhereRaw('LOWER(title_en) LIKE ?', [$like]);
+                        })
+                        ->orderByDesc('rating')
+                        ->get();
+                    if ($hotels->isNotEmpty()) {
+                        Log::debug('Hotels loaded by hotel title LIKE', ['q' => $q, 'count' => $hotels->count()]);
+                    }
+                }
+            }
+
+            // 3.4 Совсем пустой ввод — можно показать витрину
+            if ($q === '' && $hotels->isEmpty()) {
+                $hotels = Hotel::with(['city','amenity','images'])
+                    ->orderByDesc('rating')
+                    ->limit(20)
+                    ->get();
+                Log::debug('Fallback showcase hotels', ['count' => $hotels->count()]);
+            }
+        }
+
+        $tomorrow = Carbon::tomorrow(config('app.timezone'))->format('Y-m-d');
+
         return view('index', [
-            'request' => $request,
+            'request'  => $request,
             'tomorrow' => $tomorrow,
-            'q'      => $q,
-            'hotels' => $hotels,
-            'city'   => $city,
-            'country'=> $country,
+            'q'        => $q,
+            'hotels'   => $hotels,
+            'city'     => $city,
+            'country'  => $country,
         ]);
     }
 

@@ -2,468 +2,236 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Country;
-use App\Services\FXService;
+
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Models\City;
 use App\Models\Image;
 use App\Models\Room;
 use App\Models\Hotel;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Str;
+
 
 class SearchController extends Controller
 {
     public $coef;
 
-    public function __construct()
-    {
-        $this->coef = config('app.main_coef');
+    // Внутри SearchController (private-секция)
+    private function ruToEn(string $s): string {
+        $map = [
+            'а'=>'a','б'=>'b','в'=>'v','г'=>'g','д'=>'d','е'=>'e','ё'=>'yo','ж'=>'zh','з'=>'z','и'=>'i','й'=>'y',
+            'к'=>'k','л'=>'l','м'=>'m','н'=>'n','о'=>'o','п'=>'p','р'=>'r','с'=>'s','т'=>'t','у'=>'u','ф'=>'f',
+            'х'=>'h','ц'=>'ts','ч'=>'ch','ш'=>'sh','щ'=>'sch','ъ'=>'','ы'=>'y','ь'=>'','э'=>'e','ю'=>'yu','я'=>'ya',
+            // частые киргизские буквы
+            'ө'=>'o','ү'=>'u','ң'=>'ng',
+        ];
+        $s = mb_strtolower($s);
+        $res = '';
+        for ($i=0;$i<mb_strlen($s);$i++){
+            $ch = mb_substr($s,$i,1);
+            $res .= $map[$ch] ?? $ch;
+        }
+        return $res;
     }
 
-    public function suggest(Request $request)
-    {
-        $q = Str::lower(trim((string)$request->get('q','')));
-        if ($q === '') return response()->json([]);
-
-        $countries = Country::selectRaw("id, name, alpha2, 'country' as type")
-            ->whereRaw('LOWER(name) LIKE ?', ["%{$q}%"])
-            ->orWhere('alpha2', Str::upper($q))
-            ->orWhere('code', Str::upper($q))
-            ->limit(5)->get();
-
-        $cities = City::selectRaw("id, title as name, country_code, 'city' as type")
-            ->whereRaw('LOWER(title) LIKE ?', ["%{$q}%"])
-            ->orWhereRaw('LOWER(name) LIKE ?', ["%{$q}%"])
-            ->orWhereRaw('LOWER(code) LIKE ?', ["%{$q}%"])
-            ->limit(10)->get();
-
-        return response()->json($countries->concat($cities)->values());
+    private function enToRu(string $s): string {
+        $s = mb_strtolower($s);
+        // грубая, но рабочая обратная замена по частым сочетаниям
+        $pairs = [
+            'sch'=>'щ','yo'=>'ё','yu'=>'ю','ya'=>'я','zh'=>'ж','ch'=>'ч','sh'=>'ш','ts'=>'ц','ng'=>'ң',
+        ];
+        foreach ($pairs as $en=>$ru) $s = str_replace($en, $ru, $s);
+        $map = [
+            'a'=>'а','b'=>'б','v'=>'в','g'=>'г','d'=>'д','e'=>'е','z'=>'з','i'=>'и','y'=>'ы','k'=>'к','l'=>'л',
+            'm'=>'м','n'=>'н','o'=>'о','p'=>'п','r'=>'р','s'=>'с','t'=>'т','u'=>'у','f'=>'ф','h'=>'х',
+        ];
+        $res = '';
+        for ($i=0;$i<mb_strlen($s);$i++){
+            $ch = mb_substr($s,$i,1);
+            $res .= $map[$ch] ?? $ch;
+        }
+        return $res;
     }
 
-    private function resolveLocation(string $q = null): array
-    {
-        $qLower = Str::lower($q ?? '');
-        $country = null; $city = null;
-
-        $norm2 = function (?string $code) {
-            if (!$code) return null; $u = Str::upper($code);
-            return $u === 'KGS' ? 'KG' : $u; // спец-кейс KGS→KG
-        };
-
-        // 1) Если ввели alpha2/alpha3/название страны
-        if ($qLower !== '') {
-            $country = Country::query()
-                ->where('alpha2', $norm2($qLower))
-                ->orWhere('code', Str::upper($qLower))
-                ->orWhereRaw('LOWER(name) LIKE ?', ["%{$qLower}%"])
-                ->first();
-        }
-
-        // 2) Явный Бишкек (ru/en/ошибки ввода)
-        $isBishkek = Str::contains($qLower, ['bishkek','бишкек','biskek','bishk']);
-        if ($isBishkek) {
-            $city = City::query()
-                ->when($country, fn($w)=>$w->where('country_id',$country->id),
-                    fn($w)=>$w->whereIn('country_code',['KG','KGS']))
-                ->where(function($w){
-                    $w->whereRaw('LOWER(title) = ?', ['bishkek'])
-                        ->orWhereRaw('LOWER(title) = ?', ['бишкек'])
-                        ->orWhereRaw('LOWER(name)  = ?', ['bishkek'])
-                        ->orWhere('code', 'bishkek');
-                })->first();
-
-            if (!$city) {
-                $city = City::whereIn('country_code',['KG','KGS'])
-                    ->where(function($w) use ($qLower){
-                        $w->whereRaw('LOWER(title) LIKE ?', ["%{$qLower}%"])
-                            ->orWhereRaw('LOWER(name)  LIKE ?', ["%{$qLower}%"])
-                            ->orWhereRaw('LOWER(code)  LIKE ?', ["%{$qLower}%"]);
-                    })->first();
-            }
-
-            if ($city && !$country) $country = $city->country;
-            return [$country,$city];
-        }
-
-        // 3) Если страна определена и строка похожа на город этой страны
-        if ($country && $qLower !== '') {
-            $city = City::where('country_id',$country->id)
-                ->where(function($w) use ($qLower){
-                    $w->whereRaw('LOWER(title) LIKE ?', ["%{$qLower}%"])
-                        ->orWhereRaw('LOWER(name)  LIKE ?', ["%{$qLower}%"])
-                        ->orWhereRaw('LOWER(code)  LIKE ?', ["%{$qLower}%"]);
-                })->orderBy('title')->first();
-        }
-
-        // 4) Если страны нет — ищем город глобально
-        if (!$city && $qLower !== '') {
-            $city = City::where(function($w) use ($qLower){
-                $w->whereRaw('LOWER(title) LIKE ?', ["%{$qLower}%"])
-                    ->orWhereRaw('LOWER(name)  LIKE ?', ["%{$qLower}%"])
-                    ->orWhereRaw('LOWER(code)  LIKE ?', ["%{$qLower}%"]);
-            })->orderBy('title')->first();
-            if ($city && !$country) $country = $city->country;
-        }
-
-        return [$country,$city];
+    /** Возвращает массив вариантов строки: [оригинал, RU->EN, EN->RU] (без дублей) */
+    private function variants(string $q): array {
+        $t = mb_strtolower(trim($q));
+        $vars = array_filter(array_unique([$t, $this->ruToEn($t), $this->enToRu($t)]));
+        return array_values($vars);
     }
 
     public function search(Request $request)
     {
-        $q = trim((string)$request->get('q',''));
-        $country = null; $city = null;
-
-        // --- резолвер ---
-        [$country, $city] = $this->resolveLocation($q);
-
-        // Отели строго по city_id (если нашли город)
-        $hotels = collect();
-        if ($city) {
-            $hotels = Hotel::where('city_id', $city->id)->get();
-
-            // fallback для старых данных без city_id — по строковому названию:
-            if ($hotels->isEmpty()) {
-                $hotels = Hotel::whereIn('city', array_filter([$city->title, $city->name, 'Bishkek','Бишкек']))->get();
-            }
+        // --- 1) Резолвим город ---
+        $city = null;
+        if ($cityId = $request->get('city_id')) {
+            $city = \App\Models\City::find($cityId);
+        }
+        if (!$city && $term !== '') {
+            $terms = $this->variants($term);
+            $city = \App\Models\City::query()
+                ->where(function($q) use ($terms) {
+                    foreach ($terms as $v) {
+                        $q->orWhereRaw('LOWER(title) LIKE ?', ['%'.$v.'%']);
+                    }
+                })
+                ->first();
         }
 
-        // Валюта/курсы
-        $fxBase  = strtoupper(session('currency', 'USD'));
-        $fxRates = array_change_key_case(app(\App\Services\FXService::class)->getRatesBaseCentral() ?? [], CASE_UPPER);
-        $symbols = ['USD'=>'$','EUR'=>'€','KGS'=>'сом','KZT'=>'₸','RUB'=>'₽','TRY'=>'₺','GBP'=>'£','UZS'=>'сўм'];
-
-        // Хелперы конвертации (заметьте: это просто присваивания переменных-замыканий — НИКАКИХ use-импортов тут!)
-        $toUSD = function (float $amount, string $from) use ($fxRates): float {
-            $from = strtoupper($from ?: 'USD');
-            $kgsPerFrom = (float)($fxRates[$from] ?? 0);
-            $kgsPerUSD  = (float)($fxRates['USD']  ?? 0);
-            if ($kgsPerFrom <= 0 || $kgsPerUSD <= 0) return $amount;
-            return $amount * $kgsPerFrom / $kgsPerUSD;
-        };
-        $usdTo = function (float $usd, string $to) use ($fxRates): float {
-            $to = strtoupper($to ?: 'USD');
-            $kgsPerUSD = (float)($fxRates['USD'] ?? 0);
-            $kgsPerTo  = (float)($fxRates[$to]  ?? 0);
-            if ($kgsPerUSD <= 0 || $kgsPerTo <= 0) return $usd;
-            return $usd * $kgsPerUSD / $kgsPerTo;
-        };
-
-        // ---------- Гости/комнаты ----------
-        $roomsInput   = \Illuminate\Support\Arr::wrap($request->input('rooms'));
-        $totalAdults  = 0;
-        $allChildAges = [];
-        foreach ($roomsInput as $room) {
-            $totalAdults += (int)\Illuminate\Support\Arr::get($room, 'adults', 0);
-            foreach (\Illuminate\Support\Arr::wrap(\Illuminate\Support\Arr::get($room, 'childAges', [])) as $age) {
-                $age = is_numeric($age) ? (int)$age : null;
-                if ($age !== null && $age >= 0) $allChildAges[] = $age;
-            }
+// Бишкек/ Bishkek спец-случай (если нужно)
+        $countryCode = null;
+        if (!$city && $term !== '' && in_array(mb_strtolower($term), ['бишкек','bishkek','frunze'])) {
+            $countryCode = 'KGS';
+            $city = \App\Models\City::where(function($q){
+                $q->whereRaw('LOWER(title) = "бишкек"')
+                    ->orWhereRaw('LOWER(title) = "bishkek"');
+            })->first();
         }
 
-        $childAges = array_values($allChildAges);
+// --- 2) Фильтр отелей (учёт наличия hotels.city_id) ---
+        $hasCityIdColumn = \Illuminate\Support\Facades\Schema::hasColumn('hotels', 'city_id');
 
-        // ---------- Базовый запрос отелей ----------
-        $hotelQuery = \App\Models\Hotel::with([
-            'rates' => function ($q) use ($request, $totalAdults) {
-                if ($request->filled('rooms')) {
-                    $q->where('availability', '>=', $totalAdults);
-                }
-                if ($request->filled('meal')) {
-                    $q->whereIn('meal_id', \Illuminate\Support\Arr::wrap($request->input('meal')));
-                }
-                if ($request->filled('start_d') && $request->filled('end_d')) {
-                    $start = $request->input('start_d');
-                    $end   = $request->input('end_d');
-                    $q->whereDoesntHave('bookings', function ($b) use ($start, $end) {
-                        $b->where('status', 'reserved')->where(function ($qb) use ($start, $end) {
-                            $qb->whereBetween('arrivalDate', [$start, $end])
-                                ->orWhereBetween('departureDate', [$start, $end])
-                                ->orWhere(function ($qbb) use ($start, $end) {
-                                    $qbb->where('arrivalDate', '<=', $start)
-                                        ->where('departureDate', '>=', $end);
-                                });
-                        });
-                    });
-                }
-            },
-            'city'
-        ]);
+        $hotelsQ = \App\Models\Hotel::query()
+            ->with(['amenity'])
+            ->when((int)$request->get('rating',0) > 0, fn($q) => $q->where('rating','>=',(int)$request->get('rating',0)));
 
-        // ---------- Фильтр по городу ----------
-        $cityId = $request->input('city_id');
-        if (\Illuminate\Support\Facades\Schema::hasColumn('hotels', 'city_id')) {
-            if ($cityId) {
-                $hotelQuery->where('city_id', (int)$cityId);
-            } elseif ($request->filled('city')) {
-                $rawCity       = (string)$request->input('city', '');
-                $cityForSearch = trim(preg_replace('/^\s*\d+\s*-\s*/u', '', $rawCity));
-                if ($cityForSearch !== '') {
-                    $cityLc = mb_strtolower($cityForSearch);
-                    $hotelQuery->where(function ($q) use ($cityLc) {
-                        $q->whereHas('city', function ($cq) use ($cityLc) {
-                            $cq->whereRaw('LOWER(title) LIKE ?', ["%{$cityLc}%"])
-                                ->orWhereRaw('LOWER(title_en) LIKE ?', ["%{$cityLc}%"]);
-                        })
-                            ->orWhereRaw('LOWER(city) LIKE ?', ["%{$cityLc}%"])
-                            ->orWhereRaw('LOWER(title) LIKE ?', ["%{$cityLc}%"])
-                            ->orWhereRaw('LOWER(title_en) LIKE ?', ["%{$cityLc}%"]);
-                    });
-                }
-            }
-        } else {
-            if ($cityId) {
-                $cityTitle = \App\Models\City::whereKey($cityId)->value('title');
-                if ($cityTitle) {
-                    $cityLc = mb_strtolower($cityTitle);
-                    $hotelQuery->whereRaw('LOWER(city) LIKE ?', ["%{$cityLc}%"]);
-                }
-            } elseif ($request->filled('city')) {
-                $rawCity       = (string)$request->input('city', '');
-                $cityForSearch = trim(preg_replace('/^\s*\d+\s*-\s*/u', '', $rawCity));
-                if ($cityForSearch !== '') {
-                    $cityLc = mb_strtolower($cityForSearch);
-                    $hotelQuery->where(function ($q) use ($cityLc) {
-                        $q->whereRaw('LOWER(city) LIKE ?', ["%{$cityLc}%"])
-                            ->orWhereRaw('LOWER(title) LIKE ?', ["%{$cityLc}%"])
-                            ->orWhereRaw('LOWER(title_en) LIKE ?', ["%{$cityLc}%"]);
-                    });
-                }
-            }
-        }
-
-        // ---------- Фильтр по рейтингу ----------
-        if ($request->filled('rating')) {
-            $hotelQuery->where('rating', '>=', (int)$request->input('rating'));
-        }
-
-        // ---------- Локальные отели -> в USD ----------
-        $local = $hotelQuery->where('status', 1)->get();
-
-        $localHotels = $local
-            ->filter(fn($hotel) => empty($hotel->exely_id))
-            ->map(function ($hotel) use ($fxRates) {
-                // минимальная цена среди price/price2/price3
-                $minRate = 0.0;
-                if ($hotel->rates && $hotel->rates->count()) {
-                    $minRate = $hotel->rates->map(function($r){
-                        $candidates = [];
-                        foreach (['price','price2','price3'] as $field) {
-                            if (isset($r->$field) && is_numeric($r->$field) && $r->$field > 0) {
-                                $candidates[] = (float)$r->$field;
-                            }
+        if ($hasCityIdColumn) {
+            $hotelsQ
+                ->when($city, fn($q) => $q->where('city_id', $city->id))
+                ->when(!$city && $countryCode, function($q) use ($countryCode){
+                    $q->whereHas('city', fn($qc)=>$qc->where('country_code',$countryCode));
+                })
+                ->when(!$city && !$countryCode && $term !== '', function($q) use ($term){
+                    $terms = $this->variants($term);
+                    $q->where(function($qq) use ($terms){
+                        foreach ($terms as $v) {
+                            $qq->orWhereRaw('LOWER(title) LIKE ?', ['%'.$v.'%'])
+                                ->orWhereRaw('LOWER(title_en) LIKE ?', ['%'.$v.'%']);
                         }
-                        return count($candidates) ? min($candidates) : null;
-                    })->filter()->min() ?? 0.0;
-                }
-
-                // валюта тарифа (у первого), приводим к USD
-                $currency   = strtoupper($hotel->rates?->first()?->currency ?? 'USD');
-                $kgsPerFrom = (float)($fxRates[$currency] ?? 0.0);
-                $kgsPerUSD  = (float)($fxRates['USD']     ?? 0.0);
-                $priceUsd   = ($kgsPerFrom > 0 && $kgsPerUSD > 0)
-                    ? ($minRate * $kgsPerFrom / $kgsPerUSD)
-                    : $minRate;
-
-                return [
-                    'source' => 'local',
-                    'hotel'  => $hotel,
-                    'price'  => round($priceUsd, 2), // USD
-                ];
-            });
-
-        // ---------- Exely ----------
-        $propertyIds = $local->pluck('exely_id')
-            ->filter(fn($v) => filled($v))
-            ->map(fn($id) => (string)$id)
-            ->unique()
-            ->values()
-            ->all();
-
-        $results = null;
-        if (!empty($propertyIds)) {
-            try {
-                $payload = [
-                    'propertyIds'   => array_values($propertyIds),
-                    'adults'        => (int)$totalAdults,
-                    'childAges'     => array_values($allChildAges),
-                    'arrivalDate'   => (string)$request->input('arrivalDate', now()->format('Y-m-d')),
-                    'departureDate' => (string)$request->input('departureDate', now()->addDay()->format('Y-m-d')),
-                ];
-
-                $response = \Illuminate\Support\Facades\Http::timeout(30)
-                    ->connectTimeout(5)
-                    ->retry(2, 100)
-                    ->accept('application/json')
-                    ->withHeaders(['x-api-key' => (string)config('services.exely.key')])
-                    ->post(rtrim((string)config('services.exely.base_url'), '/') . '/search/v1/properties/room-stays/search', $payload);
-
-                if ($response->successful()) {
-                    $results = $response->object();
-                } else {
-                    \Illuminate\Support\Facades\Log::warning('Exely search failed', [
-                        'status'  => $response->status(),
-                        'payload' => $payload,
-                        'body'    => $response->body(),
-                    ]);
-                }
-            } catch (\Illuminate\Http\Client\ConnectionException $e) {
-                \Illuminate\Support\Facades\Log::error('Exely connection error: ' . $e->getMessage());
-            } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::error('Exely unexpected error: ' . $e->getMessage());
-            }
-        }
-
-        $exelyRoomStays = collect(data_get($results, 'roomStays', []));
-        $exelyHotels = $exelyRoomStays->map(function ($roomStay) use ($toUSD) {
-            $basePrice = (float)data_get($roomStay, 'total.priceBeforeTax', 0);
-            $currency  = (string)(data_get($roomStay, 'currencyCode', 'USD') ?? 'USD');
-            $priceUsd  = round($toUSD($basePrice / 0.92, $currency), 2);
-           // $priceUsd = round($priceUsd / 0.92);
-
-            $propertyId = data_get($roomStay, 'propertyId');
-            $hotelModel = $propertyId ? \App\Models\Hotel::where('exely_id', $propertyId)->first() : null;
-
-            return [
-                'source'   => 'exely',
-                'roomStay' => $roomStay,
-                'hotel'    => $hotelModel,
-                'price'    => $priceUsd, // USD
-            ];
-        });
-
-        // ---------- Tourmind через ваш сервис ----------
-        $tmHotels = collect();
-        try {
-            $hotelService = new \App\Services\Tourmind\HotelServices();
-            $tm = $hotelService->tmGetHotels($request); // уже с localData, заранее отфильтрованный/схлопнутый
-
-            if (!empty($tm['Hotels']) && is_array($tm['Hotels'])) {
-                $tmHotels = collect($tm['Hotels'])->map(function (array $h) use ($toUSD, $usdTo, $fxBase, $symbols) {
-                    $rt    = $h['RoomTypes'][0] ?? [];
-                    $rate  = $rt['RateInfos'][0] ?? [];
-                    $total = (float)($rate['TotalPrice'] ?? 0);
-                    $ccy   = (string)($rate['CurrencyCode'] ?? 'USD');
-
-                    $priceUsd = round($toUSD($total, $ccy), 2);
-
-                    $local = $h['localData'] ?? null;
-
-                    // ВАЖНО: НЕ задаём 'hotel' (Eloquent) — чтобы TM не сливался с local
-                    return [
-                        'source'      => 'tm',
-                        'tm'          => (object)[
-                            'hid'      => $local['id']   ?? null,
-                            'code'     => $local['code'] ?? null,
-                            'title'    => $local['title'] ?? ($h['HotelName'] ?? ''),
-                            'title_en' => $local['title_en'] ?? '',
-                            'rating'   => $local['rating'] ?? '',
-                            'city'     => $local['city'] ?? '',
-                            'images'   => $local['images'] ?? [],
-                            'lat'      => $local['lat'] ?? null,
-                            'lng'      => $local['lng'] ?? null,
-                        ],
-                        'hotel'       => null,                 // принципиально null
-                        'price'       => $priceUsd,           // USD
-                        'conv_total'  => (float)round($usdTo($priceUsd, $fxBase)),
-                        'conv_symbol' => $symbols[$fxBase] ?? $fxBase,
-                    ];
+                    })
+                        ->orWhereHas('city', function($qc) use ($terms){
+                            $qc->where(function($qq) use ($terms){
+                                foreach ($terms as $v) {
+                                    $qq->orWhereRaw('LOWER(title) LIKE ?', ['%'.$v.'%']);
+                                }
+                            });
+                        });
                 });
-            }
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::channel('Tourmind')->error('TM in Search error', ['msg' => $e->getMessage()]);
+        } else {
+            // Без city_id — по строковому полю hotels.city
+            $hotelsQ
+                ->when($city, function($q) use ($city){
+                    $t = mb_strtolower($city->title);
+                    $vars = $this->variants($t);
+                    $q->where(function($qq) use ($vars){
+                        foreach ($vars as $v) $qq->orWhereRaw('LOWER(city) LIKE ?', ['%'.$v.'%']);
+                    });
+                })
+                ->when(!$city && !$countryCode && $request->filled('city'), function($q) use ($request) {
+                    $term  = trim((string)$request->get('city'));
+                    $terms = $this->variants($term);
+
+                    $q->where(function($qq) use ($terms) {
+                        foreach ($terms as $v) {
+                            $qq->orWhereRaw('LOWER(title) LIKE ?', ['%'.$v.'%'])
+                                ->orWhereRaw('LOWER(title_en) LIKE ?', ['%'.$v.'%']);
+                        }
+                    })
+                        ->orWhereHas('city', function($qc) use ($terms) {
+                            $qc->where(function($qq) use ($terms) {
+                                foreach ($terms as $v) {
+                                    $qq->orWhereRaw('LOWER(title) LIKE ?', ['%'.$v.'%']);
+                                }
+                            });
+                        });
+                });
         }
 
-        // ---------- Объединяем ----------
-        $all = $localHotels->concat($exelyHotels)->concat($tmHotels)->values();
+        $hotels = $hotelsQ->orderByDesc('rating')->get();
 
-        // ---------- Схлопываем до 1 записи на отель (с учётом источника) ----------
-        $byHotel = $all->groupBy(function ($item) {
-            $src = data_get($item, 'source');
-
-            if ($src === 'tm') {
-                // Привязываем к локальному id (если есть) или к TM-коду — но с префиксом tm:
-                $tmKey = (string)(data_get($item, 'tm.hid') ?: data_get($item, 'tm.code'));
-                return 'tm:' . $tmKey;
-            }
-
-            if ($src === 'exely') {
-                $pid = (string)data_get($item, 'roomStay.propertyId');
-                return 'exely:' . $pid;
-            }
-
-            // local по id модели
-            $hid = (string)data_get($item, 'hotel.id');
-            return 'local:' . $hid;
-        });
-
-        $hotelsMin = $byHotel->map(function ($items) use ($usdTo, $fxBase, $symbols) {
-            $best = $items->sortBy('price', SORT_NUMERIC)->first(); // USD
-            $usd  = (float)data_get($best, 'price', 0);
-
-            // Если уже проставлены conv_* (TM-блок) — используем их, иначе считаем из USD
-            $conv   = data_get($best, 'conv_total');
-            $symbol = data_get($best, 'conv_symbol');
-            if ($conv === null) {
-                $conv   = round($usdTo($usd, $fxBase));
-                $symbol = $symbols[$fxBase] ?? $fxBase;
-            }
-
-            return [
-                'source'      => data_get($best, 'source'),
-                'hotel'       => data_get($best, 'hotel'),
-                'roomStay'    => data_get($best, 'roomStay'),
-                'tm'          => data_get($best, 'tm'),
-                'price'       => (float)$usd,  // USD (для сортировки)
-                'min_price'   => (float)$usd,  // алиас
-                'conv_total'  => (float)$conv,
-                'conv_symbol' => (string)$symbol,
-            ];
-        })->values();
-
-        // ---------- Поиск по названию ----------
-        if ($request->filled('title')) {
-            $needle = mb_strtolower((string)$request->input('title'));
-            $hotelsMin = $hotelsMin->filter(function ($item) use ($needle) {
-                $title    = mb_strtolower((string)data_get($item, 'hotel.title', data_get($item, 'tm.title', '')));
-                $title_en = mb_strtolower((string)data_get($item, 'hotel.title_en', data_get($item, 'tm.title_en', '')));
-                return str_contains($title, $needle) || str_contains($title_en, $needle);
-            })->values();
-        }
-
-        // ---------- Сортировки ----------
-        $sort = (string)$request->input('sort', 'lowest_price');
-        switch ($sort) {
-            case 'highest_price':
-                $hotelsMin = $hotelsMin->sortByDesc('min_price', SORT_NUMERIC)->values();
-                break;
-            case 'lowest_price':
-            default:
-                $hotelsMin = $hotelsMin->sortBy('min_price', SORT_NUMERIC)->values();
-                break;
-        }
-
-        // ---------- Рендер ----------
+        // --- 3) Отдаём представление ---
+        // Если у вас есть «тяжёлый» шаблон pages.search.search — можно туда;
+        // если вам достаточно простого списка, убедитесь, что шаблон его выводит.
         return view('pages.search.search', [
-            'allHotels' => $hotelsMin,   // единый список: один элемент на отель (по источнику)
-            'fxBase'    => $fxBase,
-            'fxRates'   => $fxRates,
+            'allHotels' => $hotels->map(fn($h) => [
+                'source'      => 'local',
+                'hotel'       => $h,
+                'conv_total'  => $h->min_price ?? 0,   // подставьте вашу цену/конвертацию
+                'conv_symbol' => 'KGS',               // или ваша валюта
+            ]),
             'request'   => $request,
-            'cities'    => $cities,
-            'childAges' => $childAges,
-            'q'               => $q,
-            'countries'       => $countries,
-            'hotels'          => $hotels,
-            'selectedCountry' => $country?->alpha2 ?? $country?->code,
-            'selectedCity'    => $city?->id,
         ]);
     }
 
+    /*** АПИ ПОДСКАЗОК
+     * Возвращает items: [ {type:'city'|'hotel', label, alt, city, city_id, rating?}, ... ]
+     */
+    public function suggest(Request $request)
+    {
+        try {
+            $q = trim((string)$request->get('q',''));
+            if (mb_strlen($q) < 2) {
+                return response()->json([]);
+            }
+            $terms = $this->variants($q);
+
+            // Города
+            $cities = \App\Models\City::query()
+                ->where(function($w) use ($terms){
+                    foreach ($terms as $v) {
+                        $w->orWhereRaw('LOWER(title) LIKE ?', ['%'.$v.'%']);
+                    }
+                })
+                ->limit(6)->get()
+                ->map(fn($c)=>[
+                    'type' => 'city',
+                    'id'   => $c->id,
+                    'name' => $c->title,
+                    'note' => $c->country_code ?? '', // если есть
+                ]);
+
+            // Отели (с учётом наличия city_id)
+            $hasCityIdColumn = \Illuminate\Support\Facades\Schema::hasColumn('hotels','city_id');
+
+            $hotelsQ = \App\Models\Hotel::query();
+            $hotelsQ->where(function($w) use ($terms){
+                foreach ($terms as $v) {
+                    $w->orWhereRaw('LOWER(title) LIKE ?', ['%'.$v.'%'])
+                        ->orWhereRaw('LOWER(title_en) LIKE ?', ['%'.$v.'%']);
+                }
+            });
+
+            if ($hasCityIdColumn) {
+                $hotelsQ->with('city:id,title')->limit(6);
+                $hotels = $hotelsQ->get()->map(fn($h)=>[
+                    'type' => 'hotel',
+                    'id'   => $h->id,
+                    'name' => $h->title ?? $h->title_en,
+                    'note' => $h->city?->title ?? '',
+                    'alpha2' => '', // заполняйте при наличии стран
+                ]);
+            } else {
+                $hotelsQ->select(['id','title','title_en','city'])->limit(6);
+                $hotels = $hotelsQ->get()->map(fn($h)=>[
+                    'type' => 'hotel',
+                    'id'   => $h->id,
+                    'name' => $h->title ?? $h->title_en,
+                    'note' => $h->city ?? '',
+                    'alpha2' => '',
+                ]);
+            }
+
+            // Сначала города, потом отели
+            $items = $cities->concat($hotels)->take(10)->values();
+
+            return response()->json($items);
+        } catch (\Throwable $e) {
+            \Log::error('suggest failed', ['e'=>$e->getMessage()]);
+            return response()->json([], 200);
+        }
+    }
 
     public function findHotel($code, Request $request)
     {
