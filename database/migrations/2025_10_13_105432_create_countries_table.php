@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('books', function (Blueprint $table) {
-            $table->string('source_sym', 3)->nullable()->after('price');
-            
+        Schema::create('countries', function (Blueprint $table) {
+            $table->id();
+            $table->string('name')->unique();
+            $table->string('code', 3)->unique()->nullable();
+            $table->timestamps();
         });
     }
 
@@ -22,8 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('books', function (Blueprint $table) {
-            $table->dropColumn('source_sym');
-        });
+        Schema::dropIfExists('countries');
     }
 };

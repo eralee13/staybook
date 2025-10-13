@@ -19,151 +19,71 @@
                         </div>
                         <form action="{{ route('search') }}" method="GET">
                             <div class="row">
+
+
                                 <div class="col-lg-4 col-md-6">
                                     <div class="form-group">
-                                        <input type="text" id="searchbox" name="city" placeholder="@lang('main.city_or_hotel')"
-                                               autocomplete="off" value="{{ request('q') }}" required>
+                                        <input id="searchInput" name="q" class="form-control" value="{{ $q }}"
+                                               placeholder="Введите город/страну: Бишкек / Bishkek / KGS / Кыргызстан…" />
                                         <img src="{{ route('index') }}/img/arrow_down.svg" alt="">
-                                        <div id="suggest" class="suggest hidden"></div>
-                                        <input type="hidden" name="city_id" id="city_id">
-                                        <style>
-                                            .suggest{position:absolute; z-index:9999; background:#fff; border:1px solid #e5e7eb; width:100%; max-height:400px; overflow:auto; border-radius:30px; top: 0; box-shadow:0 10px 20px rgba(0,0,0,.08)}
-                                            .suggest.hidden{display:none}
-                                            .suggest-item{padding:10px 12px; cursor:pointer; display:flex; gap:8px; align-items:center}
-                                            .suggest-item:hover, .suggest-item.active{background:#f3f4f6}
-                                            .s-title{font-weight:600; font-size:14px}
-                                            .s-sub{font-size:12px; color:#6b7280}
-                                            .s-badge{font-size:11px; color:#fff; background:#7eb554; border-radius:6px; padding:2px 6px}
-                                        </style>
+                                        @if(isset($city) || isset($country))
+                                            <p class="text-muted">
+                                                @if($city) Город: <strong>{{ $city->title }}</strong> @endif
+                                                @if($country) &nbsp; Страна: <strong>{{ $country->name }}</strong> @endif
+                                            </p>
+                                        @endif
+
+                                        @if($hotels->count())
+                                            <ul class="list-group">
+                                                @foreach($hotels as $h)
+                                                    <li class="list-group-item">
+                                                        <strong>{{ $h->title }}</strong>
+                                                        <div>{{ $h->address }}</div>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        @elseif($q)
+                                            <div class="alert alert-warning mt-3">Ничего не найдено</div>
+                                        @endif
+
+                                        {{-- Простой typeahead без библиотек --}}
+                                        <ul id="suggestBox" class="list-group position-absolute" style="z-index:1000; max-height:300px; overflow:auto; display:none; width:100%"></ul>
                                         <script>
-                                            document.addEventListener('DOMContentLoaded', () => {
-                                                const input   = document.getElementById('searchbox');
-                                                const box     = document.getElementById('suggest');
-                                                const url     = @json(route('suggest'));
-                                                let items     = [];
-                                                let activeIdx = -1;
-                                                let lastQuery = '';
-                                                let t = null;
+                                            const input = document.getElementById('searchInput');
+                                            const box   = document.getElementById('suggestBox');
+                                            let t;
 
-                                                function debounce(fn, ms) {
-                                                    return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
-                                                }
-
-                                                function hide() { box.classList.add('hidden'); activeIdx = -1; }
-                                                function show() { box.classList.remove('hidden'); }
-
-                                                function render(list) {
-                                                    if (!list.length) { hide(); return; }
-                                                    box.innerHTML = list.map((it, i) => {
-                                                        const rating = it.rating ? `<span class="s-badge">★ ${it.rating}</span>` : '';
-                                                        const type   = it.type === 'hotel'
-                                                            ? '<span class="s-badge">Отель</span>'
-                                                            : '<span class="s-badge">Город</span>';
-                                                        const alt  = it.alt && it.alt !== it.label
-                                                            ? ` · <span class="s-sub">${it.alt}</span>` : '';
-                                                        const city = it.city ? `<div class="s-sub">${it.city}</div>` : '';
-                                                        return `
-<div class="suggest-item" data-idx="${i}">
-  <div>
-    <div class="s-title">${it.label} ${rating}${alt} ${type}</div>
-    ${city}
-  </div>
-</div>`;
+                                            input.addEventListener('input', () => {
+                                                clearTimeout(t);
+                                                const v = input.value.trim();
+                                                if (!v) { box.style.display='none'; box.innerHTML=''; return; }
+                                                t = setTimeout(async () => {
+                                                    const res = await fetch(`{{ route('search.suggest') }}?q=${encodeURIComponent(v)}`);
+                                                    const data = await res.json();
+                                                    if (!Array.isArray(data) || !data.length) { box.style.display='none'; box.innerHTML=''; return; }
+                                                    box.innerHTML = data.map(item => {
+                                                        const icon = item.type === 'city' ? '🏙️' : '🌍';
+                                                        const note = item.type === 'city' ? (item.country_code || '') : (item.alpha2 || '');
+                                                        return `<li class="list-group-item list-group-item-action" data-type="${item.type}" data-id="${item.id}">${icon} ${item.name} <small class="text-muted">${note}</small></li>`
                                                     }).join('');
-                                                    show();
-                                                }
+                                                    const r = input.getBoundingClientRect();
+                                                    box.style.top  = (window.scrollY + r.bottom) + 'px';
+                                                    box.style.left = (window.scrollX + r.left) + 'px';
+                                                    box.style.width= r.width + 'px';
+                                                    box.style.display='block';
+                                                }, 180);
+                                            });
 
-                                                async function fetchSuggest(q) {
-                                                    try {
-                                                        const resp = await fetch(url + '?q=' + encodeURIComponent(q), {
-                                                            headers: { 'Accept': 'application/json' },
-                                                            cache: 'no-store',
-                                                        });
-                                                        const ct = resp.headers.get('content-type') || '';
-                                                        if (!resp.ok) {
-                                                            console.error('[suggest] HTTP', resp.status, await resp.text());
-                                                            return hide();
-                                                        }
-                                                        if (!ct.includes('application/json')) {
-                                                            console.error('[suggest] Not JSON, got:', ct, await resp.text());
-                                                            return hide();
-                                                        }
-                                                        const data = await resp.json();
-                                                        items = Array.isArray(data.items) ? data.items : [];
-                                                        render(items);
-                                                    } catch (e) {
-                                                        console.error('[suggest] fetch error', e);
-                                                        hide();
-                                                    }
-                                                }
+                                            box.addEventListener('click', (e) => {
+                                                const li = e.target.closest('li'); if (!li) return;
+                                                input.value = li.textContent.trim();
+                                                box.style.display='none';
+                                                // сабмитим форму — сервер резолвит и отдаёт отели
+                                                input.form.submit();
+                                            });
 
-                                                const onType = debounce((e) => {
-                                                    const q = (e.target.value || '').trim();
-                                                    if (q.length < 2) { hide(); lastQuery = ''; return; }
-                                                    if (q === lastQuery) return;
-                                                    lastQuery = q;
-                                                    fetchSuggest(q);
-                                                }, 250);
-
-                                                input.addEventListener('input', onType);
-                                                input.addEventListener('focus', () => {
-                                                    if ((input.value || '').trim().length >= 2 && items.length) show();
-                                                });
-                                                input.addEventListener('blur', () => setTimeout(hide, 150));
-
-                                                // Клик по подсказке
-                                                box.addEventListener('click', (e) => {
-                                                    const itemEl = e.target.closest('.suggest-item');
-                                                    if (!itemEl) return;
-                                                    const idx = +itemEl.dataset.idx;
-                                                    const it  = items[idx];
-                                                    if (!it) return;
-
-                                                    input.value = it.label;
-                                                    if (it.city_id) {
-                                                        const cityIdEl = document.getElementById('city_id');
-                                                        if (cityIdEl) cityIdEl.value = it.city_id;
-                                                    }
-                                                    hide();
-                                                    //if (it.url) window.location.href = it.url; // для отелей переход сразу
-                                                });
-
-                                                // Навигация стрелками и Enter
-                                                input.addEventListener('keydown', (e) => {
-                                                    if (box.classList.contains('hidden')) return;
-                                                    if (e.key === 'ArrowDown') {
-                                                        e.preventDefault();
-                                                        activeIdx = (activeIdx + 1) % items.length;
-                                                        highlight();
-                                                    } else if (e.key === 'ArrowUp') {
-                                                        e.preventDefault();
-                                                        activeIdx = (activeIdx - 1 + items.length) % items.length;
-                                                        highlight();
-                                                    } else if (e.key === 'Enter') {
-                                                        if (activeIdx >= 0 && items[activeIdx]) {
-                                                            e.preventDefault();
-                                                            const it = items[activeIdx];
-                                                            input.value = it.label;
-                                                            if (it.city_id) {
-                                                                const cityIdEl = document.getElementById('city_id');
-                                                                if (cityIdEl) cityIdEl.value = it.city_id;
-                                                            }
-                                                            hide();
-                                                            if (it.url) window.location.href = it.url;
-                                                        }
-                                                    } else if (e.key === 'Escape') {
-                                                        hide();
-                                                    }
-                                                });
-
-                                                function highlight() {
-                                                    [...box.querySelectorAll('.suggest-item')].forEach((el, i) => {
-                                                        el.classList.toggle('active', i === activeIdx);
-                                                        if (i === activeIdx) {
-                                                            el.scrollIntoView({ block: 'nearest' });
-                                                        }
-                                                    });
-                                                }
+                                            document.addEventListener('click', (e)=>{
+                                                if (!box.contains(e.target) && e.target!==input) box.style.display='none';
                                             });
                                         </script>
                                     </div>

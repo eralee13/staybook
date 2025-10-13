@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Country;
 use App\Services\FXService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -14,6 +15,7 @@ use App\Models\Room;
 use App\Models\Hotel;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class SearchController extends Controller
 {
@@ -24,91 +26,112 @@ class SearchController extends Controller
         $this->coef = config('app.main_coef');
     }
 
-    /**
-     * AJAX-подсказки: города и отели (top-5 + top-5)
-     * GET /api/suggest?q=би
-     */
     public function suggest(Request $request)
     {
-        $q = trim((string) $request->query('q', ''));
-        if (mb_strlen($q) < 2) {
-            return response()->json(['items' => []]);
+        $q = Str::lower(trim((string)$request->get('q','')));
+        if ($q === '') return response()->json([]);
+
+        $countries = Country::selectRaw("id, name, alpha2, 'country' as type")
+            ->whereRaw('LOWER(name) LIKE ?', ["%{$q}%"])
+            ->orWhere('alpha2', Str::upper($q))
+            ->orWhere('code', Str::upper($q))
+            ->limit(5)->get();
+
+        $cities = City::selectRaw("id, title as name, country_code, 'city' as type")
+            ->whereRaw('LOWER(title) LIKE ?', ["%{$q}%"])
+            ->orWhereRaw('LOWER(name) LIKE ?', ["%{$q}%"])
+            ->orWhereRaw('LOWER(code) LIKE ?', ["%{$q}%"])
+            ->limit(10)->get();
+
+        return response()->json($countries->concat($cities)->values());
+    }
+
+    private function resolveLocation(string $q = null): array
+    {
+        $qLower = Str::lower($q ?? '');
+        $country = null; $city = null;
+
+        $norm2 = function (?string $code) {
+            if (!$code) return null; $u = Str::upper($code);
+            return $u === 'KGS' ? 'KG' : $u; // спец-кейс KGS→KG
+        };
+
+        // 1) Если ввели alpha2/alpha3/название страны
+        if ($qLower !== '') {
+            $country = Country::query()
+                ->where('alpha2', $norm2($qLower))
+                ->orWhere('code', Str::upper($qLower))
+                ->orWhereRaw('LOWER(name) LIKE ?', ["%{$qLower}%"])
+                ->first();
         }
 
-        $qLc  = mb_strtolower($q);
-        $like = '%'.$qLc.'%';
+        // 2) Явный Бишкек (ru/en/ошибки ввода)
+        $isBishkek = Str::contains($qLower, ['bishkek','бишкек','biskek','bishk']);
+        if ($isBishkek) {
+            $city = City::query()
+                ->when($country, fn($w)=>$w->where('country_id',$country->id),
+                    fn($w)=>$w->whereIn('country_code',['KG','KGS']))
+                ->where(function($w){
+                    $w->whereRaw('LOWER(title) = ?', ['bishkek'])
+                        ->orWhereRaw('LOWER(title) = ?', ['бишкек'])
+                        ->orWhereRaw('LOWER(name)  = ?', ['bishkek'])
+                        ->orWhere('code', 'bishkek');
+                })->first();
 
-        $cityHasTitleEn  = Schema::hasColumn('cities', 'title_en');
-        $hotelHasTitleEn = Schema::hasColumn('hotels', 'title_en');
-        $hotelHasCityCol = Schema::hasColumn('hotels', 'city');
+            if (!$city) {
+                $city = City::whereIn('country_code',['KG','KGS'])
+                    ->where(function($w) use ($qLower){
+                        $w->whereRaw('LOWER(title) LIKE ?', ["%{$qLower}%"])
+                            ->orWhereRaw('LOWER(name)  LIKE ?', ["%{$qLower}%"])
+                            ->orWhereRaw('LOWER(code)  LIKE ?', ["%{$qLower}%"]);
+                    })->first();
+            }
 
-        // Города
-        $citySelect = ['id','title'];
-        if ($cityHasTitleEn) $citySelect[] = 'title_en';
+            if ($city && !$country) $country = $city->country;
+            return [$country,$city];
+        }
 
-        $cities = City::query()->select($citySelect)
-            ->whereRaw('LOWER(title) LIKE ?', [$like])
-            ->when($cityHasTitleEn, fn($q) => $q->orWhereRaw('LOWER(title_en) LIKE ?', [$like]))
-            ->limit(5)
-            ->get()
-            ->map(fn($c) => [
-                'type'    => 'city',
-                'label'   => $c->title,
-                'alt'     => $cityHasTitleEn ? ($c->title_en ?? null) : null,
-                'city'    => null,
-                'rating'  => null,
-                'city_id' => $c->id,
-                'url'     => route('search', ['city_id' => $c->id]),
-            ]);
+        // 3) Если страна определена и строка похожа на город этой страны
+        if ($country && $qLower !== '') {
+            $city = City::where('country_id',$country->id)
+                ->where(function($w) use ($qLower){
+                    $w->whereRaw('LOWER(title) LIKE ?', ["%{$qLower}%"])
+                        ->orWhereRaw('LOWER(name)  LIKE ?', ["%{$qLower}%"])
+                        ->orWhereRaw('LOWER(code)  LIKE ?', ["%{$qLower}%"]);
+                })->orderBy('title')->first();
+        }
 
-        // Отели
-        $hotelSelect = ['id','title','status','rating'];
-        if ($hotelHasTitleEn) $hotelSelect[] = 'title_en';
-        if ($hotelHasCityCol) $hotelSelect[] = 'city';
+        // 4) Если страны нет — ищем город глобально
+        if (!$city && $qLower !== '') {
+            $city = City::where(function($w) use ($qLower){
+                $w->whereRaw('LOWER(title) LIKE ?', ["%{$qLower}%"])
+                    ->orWhereRaw('LOWER(name)  LIKE ?', ["%{$qLower}%"])
+                    ->orWhereRaw('LOWER(code)  LIKE ?', ["%{$qLower}%"]);
+            })->orderBy('title')->first();
+            if ($city && !$country) $country = $city->country;
+        }
 
-        $hotels = Hotel::query()->select($hotelSelect)
-            ->where('status', 1)
-            ->where(function($q) use ($like, $hotelHasTitleEn, $hotelHasCityCol) {
-                $q->whereRaw('LOWER(title) LIKE ?', [$like]);
-                if ($hotelHasTitleEn) $q->orWhereRaw('LOWER(title_en) LIKE ?', [$like]);
-                if ($hotelHasCityCol) $q->orWhereRaw('LOWER(city) LIKE ?', [$like]);
-            })
-            ->limit(10)
-            ->get()
-            ->map(function($h) use ($hotelHasTitleEn, $hotelHasCityCol) {
-
-                // Гибкий выбор роута показа отеля
-                if (Route::has('hotel.show')) {
-                    $url = route('hotel.show', $h->id);
-                } elseif (Route::has('hotels.show')) {
-                    $url = route('hotels.show', $h->id);
-                } elseif (Route::has('hotel')) {
-                    $url = route('hotel', $h->id);
-                } elseif (Route::has('hotels.view')) {
-                    $url = route('hotels.view', $h->id);
-                } else {
-                    $url = url('/hotel/'.$h->id); // запасной вариант
-                }
-
-                return [
-                    'type'   => 'hotel',
-                    'label'  => $h->title,
-                    'alt'    => $hotelHasTitleEn ? ($h->title_en ?? null) : null,
-                    'city'   => $hotelHasCityCol ? ($h->city ?? null) : null,
-                    'rating' => $h->rating,
-                    'url'    => $url,
-                ];
-            });
-
-        return response()->json([
-            'items' => $cities->concat($hotels)->values(),
-        ]);
+        return [$country,$city];
     }
 
     public function search(Request $request)
     {
-        // Города
-        $cities = City::whereNull('country_id')->orderBy('title')->get();
+        $q = trim((string)$request->get('q',''));
+        $country = null; $city = null;
+
+        // --- резолвер ---
+        [$country, $city] = $this->resolveLocation($q);
+
+        // Отели строго по city_id (если нашли город)
+        $hotels = collect();
+        if ($city) {
+            $hotels = Hotel::where('city_id', $city->id)->get();
+
+            // fallback для старых данных без city_id — по строковому названию:
+            if ($hotels->isEmpty()) {
+                $hotels = Hotel::whereIn('city', array_filter([$city->title, $city->name, 'Bishkek','Бишкек']))->get();
+            }
+        }
 
         // Валюта/курсы
         $fxBase  = strtoupper(session('currency', 'USD'));
@@ -433,8 +456,14 @@ class SearchController extends Controller
             'request'   => $request,
             'cities'    => $cities,
             'childAges' => $childAges,
+            'q'               => $q,
+            'countries'       => $countries,
+            'hotels'          => $hotels,
+            'selectedCountry' => $country?->alpha2 ?? $country?->code,
+            'selectedCity'    => $city?->id,
         ]);
     }
+
 
     public function findHotel($code, Request $request)
     {

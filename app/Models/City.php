@@ -16,13 +16,19 @@ class City extends Model
         'title',
         'code',
         'exely_id',
-        'country_id',
+        //'country_id',
         'name',
         'country_code',
     ];
 
+    public function country()
+    {
+        return $this->belongsTo(Country::class);
+    }
+
+
     public function hotels()
     {
-        return $this->hasMany(Hotel::class);
+        return $this->hasMany(Hotel::class, 'city_id');
     }
 }

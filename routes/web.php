@@ -34,7 +34,6 @@ use Illuminate\Support\Facades\Session;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
-
 Route::get('locale/{locale}', 'App\Http\Controllers\MainController@changeLocale')->name('locale');
 Route::get('/logout', 'App\Http\Controllers\ProfileController@logout')->name('get-logout');
 
@@ -145,8 +144,8 @@ Route::middleware('set_locale')->group(function () {
     })->name('currency.switch');
 
     //-----search
-    Route::get('/search', [SearchController::class, 'smartSearch'])->name('search');        // результаты
-    Route::get('/suggest', [SearchController::class, 'suggest'])->name('suggest');
+    Route::get('/search', [SearchController::class, 'smartSearch'])->name('search');
+    Route::get('/suggest', [SearchController::class, 'suggest'])->name('search.suggest');
 
     //local
     Route::get('/search/hotel', [\App\Http\Controllers\SearchController::class, 'search'])->name('search');
