@@ -88,6 +88,16 @@
                                                     <td>{{ $hotel->amenity->services ?? '' }}</td>
                                                 </tr>
                                             @endisset
+                                            <tr>
+                                                <td>@lang('admin.status')</td>
+                                                <td>
+                                                    @if($hotel->status == 1)
+                                                        <span style="color: var(--green)">@lang('admin.active')</span>
+                                                    @else
+                                                        <span style="color: #f35252">@lang('admin.disable')</span>
+                                                    @endif
+                                                </td>
+                                            </tr>
                                         </table>
                                     </div>
                                 </div>
@@ -140,8 +150,8 @@
                                                                         @method('DELETE')
                                                                         <button class="btn delete"
                                                                                 onclick="return confirm('Do you want to delete this?');">
-                                                                            <i class="fa-regular
-                                                    fa-trash"></i></button>
+                                                                            <img src="{{ route('index') }}/img/icons/trash.svg" style="height: auto; margin: 0;">
+                                                                        </button>
                                                                     </form>
                                                                 </div>
                                                             </div>

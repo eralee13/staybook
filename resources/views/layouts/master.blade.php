@@ -109,7 +109,7 @@
                         @auth
                             <a href="{{ route('profile.edit') }}">{{ \Illuminate\Support\Facades\Auth::user()->name }}</a>
                         @else
-                            <a href="{{ route('extranet') }}">@lang('main.login')</a>
+                            <a href="{{ route('login') }}">@lang('main.login')</a>
                         @endif
                     </div>
                 </div>
@@ -120,7 +120,7 @@
                         @auth
                             <a href="{{ route('profile.edit') }}">{{ \Illuminate\Support\Facades\Auth::user()->name }}</a>
                         @else
-                            <a href="{{ route('extranet') }}">@lang('main.login')</a>
+                            <a href="{{ route('login') }}">@lang('main.login')</a>
                         @endif
                     </div>
                     <nav>

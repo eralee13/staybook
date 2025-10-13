@@ -227,7 +227,13 @@
                             @endif
                             <div class="btn-wrap">
                                 @hasrole('Demo')
-                                <div class="alert alert-danger">Доступ ограничен</div>
+                                <div class="alert alert-danger">
+                                    @if(app()->getLocale() == 'ru')
+                                    Доступ ограничен
+                                    @else
+                                        Access is restricted
+                                    @endif
+                                </div>
                                 @else
                                     <button class="more" id="saveBtn">@lang('main.confirm')</button>
                                     @endhasrole

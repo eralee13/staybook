@@ -78,11 +78,13 @@ class SearchController extends Controller
         // Ищем отель
         $hotel = \App\Models\Hotel::with(['rooms.rates.cancellationRule'])->find($id);
         if (!$hotel) {
-//            return response()->json([
-//                'code'    => 404,
-//                'message' => 'Hotel not found',
-//            ], 404, ['Content-Type' => 'application/json; charset=utf-8']);
-            throw new EtgBadRequestException(1, 'The specified hotel does not exist in the system.');
+            return response()->json([
+                'code'    => 404,
+                'message' => 'Hotel not found',
+            ], 404, ['Content-Type' => 'application/json; charset=utf-8']);
+            //throw new EtgBadRequestException(1, 'The specified hotel does not exist in the system.');
+        } else {
+            return response()->json(['data' => $hotel], 200);
         }
 
         $rates_array = [];

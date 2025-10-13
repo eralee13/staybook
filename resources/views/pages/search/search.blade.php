@@ -730,7 +730,20 @@
                                                                        value="{{ $request->arrivalDate }}">
                                                                 <input type="hidden" name="departureDate"
                                                                        value="{{ $request->departureDate }}">
-                                                                {{-- при необходимости добавьте adult/child из вашего виджета --}}
+                                                                {{--                                                                <input type="hidden" id="city" name="city"--}}
+                                                                {{--                                                                       value="{{ $request->city }}">--}}
+                                                                <input type="hidden" name="roomCount"
+                                                                       value="{{ $roomCount }}">
+                                                                <input type="hidden" name="adult"
+                                                                       value="{{ $totalAdults }}">
+                                                                <input type="hidden" name="child"
+                                                                       value="{{ $totalChildren }}">
+                                                                <input type="hidden" name="childAges[]"
+                                                                       value="{{ implode(', ', $childAges) }}">
+                                                                @foreach((array) $request->meal as $meal)
+                                                                    <input type="hidden" name="meal[]"
+                                                                           value="{{ $meal }}">
+                                                                @endforeach
                                                                 <button class="more">@lang('main.show_all_rooms')</button>
                                                             </form>
                                                         </div>

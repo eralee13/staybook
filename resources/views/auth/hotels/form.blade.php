@@ -33,7 +33,10 @@
             transition: box-shadow 0.3s;
             max-width: 100%;
             object-fit: cover;
-            height: 200px;
+            /*height: 200px;*/
+        }
+        .img-item img{
+            border-radius: 30px;
         }
 
         .img-item:hover {
@@ -161,7 +164,21 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="">@lang('admin.property_currency')</label>
-                                            .custo
+                                            <select name="currency" id="currency">
+                                                @isset($hotel)
+                                                    <option @if($hotel->currency)
+                                                                selected>
+                                                        {{ $hotel->currency }}@endif</option>
+                                                @else
+                                                    <option>@lang('admin.choose')</option>
+                                                @endisset
+                                                <option value="USD" {{ old('currency') == 'USD' ? 'selected' : '' }}>
+                                                    USD
+                                                </option>
+                                                <option value="KGS" {{ old('currency') == 'KGS' ? 'selected' : '' }}>
+                                                    KGS
+                                                </option>
+                                            </select>
                                             @include('auth.layouts.error', ['fieldname' => 'currency'])
                                         </div>
                                     </div>

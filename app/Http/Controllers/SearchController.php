@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\FXService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Models\City;
@@ -141,6 +142,8 @@ class SearchController extends Controller
                 if ($age !== null && $age >= 0) $allChildAges[] = $age;
             }
         }
+
+        $childAges = array_values($allChildAges);
 
         // ---------- Базовый запрос отелей ----------
         $hotelQuery = \App\Models\Hotel::with([
@@ -297,7 +300,8 @@ class SearchController extends Controller
         $exelyHotels = $exelyRoomStays->map(function ($roomStay) use ($toUSD) {
             $basePrice = (float)data_get($roomStay, 'total.priceBeforeTax', 0);
             $currency  = (string)(data_get($roomStay, 'currencyCode', 'USD') ?? 'USD');
-            $priceUsd  = round($toUSD($basePrice, $currency), 2);
+            $priceUsd  = round($toUSD($basePrice / 0.92, $currency), 2);
+           // $priceUsd = round($priceUsd / 0.92);
 
             $propertyId = data_get($roomStay, 'propertyId');
             $hotelModel = $propertyId ? \App\Models\Hotel::where('exely_id', $propertyId)->first() : null;
@@ -428,61 +432,103 @@ class SearchController extends Controller
             'fxRates'   => $fxRates,
             'request'   => $request,
             'cities'    => $cities,
+            'childAges' => $childAges,
         ]);
     }
 
     public function findHotel($code, Request $request)
     {
-        $hotel = Hotel::where('code', $code)->first();
-        $images = Image::where('hotel_id', $hotel->id)->get();
-        //$hotel = Hotel::cacheFor(now()->addHours(2))->where('code', $code)->first();
-        $arrival = Carbon::createFromDate($request->arrivalDate);
-        $departure = Carbon::createFromDate($request->departureDate);
-        $count_day = $arrival->diffInDays($departure);
-        $adult = $request->adult;
+        $hotel   = Hotel::where('code', $code)->firstOrFail();
+        $images  = Image::where('hotel_id', $hotel->id)->get();
 
-        $query = Room::with(['rates' => function ($q) use ($request) {
-            if ($request->filled('adult')) {
-                $q->where('availability', '>=', $request->adult);
-            }
+        $arrival    = Carbon::parse($request->arrivalDate);
+        $departure  = Carbon::parse($request->departureDate);
+        $count_day  = $arrival->diffInDays($departure);
+        $adult      = (int)($request->adult ?? 1);
 
-            if ($request->filled('child')) {
-                $q->where('child', '>=', $request->child);
-            }
+        $startTime = (string)$request->arrivalDate;
+        $endTime   = (string)$request->departureDate;
 
-            if ($request->filled('meal') && is_array($request->meal)) {
-                $q->whereIn('meal_id', $request->meal);
-            }
+        // функция-предикат пересечения дат для переиспользования в замыканиях
+        $overlap = function ($q) use ($startTime, $endTime) {
+            $q->where(function ($ov) use ($startTime, $endTime) {
+                $ov->whereBetween('arrivalDate', [$startTime, $endTime])
+                    ->orWhereBetween('departureDate', [$startTime, $endTime])
+                    ->orWhere(function ($qq) use ($startTime, $endTime) {
+                        $qq->where('arrivalDate', '<=', $startTime)
+                            ->where('departureDate', '>=', $endTime);
+                    });
+            });
+        };
 
-            // Показать только те тарифы, у которых нет бронирования
-            if ($request->filled('arrivalDate') && $request->filled('departureDate')) {
-                $startTime = $request->arrivalDate;
-                $endTime = $request->departureDate;
+        $rooms = Room::query()
+            ->where('hotel_id', $hotel->id)
+            ->with([
+                'rates' => function ($q) use ($request, $overlap, $startTime, $endTime) {
+                    // фильтр по питанию (если пришёл)
+                    if ($request->filled('meal') && is_array($request->meal)) {
+                        $q->whereIn('meal_id', $request->meal);
+                    }
 
-                $q->whereDoesntHave('bookings', function ($b) use ($startTime, $endTime) {
-                    $b->where('status', 'reserved')
-                        ->where(function ($query) use ($startTime, $endTime) {
-                            $query->whereBetween('arrivalDate', [$startTime, $endTime])
-                                ->orWhereBetween('departureDate', [$startTime, $endTime])
-                                ->orWhere(function ($q) use ($startTime, $endTime) {
-                                    $q->where('arrivalDate', '<=', $startTime)
-                                        ->where('departureDate', '>=', $endTime);
-                                });
+                    // исключить пересечения с реальными бронированиями (reserved)
+                    if ($startTime && $endTime) {
+                        $q->whereDoesntHave('bookings', function ($b) use ($overlap) {
+                            $overlap($b);
                         });
-                });
-            }
-        }])->where('hotel_id', $hotel->id);
+                    }
 
-        $rooms = $query->get()->filter(function ($room) {
-            return $room->rates->isNotEmpty();
-        });
+                    // подгружаем ПО ОДНОЙ «последней по id» записи для квоты и для цены,
+                    // но только среди тех, что пересекают выбранный интервал
+                    $q->with([
+                        'latestAllotment' => function ($b) use ($overlap) { $overlap($b); },
+                        'latestPrice'     => function ($b) use ($overlap) { $overlap($b); },
+                    ]);
+                }
+            ])
+            ->get();
 
+        // постобработка: применяем квоты и цены из календаря, сортируем
+        $rooms = $rooms->map(function ($room) use ($adult) {
+            // сначала преобразуем тарифы
+            $filteredRates = $room->rates->map(function ($rate) use ($adult) {
+                // 1) доступность по квоте
+                $quota = optional($rate->latestAllotment)->adult; // null | int
+                $passesQuota =
+                    is_null($quota)               // нет записи — не ограничиваем
+                    || ($quota > 0 && $quota >= $adult);
 
-        if ($hotel->exely_id != null) {
-            return view('pages.search.hotel', compact('hotel', 'arrival', 'departure', 'adult', 'count_day', 'request', 'rooms', 'images'));
-        } else {
-            return view('pages.search.hotel', compact('hotel', 'arrival', 'departure', 'adult', 'count_day', 'request', 'rooms', 'images'));
-        }
+                // 2) актуальная цена
+                $calendarPrice = optional($rate->latestPrice)->price;
+                $effective = (is_numeric($calendarPrice) && $calendarPrice > 0)
+                    ? (float)$calendarPrice
+                    : (float)$rate->price;
+
+                // проставим для шаблона
+                $rate->effective_price = $effective;
+                $rate->passes_quota = $passesQuota;
+
+                return $rate;
+            })
+                // фильтруем по квоте ТОЛЬКО здесь (без WHERE в SQL)
+                ->filter(fn($r) => $r->passes_quota)
+                // сортируем визуально по актуальной цене
+                ->sortBy('effective_price', SORT_NUMERIC)
+                ->values();
+
+            $room->rates = $filteredRates;
+            $room->min_effective_price = $filteredRates->min('effective_price');
+
+            return $room;
+        })
+            // оставляем комнаты, где остались тарифы
+            ->filter(fn ($room) => $room->rates->isNotEmpty())
+            // сортируем комнаты по минимальной цене тарифа
+            ->sortBy('min_effective_price', SORT_NUMERIC)
+            ->values();
+
+        return view('pages.search.hotel', compact(
+            'hotel','arrival','departure','adult','count_day','request','rooms','images'
+        ));
     }
 
     //exely

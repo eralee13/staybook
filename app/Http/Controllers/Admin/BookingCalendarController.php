@@ -18,7 +18,7 @@ class BookingCalendarController extends Controller
 {
     public function index(Request $request)
     {
-        if (!Auth::check()) {
+        if(!Auth::check()) {
             return redirect()->route('index');
         }
 
@@ -54,7 +54,6 @@ class BookingCalendarController extends Controller
 
         foreach ($rooms as $room) {
             $roomResId = 'room_' . $room->id;
-
             $resources[] = [
                 'id'    => $roomResId,
                 'title' => $room->title,

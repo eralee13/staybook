@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200..900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{route('index')}}/css/main.min.css?ver=1.5">
+    <link rel="stylesheet" href="{{route('index')}}/css/main.min.css?ver=1.6">
     <link rel="stylesheet" href="{{route('index')}}/css/style.css?ver=1.1">
 
     <!-- Google tag (gtag.js) -->
@@ -109,7 +109,7 @@
                             @auth
                                 <a href="{{ route('profile.edit') }}">{{ \Illuminate\Support\Facades\Auth::user()->name }}</a>
                             @else
-                                <a href="{{ route('extranet') }}">@lang('main.login')</a>
+                                <a href="{{ route('login') }}">@lang('main.login')</a>
                             @endif
                         </div>
                     </div>
@@ -120,7 +120,7 @@
                             @auth
                                 <a href="{{ route('profile.edit') }}">{{ \Illuminate\Support\Facades\Auth::user()->name }}</a>
                             @else
-                                <a href="{{ route('extranet') }}">@lang('main.login')</a>
+                                <a href="{{ route('login') }}">@lang('main.login')</a>
                             @endif
                         </div>
                         <nav>

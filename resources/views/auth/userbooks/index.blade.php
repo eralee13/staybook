@@ -147,7 +147,7 @@
                             </div>
                         @endforeach
                     @else
-                        <h2 style="text-align: center">@lang('admin.bookings_not_found')</h2>
+                        <h2 style="text-align: center; padding-bottom: 500px;">@lang('admin.bookings_not_found')</h2>
                     @endif
                 </div>
             </div>

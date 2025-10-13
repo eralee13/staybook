@@ -17,11 +17,12 @@
     </script>
 
     <style>
-        body{
-            font-family: Unbounded,sans-serif;
+        body {
+            font-family: Unbounded, sans-serif;
             background-color: rgba(246, 246, 246, 1) !important;
         }
-        .page{
+
+        .page {
             padding-bottom: 60px;
         }
     </style>
@@ -61,23 +62,26 @@
                                         // формат UTC±HH:00
                                         $offset = sprintf('UTC%+03d:00', $hours);
                                     @endphp
-                                    <h1><img src="{{ route('index') }}/img/arrow-left.svg" alt=""> @lang('main.order_confirmation')</h1>
+                                    <h1><img src="{{ route('index') }}/img/arrow-left.svg"
+                                             alt=""> @lang('main.order_confirmation')</h1>
 
                                     <div class="order-item">
                                         <p><span>@lang('main.hotel')</span>: {{ $hotel->__('title') }}</p>
                                     </div>
                                     <div class="order-item">
-                                        <p><span>@lang('main.price')</span>: {{ $request->brut_price }} {{ $request->currency }}</p>
+                                        <p>
+                                            <span>@lang('main.price')</span>: {{ $request->brut_price }} {{ $request->currency }}
+                                        </p>
                                     </div>
                                     <div class="order-item">
                                         <p><span>@lang('main.cancellation_policy')</span>:
                                             @if($cancelPossible->freeCancellationPossible == true)
                                                 @lang('main.free_cancellation') {{ $cancelLocal }} ({{ $offset }}).
-                                                    @lang('main.cancellation_amount')
-                                                    : {{ $request->cancel_brut_price }} {{ $request->currency }}
+                                                @lang('main.cancellation_amount')
+                                                : {{ $request->cancel_brut_price }} {{ $request->currency }}
                                             @else
                                                 @lang('main.cancellation_amount')
-                                                    : {{ $request->cancel_brut_price }} {{ $request->currency }}
+                                                : {{ $request->cancel_brut_price }} {{ $request->currency }}
                                             @endif
                                         </p>
                                     </div>
@@ -87,20 +91,22 @@
                                                     {{ $guest->firstName }}
                                                 @endforeach</p>
                                         </div>
-                                        <div class="order-item">
-                                            <p>@lang('main.full_name') @lang('main.child'):
-                                            @foreach($room->guests as $guest)
-                                                {{ $guest->middleName }}
-                                            @endforeach
-                                            </p>
-                                        </div>
+                                        @if($room->guestCount->childAges)
+                                            <div class="order-item">
+                                                <p>@lang('main.full_name') @lang('main.child'):
+                                                    @foreach($room->guests as $guest)
+                                                        {{ $guest->middleName }}
+                                                    @endforeach
+                                                </p>
+                                            </div>
+                                        @endif
                                         <div class="order-item">
                                             <p>@lang('main.dates'):
-                                            @php
-                                                $arrival = \Carbon\Carbon::createFromDate($room->stayDates->arrivalDateTime)->format('d.m.Y H:i');
-                                                $departure = \Carbon\Carbon::createFromDate($room->stayDates->departureDateTime)->format('d.m.Y H:i');
-                                            @endphp
-                                            {{ $arrival }} - {{ $departure }}
+                                                @php
+                                                    $arrival = \Carbon\Carbon::createFromDate($room->stayDates->arrivalDateTime)->format('d.m.Y H:i');
+                                                    $departure = \Carbon\Carbon::createFromDate($room->stayDates->departureDateTime)->format('d.m.Y H:i');
+                                                @endphp
+                                                {{ $arrival }} - {{ $departure }}
                                                 @if($order->booking->cancellationPolicy->freeCancellationDeadlineLocal == null)
                                                     (UTC {{ $hotel_utc }})
                                                 @endif
@@ -114,28 +120,30 @@
                                         </div>
                                         <div class="order-item">
                                             <p>@lang('main.count_child'):
-                                            @php
-                                                $childAgesInput = (array) $request->input('childAges', []);
-                                                $childAges = collect($childAgesInput)
-                                                ->flatMap(fn($ageString) => explode(',', $ageString)) // "2,4" → ["2", "4"]
-                                                ->map(fn($age) => (int) trim($age)) // убираем пробелы и делаем числа
-                                                ->filter(fn($age) => $age > 0) // убираем пустые/нулевые
-                                                ->values() // пересобираем индексы
-                                                ->toArray();
+                                                @php
+                                                    $childAgesInput = (array) $request->input('childAges', []);
+                                                    $childAges = collect($childAgesInput)
+                                                    ->flatMap(fn($ageString) => explode(',', $ageString)) // "2,4" → ["2", "4"]
+                                                    ->map(fn($age) => (int) trim($age)) // убираем пробелы и делаем числа
+                                                    ->filter(fn($age) => $age > 0) // убираем пустые/нулевые
+                                                    ->values() // пересобираем индексы
+                                                    ->toArray();
 
-                                                $count = count($childAges);
-                                            @endphp
-                                            {{ $childCount }} @if($count > 0)
-                                                (@lang('main.age'): {{ implode(', ', $childAges) }}
-                                            @endif </p>
+                                                    $count = count($childAges);
+                                                @endphp
+                                                {{ $childCount }} @if($count > 0)
+                                                    (@lang('main.age'): {{ implode(', ', $childAges) }})
+                                                @endif </p>
                                         </div>
                                         <div class="order-item">
                                             <p>@lang('main.room'): {{ $room->roomType->name }}</p>
                                         </div>
                                     @endforeach
-                                    @if($request->comment)
+                                    @if($request->comment ?? $order->booking->customer->comment)
                                         <div class="order-item">
-                                            <p><span>@lang('main.message')</span>: {{ $order->booking->customer->comment }}</p>
+                                            <p>
+                                                <span>@lang('main.message')</span>: {{ $order->booking->customer->comment }}
+                                            </p>
                                         </div>
                                     @endif
                                     <div class="btn-wrap">
@@ -359,10 +367,10 @@
                                             <input type="hidden" name="email"
                                                    value="{{ $order->alternativeBooking->customer->contacts->emails[0]->emailAddress }}">
                                             @hasrole('Demo')
-                                                <div class="alert alert-danger">Доступ ограничен</div>
+                                            <div class="alert alert-danger">Доступ ограничен</div>
                                             @else
                                                 <button class="more">@lang('main.confirm')</button>
-                                            @endhasrole
+                                                @endhasrole
                                         </form>
                                     </div>
                                 @endif

@@ -26,6 +26,9 @@ class Book extends Model
         'child_name',
         'room_count',
         'price',
+        'price2',
+        'price3',
+        'price4',
         'sum',
         'arrivalDate',
         'departureDate',
@@ -56,7 +59,10 @@ class Book extends Model
 
     // Приведение типов: корректная сериализация и работа с датами/суммами
     protected $casts = [
-        'price'        => 'decimal:2',
+        'price'        => 'float',
+        'price2'        => 'float',
+        'price3'        => 'float',
+        'price4'        => 'float',
         'sum'          => 'decimal:2',
         'arrivalDate'  => 'date',     // храните Y-m-d? отлично, станет Carbon date
         'departureDate'=> 'date',

@@ -1,3 +1,4 @@
+// resources/js/bookcalendarprice.js
 import { Calendar } from '@fullcalendar/core'
 import resourceTimelinePlugin from '@fullcalendar/resource-timeline'
 import interactionPlugin from '@fullcalendar/interaction'
@@ -5,247 +6,313 @@ import ruLocale from '@fullcalendar/core/locales/ru'
 import tippy from 'tippy.js'
 import 'tippy.js/dist/tippy.css'
 
-let isRefetching = false;
-let selectedHotel = '';
-let selectedStart = '';
-let selectedEnd = '';
+let isRefetching = false
+let selectedHotel = ''
+let selectedStart = ''
+let selectedEnd = ''
+
+// ------------------- helpers -------------------
+
+const toYMD = (v) => {
+    if (!v) return ''
+    if (v instanceof Date) {
+        const y = v.getFullYear()
+        const m = String(v.getMonth() + 1).padStart(2, '0')
+        const d = String(v.getDate()).padStart(2, '0')
+        return `${y}-${m}-${d}`
+    }
+    const dt = new Date(v)
+    const y = dt.getFullYear()
+    const m = String(dt.getMonth() + 1).padStart(2, '0')
+    const d = String(dt.getDate()).padStart(2, '0')
+    return `${y}-${m}-${d}`
+}
+
+const ymdToDate = (s) => {
+    const [y, m, d] = s.split('-').map(Number)
+    return new Date(y, m - 1, d)
+}
+
+const addDays = (ymd, n = 1) => {
+    const [y, m, d] = ymd.split('-').map(Number)
+    const dt = new Date(y, m - 1, d)
+    dt.setDate(dt.getDate() + n)
+    const yy = dt.getFullYear()
+    const mm = String(dt.getMonth() + 1).padStart(2, '0')
+    const dd = String(dt.getDate()).padStart(2, '0')
+    return `${yy}-${mm}-${dd}`
+}
+
+const toDMY = (ymd) => {
+    const [y, m, d] = ymd.split('-')
+    return `${d}.${m}.${y}`
+}
+
+// идентификаторы из resourceId
+const extractRoom = (rid) => (String(rid || '').match(/room_(\d+)/)?.[1] ?? '')
+const extractRate = (rid) => (String(rid || '').match(/rate_(\d+(?:_p[1-4])?)/)?.[1] ?? '')
+
+// ВСЕГДА работает с ИНКЛЮЗИВНЫМИ датами
+function putDatesInc(startYMD, endInclusiveYMD) {
+    // hidden
+    window.$('#start').val(startYMD)
+    window.$('#end').val(endInclusiveYMD)
+
+    // поле
+    const same = startYMD === endInclusiveYMD
+    const text = same ? `${toDMY(startYMD)}` : `${toDMY(startYMD)} - ${toDMY(endInclusiveYMD)}`
+    const $range = window.$('#modalDateRange')
+    $range.val(text)
+
+    // sync с DRP
+    const drp = $range.data('daterangepicker')
+    if (drp) {
+        drp.setStartDate(toDMY(startYMD))
+        drp.setEndDate(toDMY(endInclusiveYMD))
+    }
+}
+
+// ------------------- openModalFilled (ожидает ИНКЛЮЗИВНЫЙ конец!) -------------------
+
+function openModalFilled({ hotelId, hotelName, resource, startIncYMD, endIncYMD }) {
+    const rid    = resource?.id ?? ''
+    const roomId = extractRoom(rid)
+    const rateId = extractRate(rid)
+
+    window.$('#modalHotelId').val(hotelId)
+    window.$('#modalHotelName').text(hotelName)
+    window.$('#modalRoomId').val(roomId)
+    window.$('#modalRateId').val(rateId)
+
+    // названия
+    const roomResId = `room_${roomId}`
+    const rateResId = `room_${roomId}_rate_${rateId}`
+    window.$('#modalRoomName').text(resource?.title ?? '—')
+    window.$('#modalRateName').text(resource?.title ?? '—')
+
+    // один раз выставили инклюзивные даты
+    putDatesInc(startIncYMD, endIncYMD)
+
+    // DRP без авто-апдейта инпута
+    window.$('#modalDateRange').data('daterangepicker')?.remove()
+    window.$('#modalDateRange').daterangepicker({
+        singleDatePicker: false,
+        showDropdowns: true,
+        autoApply: true,
+        autoUpdateInput: false,
+        startDate: toDMY(startIncYMD),
+        endDate: toDMY(endIncYMD),
+        locale: {
+            format: 'DD.MM.YYYY',
+            separator: ' - ',
+            applyLabel: 'Выбрать',
+            cancelLabel: 'Отмена',
+            fromLabel: 'С',
+            toLabel: 'По',
+            customRangeLabel: 'Выбрать вручную',
+            weekLabel: 'Н',
+            daysOfWeek: ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'],
+            monthNames: ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'],
+            firstDay: 1
+        }
+    }, function (start, end) {
+        // DRP даёт ИНКЛЮЗИВНЫЕ
+        const sInc = start.format('YYYY-MM-DD')
+        const eInc = end.format('YYYY-MM-DD')
+        putDatesInc(sInc, eInc)
+    })
+
+    // страховочно ещё раз руками (гарантия одной даты при первом открытии)
+    putDatesInc(startIncYMD, endIncYMD)
+
+    new window.bootstrap.Modal(document.getElementById('createBookingModal')).show()
+}
+
+// ------------------- Calendar -------------------
 
 document.addEventListener('DOMContentLoaded', function () {
-    const calendarEl = document.getElementById('calendar');
+    const calendarEl = document.getElementById('calendar')
+    if (!calendarEl) return
 
     const calendar = new Calendar(calendarEl, {
         schedulerLicenseKey: 'GPL-My-Project-Is-Open-Source',
         plugins: [resourceTimelinePlugin, interactionPlugin],
+        timeZone: 'local',
         locale: ruLocale,
-        initialDate: new Date().toISOString().split('T')[0],
-        validRange: {
-            start: new Date().toISOString().split('T')[0]
-        },
-        initialView: 'timelineTwoMonths',
+
+        // корректные типы view
+        initialView: 'resourceTimelineTwoMonths',
         views: {
-            timelineTwoMonths: {
+            resourceTimelineTwoMonths: {
                 type: 'resourceTimeline',
                 duration: { months: 2 },
                 slotDuration: { days: 1 },
+                buttonText: '2 месяца'
             }
         },
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'resourceTimelineMonth,resourceTimelineTwoMonths'
+        },
+
+        validRange: { start: toYMD(new Date()) },
         slotMinWidth: 80,
         resourceAreaHeaderContent: 'Номера / Тарифы',
-        nowIndicator: true,
         height: 'auto',
         selectable: true,
         editable: false,
+        nowIndicator: true,
 
         resources: window.resourcesData ?? [],
         events: window.eventsData ?? [],
 
-        eventContent: function(arg) {
-            const title = arg.event?.title ?? '';
-            return {
-                html: `<div style="padding: 5px; text-align: center; font-weight: bold">${title}</div>`
-            };
+        eventContent(arg) {
+            const title = arg.event?.title ?? ''
+            return { html: `<div style="padding:5px;text-align:center;font-weight:500">${title}</div>` }
         },
 
-        eventClick: function(info) {
-            const event = info.event;
-            const date = event.startStr.split('T')[0];
+        // клик по событию: конвертируем FC-end (эксклюзив) -> инклюзив
+        eventClick(info) {
+            const hotelId = window.$('#hotel_id').val()
+            const hotelName = window.$('#hotel_id option:selected').text()
 
-            const hotelId = $('#hotel_id').val();
-            const hotelName = $('#hotel_id option:selected').text();
+            const startInc = toYMD(info.event.start)
+            const endInc = info.event.end ? addDays(toYMD(info.event.end), -1) : startInc
 
-            const resourceId = info.event.getResources?.()[0]?.id ?? info.event._def.resourceIds?.[0] ?? '';
-
-            let roomId = '';
-            let rateId = '';
-
-            if (resourceId && resourceId.includes('_rate_')) {
-                const [roomPart, ratePart] = resourceId.replace('room_', '').split('_rate_');
-                roomId = roomPart;
-                rateId = ratePart;
-            }
-
-            const roomResource = calendar.getResourceById(`room_${roomId}`);
-            const rateResource = calendar.getResourceById(`room_${roomId}_rate_${rateId}`);
-
-            $('#modalHotelId').val(hotelId);
-            $('#modalHotelName').text(hotelName);
-            $('#modalRoomId').val(roomId);
-            $('#modalRateId').val(rateId);
-            $('#modalRoomName').text(roomResource?.title ?? '—');
-            $('#modalRateName').text(rateResource?.title ?? '—');
-            $('#modalDateRange').val(`${formatDate(date)} - ${formatDate(date)}`);
-
-            $('#bookingError').addClass('d-none').html('');
-
-            $('#modalDateRange').data('daterangepicker')?.remove();
-
-            $('#modalDateRange').daterangepicker({
-                singleDatePicker: false,
-                showDropdowns: true,
-                autoApply: true,
-                startDate: formatDate(date),
-                endDate: formatDate(date),
-                locale: {
-                    format: 'DD.MM.YYYY',
-                    separator: ' - ',
-                    applyLabel: 'Выбрать',
-                    cancelLabel: 'Отмена',
-                    fromLabel: 'С',
-                    toLabel: 'По',
-                    customRangeLabel: 'Выбрать вручную',
-                    weekLabel: 'Н',
-                    daysOfWeek: ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'],
-                    monthNames: ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'],
-                    firstDay: 1
-                }
-            });
-
-            $('#createBookingModal').modal('show');
+            const res = info.event.getResources?.()[0] || null
+            openModalFilled({ hotelId, hotelName, resource: res, startIncYMD: startInc, endIncYMD: endInc })
         },
 
-        eventDidMount: function(info) {
-            const event = info.event;
-            const el = info.el;
-            const color = event.backgroundColor || event._def?.ui?.backgroundColor;
-            const title = event.title;
+        // клик по пустой ячейке -> один день
+        dateClick(info) {
+            const hotelId = window.$('#hotel_id').val()
+            const hotelName = window.$('#hotel_id option:selected').text()
+
+            const startInc = toYMD(info.date)
+            const endInc = startInc
+
+            openModalFilled({ hotelId, hotelName, resource: info.resource, startIncYMD: startInc, endIncYMD: endInc })
+        },
+
+        // выделение диапазона: info.end эксклюзив -> делаем инклюзив
+        select(info) {
+            const hotelId = window.$('#hotel_id').val()
+            const hotelName = window.$('#hotel_id option:selected').text()
+
+            const startInc = toYMD(info.start)
+            const endInc = addDays(toYMD(info.end), -1)
+
+            openModalFilled({ hotelId, hotelName, resource: info.resource, startIncYMD: startInc, endIncYMD: endInc })
+        },
+
+        eventDidMount(info) {
+            const event = info.event
+            const el = info.el
+            const color = event.backgroundColor || event._def?.ui?.backgroundColor
+            const title = event.title
 
             if (event.extendedProps.description && color === '#d95d5d') {
                 tippy(el, {
-                    content: `
-                        <div style="padding: 4px 8px; font-size: 14px;">
-                            <strong>${title}</strong><br>
-                            ${event.extendedProps.description}
-                        </div>
-                    `,
+                    content: `<div style="padding:4px 8px;font-size:14px;"><strong>${title}</strong><br>${event.extendedProps.description}</div>`,
                     allowHTML: true,
                     theme: 'light-border',
                     placement: 'right',
-                    zIndex: 999999,
-                });
+                    zIndex: 999999
+                })
             }
-
             if (color) {
-                el.style.backgroundColor = color;
-                el.style.borderColor = color;
+                el.style.backgroundColor = color
+                el.style.borderColor = color
             }
         },
 
-        datesSet: function(info) {
+        datesSet(info) {
             if (!isRefetching) {
-                selectedStart = info.startStr.split('T')[0];
-                selectedEnd = info.endStr.split('T')[0];
-                refetchCalendar(calendar);
+                selectedStart = info.startStr.split('T')[0]
+                selectedEnd = info.endStr.split('T')[0]
+                refetchCalendar(calendar)
             }
         }
-    });
+    })
 
-    calendar.render();
+    calendar.render()
 
-    function formatDate(dateStr) {
-        const [y, m, d] = dateStr.split('-');
-        return `${d}.${m}.${y}`;
-    }
-
-    function refetchCalendar(calendar) {
-        if (isRefetching) return;
-        isRefetching = true;
-
-        let datos = $('#daterange').val();
-        selectedHotel = $('#hotel_id').val();
-
-        if (datos && datos.includes(' - ')) {
-            const parts = datos.split(' - ');
-            selectedStart = parts[0].trim().split('.').reverse().join('-');
-            selectedEnd = parts[1].trim().split('.').reverse().join('-');
-        }
+    // ------------------- reload -------------------
+    function refetchCalendar(cal) {
+        if (isRefetching) return
+        isRefetching = true
+        selectedHotel = window.$('#hotel_id').val()
 
         fetch(`/auth/bookcalendarprice/books/events?hotel_id=${selectedHotel}&start=${selectedStart}&end=${selectedEnd}`)
             .then(res => res.json())
             .then(data => {
-                if (data.warning) {
-                    $('#warning').text(data.warning).show();
-
-                    const alertDiv = document.createElement('header .tabs div');
-                    alertDiv.className = 'alert alert-warning';
-                    alertDiv.innerText = data.warning;
-
-                    // Добавим сообщение перед календарём
-                    const container = document.querySelector('.container-fluid');
-                    container.prepend(alertDiv);
-                }
-                calendar.removeAllEventSources();
-                calendar.setOption('resources', data.resources);
-                calendar.addEventSource(data.events);
+                cal.removeAllEventSources()
+                cal.setOption('resources', data.resources || [])
+                cal.addEventSource(data.events || [])
             })
-            .catch(err => {
-                console.error('Ошибка загрузки:', err);
-                showToast('Ошибка загрузки календаря', 'danger');
-            })
-            .finally(() => {
-                isRefetching = false;
-            });
+            .catch(() => showToast('Ошибка загрузки календаря', 'danger'))
+            .finally(() => { isRefetching = false })
     }
 
-    $('#createBookingModal').on('show.bs.modal', function () {
-        $('#bookingError').addClass('d-none').html('');
-    });
+    // ------------------- submit -------------------
+    document.getElementById('createBookingForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault()
 
-    document.getElementById('createBookingForm').addEventListener('submit', function (e) {
-        e.preventDefault();
-
-        const range = $('#modalDateRange').val() ?? '';
-        console.log('Диапазон:', range);
-        const [start, end] = range.includes(' - ') ? range.split(' - ') : [null, null];
-
-        if (!start || !end || start.length < 6 || end.length < 6) {
-            showBookingError('Выберите корректный диапазон дат.');
-            return;
-        }
+        // отправляем ИНКЛЮЗИВНЫЕ даты (ровно то, что видит пользователь)
+        const startInc = window.$('#start').val()
+        const endInc   = window.$('#end').val()
 
         const payload = {
-            hotel_id: $('#modalHotelId').val(),
-            rate_id: $('#modalRateId').val(),
-            room_id: $('#modalRoomId').val(),
-            start: start.trim().split('.').reverse().join('-'),
-            end: end.trim().split('.').reverse().join('-'),
-            allotment: $('#modalAllotment').val()
-        };
+            hotel_id: window.$('#modalHotelId').val(),
+            rate_id:  window.$('#modalRateId').val(), // "5" или "5_p4" — ок
+            room_id:  window.$('#modalRoomId').val(),
+            start:    startInc,
+            end:      endInc
+        }
 
-        fetch('/auth/bookcalendarprice/books/create', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: JSON.stringify(payload)
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    $('#createBookingModal').modal('hide');
-                    showToast('Цена успешно обновлена', 'success');
-                    refetchCalendar(calendar);
-                } else if (data.error) {
-                    showToast(data.message || 'Ошибка при обновлении цены', 'danger');
-                }
+        // только заполненные цены — чтобы не затирать другие
+        const p1 = window.$('#price1').val(); if (p1 !== '' && p1 != null) payload.price  = Number(p1)
+        const p2 = window.$('#price2').val(); if (p2 !== '' && p2 != null) payload.price2 = Number(p2)
+        const p3 = window.$('#price3').val(); if (p3 !== '' && p3 != null) payload.price3 = Number(p3)
+        const p4 = window.$('#price4').val(); if (p4 !== '' && p4 != null) payload.price4 = Number(p4)
+
+        try {
+            const resp = await fetch('/auth/bookcalendarprice/books/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(payload)
             })
-            .catch(() => {
-                showToast('Ошибка соединения с сервером.', 'danger');
-            });
-    });
+            const data = await resp.json()
 
-    function showBookingError(message) {
-        const $error = $('#bookingError');
-        $error.removeClass('d-none').html(message);
-        setTimeout(() => {
-            $error.addClass('d-none').html('');
-        }, 5000);
-    }
+            if (!resp.ok || data.error) {
+                showToast(data.message || 'Ошибка при сохранении', 'danger')
+                return
+            }
 
+            // закрываем модалку стабильно
+            const modalEl = document.getElementById('createBookingModal')
+            window.bootstrap.Modal.getOrCreateInstance(modalEl).hide()
+
+            // чистим цены (необязательно)
+            window.$('#price1,#price2,#price3,#price4').val('')
+
+            showToast('Сохранено', 'success')
+            refetchCalendar(calendar)
+        } catch (err) {
+            console.error(err)
+            showToast('Сетевая ошибка', 'danger')
+        }
+    })
+
+    // ------------------- toast helper -------------------
     function showToast(message, type = 'success') {
-        const toast = document.createElement('div');
-        toast.textContent = message;
-        toast.className = 'toast-message';
+        const toast = document.createElement('div')
+        toast.textContent = message
+        toast.className = 'toast-message'
         Object.assign(toast.style, {
             position: 'fixed',
             top: '20px',
@@ -257,18 +324,10 @@ document.addEventListener('DOMContentLoaded', function () {
             zIndex: 10000,
             boxShadow: '0 0 10px rgba(0,0,0,0.15)',
             fontSize: '15px'
-        });
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 4000);
+        })
+        document.body.appendChild(toast)
+        setTimeout(() => toast.remove(), 3500)
     }
 
-    refetchCalendar(calendar);
-
-    document.getElementById('hotel_id').addEventListener('change', () => {
-        refetchCalendar(calendar);
-    });
-
-    $('#daterange').on('apply.daterangepicker', function () {
-        refetchCalendar(calendar);
-    });
-});
+    document.getElementById('hotel_id')?.addEventListener('change', () => refetchCalendar(calendar))
+})

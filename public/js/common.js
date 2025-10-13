@@ -109,7 +109,7 @@ $(function () {
 		//center: true,
 		autoplayTimeout: 4000,
 		nav: true,
-		navText: ["<img src='img/arrow-left.svg'>","<img src='img/arrow-right.svg'>"],
+		navText: ["<img src='img/arrow-left.svg'>", "<img src='img/arrow-right.svg'>"],
 		dots: true,
 		//animateOut: 'fadeOut',
 		//animateIn: 'fadeIn',
@@ -133,7 +133,7 @@ $(function () {
 		//center: true,
 		autoplayTimeout: 4000,
 		nav: true,
-		navText: ["<img src='img/arrow-left.svg'>","<img src='img/arrow-right.svg'>"],
+		navText: ["<img src='img/arrow-left.svg'>", "<img src='img/arrow-right.svg'>"],
 		dots: true,
 		//animateOut: 'fadeOut',
 		//animateIn: 'fadeIn',
@@ -160,7 +160,7 @@ $(function () {
 		//center: true,
 		autoplayTimeout: 900000,
 		nav: true,
-		navText: ["<img src='img/arrow-left.svg'>","<img src='img/arrow-right.svg'>"],
+		navText: ["<img src='img/arrow-left.svg'>", "<img src='img/arrow-right.svg'>"],
 		dots: false,
 		//animateOut: 'fadeOut',
 		//animateIn: 'fadeIn',
@@ -185,7 +185,8 @@ $(function () {
 		autoplay: false,
 		//center: true,
 		autoplayTimeout: 900000,
-		nav: false,
+		nav: true,
+		navText: ["<img src='img/arrow-left.svg'>", "<img src='img/arrow-right.svg'>"],
 		dots: true,
 		//animateOut: 'fadeOut',
 		//animateIn: 'fadeIn',
@@ -253,3 +254,5 @@ $(function () {
 
 
 });
+
+

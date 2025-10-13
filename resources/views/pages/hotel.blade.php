@@ -90,28 +90,52 @@
                         @endif
                         <div class="maps">
                             <h4>@lang('main.location')</h4>
-                            <script src="https://maps.api.2gis.ru/2.0/loader.js"></script>
-                            <div id="map" style="width: 100%; height: 500px;"></div>
+                            <!-- Подключение стилей Leaflet -->
+                            <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+                            <div id="map" style="height: 300px"></div>
+                            <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
                             <script>
-                                DG.then(function () {
-                                    var map = DG.map('map', {
-                                        center: [{{ $hotel->lat }}, {{ $hotel->lng }}],
-                                        zoom: 12
-                                    });
+                                var lat = {{ $hotel->lat }};
+                                var lng = {{ $hotel->lng }};
+                                var map = L.map('map').setView([lat, lng], 15);
 
-                                    DG.marker([{{ $hotel->lat }}, {{ $hotel->lng }}], {scrollWheelZoom: false})
-                                        .addTo(map)
-                                        .bindLabel('{{ $hotel->title }}', {
-                                            static: true
-                                        });
+                                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                }).addTo(map);
+
+                                var marker = null; // Переменная для хранения последнего маркера
+
+                                // Если есть начальные координаты, устанавливаем маркер
+                                if (lat && lng) {
+                                    marker = L.marker([lat, lng]).addTo(map)
+                                        .bindPopup('Широта: ' + lat.toFixed(6) + '<br>Долгота: ' + lng.toFixed(6))
+                                        .openPopup();
+                                }
+                                L.control.scale().addTo(map);
+                                map.on('click', function (e) {
+                                    var lat = e.latlng.lat;
+                                    var lng = e.latlng.lng;
+                                    if (marker) {
+                                        map.removeLayer(marker);
+                                    }
+
+                                    // Обновление значений в полях ввода
+                                    document.getElementById('lat').value = lat.toFixed(6);
+                                    document.getElementById('lng').value = lng.toFixed(6);
+
+                                    // Добавление маркера на выбранную точку
+                                    if (lat && lng) {
+                                        marker = L.marker([lat, lng]).addTo(map)
+                                            .bindPopup('Широта: ' + lat.toFixed(6) + '<br>Долгота: ' + lng.toFixed(6))
+                                            .openPopup();
+                                    }
                                 });
                             </script>
-                            <div class="address"><img
-                                        src="{{ route('index') }}/img/marker_in.svg"
-                                        alt=""> {{ $hotel->__('address') }}</div>
+                            <div class="address">
+                                <img src="{{ route('index') }}/img/marker_in.svg" alt="">
+                                {{ $hotel?->__('address') }}
+                            </div>
                         </div>
-
-
                     </div>
                 </div>
             </div>

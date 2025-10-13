@@ -1,4 +1,4 @@
-@extends('layouts.filter_mini')
+@extends('layouts.master')
 
 @section('title', 'Exely')
 

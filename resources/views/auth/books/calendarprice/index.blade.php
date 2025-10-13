@@ -2,7 +2,6 @@
 
 @section('title', __('admin.rates_and_availability'))
 
-<meta name="csrf-token" content="{{ csrf_token() }}">
 @vite(['resources/css/app.css', 'resources/js/bookcalendarprice.js'])
 {{-- @livewireStyles --}}
 
@@ -28,14 +27,16 @@
                 <div class="col-md-8" style="margin-top: 20px">
                     <div class="form-group">
                         <label for="">Выберите отель</label>
-                        <select name="hotel_id" id="hotel_id"
-                                onchange="window.location.href = '{{ route(Route::currentRouteName(), ['hotel' => '__HOTEL__']) }}'.replace('__HOTEL__', this.value)">
-                            @foreach ($hotelslist as $hotel)
-                                <option value="{{ $hotel->id }}" {{ request()->route('hotel') == $hotel->id ? 'selected' : '' }}>
-                                    {{ $hotel->title }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <div class="custom-select">
+                            <select name="hotel_id" id="hotel_id"
+                                    onchange="window.location.href = '{{ route(Route::currentRouteName(), ['hotel' => '__HOTEL__']) }}'.replace('__HOTEL__', this.value)">
+                                @foreach ($hotelslist as $hotel)
+                                    <option value="{{ $hotel->id }}" {{ request()->route('hotel') == $hotel->id ? 'selected' : '' }}>
+                                        {{ $hotel->title }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -116,37 +117,58 @@
                             Создание брони для:
                         </h5>
                         <ul class="list-unstyled small text-muted mb-2">
-                            <li>🏨 <strong id="modalHotelName">—</strong></li>
-                            <li>🛏 <strong id="modalRoomName">—</strong></li>
-                            <li>💵 <strong id="modalRateName">—</strong></li>
+                            <li><strong id="modalHotelName">—</strong></li>
+                            <li><strong id="modalRoomName">—</strong></li>
+                            <li><strong id="modalRateName">—</strong></li>
                         </ul>
 
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
                     </div>
                     <div class="modal-body">
+                        <meta name="csrf-token" content="{{ csrf_token() }}">
+
                         <form id="createBookingForm" action="{{ route('bookcalendarprice.create') }}" method="post">
-                            <div id="bookingError" class="alert alert-danger d-none" role="alert"></div>
+
+                            @csrf
 
                             <input type="hidden" name="hotel_id" id="modalHotelId">
-                            <input type="hidden" name="rate_id" id="modalRateId">
-                            <input type="hidden" name="room_id" id="modalRoomId">
-                            @csrf
+                            <input type="hidden" name="rate_id"  id="modalRateId">   {{-- пример: 5_p4 или просто 5 --}}
+                            <input type="hidden" name="room_id"  id="modalRoomId">
+
+                            {{-- даты --}}
                             <div class="form-group">
                                 <label for="modalDateRange" class="form-label">Диапазон дат</label>
-                                <input type="text" id="modalDateRange" class="date" required="">
-                                <input type="hidden" id="arrivalDate" name="arrivalDate"
-                                       value="{{ now() }}">
-                                <input type="hidden" id="departureDate" name="departureDate"
-                                       value="{{ now()->addDay() }}">
-                            </div>
-                            <div class="form-group">
-                                <label for="modalAllotment" class="form-label">Стоимость</label>
-                                <input type="number" class="form-control" id="modalAllotment" name="allotment"
-                                       required>
+                                <input type="text" id="modalDateRange" class="form-control" placeholder="YYYY-MM-DD — YYYY-MM-DD" required>
+                                <input type="hidden" id="start" name="start" value="{{ now()->toDateString() }}">
+                                <input type="hidden" id="end"   name="end"   value="{{ now()->addDay()->toDateString() }}">
                             </div>
 
-                            <button type="submit" class="more">Создать</button>
+                            {{-- ЧЕТЫРЕ ПОЛЯ ЦЕНЫ — КЛЮЧЕВОЕ! --}}
+                            <div class="form-group">
+                                <label class="form-label d-block">Стоимость за ночь</label>
+                                <div class="row g-2">
+                                    <div class="col-6 col-md-3">
+                                        <label class="form-text">1 гость</label>
+                                        <input type="number" class="form-control" id="price1" name="price"  min="0" step="1" placeholder="например 60">
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <label class="form-text">2 гостя</label>
+                                        <input type="number" class="form-control" id="price2" name="price2" min="0" step="1" placeholder="например 90">
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <label class="form-text">3 гостя</label>
+                                        <input type="number" class="form-control" id="price3" name="price3" min="0" step="1" placeholder="например 120">
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <label class="form-text">4 гостя</label>
+                                        <input type="number" class="form-control" id="price4" name="price4" min="0" step="1" placeholder="например 150">
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="more mt-3">Сохранить</button>
                         </form>
+
+
                     </div>
 
                 </div>

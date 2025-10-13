@@ -30,7 +30,8 @@ class Rate extends Model
 
     public function bookings()
     {
-        return $this->hasMany(Book::class, 'rate_id');
+        return $this->hasMany(\App\Models\Book::class, 'rate_id')
+            ->where('status', 'reserved'); // как у вас принято
     }
 
     public function room()
@@ -46,6 +47,20 @@ class Rate extends Model
     public function cancellationRule()
     {
         return $this->belongsTo(CancellationRule::class);
+    }
+
+    public function latestAllotment()
+    {
+        return $this->hasOne(\App\Models\Book::class, 'rate_id')
+            ->where('api_type', 'calendar_allotment')
+            ->latestOfMany('id'); // берём самую позднюю по id
+    }
+
+    public function latestPrice()
+    {
+        return $this->hasOne(\App\Models\Book::class, 'rate_id')
+            ->where('api_type', 'calendar_price')
+            ->latestOfMany('id');
     }
 
 }

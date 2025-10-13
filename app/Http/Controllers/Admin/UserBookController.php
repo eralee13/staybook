@@ -51,7 +51,7 @@ class UserBookController extends Controller
         Book::where('id', $book->id)->update(['status' => 'Cancelled']);
         Log::warning('Отмена брони: ' . $book->id);
         $email = Contact::first()->email;
-        Mail::to($email)->send(new BookCancelMail($book));
+        Mail::to($email)->cc(Auth::user()->email)->bcc($book->email)->send(new BookCancelMail($book));
         session()->flash('success', 'Booking ' . $request->title . ' is cancelled');
         return redirect()->route('auth.userbooks.index', compact('books'));
     }

@@ -80,7 +80,7 @@ class BookingController extends Controller
             $email = Contact::first()->email;
             Mail::to($email)
                 ->cc(Auth::user()->email)
-                ->bcc(['02_07_92@mail.ru'])
+                ->bcc($book->email)
                 ->send(new BookMail($book));
         }
 
@@ -103,7 +103,7 @@ class BookingController extends Controller
         if ($book) {
             Log::warning('Отмена брони: ' . $book->id);
             $email = Contact::first()->email;
-            Mail::to($email)->send(new BookCancelMail($book));
+            Mail::to($email)->cc(Auth::user()->email)->bcc($book->email)->send(new BookCancelMail($book));
         }
         return view('pages.booking.cancel-confirm', compact('book', 'request'));
     }
@@ -536,7 +536,7 @@ class BookingController extends Controller
                         $email = Contact::first()->email;
                         Mail::to($email)
                             ->cc(Auth::user()->email)
-                            ->bcc(['02_07_92@mail.ru'])
+                            ->bcc($book->email)
                             ->send(new BookMail($book));
 
                         Log::warning('Бронь создана: ' . $book->id);
@@ -596,8 +596,8 @@ class BookingController extends Controller
                 $email = Contact::first()->email;
                 Mail::to($email)
                     ->cc(Auth::user()->email)
-                    ->bcc(['02_07_92@mail.ru'])
-                    ->send(new BookMail($book));
+                    ->bcc($book->email)
+                    ->send(new BookCancelMail($book));
                 return view('pages.booking.exely.cancel-confirm', compact('cancel'));
             }
         } catch (RequestException $e) {

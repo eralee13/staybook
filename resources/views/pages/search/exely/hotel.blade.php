@@ -72,7 +72,6 @@
                                                     );
                                                 }
                                             @endphp
-
                                             <div class="col-lg-3 col-md-5">
                                                 <div class="room">
                                                     @if($roomModel)
@@ -168,10 +167,10 @@
                                                                 </div>
 
                                                                 <div class="item price">
-                                                                    @can('edit-contact')
-                                                                        <small style="font-size: 12px">NET: {{ round($netConv) }} {{ $symbol }}</small>
-                                                                        <br>
-                                                                    @endcan
+{{--                                                                    @can('edit-contact')--}}
+{{--                                                                        <small style="font-size: 12px">NET: {{ round($netConv) }} {{ $symbol }}</small>--}}
+{{--                                                                        <br>--}}
+{{--                                                                    @endcan--}}
                                                                     {{ round($brutConv) }} {{ $symbol }}
                                                                 </div>
                                                                 <div class="btn-wrap">
@@ -294,12 +293,11 @@
                                         </div>
                                     @endif
                                 @endif
-
                                 <div class="maps">
                                     <h4>@lang('main.location')</h4>
                                     <!-- Подключение стилей Leaflet -->
                                     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-                                    <div id="map"></div>
+                                    <div id="map" style="height: 340px"></div>
                                     <!-- Подключение скрипта Leaflet -->
                                     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
                                     <script>
