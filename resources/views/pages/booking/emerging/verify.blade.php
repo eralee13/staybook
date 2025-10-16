@@ -76,7 +76,7 @@
                                     {{ \Carbon\Carbon::parse($request->departureDate)->format('d.m.Y') }}
                                 @endif
                                 
-                                (UTC {{ $request->utc }})
+                                (UTC+0)
                             </td>
                         </tr>
                         <tr>
@@ -89,7 +89,7 @@
                                 @if($request->refundable == true)
                                     
                                         @lang('main.free_cancellation') {{ \Carbon\Carbon::parse($request->cancelDate)->format('d.m.Y') }} 
-                                        (UTC {{ $request->utc }})
+                                        (UTC+0)
                                        
                                         @lang('main.cancellation_amount_tm'):  {{ round($request->cancelPrice) }} {{ $request->currency ?? '$' }}
                                         
@@ -156,6 +156,8 @@
                         <input type="hidden" name="comment" value="{{ $request->comment }}">
                         <input type="hidden" name="phone" value="{{ $request->phone }}">
                         <input type="hidden" name="email" value="{{ $request->email }}">
+                        <input type="hidden" name="tax_not_included" value="{{ $request->tax_not_included }}">
+                        <input type="hidden" name="residency" value="{{ $request->residency ?? '' }}">
   
                             @for ($i = 0; $i < $totalAdults; $i++)
                                 <input type="hidden" name="paxfname{{$i}}" value="{{ $request->input('paxfname' . $i) }}">
@@ -163,7 +165,7 @@
                             @for ($i = 0; $i < $childs; $i++)
                                 <input type="hidden" name="child_name{{$i}}" value="{{ $request->input('child_name' . $i) }}">
                             @endfor
-
+                        
                         <button class="more">@lang('main.confirm')</button>
                     </form>
                 </div>

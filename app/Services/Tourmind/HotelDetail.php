@@ -36,8 +36,8 @@ class HotelDetail
 
         $tmid = 21110914;
         $payload = [
-            "CheckIn" => "2025-06-01",
-            "CheckOut" => "2025-06-05",
+            "CheckIn" => "2025-11-01",
+            "CheckOut" => "2025-11-05",
             "HotelCodes" => [$tmid],
             "IsDailyPrice" => false,
             "Nationality" => "CN",

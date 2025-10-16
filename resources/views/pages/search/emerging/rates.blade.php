@@ -5,11 +5,12 @@
             $totalPrice = number_format( ($price / $coef ) , 2, '.', '');
             $rooms = $request->input('rooms', []);
             $payment = $rate['payment_options']['payment_types'][0];
+            // $localDate = Carbon\Carbon::parse($payment['cancellation_penalties']['policies'][0]['end_at'], 'UTC')->setTimezone(trim($hotel->utc));
+            // $localDate = $localDate->format('d-m-Y H:i:s');
 
             if($payment['cancellation_penalties']['free_cancellation_before'] == true){
 
                 $pay_end_date = Carbon\Carbon::createFromDate($payment['cancellation_penalties']['policies'][0]['end_at'])->format('d.m.Y H:i:s');
-
                 
                 $penaltPrice = $payment['cancellation_penalties']['policies'][1]['amount_charge'] ?? 0;
                 $penaltyPrice = number_format( ( (float)$penaltPrice  / $coef), 2, '.', '');
@@ -47,12 +48,14 @@
                 <div class="item meal">
                         <div class="name">{{ $rate['meal'] ?? 'No breakfast' }}</div>
                 </div>
-            
+                
             <div class="item cancel">
                 <div class="name">@lang('main.cancellation_policy'):
 
                     @if($payment['cancellation_penalties']['free_cancellation_before'] == true)
-                        @lang('main.free_cancellation') {{ $pay_end_date }} UTC {{$hotel->utc}}. <br>
+                        @lang('main.free_cancellation') {{ $pay_end_date }} UTC+0
+                         {{-- {{$hotel->utc}}  --}}
+                         <br>
                         @lang('main.cancellation_amount_tm'):  {{ round($cancelConverted ) }} {{ $symbol }}
                     @else
                         @lang('main.non_refundable')
@@ -62,6 +65,22 @@
             </div>
             <div class="item price"> {{ round($converted) }} {{ $symbol }}</div>
             <div class="nds">@lang('main.all_taxes_included')</div>
+            <div class="nds_not_included" style="color: red; font-size: 13px;">
+                @lang('main.all_taxes_excluded')</div>
+                <span style="font-size: 13px;">@lang('main.pay_at_hotel')</span><br>
+                @foreach($payment['tax_data']['taxes'] as $tax)
+                    @if($tax['included_by_supplier'] == false)
+                        <span style="font-size: 13px;"><strong>
+                        {{-- проверка: если ключ это строка и есть перевод --}}
+                        @if(is_string($tax['name']) && Lang::has('main.'.$tax['name']))
+                            @lang('main.'.$tax['name'])
+                        @else
+                            {{ $tax['name'] }}
+                        @endif : </strong>
+                        {{ $tax['amount']}} {{ $tax['currency_code'] }}</span><br>
+                    @endif
+                @endforeach
+            
                 
             <div class="btn-wrap">
 
@@ -97,9 +116,19 @@
                             value="{{ $rate['payment_options']['payment_types'][0]['currency_code'] }}">
                     <input type="hidden" name="utc"  value="{{ $hotel->utc }}">
                     <input type="hidden" name="etgimage"  value="{{ $tmimage }}">
+                    <input type="hidden" name="increase_percent">
+                    <input type="hidden" name="residency" value="{{ $request->residency ?? '' }}">
+                    <input type="hidden" name="tax_not_included" 
+                        value='@json(collect($payment["tax_data"]["taxes"])->where("included_by_supplier", false)->values())'>
 
                     <button class="more" id="order">@lang('main.book')</button>
                 </form>
             </div>
         </div>
     @endforeach
+
+    <script>
+        // document.getElementById('order').addEventListener('click', function() {
+            localStorage.removeItem('booking_etg_secondsLeft'); // Очистить данные
+        // });
+    </script>

@@ -1,8 +1,6 @@
 @extends('layouts.head')
 
 @section('title', 'Бронирование')
-<span>/hotel/prebook/</span>
-    @dump($preBook)
 <span>/hotel/order/booking/form/</span>
     @dump($order)
 <span>/hotel/order/booking/finish/</span>
@@ -16,10 +14,19 @@
             <div class="row">
                 <div class="col-lg-12 col-md-12">
 
-                    @if($message == 'Бронирование успешно создано!' || $message == 'Этот бронь уже существует!')
+                    @if($message == 'Booking successfully created' 
+                        || $message == 'This booking already exists' 
+                        || $message == 'Booking is pending confirmation from the hotel'
+                            )
                         <h1>@lang('main.Congratulations')</h1>
 
                             <div class="alert alert-primary" role="alert">
+                                <strong>@lang('main.'.$message)</strong>
+                            </div>
+                    @elseif($message == 'Timeout waiting for valid response')
+                        <h1>@lang('main.timeout')</h1>
+
+                            <div class="alert alert-info" role="alert">
                                 <strong>@lang('main.'.$message)</strong>
                             </div>
                     @else
@@ -30,44 +37,57 @@
                             </div>
                     @endif
     
-                    <ul>
-                        <li>@lang('main.status'): @lang('main.' . $book->status ?? $message)</li>
-                        <li>@lang('main.booking_number'): {{ $book->id ?? ''}}</li>
-                        <li>@lang('main.hotel_id'): {{ $request->hotel_id ?? ''}}</li>
-                        <li>
-                            @lang('main.dates'): {{ Carbon\Carbon::createFromDate($request->arrivalDate)->format('d.m.Y') }} {{$hotel->checkin ?? ''}} 
-                            - {{ Carbon\Carbon::createFromDate($request->departureDate)->format('d.m.Y') }} {{ $hotel->checkout ?? ''}}
-                            (UTC {{ $request->utc }})
-                        </li>
-                        <li>
-                            @if($request->refundable == true)
-                                
-                                    @lang('main.free_cancellation') {{ \Carbon\Carbon::parse($request->cancelDate)->format('d.m.Y') }} 
-                                    (UTC {{ $request->utc }})!
-                                    
-                                    @lang('main.cancellation_amount_tm'): {{ round($book->cancel_penalty) }} {{ $request->currency ?? '$' }}
-                            @else
-                                    @lang('main.non_refundable')
-                            @endif
-                        <li>
-                            @lang('main.сustomer'): {{ $request->name ? $book->title : '' }}
-                            <ul>
-                                <li>@lang('main.phone'): {{ $request->phone ?? '' }}</li>
-                                <li>
-                                    Email: {{ $request->email ?? '' }}</li>
-                                <li>@lang('main.comment'): {{ $request->comment ?? '' }}</li>
-                            </ul>
-                        </li>
-                    </ul>
+                    
                     @if( isset($book->id) ) 
+                        <ul>
+                            <li>@lang('main.status'): @lang('main.' . $book->status ?? $message)</li>
+                            <li>@lang('main.booking_number'): {{ $book->id ?? ''}}</li>
+                            <li>@lang('main.hotel_id'): {{ $request->hotel_id ?? ''}}</li>
+                            <li>
+                                @lang('main.dates'): {{ Carbon\Carbon::createFromDate($request->arrivalDate)->format('d.m.Y') }} {{$hotel->checkin ?? ''}} 
+                                - {{ Carbon\Carbon::createFromDate($request->departureDate)->format('d.m.Y') }} {{ $hotel->checkout ?? ''}}
+                                (UTC {{ $request->utc }})
+                            </li>
+                            <li>
+                                @if($request->refundable == true)
+                                    
+                                        @lang('main.free_cancellation') {{ \Carbon\Carbon::parse($request->cancelDate)->format('d.m.Y') }} 
+                                        (UTC {{ $request->utc }})!
+                                        
+                                        @lang('main.cancellation_amount_tm'): {{ round($book->cancel_penalty) }} {{ $request->currency ?? '$' }}
+                                @else
+                                        @lang('main.non_refundable')
+                                @endif
+                            <li>
+                                @lang('main.сustomer'): {{ $request->name ? $book->title : '' }}
+                                <ul>
+                                    <li>@lang('main.phone'): {{ $request->phone ?? '' }}</li>
+                                    <li>
+                                        Email: {{ $request->email ?? '' }}</li>
+                                    <li>@lang('main.comment'): {{ $request->comment ?? '' }}</li>
+                                </ul>
+                            </li>
+                        </ul>
                         <div class="bnt-wrap">
-                            <form action="{{ route('cancel_calculate_etg', $book->id) }}">
-                                <input type="hidden" name="number" value="{{ $book->book_token }}">
-                                <button class="more">@lang('main.cancel_booking')</button>
-                            </form>
+                            @if($book->status != 'Cancelled')
+                                <form action="{{ route('cancel_calculate_etg', $book->id) }}">
+                                    <input type="hidden" name="number" value="{{ $book->book_token }}">
+                                    <button class="more">@lang('main.cancel_booking')</button>
+                                </form>
+                            @endif
                             {{-- @if($message == 'Бронирование успешно создано!' || $message == 'Этот бронь уже существует!')
                                 <button class="more primary" id="getStatus">Узнать статус брони</button>
                             @endif --}}
+                            <button class="more" onclick="location.href='{{ route('index') }}'">
+                                @lang('main.go_home')
+                            </button>
+
+                        </div>
+                    @else
+                        <div class="bnt-wrap">
+                            <button class="more" onclick="location.href='{{ route('index') }}'">
+                                @lang('main.go_home')
+                            </button>
                         </div>
                     @endif
 
@@ -101,7 +121,11 @@
             margin-left: 10px;
         }
     </style>
-
+    <script>
+        document.getElementById('order').addEventListener('click', function() {
+            localStorage.removeItem('booking_etg_secondsLeft'); // Очистить данные
+        });
+    </script>
     {{-- <script>
         document.getElementById('getStatus').addEventListener('click', function() {
             fetch('{{ route('get.data') }}', {

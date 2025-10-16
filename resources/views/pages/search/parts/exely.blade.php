@@ -7,15 +7,11 @@
     $itemsAmen = array_slice($amenities, 0, 8);
     $converted = $item['conv_total'] ?? 0;
     $symbol    = $item['conv_symbol'] ?? '';
-    $price     = $item['price'] ?? 0;
+    $amount = is_numeric($converted) ? (float)$converted : 0.0;
     $dataId    = $hotel?->id ?? ($room->propertyId ?? null);
 @endphp
 
-<div class="search-item"
-     data-id="{{ $dataId }}"
-     data-type="{{ $hotel->type ?? '' }}"
-     data-title="{{ strtolower($title) }}"
-     data-price="{{ $price }}">
+<div class="search-item ex" data-type="{{ $hotel->type ?? '' }}" data-id="{{ $hotel->id }}">
     <div class="row">
         <div class="col-md-6 order-1">
             <div class="img-wrap">
@@ -34,7 +30,9 @@
                     </div>
                 </div>
                 <div class="text-wrap">
-                    <div class="price">@lang('main.from') {{ number_format((int)$converted, 0, '.', ' ') }} {{ $symbol }}</div>
+                    <div class="price">
+                        @lang('main.from') {{ number_format((float)($item['conv_total'] ?? 0), 0, '.', ' ') }} {{ $item['conv_symbol'] ?? '' }}
+                    </div>
                     <div class="night">@lang('main.night')</div>
                     @if($hotel?->rating)
                         <div class="rating"><img src="{{ route('index') }}/img/star.svg" alt=""> {{ $hotel->rating }}

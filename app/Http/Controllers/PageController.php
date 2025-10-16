@@ -296,7 +296,7 @@ class PageController extends Controller
     }
     public function offline_request(Request $request)
     {
-        $cities = City::where('country_id', null)->orderBy('title', 'asc')->get();
+        $cities = City::orderBy('title', 'asc')->get();
         $tomorrow = Carbon::tomorrow();
         return view('pages.offline', compact('cities', 'tomorrow', 'request'));
     }

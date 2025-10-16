@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\API\V1\Emerging;
 
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Carbon\Carbon;
 use DateTimeZone;
 use DateTime;
 

@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Http\Controllers\Api\V1\Emerging\EmergingDescTransHotelController;
 use Illuminate\Console\Command;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Api\V1\Emerging\EmergingRegionController;

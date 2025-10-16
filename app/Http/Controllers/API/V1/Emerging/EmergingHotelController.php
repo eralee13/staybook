@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\V1\Emerging;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -10,6 +11,8 @@ use App\Models\Hotel;
 use App\Models\Amenity;
 use App\Models\Room;
 use App\Models\Image;
+
+
 
 class EmergingHotelController extends Controller
 {       
@@ -60,7 +63,7 @@ class EmergingHotelController extends Controller
 
         // Шаг 1: Скачиваем файл во временное хранилище
         $zstPath = storage_path('app\partner_feed_en_v3.jsonl.zst');
-        $jsonlPath = storage_path('app/partner_hotels_en.jsonl');
+        $jsonlPath = 'D:\Projects\SilkWayTravel\partner_hotels_en.jsonl';
         $zstdExe = 'D:\OSPanel\tools\zstd\zstd.exe';
 
         // file_put_contents($zstPath, file_get_contents($url));
@@ -85,13 +88,14 @@ class EmergingHotelController extends Controller
         $hotels = [];
         $i = 0;
 
-        while (($line = fgets($handle)) !== false) { // ограничим для примера 10 строками
-           
+        while ( ($line = fgets($handle)) !== false ) { // ограничим для примера 10 строками
+            
             $data = json_decode($line, true);
-
-            if ($data['region']['name'] == 'China' && $data['kind'] == 'hotel') {
-                //if ($data['hid'] == 8473727) {
-
+            
+            if ( $data['hid'] == 7615581 || $data['hid'] == 6574079 || $data['hid'] == 7785166 || $data['hid'] == 7691218 || $data['hid'] == 8473727) {
+                // $data['region']['name'] == 'Moscow'
+                //if ( $data['hid'] == 8473727) {
+                // && $data['kind'] == 'hotel'
                 // file_put_contents(storage_path('app\testov.jsonl'), json_encode($data, JSON_PRETTY_PRINT));
 
                 $hotels[] = $data;
@@ -144,6 +148,8 @@ class EmergingHotelController extends Controller
                             'emerging_id' => $data['hid'],
                             'status' => 1,
                             'user_id' => 1,
+                            'metapolicy_extra_info' => $data['metapolicy_extra_info'] ?? '',
+                            'metapolicy_struct' => $data['metapolicy_struct'] ?? [],
                         ]
                     );
                     
@@ -170,16 +176,17 @@ class EmergingHotelController extends Controller
 
                     $this->saveImagesLink($hotel->id, $images, 20, $size);
 
-                    // dd($data);
+                    echo "Сохранен или обновлен: {$hotel->id} - {$hotel->title}\n";
+                    dd($data);
             }
             $i++;
         }
 
         fclose($handle);
 
-        echo '<pre>';
-        dump($hotels[0]);
-        echo '</pre>';
+        
+        // dump($hotels[0]);
+      
         // return response()->json($hotels);
     }
 

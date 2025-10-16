@@ -13,7 +13,7 @@ class RegionListController extends Controller
     {
 
         $this->RegionList = $RegionList;
-        
+
     }
 
     public function fetchRegions(Request $request)
@@ -21,8 +21,8 @@ class RegionListController extends Controller
 
         $requestData = $request->all();
         $data = $this->RegionList->getRegionList($requestData);
-        
+
         return response()->json($data);
-        
+
     }
 }

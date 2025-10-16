@@ -27,7 +27,7 @@
 @section('content')
     @auth
         <div class="main-filter">
-            <div class="container-fluid">
+            <div class="container">
                 <div class="row">
                     <div class="col-md-12">
                         <h1>@lang('main.head')</h1>
@@ -43,115 +43,157 @@
                         <form action="{{ route('search') }}" method="GET">
                             <div class="row">
                                 {{-- Поиск + подсказки --}}
-                                <div class="col-lg-4 col-md-12">
-                                    <div class="form-group" style="position:relative">
-                                        <input
-                                                type="text"
-                                                id="searchbox"
-                                                name="city"
-                                                placeholder="@lang('main.city_or_hotel')"
-                                                autocomplete="off"
-                                                value="{{ request('city') }}"
-                                                required
-                                        >
-                                        <img src="{{ route('index') }}/img/arrow_down.svg" alt="">
-                                        <div id="suggest" class="suggest hidden"></div>
-                                        <input type="hidden" name="city_id" id="city_id">
+                                <div class="col-lg-4 col-md-6">
+                                    <div class="form-group position-relative">
+                                        <input id="searchInput"
+                                               name="q"
+                                               class="form-control"
+                                               value="{{ $request->q ?? '' }}"
+                                               placeholder="Введите: Бишкек / Bishkek / KGS / Novotel…" />
+
+                                        {{-- URL для suggest --}}
+                                        <script>
+                                            const SUGGEST_URL = @json(route('search.suggest'));
+                                        </script>
+
+                                        {{-- скрытые поля-«маркировки» выбора --}}
+                                        <input type="hidden" name="city_id"  id="city_id">
+                                        <input type="hidden" name="hotel_id" id="hotel_id">
+
+                                        {{-- выпадающий список подсказок --}}
+                                        <ul id="suggestBox"
+                                            class="list-group position-absolute"
+                                            style="z-index:1000; max-height:300px; overflow:auto; display:none; width:100%">
+                                        </ul>
 
                                         <style>
-                                            .suggest{position:absolute;z-index:9999;background:#fff;border:1px solid #e5e7eb;width:100%;max-height:280px;overflow:auto;border-radius:8px;box-shadow:0 10px 20px rgba(0,0,0,.08)}
-                                            .suggest.hidden{display:none}
-                                            .suggest-item{padding:10px 12px;cursor:pointer;display:flex;gap:8px;align-items:center}
-                                            .suggest-item:hover,.suggest-item.active{background:#f3f4f6}
-                                            .s-title{font-weight:600;font-size:14px}
-                                            .s-sub{font-size:12px;color:#6b7280}
-                                            .s-badge{font-size:11px;color:#111827;background:#fef3c7;border:1px solid #fcd34d;border-radius:6px;padding:2px 6px}
+                                            #suggestBox{
+                                                position: absolute;
+                                                left: 0 !important;
+                                                top: 0 !important;
+                                                background-color: #fff;
+                                                border-radius: 30px;
+                                                padding: 20px;
+                                            }
+                                            #suggestBox li{
+                                                display: block;
+                                                margin: 10px 0;
+                                            }
                                         </style>
 
+                                        {{-- JS подсказок --}}
                                         <script>
-                                            document.addEventListener('DOMContentLoaded', () => {
-                                                const input = document.getElementById('searchbox');
-                                                const box   = document.getElementById('suggest');
-                                                const url   = @json(route('search.suggest'));
-                                                let items = [];
-                                                let activeIdx = -1;
-                                                let lastQuery = '';
-                                                let t = null;
+                                            (function(){
+                                                const input = document.getElementById('searchInput');
+                                                const box   = document.getElementById('suggestBox');
+                                                const cityIdEl  = document.getElementById('city_id');
+                                                const hotelIdEl = document.getElementById('hotel_id');
+                                                let t;
 
-                                                const debounce = (fn, ms) => (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
-                                                const hide = () => { box.classList.add('hidden'); activeIdx = -1; };
-                                                const show = () => { box.classList.remove('hidden'); };
-
-                                                function render(list){
-                                                    if(!list.length){ hide(); return; }
-                                                    box.innerHTML = list.map((it, i) => {
-                                                        const rating = it.rating ? `<span class="s-badge">★ ${it.rating}</span>` : '';
-                                                        const type = it.type === 'hotel' ? '<span class="s-badge">Отель</span>' : '<span class="s-badge">Город</span>';
-                                                        const alt = it.alt && it.alt !== it.label ? ` · <span class="s-sub">${it.alt}</span>` : '';
-                                                        const city = it.city ? `<div class="s-sub">${it.city}</div>` : '';
-                                                        return `<div class="suggest-item" data-idx="${i}">
-                                                            <div><div class="s-title">${it.label} ${rating}${alt} ${type}</div>${city}</div>
-                                                        </div>`;
-                                                    }).join('');
-                                                    show();
+                                                function hideBox(){
+                                                    box.style.display = 'none';
+                                                    box.innerHTML = '';
                                                 }
 
-                                                async function fetchSuggest(q){
-                                                    try{
-                                                        const resp = await fetch(url + '?q=' + encodeURIComponent(q), { headers:{'Accept':'application/json'}, cache:'no-store' });
-                                                        const ct = resp.headers.get('content-type') || '';
-                                                        if(!resp.ok || !ct.includes('application/json')){ hide(); return; }
-                                                        const data = await resp.json();
-                                                        items = Array.isArray(data.items) ? data.items : [];
-                                                        render(items);
-                                                    }catch{ hide(); }
+                                                function showBox(){
+                                                    // позиционировать прямо под инпутом
+                                                    const r = input.getBoundingClientRect();
+                                                    box.style.top   = (window.scrollY + r.bottom) + 'px';
+                                                    box.style.left  = (window.scrollX + r.left) + 'px';
+                                                    box.style.width = r.width + 'px';
+                                                    box.style.display = 'block';
                                                 }
 
-                                                const onType = debounce(e => {
-                                                    const q = (e.target.value || '').trim();
-                                                    if(q.length < 2){ hide(); lastQuery=''; return; }
-                                                    if(q === lastQuery) return;
-                                                    lastQuery = q;
-                                                    fetchSuggest(q);
-                                                }, 250);
-
-                                                input.addEventListener('input', onType);
-                                                input.addEventListener('focus', () => { if((input.value||'').trim().length >= 2 && items.length) show(); });
-                                                input.addEventListener('blur', () => setTimeout(hide, 150));
-
-                                                box.addEventListener('click', (e) => {
-                                                    const el = e.target.closest('.suggest-item');
-                                                    if(!el) return;
-                                                    const it = items[+el.dataset.idx];
-                                                    if(!it) return;
-                                                    input.value = it.label;
-                                                    if(it.city_id){ const cityIdEl = document.getElementById('city_id'); if(cityIdEl) cityIdEl.value = it.city_id; }
-                                                    hide();
+                                                // безопасная очистка скрытых полей при ручном вводе
+                                                input.addEventListener('input', () => {
+                                                    if (cityIdEl)  cityIdEl.value  = '';
+                                                    if (hotelIdEl) hotelIdEl.value = '';
                                                 });
 
-                                                input.addEventListener('keydown', (e) => {
-                                                    if(box.classList.contains('hidden')) return;
-                                                    if(e.key === 'ArrowDown'){ e.preventDefault(); activeIdx = (activeIdx + 1) % items.length; highlight(); }
-                                                    else if(e.key === 'ArrowUp'){ e.preventDefault(); activeIdx = (activeIdx - 1 + items.length) % items.length; highlight(); }
-                                                    else if(e.key === 'Enter'){
-                                                        if(activeIdx >= 0 && items[activeIdx]){
-                                                            e.preventDefault();
-                                                            const it = items[activeIdx];
-                                                            input.value = it.label;
-                                                            if(it.city_id){ const cityIdEl = document.getElementById('city_id'); if(cityIdEl) cityIdEl.value = it.city_id; }
-                                                            hide();
+                                                // дебаунс + fetch
+                                                input.addEventListener('input', () => {
+                                                    clearTimeout(t);
+                                                    const v = (input.value || '').trim();
+                                                    if (!v) { hideBox(); return; }
+
+                                                    t = setTimeout(async () => {
+                                                        try {
+                                                            const res = await fetch(SUGGEST_URL + '?q=' + encodeURIComponent(v), {
+                                                                headers: { 'Accept': 'application/json' },
+                                                                cache: 'no-store'
+                                                            });
+                                                            if (!res.ok) { hideBox(); return; }
+
+                                                            const data = await res.json();
+                                                            // поддержка обоих форматов: {items:[...]} и [...]
+                                                            const items = Array.isArray(data) ? data : (Array.isArray(data.items) ? data.items : []);
+
+                                                            if (!items.length) { hideBox(); return; }
+
+                                                            box.innerHTML = items.map((it, i) => {
+                                                                const type = it.type === 'hotel' ? 'hotel' : 'city';
+                                                                const name = it.label || it.name || '';
+                                                                const note = type === 'hotel'
+                                                                    ? (it.city || it.alt || '')
+                                                                    : (it.country_code || it.alt || '');
+                                                                return `<li class="list-group-item list-group-item-action"
+                                                                            data-idx="${i}"
+                                                                            data-type="${type}"
+                                                                            data-id="${it.id || it.city_id || ''}"
+                                                                            data-name="${name.replace(/"/g,'&quot;')}">
+                                                                            ${type === 'hotel' ? '' : '🏙️'} ${name}
+                                                                            <small class="text-muted" style="color: #7eb555">${note}</small>
+                                                                        </li>`;
+                                                            }).join('');
+                                                            showBox();
+                                                        } catch (e) {
+                                                            hideBox();
+                                                            console.error('suggest error', e);
                                                         }
-                                                    }else if(e.key === 'Escape'){ hide(); }
+                                                    }, 200);
                                                 });
 
-                                                function highlight(){
-                                                    [...box.querySelectorAll('.suggest-item')].forEach((el, i) => {
-                                                        el.classList.toggle('active', i === activeIdx);
-                                                        if(i === activeIdx) el.scrollIntoView({block:'nearest'});
-                                                    });
-                                                }
-                                            });
+                                                // выбор подсказки
+                                                box.addEventListener('click', (e) => {
+                                                    const li = e.target.closest('li'); if (!li) return;
+                                                    const type = li.getAttribute('data-type');
+                                                    const id   = li.getAttribute('data-id') || '';
+                                                    const name = li.getAttribute('data-name') || '';
+
+                                                    // заполняем видимое поле тем, что увидел юзер
+                                                    input.value = name;
+
+                                                    // IMPORTANT: помечаем ОДНО поле, второе — чистим
+                                                    if (type === 'hotel') {
+                                                        if (hotelIdEl) hotelIdEl.value = id;
+                                                        if (cityIdEl)  cityIdEl.value  = '';
+                                                    } else {
+                                                        if (cityIdEl)  cityIdEl.value  = id;
+                                                        if (hotelIdEl) hotelIdEl.value = '';
+                                                    }
+
+                                                    hideBox();
+                                                });
+
+                                                // закрытие выпадашки кликом вне
+                                                document.addEventListener('click', (e) => {
+                                                    if (!box.contains(e.target) && e.target !== input) hideBox();
+                                                });
+
+                                                // закрытие по Esc
+                                                input.addEventListener('keydown', (e) => {
+                                                    if (e.key === 'Escape') hideBox();
+                                                });
+                                            })();
                                         </script>
+
+                                        {{-- вспомогательный текст --}}
+                                        @if(isset($city) || isset($country))
+                                            <p class="text-muted mt-2">
+                                                @if(!empty($city)) Город: <strong>{{ $city->title }}</strong>@endif
+                                                @if(!empty($country)) &nbsp; Страна: <strong>{{ $country->name }}</strong>@endif
+                                            </p>
+                                        @endif
                                     </div>
                                 </div>
 
@@ -248,9 +290,7 @@
                                         <a href="javascript:void(0)" id="rooms-summary">
                                             @lang('main.room'): 1, @lang('main.adult'): 1, @lang('main.child'): 0
                                         </a>
-
                                         <div id="rooms-panel-overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden z-40"></div>
-
                                         <div id="rooms-panel">
                                             <h5>@lang('main.guests_and_rooms')</h5>
                                             <div class="close-btn">
@@ -259,9 +299,7 @@
                                             <div class="add-btn">
                                                 <a href="javascript:void(0)" class="more" id="add-room">@lang('main.add_room')</a>
                                             </div>
-
                                             <div id="rooms-container" class="space-y-4"></div>
-
                                             <div class="mt-4 text-right">
                                                 <button id="panel-apply" class="more">@lang('main.ready')</button>
                                             </div>
@@ -427,33 +465,38 @@
             <div class="container-fluid">
                 <div class="row">
                     {{-- Листинг --}}
+
+                    {{-- Листинг --}}
                     <div class="col-lg-7 col-md-12">
                         <div id="hotel-list">
-                            @if($allHotels->isEmpty())
+                            @if(collect($allHotels)->isEmpty())
                                 <div class="alert alert-danger">@lang('main.not_hotel')</div>
-                                <div class="btn-wrap"><a href="{{ route('index') }}">@lang('main.try_again')</a></div>
+                                <div class="btn-wrap">
+                                    <a href="{{ route('index') }}">@lang('main.try_again')</a>
+                                </div>
                             @else
-                                <script>const suggestUrl = @json(route('search.suggest'));</script>
-
                                 @foreach($allHotels as $item)
-                                    @php
-                                        $source = $item['source'] ?? '';
-                                    @endphp
+                                    @php $src = $item['source'] ?? 'local'; @endphp
 
-                                    {{-- LOCAL --}}
-                                    @if($source === 'local')
-                                        @include('pages.search.parts.local', ['item' => $item, 'roomCount' => $roomCount, 'totalAdults' => $totalAdults, 'totalChildren' => $totalChildren])
-                                    @elseif($source === 'exely')
-                                        @include('pages.search.parts.exely', ['item' => $item, 'roomCount' => $roomCount, 'totalAdults' => $totalAdults, 'totalChildren' => $totalChildren])
+                                    @switch($src)
+                                        @case('exely')
+                                            @include('pages.search.parts.exely', ['item' => $item])
+                                            @break
 
-                                        {{-- TOURMIND --}}
-                                    @elseif($source === 'tm')
-                                        @include('pages.search.parts.tourmind', ['item' => $item, 'roomCount' => $roomCount, 'totalAdults' => $totalAdults, 'totalChildren' => $totalChildren])
-                                    @endif
+                                        @case('tm')
+                                            @include('pages.search.parts.tourmind', ['item' => $item])
+                                            @break
+
+                                        @case('local')
+                                        @default
+                                            @include('pages.search.parts.local', ['item' => $item])
+                                    @endswitch
                                 @endforeach
                             @endif
                         </div>
+
                     </div>
+
 
                     {{-- Карта --}}
                     <div class="col-lg-5 col-md-12">
@@ -463,22 +506,22 @@
 
                         @php
                             $hotelse = collect($allHotels)
-                                ->map(function ($item) {
-                                    $rawHotel = $item['hotel'] ?? null;
-                                    $h = is_object($rawHotel) ? $rawHotel : (is_array($rawHotel) ? (object)$rawHotel : null);
-                                    $raw = $item[$item['source']] ?? null; // tm | roomStay и т.д.
-                                    $id = $h->id ?? ($raw->hid ?? ($raw->propertyId ?? null));
+                                ->map(function ($row) {
+                                    $isWrapped = is_array($row) || $row instanceof ArrayAccess;
+                                    $h         = $isWrapped ? ($row['hotel'] ?? null) : $row;
+                                    if (!$h) return null;
+
                                     return [
-                                        'id'    => $id,
+                                        'id'    => $h->id,
                                         'name'  => $h->title_en ?? $h->title ?? '',
-                                        'lat'   => isset($h?->lat) ? (float) $h->lat : null,
-                                        'lng'   => isset($h?->lng) ? (float) $h->lng : null,
-                                        'img'   => $h && $h->image ? Storage::url($h->image) : '',
-                                        'total' => $item['conv_total'] ?? '',
-                                        'curr'  => $item['conv_symbol'] ?? '',
+                                        'lat'   => isset($h->lat) ? (float)$h->lat : null,
+                                        'lng'   => isset($h->lng) ? (float)$h->lng : null,
+                                        'img'   => $h->image ? \Illuminate\Support\Facades\Storage::url($h->image) : '',
+                                        'total' => $isWrapped ? ($row['conv_total']  ?? '') : '',
+                                        'curr'  => $isWrapped ? ($row['conv_symbol'] ?? '') : '',
                                     ];
                                 })
-                                ->filter(fn ($i) => !empty($i['lat']) && !empty($i['lng']) && !empty($i['id']))
+                                ->filter(fn($i) => $i && !empty($i['lat']) && !empty($i['lng']))
                                 ->values();
                         @endphp
 
@@ -503,7 +546,6 @@
                                       <img src="${hotel.img || '/img/noimage.png'}" class="rounded" style="width: 80px; height: 60px; object-fit: cover;">
                                       <div>
                                         <div class="fw-bold mb-1">${hotel.name}</div>
-                                        <div class="text-success fw-semibold"><strong>${hotel.total} ${hotel.curr}</strong></div>
                                       </div>
                                     </div>`;
 

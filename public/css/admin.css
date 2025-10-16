@@ -503,7 +503,7 @@ nav ul li a {
 .fc .fc-button-group .fc-button-primary{
     background-color: #fff;
     color: #333;
-    padding: 0;
+    padding: 5px 15px;
     outline: none;
 }
 .fc .fc-datagrid-cell-cushion{

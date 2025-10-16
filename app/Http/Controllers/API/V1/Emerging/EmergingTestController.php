@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\API\V1\Emerging;
+namespace App\Http\Controllers\Api\V1\Emerging;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
 class EmergingTestController extends Controller

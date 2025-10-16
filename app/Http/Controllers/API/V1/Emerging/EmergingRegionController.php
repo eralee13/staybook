@@ -1,9 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\API\V1\Emerging;
+namespace App\Http\Controllers\Api\V1\Emerging;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
 class EmergingRegionController extends Controller
@@ -79,7 +81,7 @@ class EmergingRegionController extends Controller
         $regions = [];
         $i = 0;
 
-        while (($line = fgets($handle)) !== false) { // ограничим для примера 10 строками
+        while (($line = fgets($handle)) !== false) { 
 
             $data = json_decode($line, true);
             $regions = $data;

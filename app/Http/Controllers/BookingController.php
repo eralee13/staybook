@@ -78,7 +78,8 @@ class BookingController extends Controller
         if ($book) {
             Log::warning('Бронь создана: ' . $book->id);
             $email = Contact::first()->email;
-            Mail::to($email)
+            $hotel_email = Hotel::where('id', $book->hotel_id)->first()->email;
+            Mail::to([$email, $hotel_email])
                 ->cc(Auth::user()->email)
                 ->bcc($book->email)
                 ->send(new BookMail($book));
@@ -103,7 +104,8 @@ class BookingController extends Controller
         if ($book) {
             Log::warning('Отмена брони: ' . $book->id);
             $email = Contact::first()->email;
-            Mail::to($email)->cc(Auth::user()->email)->bcc($book->email)->send(new BookCancelMail($book));
+            $hotel_email = Hotel::where('id', $book->hotel_id)->first()->email;
+            Mail::to([$email, $hotel_email])->cc(Auth::user()->email)->bcc($book->email)->send(new BookCancelMail($book));
         }
         return view('pages.booking.cancel-confirm', compact('book', 'request'));
     }

@@ -128,16 +128,17 @@
 
                                                                             // Сумма за ночь * гости * ночи
                                                                             if ($adultCount >= 2) {
-                                                                                $perNight = (float)($rate->price2 ?? $calendarPrice) + $price_child;
-                                                                                $sum = $perNight * $nights;
+                                                                                $price = (float)($rate->price2 ?? $calendarPrice) + $price_child;
+                                                                                $sum = $price * $nights;
                                                                             } else {
-                                                                                $perNight = (float)$calendarPrice + $price_child;
-                                                                                $sum = $perNight * max(1, $adultCount) * $nights;
+                                                                                $price = (float)$calendarPrice + $price_child;
+                                                                                $sum = $price * max(1, $adultCount);
                                                                             }
 
                                                                             // Наценка (коэффициент)
-                                                                            $coef = (float)(config('services.main.coef') ?? 0);
-                                                                            $sum  = $sum + $sum * $coef;
+                                                                            $coef = 0.92;
+                                                                            $sum  = $sum / $coef;
+
 
                                                                             // Конвертация валюты
                                                                             $converted = app(\App\Services\FXService::class)->convert(

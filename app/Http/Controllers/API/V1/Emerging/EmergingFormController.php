@@ -5,8 +5,11 @@ namespace App\Http\Controllers\API\V1\Emerging;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log; 
 use Illuminate\Support\Facades\Auth; 
 use Carbon\Carbon;
+use DateTimeZone;
+use DateTime;
 use App\Models\Hotel;
 use App\Models\Book;
 use App\Models\Room;
@@ -27,6 +30,7 @@ class EmergingFormController extends Controller
         $this->apiKey = config('app.emerging_api_key');
         $this->url = config('app.emerging_api_url');
         $this->coef = config('app.main_coef');
+        $this->language = app()->getLocale();
     }
 
     public function EmergingGetHotels(Request $request)
@@ -86,48 +90,45 @@ class EmergingFormController extends Controller
 
     public function searchHotelsByCity(Request $request)
     {
-        $rooms = $request->input('rooms', []); // если нет — пустой массив
-        $adults = 0;
-        $allChildAges = [];
-        $childs = 0;
-        $roomCount=0;
+       $rooms = $request->input('rooms', []); // если нет — пустой массив
         $guests = [];
 
         foreach ($rooms as $room) {
-            $roomCount++;
-            // Взрослые
-            $adults += (int) ($room['adults'] ?? 0);
-            $adultse = (int) ($room['adults'] ?? 0);
+            $adultCount = (int) ($room['adults'] ?? 0);
 
             $children = [];
             if (!empty($room['childAges']) && is_array($room['childAges'])) {
                 foreach ($room['childAges'] as $age) {
                     $children[] = (int) $age;
-                    $allChildAges[] = (int) $age;
-                    $childs++;
                 }
             }
 
             $guests[] = [
-                'adults' => $adultse,
+                'adults'   => $adultCount,
                 'children' => $children,
             ];
         }
 
-            $response = Http::withBasicAuth($this->keyId, $this->apiKey)
+        $city = explode('-', $request->city);
+        $payload = [
+            "checkin" => $request->arrivalDate,
+            "checkout" => $request->departureDate,
+            "residency" => $request->nationality,
+            "language" => $this->language,
+            "guests" => $guests,
+            "timeout" => 30,
+            "region_id" => (int)$city[0],
+            "currency" => "USD"
+        ];
+
+            $response = Http::timeout(31)->withBasicAuth($this->keyId, $this->apiKey)
                 ->withHeaders([
                     'Content-Type' => 'application/json',
                 ])
-                ->post($this->url . '/search/serp/region/', [
-                    "checkin" => $request->arrivalDate,
-                    "checkout" => $request->departureDate,
-                    "residency" => "gb",
-                    "language" => "en",
-                    "guests" => $guests,
-                    // "timeout" => 30,
-                    "region_id" => 3421,
-                    "currency" => "USD"
-                ]);
+                ->post($this->url . '/search/serp/region/', $payload);
+
+            Log::channel('emerging')->info('Search /search/serp/region/ - Payload ', $payload);
+
                 // dd($response->json());
             return $response->json();
                 
@@ -137,49 +138,42 @@ class EmergingFormController extends Controller
     {
         // dd($request);
         $rooms = $request->input('rooms', []); // если нет — пустой массив
-        $adults = 0;
-        $allChildAges = [];
-        $childs = 0;
-        $roomCount=0;
         $guests = [];
 
         foreach ($rooms as $room) {
-            $roomCount++;
-            // Взрослые
-            $adults += (int) ($room['adults'] ?? 0);
-            $adultse = (int) ($room['adults'] ?? 0);
+            $adultCount = (int) ($room['adults'] ?? 0);
 
             $children = [];
             if (!empty($room['childAges']) && is_array($room['childAges'])) {
                 foreach ($room['childAges'] as $age) {
                     $children[] = (int) $age;
-                    $allChildAges[] = (int) $age;
-                    $childs++;
                 }
             }
 
             $guests[] = [
-                'adults' => $adultse,
+                'adults'   => $adultCount,
                 'children' => $children,
             ];
         }
 
-
-
-            $response = Http::withBasicAuth($this->keyId, $this->apiKey)
-                ->withHeaders([
-                    'Content-Type' => 'application/json',
-                ])
-                ->post($this->url . '/search/hp/', [
+        $payload = [
                     "checkin" => $request->arrivalDate,
                     "checkout" => $request->departureDate,
-                    "residency" => "gb",
-                    "language" => "en",
+                    "residency" => $request->nationality,
+                    "language" => $this->language,
                     "guests" => $guests,
                     "timeout" => 30,
                     "hid" => (int)$request->apiHotelId,
                     "currency" => "USD"
-                ]);
+        ];
+
+        Log::channel('emerging')->info('Booking /search/hp/ - Payload ', $payload);
+
+            $response = Http::timeout(31)->withBasicAuth($this->keyId, $this->apiKey)
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                ])
+                ->post($this->url . '/search/hp/', $payload);
 
             return $response->json();
 
@@ -187,17 +181,19 @@ class EmergingFormController extends Controller
 
     public function preBook(Request $request){
 
-        $response = Http::withBasicAuth($this->keyId, $this->apiKey)
+        $response = Http::timeout(21)->withBasicAuth($this->keyId, $this->apiKey)
             ->withHeaders([
                 'Content-Type' => 'application/json',
             ])
             ->post($this->url . '/hotel/prebook/', [
 
-                "hash" => $request->book_hash 
-                
+                "timeout" => 20,
+                "hash" => $request->book_hash,
+                "price_increase_percent" => (int) $request->increase_percent ?? 0,
+
             ]);
 
-        // Возвращаем JSON
+        // Возвращаем JSON  
         return $response->json();
 
     }
@@ -205,7 +201,6 @@ class EmergingFormController extends Controller
     public function startProcess(Request $request)
     {   
         $userId = Auth::id();
-        $language = app()->getLocale();
         $rooms = $request->input('rooms', []); // если нет — пустой массив
         $adults = 0;
         $allChildAges = [];
@@ -233,56 +228,19 @@ class EmergingFormController extends Controller
                     'children' => $children,
                 ];
             }
+            
+        $mappingMeals = $this->mappingMeals();
 
-            $mappingMeals = [
-                // 1 => Room Only
-                'nomeal' => 1,
-                'room-only' => 1,
-
-                // 2 => Bed & Breakfast
-                'breakfast' => 2,
-                'buffet' => 2,
-                'american-breakfast' => 2,
-                'asian-breakfast' => 2,
-                'chinese-breakfast' => 2,
-                'continental-breakfast' => 2,
-                'english-breakfast' => 2,
-                'irish-breakfast' => 2,
-                'israeli-breakfast' => 2,
-                'japanese-breakfast' => 2,
-                'scandinavian-breakfast' => 2,
-                'scottish-breakfast' => 2,
-                'breakfast-for-1' => 2,
-                'breakfast-for-2' => 2,
-
-                // 3 => Half Board
-                'half-board' => 3,
-                'half-board-dinner' => 3,
-                'half-board-lunch' => 3,
-                'some-meal' => 3,
-
-                // 4 => Full Board
-                'full-board' => 4,
-                'lunch' => 4,
-                'dinner' => 4,
-
-                // 5 => All Inclusive
-                'all-inclusive' => 5,
-                'soft-all-inclusive' => 5,
-                'super-all-inclusive' => 5,
-                'ultra-all-inclusive' => 5,
-            ];
-
-
-        $response = Http::withBasicAuth($this->keyId, $this->apiKey)
+        $response = Http::timeout(31)->withBasicAuth($this->keyId, $this->apiKey)
             ->withHeaders([
                 'Content-Type' => 'application/json',
             ])
             ->post($this->url . '/hotel/order/booking/form/', [
                 "partner_order_id" => $request->token,
                 "book_hash" => $request->book_hash,
-                "language" => $language,
+                "language" => $this->language,
                 "user_ip" => $request->ip(),
+                "timeout" => 30,
             ]);
 
         $res = json_decode( $response->body() );
@@ -434,11 +392,19 @@ class EmergingFormController extends Controller
                             'price2' => null,
                             'child_extra_fee' => 0,
                             'availability' => 0,
-                            'total_price' => $totalPrice,
+                            'total_price' => round($totalPrice),
                             'cancellation_rule_id' => $ruleid ?? null,
                             
                         ]
                     );
+
+                    // untax example json
+                        // {
+                        //     "name": "service_fee",
+                        //     "included_by_supplier": false,
+                        //     "amount": "1458.17",
+                        //     "currency_code": "HNL"
+                        // }
 
                     $book = Book::firstOrCreate(
                         [
@@ -454,28 +420,31 @@ class EmergingFormController extends Controller
                             'phone' => $request->phone,
                             'email' => $request->email,
                             'comment' => $request->comment,
+                            'room_count' => $roomCount,
                             'adult' => $adults ?? 1,
                             'child' => $childs,
                             'childages' => $childAges ?? '',
                             'price' => $request->price,
+                            'source_sym' => 'USD',
                             'sum' => $totalPrice,
                             'utc' => $request->utc,
                             'cancellation_id' => $ruleid,
                             'cancel_penalty' => $request->cancelPrice,
-                            'currency' => $curr,
+                            'currency' => $curr ?? $fxBase,
                             'cancel_date' => $cancelDate ?? $utcdatetime,
                             'arrivalDate' => $request->arrivalDate,
                             'departureDate' => $request->departureDate,
                             'status' => 'Pending',
+                            'untax' => $request->tax_not_included ?? '',
                             'user_id' => $userId,
                             'api_type' => 'emerging',
                             'agent_ref' => '',
                         ]
                     );
 
-            if ( !isset($book->id) ){
-                return ['status' => 'error', 'error' => 'error_dublicate_local'];
-            }
+                        if ( !isset($book->id) ){
+                            return ['status' => 'error', 'error' => 'not_created_locally'];
+                        }
         }
 
             // dd( json_decode($response->body()) );
@@ -487,59 +456,65 @@ class EmergingFormController extends Controller
     {
         $language = app()->getLocale();
         $rooms = $request->input('rooms', []); // если нет — пустой массив
-        $adults = 0;
-        $allChildAges = [];
-        $childs = 0;
-        $roomCount=0;
-        $guests = [];
 
-            foreach ($rooms as $room) {
-                $roomCount++;
-                // Взрослые
-                $adults += (int) ($room['adults'] ?? 0);
-                $adultse = (int) ($room['adults'] ?? 0);
+        $roomsData = [];
+        $childIndex = 0;
+        $adultIndex = 0;
 
-                $children = [];
-                if (!empty($room['childAges']) && is_array($room['childAges'])) {
-                    foreach ($room['childAges'] as $age) {
-                        $children[] = (int) $age;
-                        $allChildAges[] = (int) $age;
-                        $childs++;
-                    }
-                }
+        foreach ($rooms as $room) {
+            $roomGuests = [];
 
-                $guests[] = [
-                    'adults' => $adultse,
-                    'children' => $children,
+            // Взрослые в этом номере
+            $adultCount = (int)($room['adults'] ?? 0);
+            for ($i = 0; $i < $adultCount; $i++) {
+                $fname = trim($request->input('paxfname' . $adultIndex, ''));
+                $parts = preg_split('/\s+/', $fname, 3);
+
+                $lastName  = $parts[0] ?? '';
+                $firstName = $parts[1] ?? '';
+                $thirdName = $parts[2] ?? '';
+
+                $roomGuests[] = [
+                    'first_name' => $firstName,
+                    'last_name'  =>trim($lastName . ' ' . $thirdName),
                 ];
+
+                $adultIndex++;
             }
 
-                    $paxList = [];
+            // Дети в этом номере
+            if (!empty($room['childAges']) && is_array($room['childAges'])) {
+                foreach ($room['childAges'] as $age) {
+                    $fname = trim($request->input('child_name' . $childIndex, ''));
+                    $parts = preg_split('/\s+/', $fname, 3);
 
-                        for ($i = 0; $i < $adults; $i++) {
-                            $j = $i + 1;
+                    $lastName  = $parts[0] ?? '';
+                    $firstName = $parts[1] ?? '';
+                    $thirdName = $parts[2] ?? '';
 
-                            if($j > 1){
+                    $roomGuests[] = [
+                        'first_name' => $firstName,
+                        'last_name'  => trim($lastName . ' ' . $thirdName),
+                        'age'        => (int)$age,
+                        'is_child'   => true,
+                    ];
 
-                                $paxList[] = [
-                                    "first_name" => $request->{'paxfname' . $j},
-                                    "last_name" => $request->{'paxlname' . $j},
-                                    'is_child' => 0,
-                                ];
-                                    
-                            }else{
-                                $paxList[] = [
-                                    "first_name" => $request->paxfname,
-                                    "last_name" => $request->paxlname,
-                                    'is_child' => 0,
-                                ];
-                            }
-                            
-                        }
+                    $childIndex++;
+                }
+            }
+
+            $roomsData[] = [
+                'guests' => $roomGuests
+            ];
+        }
+
+        $totalPrice = number_format(($request->price / $this->coef), 2, '.', '');
+        // $partnerComment = Auth::user()->partner_comment;
 
         $payload = [
+                // "timeout" => 30,
                 "user" => [
-                        "email" => $request->email, 
+                        "email" => 'itsupport@staybook.asia', //$request->email, 
                         "comment" => $request->comment, 
                         "phone" => $request->phone 
                     ], 
@@ -551,57 +526,45 @@ class EmergingFormController extends Controller
                 //         ], 
                 "partner" => [
                             "partner_order_id" => $data['etoken'], 
-                            "comment" => "", 
-                            // "amount_sell_b2b2c" => 
+                            // "comment" => $partnerComment ?? '', 
+                            "amount_sell_b2b2c" => round($totalPrice)
                             ], 
                 "language" => $language, 
-                "rooms" => [
-                                [
-                                    "guests" => $paxList
-                                ] 
-                            ], 
+                "rooms" => $roomsData, 
                 "payment_type" => [
                                     "type" => $data['type'], 
                                     "amount" => $data['amount'], 
                                     "currency_code" => $data['curr'] 
                                 ], 
                             ];
+                            
+                // dd(json_encode($payload));
+        Log::channel('emerging')->info('Order Finish - Payload ', $payload);
 
-        $response = Http::withBasicAuth($this->keyId, $this->apiKey)
+        $response = Http::timeout(61)->withBasicAuth($this->keyId, $this->apiKey)
             ->withHeaders([
                 'Content-Type' => 'application/json',
             ])
             ->post($this->url . '/hotel/order/booking/finish/', $payload);
+            // ->post('https://httpstat.us/500', []); // для 5xx
+            // ->post('https://httpstat.us/200?sleep=5000', []); // для timeout
+            // ->post('https://not-existing-12345-domain.com/test', []); // для unknown
+            // ->throw(); // <-- это кидает исключение при 4xx/5xx
                 
         return $response->json();
 
     }
 
-    public function etg_cancel(Request $request){
-
-        $response = Http::withBasicAuth($this->keyId, $this->apiKey)
-            ->withHeaders([
-                'Content-Type' => 'application/json',
-            ])
-            ->post($this->url . '/hotel/order/cancel/', [
-
-                "partner_order_id" => $request->number 
-                
-            ]);
-
-        return json_decode( $response->body() );
-
-    }
-    
     public function finishStatus(Request $request){
 
-        $response = Http::withBasicAuth($this->keyId, $this->apiKey)
+        $response = Http::timeout(61)->withBasicAuth($this->keyId, $this->apiKey)
             ->withHeaders([
                 'Content-Type' => 'application/json',
             ])
             ->post($this->url . '/hotel/order/booking/finish/status/', [
 
-                "partner_order_id" => $request->token 
+                "partner_order_id" => $request->token,
+                "timeout" => 60, 
                 
             ]);
 
@@ -609,4 +572,186 @@ class EmergingFormController extends Controller
         return $response->json();
 
     }
+
+    public function etg_cancel(Request $request){
+
+        $response = Http::timeout(31)->withBasicAuth($this->keyId, $this->apiKey)
+            ->withHeaders([
+                'Content-Type' => 'application/json',
+            ])
+            ->post($this->url . '/hotel/order/cancel/', [
+
+                "partner_order_id" => $request->number, 
+                "timeout" => 30,
+            ]);
+
+        return json_decode( $response->body() );
+
+    }
+
+    public function getBookingStatus($token){
+
+        try{
+
+            $response = Http::timeout(30)->withBasicAuth($this->keyId, $this->apiKey)
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                ])
+                ->post($this->url . '/hotel/order/booking/finish/status/', [
+                    "partner_order_id" => $token 
+                ]);
+
+
+            return $response->json();
+
+        } catch (\Throwable $th) {
+            
+            Log::channel('emerging')->info('Crontab Get Statuses - ', $response->json());
+            return ["Error" => "Cron Statuses SearchOrder Ошибка при запросе к API: " . $th->getMessage()];
+            
+        }
+
+    }
+
+    public function updateBookingStatuses(){
+
+        $books = Book::where('api_type', 'emerging')
+            ->where('status', 'Pending')
+            ->get('id', 'book_token');
+
+        foreach ($books as $book) {
+
+            $status = $this->getBookingStatus($book->book_token);
+
+            if( $status['status'] == 'ok' ){
+
+                Book::where('book_token', $book->book_token)
+                    ->update(['status' => 'Confirmed']);
+                echo "Done {$book->id} \n";
+            }
+
+            echo "Error - {$status['error']} {$book->id} \n";
+        }
+        
+    }
+
+    public function mappingMeals(){
+
+        $mappingMeals = [
+                // 1 => Room Only
+                'nomeal' => 1,
+                'room-only' => 1,
+                'some-meal' => 1,
+                'breakfast-for-1' => 1,
+                'breakfast-for-2' => 1,
+
+                // 2 => Bed & Breakfast
+                'breakfast' => 2,
+                'buffet' => 2,
+                'american-breakfast' => 2,
+                'asian-breakfast' => 2,
+                'chinese-breakfast' => 2,
+                'continental-breakfast' => 2,
+                'english-breakfast' => 2,
+                'irish-breakfast' => 2,
+                'israeli-breakfast' => 2,
+                'japanese-breakfast' => 2,
+                'scandinavian-breakfast' => 2,
+                'scottish-breakfast' => 2,
+                
+
+                // 3 => Half Board
+                'half-board' => 3,
+                'half-board-dinner' => 3,
+                'half-board-lunch' => 3,
+                
+
+                // 4 => Full Board
+                'full-board' => 4,
+                'soft-all-inclusive' => 4,
+
+                // Lunch & Bed
+                'lunch' => 6,
+
+                // Dinner & Bed
+                'dinner' => 7,
+
+                // 5 => All Inclusive
+                'all-inclusive' => 5,
+                'super-all-inclusive' => 5,
+                'ultra-all-inclusive' => 5,
+        ];
+        
+        return $mappingMeals;
+    }
+
+    public function mappingMealsGrouped(){
+
+        // mapping: id => список ключей
+        $mappingMealsGrouped = [
+            1 => ['nomeal', 'room-only', 'some-meal', 'breakfast-for-1', 'breakfast-for-2'],
+            2 => [
+                'breakfast', 'buffet', 'american-breakfast', 'asian-breakfast',
+                'chinese-breakfast', 'continental-breakfast', 'english-breakfast',
+                'irish-breakfast', 'israeli-breakfast', 'japanese-breakfast',
+                'scandinavian-breakfast', 'scottish-breakfast',
+            ],
+            3 => ['half-board', 'half-board-dinner', 'half-board-lunch'],
+            4 => ['full-board', 'soft-all-inclusive'],
+            5 => ['all-inclusive', 'super-all-inclusive', 'ultra-all-inclusive'],
+            6 => ['lunch'],
+            7 => ['dinner'],
+        ];
+        
+        return $mappingMealsGrouped;
+    }
+
+    public function mappingStaybookMeals($mealId)
+    {
+        $mappingMeals = [
+            // 1 => Room Only
+            1 => 'nomeal',
+            1 => 'room-only',
+            1 => 'some-meal',
+            1 => 'breakfast-for-1',
+            1 => 'breakfast-for-2',
+
+            // 2 => Bed & Breakfast
+            2 => 'breakfast',
+            2 => 'buffet',
+            2 => 'american-breakfast',
+            2 => 'asian-breakfast',
+            2 => 'chinese-breakfast',
+            2 => 'continental-breakfast',
+            2 => 'english-breakfast',
+            2 => 'irish-breakfast',
+            2 => 'israeli-breakfast',
+            2 => 'japanese-breakfast',
+            2 => 'scandinavian-breakfast',
+            2 => 'scottish-breakfast',
+
+            // 3 => Half Board
+            3 => 'half-board',
+            3 => 'half-board-dinner',
+            3 => 'half-board-lunch',
+
+            // 4 => Full Board
+            4 => 'full-board',
+            4 => 'soft-all-inclusive',
+
+            // 5 => All Inclusive
+            5 => 'all-inclusive',
+            5 => 'super-all-inclusive',
+            5 => 'ultra-all-inclusive',
+
+            // Lunch & Bed
+            6 => 'lunch',
+
+            // Dinner & Bed
+            7 => 'dinner',
+        ];
+
+        return $mappingMeals;
+    }
+
 }
