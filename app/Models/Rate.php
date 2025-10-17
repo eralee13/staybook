@@ -25,7 +25,8 @@ class Rate extends Model
         'open_time',
         'close_time',
         'exely_id',
-        'deleted_at'
+        'deleted_at',
+        'cancellation'
     ];
 
     /**
@@ -45,6 +46,16 @@ class Rate extends Model
     public function room()
     {
         return $this->belongsTo(Room::class);
+    }
+
+    // app/Models/Rate.php
+    public function cancellations()
+    {
+        return $this->hasMany(\App\Models\CancellationRule::class, 'rate_id', 'id');
+    }
+    public function cancellation()
+    {
+        return $this->hasOne(\App\Models\CancellationRule::class, 'rate_id', 'id')->latest('id');
     }
 
     public function meal()

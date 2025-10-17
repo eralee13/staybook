@@ -14,7 +14,7 @@ class CancellationRule extends Model
 
     public function rate()
     {
-        return $this->belongsTo(Rate::class);
+        return $this->belongsTo(\App\Models\Rate::class, 'rate_id', 'id');
     }
 
     public function bookings()

@@ -32,8 +32,10 @@ return [
     ],
 
     'exely' => [
-        'key'      => env('EXELY_API_KEY'),
-        'base_url' => env('EXELY_BASE_URL'),
+        'key'  => env('EXELY_API_KEY'),
+        'base' => rtrim(env('EXELY_BASE_URL', env('EXELY_BASE', 'https://connect.hopenapi.com/api')), '/'),
+        'checkin_time'  => env('EXELY_CHECKIN_TIME',  '14:00'),
+        'checkout_time' => env('EXELY_CHECKOUT_TIME', '12:00'),
     ],
 
     'tourmind' => [

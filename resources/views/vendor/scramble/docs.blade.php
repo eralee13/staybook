@@ -49,6 +49,7 @@
         };
     </script>
 
+
     <style>
         html, body { margin:0; height:100%; }
         body { background-color: var(--color-canvas); }
@@ -92,6 +93,8 @@
     })();
 </script>
 
+
+
 @if($config->get('ui.theme', 'light') === 'system')
     <script>
         var mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -110,5 +113,7 @@
         updateTheme(mediaQuery);
     </script>
 @endif
+
+
 </body>
 </html>
