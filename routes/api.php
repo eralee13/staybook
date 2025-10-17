@@ -27,6 +27,7 @@ Route::prefix('v1')->withoutMiddleware('throttle:api')  ->group(function () {
             ->name('booking.store');
         Route::get('/getBooks/{book}', [BookingController::class, 'show'])
             ->middleware('api.token:booking.read')->whereNumber('book');
-        Route::post('/cancelBook', [BookingController::class, 'cancel'])->middleware('api.token:booking.cancel');
+        Route::get('/cancelBook/calculate', [BookingController::class, 'cancelCalculate']);
+        Route::post('/cancelBook', [BookingController::class, 'cancelConfirm']);
     });
 });
