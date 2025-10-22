@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Mail\BookCancelMail;
 use App\Models\Book;
-use App\Models\Contact;
+use App\Models\Hotel;
+use App\Models\Rate;
+use App\Models\Room;
+use App\Models\CancellationRule;
 use Carbon\Carbon;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
@@ -26,10 +29,7 @@ class UserBookController extends Controller
     public function index(Request $request)
     {
         $user = Auth::id();
-        $books = Book::where('user_id', $user)
-            ->whereNotIn('api_type', ['calendar_allotment', 'calendar_price', 'calendar'])
-            ->latest()
-            ->paginate(40);
+        $books = Book::where('user_id', $user)->where('sum', '!=', 0)->get();
         return view('auth.userbooks.index', compact('books'));
     }
 
@@ -50,10 +50,9 @@ class UserBookController extends Controller
         $books = Book::where('user_id', $user)->where('status', 'Reserved')->get();
         Book::where('id', $book->id)->update(['status' => 'Cancelled']);
         Log::warning('Отмена брони: ' . $book->id);
-        $email = Contact::first()->email;
-        Mail::to($email)->cc(Auth::user()->email)->bcc($book->email)->send(new BookCancelMail($book));
+        Mail::to('info@staybook.asia')->send(new BookCancelMail($book));
         session()->flash('success', 'Booking ' . $request->title . ' is cancelled');
-        return redirect()->route('auth.userbooks.cancel-confirm', compact('books'));
+        return redirect()->route('auth.userbooks.index', compact('books'));
     }
 
     //exely
@@ -87,17 +86,13 @@ class UserBookController extends Controller
                     "reason" => "Booking cancellation",
                     "expectedPenaltyAmount" => $request->amount
                 ]);
+
             if ($response->successful()) {
                 $cancel = $response->object();
-                $book = Book::where('book_token', $request->number)->first();
-                $book->where('book_token', $request->number)->update([
-                    'status' => "Cancelled"
-                ]);
                 Book::where('id', $book->id)->update(['status' => 'Cancelled']);
                 Log::warning('Отмена брони: ' . $book->id);
-                $email = Contact::first()->email;
-                Mail::to($email)->send(new BookCancelMail($book));
-                return view('auth.userbooks.cancel-confirm', compact('cancel'));
+                Mail::to('info@staybook.asia')->send(new BookCancelMail($book));
+                return view('auth.userbooks.cancel-confirm-exely', compact('cancel'));
             } else {
                 Log::warning('Запрос завершился ошибкой: ' . $response->status());
                 return view('errors.400', compact('response'));
@@ -105,16 +100,31 @@ class UserBookController extends Controller
 
         } catch (RequestException $e) {
             Log::error('Ошибка запроса: ' . $e->getMessage());
+
             return response()->json(['error' => 'Сервис временно недоступен'], 503);
         }
     }
 
-    public function cancelBookTM(Request $request, Book $book)
+    // tourmind
+    public function cancelCalculateBookingTM(Request $request, Book $book){
+        $book = Book::where('book_token', $book->book_token)->first();
+        $hotel = Hotel::where('id', $book->hotel_id)->first();
+        $arrival = Carbon::createFromDate($book->arrivalDate)->format('d.m.Y');
+        $departure = Carbon::createFromDate($book->departureDate)->format('d.m.Y');
+        $room = Room::where('id', $book->room_id)->first();
+        $rate = Rate::where('id', $book->rate_id)->first();
+        $cancelRule = CancellationRule::where('id', $book->cancellation_id)->first();
+
+        return view('auth.userbooks.cancel-calculate-tm', compact(
+            'book', 'hotel', 'arrival', 'departure', 'room', 'rate', 'request', 'cancelRule'));
+    }
+
+    public function cancelBookingTM(Request $request, Book $book)
     {
         $user = Auth::id();
         $message = '';
 
-        if ( $request->api_type == 'tourmind' ){
+        
             $res = $this->cancelOrderTm($request, $book);
             
             if ( isset($res['Error']['ErrorMessage']) ){
@@ -123,6 +133,7 @@ class UserBookController extends Controller
         
             }
              elseif( isset($res['CancelResult']['OrderStatus']) && $res['CancelResult']['OrderStatus'] == 'CANCELLED'){
+
                 $cancelFee = $res['CancelResult']['CancelFee'];
                 $curr = $res['CancelResult']['CurrencyCode'];
 
@@ -132,19 +143,13 @@ class UserBookController extends Controller
                 $message = $res['Error'];
             }
 
-        }else{
 
-            // $books = Book::where('user_id', $user)->where('status', 'Reserved')->get();
-            // Book::where('id', $book->id)->update(['status' => 'Cancelled']);
-            // session()->flash('success', 'Booking ' . $request->title . ' is cancelled');
-
-        }
         session()->flash('success', $message);
         $books = Book::where('user_id', $user)->orderBy('id', 'desc')->get();
         return redirect()->route('userbooks.index', compact('books'));
     }
 
-    public function cancelOrderTm($request, $book){
+    public function cancelOrderTm(Request $request, Book $book){
 
         // cancel order from tourmind
         $this->baseUrl = config('app.tm_base_url');
@@ -188,5 +193,78 @@ class UserBookController extends Controller
            }
         
     }
+
+    // Emerging
+    public function cancelCalculateBookingETG(Request $request, Book $book)
+    {
+        $book = Book::where('book_token', $book->book_token)->first();
+        $hotel = Hotel::where('id', $book->hotel_id)->first();
+        $arrival = Carbon::createFromDate($book->arrivalDate)->format('d.m.Y');
+        $departure = Carbon::createFromDate($book->departureDate)->format('d.m.Y');
+        $room = Room::where('id', $book->room_id)->first();
+        $rate = Rate::where('id', $book->rate_id)->first();
+        $cancelRule = CancellationRule::where('id', $book->cancellation_id)->first();
+
+        return view('auth.userbooks.cancel_calculate_etg', compact(
+            'book', 'hotel', 'arrival', 'departure', 'room', 'rate', 'request', 'cancelRule'));
+    }
+    
+    /**
+     * Cancel booking in ETG
+     *
+     * @param Request $request
+     * @param Book $book
+     * @return void
+     */
+    public function cancelBookingETG(Request $request, Book $book){
+
+        $user = Auth::id();
+        $cancel = '';
+
+        try {
+
+            $response = Http::timeout(30)
+            ->withBasicAuth($this->keyId, $this->apiKey)
+            ->withHeaders([
+                'Content-Type' => 'application/json',
+            ])
+            ->post($this->url . '/hotel/order/cancel/', [
+
+                "partner_order_id" => $book->book_token
+                
+            ]);
+
+            $cancel = json_decode( $response->body() );
+
+
+                if ($cancel['status'] == 'ok') {
+
+                    $book->update(['status' => 'Cancelled']);
+                    Mail::to('info@staybook.asia')->send(new BookCancelMail($book));
+                    session()->flash('success', __('main.booking_cancelled').'era');
+                    
+                } else {
+
+                    Log::channel('emerging')->error('Cancel Order - ', [$th->getMessage()]);
+                    session()->flash('error', __('main.cancel_failed').'era2');
+                }
+
+            // $books = Book::where('user_id', $user)->orderBy('id', 'desc')->get();
+            // return redirect()->route('userbooks.index', compact('books'));
+
+        } catch (\Throwable $th) {
+            
+            Log::channel('emerging')->error('UserBook Cancel Order - ', [$th->getMessage()]);
+            session()->flash('error', __('main.cancel_failed').'era3'); 
+
+            // $books = Book::where('user_id', $user)->orderBy('id', 'desc')->get();
+            // return redirect()->route('userbooks.index', compact('books'));
+        }
+
+        return view('auth.userbooks.cancel-confirm-etg', compact('cancel'));
+        
+
+    }
+
 }
 

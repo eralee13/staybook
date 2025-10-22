@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 use Carbon\Carbon;
 use DateTimeZone;
 use DateTime;
-use App\Mail\BookCancelMail;
+// use App\Mail\BookCancelMail;
 use App\Mail\BookMail;
 use App\Services\Tourmind\TmApiService;
 use App\Models\Hotel;
@@ -306,7 +306,7 @@ class HotelServices
             // dd($payload);
 
         try {
-            $response = Http::withHeaders([
+            $response = Http::timeout(30)->withHeaders([
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json'
             ])->post("{$this->baseUrl}/HotelDetail", $payload);
@@ -377,7 +377,7 @@ class HotelServices
             // dd($payload);
 
         try {
-            $response = Http::withHeaders([
+            $response = Http::timeout(30)->withHeaders([
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json'
             ])->post("{$this->baseUrl}/HotelDetail", $payload);
@@ -513,7 +513,7 @@ class HotelServices
         ]);
 
         
-        $response = Http::withHeaders([
+        $response = Http::timeout(30)->withHeaders([
             'Content-Type' => 'application/json',
             'Accept' => 'application/json'
         ])->post("{$this->baseUrl}/CheckRoomRate", $payload);
@@ -842,7 +842,7 @@ class HotelServices
 
 
             // tourmind create order
-            $response = Http::withHeaders([
+            $response = Http::timeout(30)->withHeaders([
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json'
             ])->post("{$this->baseUrl}/CreateOrder", $payload);
@@ -866,15 +866,27 @@ class HotelServices
     
                 $message = $order['OrderInfo']['OrderStatus'];
 
-                    Book::where('book_token', $this->token)
-                        ->update([
-                            'status' => ucfirst($order['OrderInfo']['OrderStatus']),
-                            // 'rezervation_id' => $order['OrderInfo']['ReservationID']
-                        ]);
+                    $status;
+                    match ($order['OrderInfo']['OrderStatus']) {
+                        'CONFIRMED' => $status = 'Confirmed',
+                        'PENDING' => $status = 'Pending',       
+                        'FAILED' => $status = 'Failed',
+                        'CANCELLED' => $status = 'Cancelled',
+                        default => $status = '',
+                    };
 
-                    $book = Book::where('book_token', $request->token)->first();
 
-                        Mail::to('info@staybook.asia')->send(new BookMail($book));
+                    $book = Book::where('book_token', $this->token)->first();
+
+                    if ($book) {
+                        $book->status = 'Confirmed';
+                        // $book->rezervation_id = $order['OrderInfo']['ReservationID'] ?? null;
+                        $book->save();
+
+                        $userEmail = Auth::user()->email;
+                        Mail::to($userEmail)->send(new BookMail($book));
+                    }
+                        
 
                 return ['Success' => "{$order['OrderInfo']['OrderStatus']}"];
     
@@ -912,7 +924,7 @@ class HotelServices
                     ]
                 ];
             
-                    $response = Http::withHeaders([
+                    $response = Http::timeout(30)->withHeaders([
                         'Content-Type' => 'application/json',
                         'Accept' => 'application/json'
                     ])->post("{$this->baseUrl}/CancelOrder", $payload);
@@ -942,7 +954,7 @@ class HotelServices
                     ]
                 ];
             
-                $response = Http::withHeaders([
+                $response = Http::timeout(30)->withHeaders([
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/json'
                 ])->post("{$this->baseUrl}/SearchOrder", $payload);
@@ -961,11 +973,11 @@ class HotelServices
             }
     }
 
-    public function updateBookStatuses(){
+    public function updateBookingStatuses(){
 
         $books = Book::where('api_type', 'tourmind')
             ->whereIn('status', ['Pending', 'Failed'])
-            ->get('book_token','agent_ref');
+            ->get('id','book_token','agent_ref');
 
         foreach ($books as $book) {
 
@@ -973,15 +985,20 @@ class HotelServices
 
             if( isset($order['OrderInfo']['OrderStatus']) ){
 
+                $status = $order['OrderInfo']['OrderStatus'];
+
                 Book::where('book_token', $book->book_token)
                     ->update(['status' => ucfirst( $order['OrderInfo']['OrderStatus'] )]);
+
+                    echo "Done {$book->id} - {$status} \n";
             }
         }
         
     }
 
     public function getUtcOffsetByCountryCode($CountryCode){
-        // ISO 3166-1 alpha-2
+        // ISO 3166-1 alpha-2 example: 'US', 'GB', 'FR'
+        // Получаем список временных зон для данной страны
         $tzList = DateTimeZone::listIdentifiers(DateTimeZone::PER_COUNTRY, $CountryCode);
 
         $timezone = new DateTimeZone($tzList[0]);
@@ -998,24 +1015,26 @@ class HotelServices
 
     function getUtcOffsetByCityName($city)
     {
-        $cityName = strtolower($city);
+        $cityName = strtolower(str_replace(' ', '_', $city)); // заменяем пробелы на "_"
         $foundTimezone = null;
-    
+
         foreach (DateTimeZone::listIdentifiers() as $timezone) {
-            if (strtolower(substr($timezone, strrpos($timezone, '/') + 1)) == $cityName) {
+            if (strtolower(substr($timezone, strrpos($timezone, '/') + 1)) === $cityName) {
                 $foundTimezone = $timezone;
                 break;
             }
         }
-    
+
         if ($foundTimezone) {
             $tz = new DateTimeZone($foundTimezone);
             $now = new DateTime('now', $tz);
             $offset = $tz->getOffset($now) / 3600;
-    
-            return 'UTC' . ($offset >= 0 ? '+' : '') . $offset;
+
+            // красиво форматируем: UTC+3 вместо UTC+3.0
+            return 'UTC' . ($offset >= 0 ? '+' : '') . (fmod($offset, 1) === 0 ? (int)$offset : $offset);
         }
-    
+
         return 'Timezone not found';
     }
+
 }

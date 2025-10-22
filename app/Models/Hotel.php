@@ -14,6 +14,7 @@ class Hotel extends Model
     use SoftDeletes;
 //    use QueryCacheable;
 //    protected $cacheFor = 0;
+
     protected $hidden = [
         'created_at',
         'updated_at',
@@ -21,34 +22,82 @@ class Hotel extends Model
         'user_id',
         'exely_id',
         'rate_id',
+        'tourmind_id',
+        'emerging_id',  
+        'hotelstar_id',
         'top',
         'status',
         'early_in',
         'late_out',
-        'count'
+        'count',
+        'metapolicy_struct',
+        'metapolicy_extra_info',
     ];
 
-    protected $guarded = [];
+    protected $fillable = [
+        'code',
+        'title',
+        'title_en',
+        'description',
+        'description_en',
+        'image',
+        'checkin',
+        'checkout',
+        'phone',
+        'email',
+        'type',
+        'city',
+        'address',
+        'address_en',
+        'lng',
+        'lat',
+        //'early_in',
+        //'late_out',
+        'rating',
+        'top',
+        'user_id',
+        'exely_id',
+        'tourmind_id',
+        'emerging_id',
+        'hotelstar_id',
+        'timezone',
+        'utc',
+        'status',
+        'metapolicy_struct',
+        'metapolicy_extra_info',
+    ];
+
+    protected $casts = [
+        'metapolicy_struct' => 'array',
+    ];
+
+
     public function rooms()
     {
         return $this->hasMany(Room::class);
     }
+
     public function rates()
     {
         return $this->hasMany(Rate::class);
     }
+
+
     public function amenity()
     {
         return $this->hasOne(Amenity::class);
     }
+
     public function scopeByCode($query, $code)
     {
         return $query->where('code', $code);
     }
+
     public function meals()
     {
         return $this->hasMany(Meal::class);
     }
+
     public function city()
     {
         return $this->belongsTo(City::class);
@@ -62,10 +111,5 @@ class Hotel extends Model
     public function images()
     {
         return $this->hasMany(Image::class, 'hotel_id'); // или belongsTo, в зависимости от структуры
-    }
-
-    public function user()
-    {
-        return $this->belongsTo(User::class);
     }
 }

@@ -100,9 +100,6 @@ class TmApiService
         });
     }
     
-
-
-
     public function saveRoomImage($imageUrl, int $hotelId)
     {
         try {

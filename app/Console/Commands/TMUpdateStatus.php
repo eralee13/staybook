@@ -29,7 +29,7 @@ class TMUpdateStatus extends Command
     {
         $controller = app(HotelServices::class);
         $request = new Request(); // Создаём пустой запрос
-        $controller->updateBookStatuses($request); // Передаём в метод
+        $controller->updateBookingStatuses($request); // Передаём в метод
         // $this->info('Список типов номеров обновлён.');
     }
 }

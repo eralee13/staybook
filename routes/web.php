@@ -24,6 +24,7 @@ use Dedoc\Scramble\Scramble;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -34,6 +35,7 @@ use Illuminate\Support\Facades\Session;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+
 Route::get('locale/{locale}', 'App\Http\Controllers\MainController@changeLocale')->name('locale');
 Route::get('/logout', 'App\Http\Controllers\ProfileController@logout')->name('get-logout');
 
@@ -58,6 +60,7 @@ Route::middleware('set_locale')->group(function () {
             Route::get('/books/{hotel?}', [BookingCalendarController::class, 'index'])->name('bookcalendar.index');
             Route::post('/books/create', [BookingCalendarController::class, 'store'])->name('bookcalendar.create');
         });
+
 
         Route::prefix('bookcalendarprice')->group(function () {
             Route::get('/books/events', [BookingCalendarPriceController::class, 'getEvents'])->name('bookcalendarprice.events');
@@ -114,6 +117,18 @@ Route::middleware('set_locale')->group(function () {
         //exely
         Route::post('/userbooks/cancel_exely/{book}', [UserBookController::class, 'cancel_calculate_exely'])->name('userbooks.cancel_calculate_exely');
         Route::get('/userbooks/cancel_confirm', [UserBookController::class, 'cancel_confirm_exely'])->name('userbooks.cancel_confirm_exely');
+
+        // tourmind
+        Route::post('/userbooks/cancel_calculate_tm/{book}', [UserBookController::class, 'cancelCalculateBookingTM'])->name('userbooks.cancel_calculate_tm');
+        Route::get('/userbooks/cancel_confirm_tm', [UserBookController::class, 'cancelBookingTM'])->name('userbooks.cancel_confirm_tm');
+
+        // emerging
+        Route::post('/userbooks/cancel_calculate_etg/{book}', [UserBookController::class, 'cancelCalculateBookingETG'])->name('userbooks.cancel_calculate_etg');
+        Route::get('/userbooks/cancel_confirm_etg', [UserBookController::class, 'cancelBookingETG'])->name('userbooks.cancel_confirm_etg');
+
+        // hotelstar
+        Route::post('/userbooks/cancel_calculate_hs/{book}', [UserBookController::class, 'cancelCalculateBookingHS'])->name('userbooks.cancel_calculate_hs');
+        Route::get('/userbooks/cancel_confirm_hs', [UserBookController::class, 'cancelBookingHS'])->name('userbooks.cancel_confirm_hs');
 
         Route::post('/users/store-user-hotel', [\App\Http\Controllers\Admin\UserController::class, 'storeHotel'])->name('users.createHotelUsers');
         Route::get('/list-users-hotel', [\App\Http\Controllers\Admin\UserController::class, 'listHotel'])->name('users.listHotel');
@@ -209,6 +224,14 @@ Route::middleware('set_locale')->group(function () {
     Route::get('/book/cancel/etg', [\App\Http\Controllers\BookingEtgController::class, 'cancel_calculate_etg'])->name('cancel_calculate_etg');
     Route::get('/book/cancel/confirm/etg', [\App\Http\Controllers\BookingEtgController::class, 'cancel_confirm_etg'])->name('cancel_confirm_etg');
 
+    // Hotelstar
+    Route::get('/hotelehs/{hid}', [\App\Http\Controllers\SearchController::class, 'hotel_hs'])->name('hotel_hs');
+    Route::get('/book/order/hs', [\App\Http\Controllers\BookingHsController::class, 'order_hs'])->name('order_hs');
+    Route::get('/book/verify/hs', [\App\Http\Controllers\BookingHsController::class, 'book_verify_hs'])->name('book_verify_hs');
+    Route::get('/book/reserve/hs', [\App\Http\Controllers\BookingHsController::class, 'book_reserve_hs'])->name('book_reserve_hs');
+    Route::get('/book/cancel/hs', [\App\Http\Controllers\BookingHsController::class, 'cancel_calculate_hs'])->name('cancel_calculate_hs');
+    Route::get('/book/cancel/confirm/hs', [\App\Http\Controllers\BookingHsController::class, 'cancel_confirm_hs'])->name('cancel_confirm_hs');
+
     //email
     Route::post('contact_mail', [MainController::class, 'contact_mail'])->name('contact_mail');
     Route::post('book_mail', [MainController::class, 'book_mail'])->name('book_mail');
@@ -223,3 +246,9 @@ Route::get('/clear-cache', function () {
     //Artisan::call('web:clear');
     return "Cache cleared successfully";
 });
+
+Route::get('/actualize-currency', function () {
+    $cacheKey = 'fx_central_rates';
+    return  Cache::get($cacheKey);
+});
+

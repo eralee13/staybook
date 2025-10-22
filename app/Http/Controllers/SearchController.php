@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Meal;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -608,6 +609,7 @@ class SearchController extends Controller
 
         return view('pages.search.exely.hotel', compact('rooms', 'request'));
 
+
     }
 
     // tourmind
@@ -673,4 +675,69 @@ class SearchController extends Controller
 //        return view('pages.search.emerging.hotel', compact('hotel', 'arrival', 'departure', 'request', 'roomAmenity', 'etgroom', 'tmimages', 'meals'));
 //    }
 
+
+
+    // Hotelstar
+    public function hotel_hs($hid, Request $request)
+    {
+        $hotel = Hotel::where('id', $hid)->with(['amenity'])->first();
+        $froom = Room::where('hotel_id', $hid)->get(['amenities'])->first();
+        $amenities = explode(',', $froom->amenities ?? '');
+        $roomAmenity = array_slice($amenities, 0, 8);
+        $meals = Meal::pluck('title', 'id');
+        $arrival = Carbon::createFromDate($request->arrivalDate);
+        $departure = Carbon::createFromDate($request->departureDate);
+
+        $hotelstar = new \App\Http\Controllers\API\V1\Hotelstar\HotelstarFormController();
+        $hsroom = $hotelstar->searchHotelsByCityOrId($request, $hotel->id);
+
+
+        if ( isset($hsroom) ) {
+
+            $grouped = [];
+
+            // группируем по room_name
+            foreach ($hsroom as $item) {
+                $roomName = $item['room_name'];
+
+                if (!isset($grouped[$roomName])) {
+                    $grouped[$roomName] = [
+                        'room_name' => $roomName,
+                        'rates' => []
+                    ];
+                }
+
+                $grouped[$roomName]['rates'][] = $item;
+            }
+
+            // сортируем тарифы в каждой комнате по цене
+            foreach ($grouped as &$room) {
+                usort($room['rates'], fn($a, $b) => $a['price'] <=> $b['price']);
+            }
+
+            // сортируем сами комнаты по минимальной цене тарифа
+            usort($grouped, function ($a, $b) {
+                $minA = $a['rates'][0]['price'] ?? PHP_INT_MAX;
+                $minB = $b['rates'][0]['price'] ?? PHP_INT_MAX;
+                return $minA <=> $minB;
+            });
+
+            // сбрасываем ключи в обычный массив
+            $hsroom = array_values($grouped);
+        }
+
+        dump($hsroom);
+
+        $tmimages = Image::where('hotel_id', $hotel->id)->where('caption', 'guest_rooms')->get('image');
+
+        $city = City::where('title', $hotel->city)->first(['country_code']);
+
+        if (!$hotel->utc && $city && ($utc = $hotelService->getUtcOffsetByCountryCode($city->country_code))) {
+            $hotel->utc = $utc;
+            $hotel->save();
+        }
+
+
+        return view('pages.search.hotelstar.hotel', compact('hotel', 'arrival', 'departure', 'request', 'roomAmenity', 'hsroom', 'tmimages', 'meals'));
+    }
 }

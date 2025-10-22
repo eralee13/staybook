@@ -45,7 +45,8 @@
                                 <strong>@lang('main.'.$message)</strong>
                             </div>
                     @endif
-    
+                    
+                    @if( isset($book->id) )
                     <ul>
                         <li>@lang('main.status'): @lang('main.' . $book->status ?? $message)</li>
                         <li>@lang('main.booking_number'): {{ $book->id ?? ''}}</li>
@@ -76,17 +77,28 @@
                             </ul>
                         </li>
                     </ul>
-                    <style>.bnt-wrap{display: flex; gap: 20px; margin-top: 50px;} .bnt-wrap form{margin-top: 0!important;}</style>   
+                        <style>.bnt-wrap{display: flex; gap: 20px; margin-top: 50px;} .bnt-wrap form{margin-top: 0!important;}</style>   
                         <div class="bnt-wrap">
                             <button class="more" onclick="window.location.reload()">@lang('main.check_status')</button>
-                            @if( isset($book->id) ) 
-                                <form action="{{ route('cancel_calculate_tm', $book->id) }}">
-                                    <input type="hidden" name="number" value="{{ $book->book_token }}">
-                                    <button class="more">@lang('main.cancel_booking')</button>
-                                </form>
-                            @endif
+                            
+                                @if($book->status != 'Cancelled')
+                                    <form action="{{ route('cancel_calculate_tm', $book->id) }}">
+                                        <input type="hidden" name="number" value="{{ $book->book_token }}">
+                                        <button class="more">@lang('main.cancel_booking')</button>
+                                    </form>
+                                @endif
+                                
+                            <button class="more" onclick="location.href='{{ route('index') }}'">
+                                @lang('main.go_home')
+                            </button>
                         </div>
-            
+                    @else
+                        <div class="bnt-wrap">
+                            <button class="more" onclick="location.href='{{ route('index') }}'">
+                                @lang('main.go_home')
+                            </button>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>

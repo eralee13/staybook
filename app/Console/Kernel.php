@@ -13,9 +13,12 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('app:tm-update-status')->everyMinute();
-        $schedule->command('fx:update')->everyFourHours();
+        $schedule->command('fx:update')->hourly();
         $schedule->command('sync:exely-hotels')->everyTwoHours();
+        // Tourmind update booking status
+        $schedule->command('app:tm-update-status')->everyMinute();
+        // Emerging update booking status
+        $schedule->command('app:etg-update-status')->everyMinute();
     }
 
     /**
