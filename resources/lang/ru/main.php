@@ -76,6 +76,7 @@ return [
     'booking_cancellation' => 'Отмена брони',
     'cancel' => 'Отменить',
     'booking_cancelled' => 'Ваша бронь отменена',
+    'cancelled_at' => 'Время отмены',
     'companies_services' => 'Компаниям и сервисам',
     'apartments' => 'Апартаментам',
     'hotels_properties' => 'Отелям и другим объектам',

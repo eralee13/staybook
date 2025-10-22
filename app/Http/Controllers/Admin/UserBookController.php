@@ -53,7 +53,7 @@ class UserBookController extends Controller
         $email = Contact::first()->email;
         Mail::to($email)->cc(Auth::user()->email)->bcc($book->email)->send(new BookCancelMail($book));
         session()->flash('success', 'Booking ' . $request->title . ' is cancelled');
-        return redirect()->route('auth.userbooks.index', compact('books'));
+        return redirect()->route('auth.userbooks.cancel-confirm', compact('books'));
     }
 
     //exely
@@ -97,7 +97,7 @@ class UserBookController extends Controller
                 Log::warning('Отмена брони: ' . $book->id);
                 $email = Contact::first()->email;
                 Mail::to($email)->send(new BookCancelMail($book));
-                return view('auth.userbooks.cancel-confirm-exely', compact('cancel'));
+                return view('auth.userbooks.cancel-confirm', compact('cancel'));
             } else {
                 Log::warning('Запрос завершился ошибкой: ' . $response->status());
                 return view('errors.400', compact('response'));

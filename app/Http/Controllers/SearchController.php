@@ -195,45 +195,45 @@ class SearchController extends Controller
             ->all();
 
 
-        //tourmind
-        $hotels['hotels'] = array_map(function ($hotel) use ($fxBase, $fxRates, $symbols) {
-            $rate = $hotel['rates'] ?? null;
-
-            $price    = isset($rate['price']) ? (float)$rate['price'] : 0;
-            $currency = $rate['currency'] ?? 'RUB';
-
-            $totalPrice = $price > 0 ? number_format(($price / ($this->coef ?? 1)), 2, '.', '') : 0;
-
-            $toCurrency = strtoupper($fxBase ?? 'USD');
-            $converted  = $price > 0
-                ? app(\App\Services\FXService::class)->convert($totalPrice, $currency, $fxBase)
-                : 0;
-
-            $symbol = $symbols[$toCurrency] ?? $toCurrency;
-
-            return [
-                'source'       => 'emerging', // ← ВАЖНО: помечаем как emerging
-                'apiName'      => 'HS',
-                'apiHotelId'   => $rate['hotel_id'] ?? '',
-                'hid'          => $hotel['localData']['id'] ?? '',
-                'code'         => $hotel['localData']['code'] ?? '',
-                'title'        => $hotel['localData']['title'] ?? '',
-                'title_en'     => $hotel['localData']['title_en'] ?? '',
-                'rating'       => $hotel['localData']['rating'] ?? '',
-                'city'         => $hotel['localData']['city'] ?? '',
-                'amenities'    => $hotel['localData']['amenity']['services'] ?? '',
-                'images'       => $hotel['localData']['images'] ?? [],
-                'lat'          => $hotel['localData']['lat'] ?? '',
-                'lng'          => $hotel['localData']['lng'] ?? '',
-                'price'        => $price,
-                'totalPrice'   => $totalPrice,
-                'currency'     => $currency,
-                'hash'         => $rate['hash'] ?? '',
-                'provider_id'  => $rate['provider_id'] ?? '',
-                'conv_total'   => round($converted),
-                'conv_symbol'  => $symbol,
-            ];
-        }, $HSHotels);
+//        //tourmind
+//        $hotels['hotels'] = array_map(function ($hotel) use ($fxBase, $fxRates, $symbols) {
+//            $rate = $hotel['rates'] ?? null;
+//
+//            $price    = isset($rate['price']) ? (float)$rate['price'] : 0;
+//            $currency = $rate['currency'] ?? 'RUB';
+//
+//            $totalPrice = $price > 0 ? number_format(($price / ($this->coef ?? 1)), 2, '.', '') : 0;
+//
+//            $toCurrency = strtoupper($fxBase ?? 'USD');
+//            $converted  = $price > 0
+//                ? app(\App\Services\FXService::class)->convert($totalPrice, $currency, $fxBase)
+//                : 0;
+//
+//            $symbol = $symbols[$toCurrency] ?? $toCurrency;
+//
+//            return [
+//                'source'       => 'emerging', // ← ВАЖНО: помечаем как emerging
+//                'apiName'      => 'HS',
+//                'apiHotelId'   => $rate['hotel_id'] ?? '',
+//                'hid'          => $hotel['localData']['id'] ?? '',
+//                'code'         => $hotel['localData']['code'] ?? '',
+//                'title'        => $hotel['localData']['title'] ?? '',
+//                'title_en'     => $hotel['localData']['title_en'] ?? '',
+//                'rating'       => $hotel['localData']['rating'] ?? '',
+//                'city'         => $hotel['localData']['city'] ?? '',
+//                'amenities'    => $hotel['localData']['amenity']['services'] ?? '',
+//                'images'       => $hotel['localData']['images'] ?? [],
+//                'lat'          => $hotel['localData']['lat'] ?? '',
+//                'lng'          => $hotel['localData']['lng'] ?? '',
+//                'price'        => $price,
+//                'totalPrice'   => $totalPrice,
+//                'currency'     => $currency,
+//                'hash'         => $rate['hash'] ?? '',
+//                'provider_id'  => $rate['provider_id'] ?? '',
+//                'conv_total'   => round($converted),
+//                'conv_symbol'  => $symbol,
+//            ];
+//        }, $HSHotels);
 
         $localFiltered = $localItems->filter(function ($item) {
             $hotel = $item['hotel'] ?? null;

@@ -6,7 +6,7 @@
             use App\Models\Rate;
             use App\Models\CancellationRule;
             use Carbon\Carbon;
-    @endphp
+@endphp
 
 @section('title', 'Оформление заказа')
 
@@ -14,52 +14,33 @@
 
     @auth
         @php
-
-            // --- Lookups ---
             $hotel = Hotel::where('exely_id', $request->propertyId)
                           ->orWhere('id', $request->propertyId)
                           ->firstOrFail();
-
+            $rate  = \App\Models\Rate::findOrFail($request->rate_id);
+            $cancel = \App\Models\CancellationRule::where('rate_id', $rate->id)->first();
+            $hotelTz   = $hotel->timezone ?: 'UTC';
+            $hotel_utc = \Carbon\Carbon::now($hotelTz)->format('P');
             $room  = Room::findOrFail($request->room_id);
             $rate  = Rate::findOrFail($request->rate_id);
-
-            // Cancellation can be absent — don't throw
-            $cancel = CancellationRule::find($request->cancellation_id);
-
-            // --- Time & formatting helpers ---
-            $hotelTz   = $hotel->timezone ?: 'UTC';
-
-            $arrivalCarbon   = Carbon::parse($request->arrivalDate)->timezone($hotelTz);
-            $departureCarbon = Carbon::parse($request->departureDate)->timezone($hotelTz);
-
-            $arrival   = $arrivalCarbon->format('d.m.Y');
-            $departure = $departureCarbon->format('d.m.Y');
-
-            $hotel_utc = Carbon::now($hotelTz)->format('P');   // e.g. +06:00
-            $timezone  = Carbon::now($hotelTz)->format('P');
-
-            $freeDateCarbon = Carbon::parse($request->arrivalDate, $hotelTz);
-            $freeDate       = $freeDateCarbon->format('d.m.Y H:i');
-
-            $cancelCutoffCarbon = null;
-            $cancelDate         = null;
-            if ($cancel) {
-                $days = (int) ($cancel->free_cancellation_days ?? 0);
-                $cancelCutoffCarbon = Carbon::parse($request->arrivalDate, $hotelTz)->subDays($days);
-                $cancelDate = $cancelCutoffCarbon->format('d.m.Y H:i');
-            }
 
             // Child ages guard
             $childAges = is_array($request->childAges) ? $request->childAges : (empty($request->childAges) ? [] : explode(',', (string)$request->childAges));
         @endphp
 
         <style>
-            .check input{ width: auto; }
-            body{
+            .check input {
+                width: auto;
+            }
+
+            body {
                 font-family: Unbounded, sans-serif !important;
                 background-color: rgba(246, 246, 246, 1) !important;
             }
-            .page{ padding-bottom: 60px; }
+
+            .page {
+                padding-bottom: 60px;
+            }
         </style>
 
         <div class="page order">
@@ -73,6 +54,7 @@
                     </div>
                 </div>
 
+
                 <div class="row">
                     <div class="col-lg-4 col-md-12">
                         <div class="sidebar">
@@ -85,7 +67,6 @@
                                 <div class="descr">@lang('main.hotel'): {{ $hotel->__('title') }}</div>
                                 <div class="descr">@lang('main.room'): {{ $room->__('title') }}</div>
                                 <div class="descr">@lang('main.rate'): {{ $rate->__('title') }}</div>
-
                                 <div class="date">
                                     @lang('main.check-in/check-out'):
                                     {{ $arrival }} {{ $hotel->checkin }} - {{ $departure }} {{ $hotel->checkout }}
@@ -93,22 +74,7 @@
                                 </div>
 
                                 <div class="cancel">
-                                    @lang('main.cancellation_policy'):
-                                    @if(!$cancel)
-                                        @lang('main.cancellation_rule_not_found').
-                                        {{ $request->cancelPrice }} {{ $request->currency }}
-                                    @elseif($cancel->cancel_policy === 'free_until_checkin')
-                                        @lang('main.free_cancellation') {{ $freeDate }} UTC {{ $timezone }}
-                                    @elseif($cancel->cancel_policy === 'free_then_penalty')
-                                        @if(now($hotelTz)->lte($cancelCutoffCarbon))
-                                            @lang('main.free_cancellation') {{ $cancelDate }} UTC {{ $timezone }}
-                                        @else
-                                            @lang('main.cancellation_is_not_avaialble').
-                                        @endif
-                                        {{ $request->cancelPrice }} {{ $request->currency }}
-                                    @else
-                                        {{ $request->cancelPrice }} {{ $request->currency }}
-                                    @endif
+                                    {{ $request->cancelText }} {{ $request->cancelPrice }} {{ $request->currency }}
                                 </div>
 
                                 <div class="row mt">
@@ -135,21 +101,15 @@
                             <input type="hidden" name="rate_id" value="{{ $request->rate_id }}">
                             <input type="hidden" name="meal_id" value="{{ $request->meal_id }}">
                             <input type="hidden" name="roomCount" value="{{ $request->roomCount ?? 1 }}">
-
-                            {{-- Child ages as multiple inputs --}}
                             @foreach ($childAges as $age)
                                 <input type="hidden" name="childAges[]" value="{{ $age }}">
                             @endforeach
-
-                            <input type="hidden" name="cancellation_id" value="{{ $request->cancellation_id }}">
-                            <input type="hidden" name="cancelDate" value="{{ $request->cancelDate }}">
+                            <input type="hidden" name="cancellation_id" value="{{ $cancel->id }}">
+                            <input type="hidden" name="cancelText" value="{{ $request->cancelText }}">
                             <input type="hidden" name="cancelPrice" value="{{ $request->cancelPrice }}">
-                            <input type="hidden" name="cancelPriceSource" value="{{ round($request->cancelPriceSource) }}">
-                            <input type="hidden" name="price" value="{{ $request->price }}">
                             <input type="hidden" name="sum" value="{{ round($request->sum) }}">
                             <input type="hidden" name="currency" value="{{ $request->currency }}">
                             <input type="hidden" name="source_sym" value="{{ $request->source_sym }}">
-
                             @for ($i = 1; $i <= (int)$request->adult; $i++)
                                 <div class="col-md-12">
                                     <div class="form-group">
@@ -218,7 +178,8 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Email</label>
-                                        <input type="email" name="email" value="{{ Auth::user()->email ?? '' }}" required>
+                                        <input type="email" name="email" value="{{ Auth::user()->email ?? '' }}"
+                                               required>
                                     </div>
                                 </div>
 
@@ -236,13 +197,16 @@
                             <div class="descr">
                                 @if(app()->getLocale() == 'ru')
                                     Нажимая кнопку ниже, я принимаю условия (Правила дома, установленные хозяином,
-                                    Основные правила для гостей, Правила StayBook в отношении повторного бронирования и возврата средств,
-                                    Условия частичной предоплаты) и соглашаюсь, что StayBook может списать средства с моего способа оплаты,
+                                    Основные правила для гостей, Правила StayBook в отношении повторного бронирования и
+                                    возврата средств,
+                                    Условия частичной предоплаты) и соглашаюсь, что StayBook может списать средства с
+                                    моего способа оплаты,
                                     если ответственность за ущерб лежит на мне.
                                 @else
                                     By clicking the button below, I accept the terms (House Rules set by the Host, Guest
                                     Code of Conduct, StayBook’s Rebooking and Refund Policy, Partial Prepayment Terms)
-                                    and agree that StayBook may charge my payment method if I am responsible for any damage.
+                                    and agree that StayBook may charge my payment method if I am responsible for any
+                                    damage.
                                 @endif
                             </div>
 

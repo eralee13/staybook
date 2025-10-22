@@ -18,7 +18,7 @@
                         @endforeach
                     @else
                         <h1>@lang('main.booking_cancellation')</h1>
-                        <p>@lang('main.cancellation_amount'): {{ $calc->penaltyAmount }} {{ $request->currency }}</p>
+                        <p>@lang('main.cancellation_amount'): {{ round($calc->penaltyAmount / config('services.main.coef'))  }} {{ $request->currency }}</p>
                         <form action="{{ route('cancel_confirm_exely') }}">
                             <div class="form-group">
                                 <label for="">@lang('main.booking_number')</label>

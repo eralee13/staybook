@@ -66,8 +66,8 @@
                             <li>@lang('main.rate'): {{ $rate->__('title') }}</li>
                             <li>
                                 @lang('main.guest'):
-                                {{ $book->adult }} @lang('main.adult_short')
-                                @if($book->child) @lang('main.and') {{ $book->child }} @lang('main.child_short') @endif
+                                {{ $book->adult }} @lang('main.adult')
+                                @if($book->child) @lang('main.and') {{ $book->child }} @lang('main.child') @endif
                             </li>
                             <li>@lang('main.cancelled_at'): {{ $cancelDate }} (UTC {{ $hotel_utc }})</li>
                         </ul>

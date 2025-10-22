@@ -48,7 +48,7 @@
                         <div class="night">@lang('main.night')</div>
                     @endif
 
-                    @if(!empty($h?->rating))
+                    @if(!empty($h->rating) && $h->rating !== 'norating')
                         <div class="rating">
                             {{ $h->rating }} <img src="{{ route('index') }}/img/star.svg" alt="">
                         </div>

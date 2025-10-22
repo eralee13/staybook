@@ -77,6 +77,7 @@ return [
     'booking_cancellation' => 'Booking Cancellation',
     'cancel' => 'Cancel',
     'booking_cancelled' => 'Your booking has been canceled.',
+    'cancelled_at' => 'Date of cancellation',
     'companies_services' => 'For Companies and Services',
     'apartments' => 'For Apartments',
     'hotels_properties' => 'For Hotels and Other Properties',

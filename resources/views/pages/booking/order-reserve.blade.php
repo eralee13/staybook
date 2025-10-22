@@ -1,3 +1,4 @@
+@php use Carbon\Carbon; @endphp
 @extends('layouts.master')
 
 @section('title', 'Бронь оформлена')
@@ -33,16 +34,32 @@
                                     $arrival   = $arrivalCarbon->format('d.m.Y');
                                     $departure = $departureCarbon->format('d.m.Y');
 
-                                    // Политика отмены: сначала по id, иначе по тарифу, иначе null
-                                    $cancel = \App\Models\CancellationRule::find($book->cancellation_id)
-                                              ?: \App\Models\CancellationRule::where('rate_id', $rate->id)->first();
+                                    $timezone = $hotel->timezone ?? config('app.timezone');
+                                    $createdAt = Carbon::parse($book->created_at)->timezone($timezone);
+                                   $cancel = \App\Models\CancellationRule::where('id', $book->cancellation_id)->first();
+                                                if($cancel != null){
+                                                    $cancelDate = \Carbon\Carbon::parse($book->arrivalDate)->subDays($cancel->free_cancellation_days)->format('d.m.Y H:i');
+                                                }
 
-                                    $freeDate  = $arrivalCarbon->format('d.m.Y H:i'); // бесплатная до чек-ина
-                                    $cancelCutoffCarbon = $cancel
-                                        ? \Carbon\Carbon::parse($book->arrivalDate, $hotelTz)
-                                            ->subDays((int)($cancel->free_cancellation_days ?? 0))
-                                        : null;
-                                    $cancelDate = $cancelCutoffCarbon ? $cancelCutoffCarbon->format('d.m.Y H:i') : null;
+                                                                            $hotelTz   = $hotel->timezone ?: 'UTC';
+                                                                            $hotel_utc = \Carbon\Carbon::now($hotelTz)->format('P');
+                                                                            $timezone  = \Carbon\Carbon::now($hotelTz)->format('P');
+
+                                                                            $arrivalCarbon   = \Carbon\Carbon::parse($arrival, $hotelTz)->timezone($hotelTz);
+                                                                            $departureCarbon = \Carbon\Carbon::parse($departure, $hotelTz)->timezone($hotelTz);
+
+                                                                            $arrival   = $arrivalCarbon->format('d.m.Y');
+                                                                            $departure = $departureCarbon->format('d.m.Y');
+
+                                                                            $freeDate = $arrivalCarbon->format('d.m.Y H:i');
+
+                                                                            // Крайняя дата бесплатной отмены (если есть правило)
+                                                                            $cancelCutoffCarbon = $cancel
+                                                                                ? \Carbon\Carbon::parse($arrival, $hotelTz)->subDays((int)($cancel->free_cancellation_days ?? 0))
+                                                                                : null;
+
+                                                                            $cancelDate = \Carbon\Carbon::parse($arrival)->subDays($cancel->free_cancellation_days)->format('d.m.Y H:i');
+
                                 @endphp
 
                                 <li>
@@ -55,15 +72,14 @@
                                     <span>@lang('main.cancellation_policy')</span>:
                                     @if(!$cancel)
                                         @lang('main.cancellation_rule_not_found').
-                                        @lang('main.cancellation_amount'): {{ $book->cancel_penalty }} {{ $book->currency }}
+                                        {{ $book->cancel_penalty }} {{ $book->currency }}
                                     @elseif($cancel->cancel_policy === 'free_until_checkin')
-                                        @lang('main.free_cancellation') {{ $freeDate }} UTC {{ $timezone }}
+                                        @lang('main.free_cancellation') {{ $freeDate }} UTC {{ $timezone }}. @lang('main.cancellation_amount'): {{ $book->cancel_penalty }} {{ $book->currency }}
                                     @elseif($cancel->cancel_policy === 'free_then_penalty')
                                         @if($cancelCutoffCarbon && now($hotelTz)->lte($cancelCutoffCarbon))
-                                            @lang('main.free_cancellation') {{ $cancelDate }} UTC {{ $timezone }}
+                                            @lang('main.free_cancellation') {{ $cancelDate }} UTC {{ $timezone }}. @lang('main.cancellation_amount'): {{ $book->cancel_penalty }} {{ $book->currency }}
                                         @else
-                                            @lang('main.cancellation_is_not_avaialble') .
-                                            @lang('main.cancellation_amount') {{ $book->cancel_penalty }} {{ $book->currency }}
+                                            @lang('main.cancellation_is_not_avaialble'). @lang('main.cancellation_amount'): {{ $book->cancel_penalty }} {{ $book->currency }}
                                         @endif
                                     @else
                                         @lang('main.cancellation_amount'): {{ $book->cancel_penalty }} {{ $book->currency }}

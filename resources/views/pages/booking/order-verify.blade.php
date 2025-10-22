@@ -14,24 +14,18 @@
 
     @auth
         @php
-            // --- Lookups (fail only там, где это критично) ---
             $hotel = \App\Models\Hotel::where('id', $request->propertyId)->firstOrFail();
             $room  = \App\Models\Room::findOrFail($request->room_id);
             $rate  = \App\Models\Rate::findOrFail($request->rate_id);
 
+            $coef = (float) (config('services.main.coef') ?? 0.92);
+
             // Политика отмены может отсутствовать — НЕ падаем
-            $cancelById   = \App\Models\CancellationRule::find($request->cancellation_id);
-            $cancelByRate = \App\Models\CancellationRule::where('rate_id', $rate->id)->first(); // запасной вариант
-
-            // Выберем применимую политику: сначала по id из запроса, иначе по тарифу, иначе null
-            $cancel = $cancelById ?: $cancelByRate;
-
-            // --- Time & formatting ---
+            $cancel = \App\Models\CancellationRule::where('rate_id', $rate->id)->first(); // запасной вариант
             $hotelTz   = $hotel->timezone ?: 'UTC';
-            $hotel_utc = \Carbon\Carbon::now($hotelTz)->format('P'); // +06:00 и т.п.
+            $hotel_utc = \Carbon\Carbon::now($hotelTz)->format('P');
             $timezone  = \Carbon\Carbon::now($hotelTz)->format('P');
 
-            // Входящие даты парсим и локализуем в TZ отеля
             $arrivalCarbon   = \Carbon\Carbon::parse($request->arrivalDate, $hotelTz)->timezone($hotelTz);
             $departureCarbon = \Carbon\Carbon::parse($request->departureDate, $hotelTz)->timezone($hotelTz);
 
@@ -44,7 +38,7 @@
             $cancelCutoffCarbon = $cancel
                 ? \Carbon\Carbon::parse($request->arrivalDate, $hotelTz)->subDays((int)($cancel->free_cancellation_days ?? 0))
                 : null;
-            $cancelDate = $cancelCutoffCarbon ? $cancelCutoffCarbon->format('d.m.Y H:i') : null;
+            $cancelDate = $request->cancelDate;
 
             // Имена взрослых
             $names = [];
@@ -70,7 +64,6 @@
             <div class="container">
                 <div class="row">
                     <div class="col-lg-8 col-md-12">
-
                         <h1><img src="{{ route('index') }}/img/arrow-left.svg" alt=""> @lang('main.order_confirmation')</h1>
 
                         <div class="order-item">
@@ -104,22 +97,7 @@
 
                         <div class="order-item">
                             <p>
-                                <span>@lang('main.cancellation_policy')</span>:
-                                @if(!$cancel)
-                                    @lang('main.cancellation_rule_not_found').
-                                    {{ $request->cancelPrice }} {{ $request->currency }}
-                                @elseif($cancel->cancel_policy === 'free_until_checkin')
-                                    @lang('main.free_cancellation') {{ $freeDate }} UTC {{ $timezone }}
-                                @elseif($cancel->cancel_policy === 'free_then_penalty')
-                                    @if($cancelCutoffCarbon && now($hotelTz)->lte($cancelCutoffCarbon))
-                                        @lang('main.free_cancellation') {{ $cancelDate }} UTC {{ $timezone }}
-                                    @else
-                                        @lang('main.cancellation_is_not_avaialble').
-                                    @endif
-                                    {{ $request->cancelPrice }} {{ $request->currency }}
-                                @else
-                                    {{ $request->cancelPrice }} {{ $request->currency }}
-                                @endif
+                                {{ $request->cancelText }} {{ $request->cancelPrice }} {{ $request->currency }}
                             </p>
                         </div>
 
@@ -162,7 +140,6 @@
                                 <input type="hidden" name="price" value="{{ $request->price }}">
                                 <input type="hidden" name="cancellation_id" value="{{ $request->cancellation_id }}">
                                 <input type="hidden" name="cancelPrice" value="{{ $request->cancelPrice }}">
-                                <input type="hidden" name="cancelPriceSource" value="{{ $request->cancelPriceSource }}">
                                 <input type="hidden" name="currency" value="{{ $request->currency }}">
                                 <input type="hidden" name="source_sym" value="{{ $request->source_sym }}">
                                 <input type="hidden" name="arrivalDate" value="{{ $request->arrivalDate }}">

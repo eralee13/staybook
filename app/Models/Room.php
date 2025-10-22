@@ -44,6 +44,11 @@ class Room extends Model
         return $this->hasMany(Rate::class);
     }
 
+    public function rate()
+    {
+        return $this->hasOne(Rate::class);
+    }
+
 
     public function images()
     {

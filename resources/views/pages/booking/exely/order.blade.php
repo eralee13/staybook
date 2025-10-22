@@ -27,6 +27,7 @@
         }
     </style>
     @auth
+
         <div class="page order">
             <div class="container">
                 <div class="row">
@@ -48,8 +49,7 @@
                                 <div class="descr">@lang('main.hotel') {{ $hotel->title }}</div>
                                 <div class="descr">{{ $request->categoryName }}</div>
                                 <div class="date">@lang('main.check-in/check-out')
-                                    : {{ $arrival }} {{ $hotel->checkin }}
-                                    - {{ $departure }} {{ $hotel->checkout }} (UTC {{ $hotel_utc }})
+                                    : {{ $arrival }} - {{ $departure }} (UTC {{ $hotel_utc }})
                                 </div>
                                 <div class="cancel">
                                     @if($request->cancelPossible == true)
@@ -88,6 +88,7 @@
                             <input type="hidden" name="roomTypeId" value="{{ $request->roomTypeId }}">
                             <input type="hidden" name="adultCount" value="{{ $request->adultCount }}">
                             <input type="hidden" name="placements" value="{{ $request->placements }}">
+                            <input type="hidden" name="cancelDate" value="{{ $request->cancelDate }} ({{ $offset }})">
                             <input type="hidden" name="net_price" value="{{ $request->price }}">
                             <input type="hidden" name="brut_price" value="{{ $request->sum }}">
                             <input type="hidden" name="cancel_net_price" value="{{ $request->cancelPriceSource }}">

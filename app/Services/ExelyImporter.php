@@ -53,6 +53,7 @@ class ExelyImporter
                 'checkin'     => $property->policy->checkInTime ?? null,
                 'checkout'    => $property->policy->checkOutTime ?? null,
                 'timezone'    => $property->timeZone->id ?? null,
+                'apiName'     => 'exely',
                 'status'      => 1,
             ]
         );

@@ -117,18 +117,16 @@
                                                                 $cancelDate = optional(\Carbon\Carbon::parse(data_get($room, 'cancellationPolicy.freeCancellationDeadlineLocal'), $hotelTz))->format('d.m.Y H:i');
 
                                                                 $penalty = (float) (data_get($room, 'cancellationPolicy.penaltyAmount', 0));
-                                                                $coef = (float) (config('services.main.coef') ?? 0);
-                                                                $baseCancelPrice = round($penalty * $coef + $penalty);
-
+                                                                $baseCancelPrice = round($penalty / config('services.main.coef'));
                                                                 $priceBeforeTax = (float) data_get($room, 'total.priceBeforeTax', 0);
-                                                                $brutPrice = $priceBeforeTax > 0 ? round($priceBeforeTax / 0.92) : 0;
-
+                                                                $brutPrice = round($priceBeforeTax / config('services.main.coef'));
                                                                 $srcCurrency = data_get($room, 'currencyCode', 'USD');
                                                                 $fx = app(\App\Services\FXService::class);
 
                                                                 $convertedCancel = $fx->convert($baseCancelPrice, $srcCurrency, $fxBase);
                                                                 $netConv = $fx->convert($priceBeforeTax, $srcCurrency, $fxBase);
                                                                 $brutConv = $fx->convert($brutPrice, $srcCurrency, $fxBase);
+
                                                             @endphp
 
                                                             <div class="tariffs-item">

@@ -28,6 +28,8 @@
     </style>
 
     @auth
+
+
         <div class="page order">
             <div class="container">
                 <div class="row">
@@ -153,6 +155,7 @@
                                             <input type="hidden" name="hotel_id" value="{{ $request->hotel_id }}">
                                             <input type="hidden" name="brut_price" value="{{ $request->brut_price }}">
                                             <input type="hidden" name="net_price" value="{{ $request->net_price }}">
+                                            <input type="hidden" name="cancelDate" value="{{ $request->cancelDate }}">
                                             <input type="hidden" name="cancel_brut_price"
                                                    value="{{ round($request->cancel_brut_price) }}">
                                             <input type="hidden" name="cancel_net_price"

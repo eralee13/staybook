@@ -594,7 +594,7 @@
                                 </div>
                                 <div class="vantages-item">
                                     <img src="img/pa6.svg" alt="">
-                                    <h5>Техпоdддержка 24/7</h5>
+                                    <h5>Техподдержка 24/7</h5>
                                     <p>Сопровождение при интеграции и в работе</p>
                                 </div>
                                 <div class="vantages-item">

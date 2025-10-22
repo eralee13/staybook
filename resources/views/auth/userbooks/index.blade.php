@@ -92,21 +92,42 @@
                                             @php
                                                 $timezone = $hotel->timezone ?? config('app.timezone');
                                                 $createdAt = Carbon::parse($book->created_at)->timezone($timezone);
-                                                $freeLimitDate = $createdAt->copy()->addDays($cancel->free_cancellation_days ?? 0);
-                                                $now = Carbon::now($timezone);
-                                                $canCancelFree = $now->lessThanOrEqualTo($freeLimitDate);
+                                                $rate = \App\Models\Rate::where('id', $book->rate_id)->first();
+                                                $cancelPossible = \App\Models\CancellationRule::where('rate_id', $rate->id)->first();
+                                                $freeDate = \Carbon\Carbon::parse($book->arrivalDate)->format('d.m.Y H:i');
+                                                $cancel = \App\Models\CancellationRule::where('id', $book->cancellation_id)->first();
+                                                if($cancel != null){
+                                                    $cancelDate = \Carbon\Carbon::parse($book->arrivalDate)->subDays($cancel->free_cancellation_days)->format('d.m.Y H:i');
+                                                }
                                             @endphp
                                             <td>
                                                 <div class="title">@lang('admin.rule')</div>
-                                                @if($canCancelFree)
+                                                @if($cancel->cancel_policy === 'free_until_checkin')
                                                     <div class="value">
-                                                        @lang('admin.free_cancellation') {{ $freeLimitDate->translatedFormat('d M Y H:i') }} ({{ $timezone }})
+                                                        @lang('main.free_cancellation') {{ $freeDate }}
+                                                        UTC {{ $timezone }}
+                                                    </div>
+                                                @elseif($cancel->cancel_policy === 'free_then_penalty')
+                                                    @if(now()->lte($cancelDate))
+                                                        <div class="value">
+                                                            @lang('main.free_cancellation') {{ $cancelDate }}
+                                                            UTC {{ $timezone }}
+                                                        </div>
+                                                    @else
+                                                        <div class="value">
+                                                            @lang('main.cancellation_is_not_avaialble'). @lang('main.cancellation_amount')
+                                                            : {{ $book->cancel_penalty }} {{ $book->currency }}
+                                                        </div>
+                                                    @endif
+                                                    <div class="value">
+                                                        @lang('main.cancellation_amount')
+                                                        : {{ $book->cancel_penalty }} {{ $book->currency }}
                                                     </div>
                                                 @else
-                                                    <div class="value">
-                                                        @lang('admin.cancellation_is_not_avaialble') @lang('admin.cancellation_amount'):
-                                                        {{ $book->cancel_penalty }} {{ $book->currency ?? '$' }}
-                                                    </div>
+                                                   <div class="value">
+                                                       @lang('main.cancellation_amount')
+                                                       : {{ $book->cancel_penalty }} {{ $book->currency }}
+                                                   </div>
                                                 @endif
                                             </td>
                                         @else

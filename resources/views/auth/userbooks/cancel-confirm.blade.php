@@ -3,11 +3,15 @@
 @section('title', 'Забронировать')
 
 @section('content')
-    @auth
-    <div class="page order">
+
+    <div class="page admin">
         <div class="container">
             <div class="row">
-                <div class="col-lg-12 col-md-12">
+                <div class="col-lg-3">
+                    @include('auth.layouts.sidebar')
+                </div>
+                <div class="col-lg-9 col-md-12">
+                    @dd($cancel)
                     @if(isset($cancel->errors))
                         @foreach ($cancel->errors as $error)
                             <div class="alert alert-danger">
@@ -16,24 +20,24 @@
                             </div>
                         @endforeach
                     @else
+                        @dd($cancel)
                         <h1>{{ $cancel->booking->status }}</h1>
                         @php
                             $cancel_date = \Carbon\Carbon::createFromDate($cancel->booking->createdDateTime)->format('d.m.Y H:i');
                             $hotel = \App\Models\Hotel::where('exely_id', $cancel->booking->propertyId)->get()->first();
                             $hotel_utc = \Carbon\Carbon::now($hotel->timezone)->format('P');
-                            $book = \App\Models\Book::where('book_token', $request->get('number'))->first();
                         @endphp
                         <ul>
                             <li>@lang('main.booking_number'): {{ $cancel->booking->number }}</li>
+                            {{--                            <li>Дата отмены: {{ $cancel_date }}</li>--}}
                             <li>
                                 @if($cancel->booking->cancellationPolicy->freeCancellationPossible == true)
                                     <td>@lang('main.free_cancellation')
                                         ({{ $cancel->booking->cancellationPolicy->freeCancellationDeadlineLocal }}).
-                                        @lang('main.cancellation_amount'): {{ $book->cancel_penalty }} {{ $book->currency }}</td>
+                                        @lang('main.cancellation_amount'): {{ $cancel->booking->cancellationPolicy->penaltyAmount }} {{ $cancel->booking->currencyCode }}</td>
                                 @else
-                                    <td>@lang('main.free_cancellation'). @lang('main.cancellation_amount'): {{ $book->cancel_penalty }} {{ $book->currency }}</td>
-                               @endif
-                            </li>
+                                    <td>@lang('main.free_cancellation'). @lang('main.cancellation_amount'): {{ $cancel->booking->cancellationPolicy->penaltyAmount }} {{ $cancel->booking->currencyCode }}</td>
+                            @endif
                             <li>@lang('main.hotel'): {{ $cancel->booking->propertyId }}</li>
                             @foreach($cancel->booking->roomStays as $room)
                                 @php
@@ -51,8 +55,5 @@
             </div>
         </div>
     </div>
-    @else
-        @include('layouts.auth')
-    @endauth
 
 @endsection

@@ -114,7 +114,7 @@ class ListbookController extends Controller
         $email = Contact::first()->email;
         Mail::to($email)->send(new BookCancelMail($book));
         session()->flash('success', 'Booking ' . $request->title . ' is cancelled');
-        return redirect()->route('auth.listbooks.index', compact('books'));
+        return redirect()->route('auth.listbooks.cancel-confirm', compact('books'));
     }
 
     //exely

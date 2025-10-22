@@ -26,9 +26,10 @@
                                             <div class="address">{{ $hotel->city }}</div>
                                         </div>
                                         <div class="col-md-2 col-4">
-                                            @if($hotel->rating)
-                                                <div class="rating"><img src="{{ route('index') }}/img/star.svg"
-                                                                         alt=""> {{ $hotel->rating }}</div>
+                                            @if(!empty($hotel->rating) && $hotel->rating !== 'norating')
+                                                <div class="rating">
+                                                    <img src="{{ route('index') }}/img/star.svg" alt=""> {{ $hotel->rating }}
+                                                </div>
                                             @endif
                                         </div>
                                     </div>

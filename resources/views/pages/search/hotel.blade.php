@@ -7,7 +7,6 @@
             // Валюта интерфейса
             $fxBase  = strtoupper(session('currency', 'USD'));
 
-            // Нормализуем ages: массив/строка "3,7"/null
             $childAgesRaw = $request->input('childAges', []);
             if (is_string($childAgesRaw)) {
                 $childAgesArr = array_values(array_filter(array_map('trim', explode(',', $childAgesRaw)), 'strlen'));
@@ -33,7 +32,6 @@
                     <div class="col-md-12">
                         <h1>{{ $hotel->city }}</h1>
                         <h3>{{ $hotel->__('title') }}</h3>
-
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="fotorama" data-allowfullscreen="true" data-nav="thumbs" data-loop="true" data-autoplay="6000">
@@ -65,7 +63,6 @@
                                                     ? explode(',', $roomAmenitiesOwner->amenities) : [];
                                                 $items = array_slice($room_amenities, 0, 8);
                                             @endphp
-
                                             <div class="row">
                                                 <div class="col-lg-3 col-md-5">
                                                     <div class="room">
@@ -96,7 +93,6 @@
                                                         </div>
                                                     </div>
                                                 </div>
-
                                                 <div class="col-lg-9 col-md-7">
                                                     <div class="tariff-wrap">
                                                         @if($room->rates->isEmpty())
@@ -125,7 +121,6 @@
                                                                                     $price_child += (int)($rate->child_extra_fee ?? 0);
                                                                                 }
                                                                             }
-
                                                                             // Сумма за ночь * гости * ночи
                                                                             if ($adultCount >= 2) {
                                                                                 $price = (float)($rate->price2 ?? $calendarPrice) + $price_child;
@@ -136,9 +131,8 @@
                                                                             }
 
                                                                             // Наценка (коэффициент)
-                                                                            $coef = 0.92;
+                                                                            $coef = (float) (config('services.main.coef') ?? 0.92);
                                                                             $sum  = $sum / $coef;
-
 
                                                                             // Конвертация валюты
                                                                             $converted = app(\App\Services\FXService::class)->convert(
@@ -146,6 +140,28 @@
                                                                                 $rate->currency ?? ($hotel->currency ?? 'USD'),
                                                                                 $fxBase
                                                                             );
+
+                                                                            $cancel = \App\Models\CancellationRule::where('rate_id', $rate->id)->first();
+                                                                            $cancelPrice = $cancel->penalty_amount;
+
+                                                                            $hotelTz   = $hotel->timezone ?: 'UTC';
+                                                                            $hotel_utc = \Carbon\Carbon::now($hotelTz)->format('P');
+                                                                            $timezone  = \Carbon\Carbon::now($hotelTz)->format('P');
+
+                                                                            $arrivalCarbon   = \Carbon\Carbon::parse($request->arrivalDate, $hotelTz)->timezone($hotelTz);
+                                                                            $departureCarbon = \Carbon\Carbon::parse($request->departureDate, $hotelTz)->timezone($hotelTz);
+
+                                                                            $arrival   = $arrivalCarbon->format('d.m.Y');
+                                                                            $departure = $departureCarbon->format('d.m.Y');
+
+                                                                            $freeDate = $arrivalCarbon->format('d.m.Y H:i');
+
+                                                                            // Крайняя дата бесплатной отмены (если есть правило)
+                                                                            $cancelCutoffCarbon = $cancel
+                                                                                ? \Carbon\Carbon::parse($request->arrivalDate, $hotelTz)->subDays((int)($cancel->free_cancellation_days ?? 0))
+                                                                                : null;
+
+                                                                            $cancelDate = \Carbon\Carbon::parse($request->arrivalDate)->subDays($cancel->free_cancellation_days)->format('d.m.Y H:i');
                                                                         @endphp
 
                                                                         <div class="item bed">
@@ -153,6 +169,25 @@
                                                                         </div>
                                                                         <div class="item meal">
                                                                             <div class="name">{{ $rate->meal->__('title') }}</div>
+                                                                        </div>
+
+                                                                        <div class="item cancel">
+                                                                            <div class="name">
+                                                                                @if(!$cancel)
+                                                                                    @lang('main.cancellation_rule_not_found').
+                                                                                    {{ $cancelPrice }} {{ $symbol }}
+                                                                                @elseif($cancel->cancel_policy === 'free_until_checkin')
+                                                                                    @lang('main.free_cancellation') {{ $freeDate }} UTC {{ $timezone }}. @lang('main.cancellation_amount'): {{ $cancelPrice }} {{ $symbol }}
+                                                                                @elseif($cancel->cancel_policy === 'free_then_penalty')
+                                                                                    @if($cancelCutoffCarbon && now($hotelTz)->lte($cancelCutoffCarbon))
+                                                                                        @lang('main.free_cancellation') {{ $cancelDate }} UTC {{ $timezone }}. @lang('main.cancellation_amount'): {{ $cancelPrice }} {{ $symbol }}
+                                                                                    @else
+                                                                                        @lang('main.cancellation_is_not_avaialble'). @lang('main.cancellation_amount'): {{ $cancelPrice }} {{ $symbol }}
+                                                                                    @endif
+                                                                                @else
+                                                                                    @lang('main.cancellation_amount'): {{ $cancelPrice }} {{ $symbol }}
+                                                                                @endif
+                                                                            </div>
                                                                         </div>
 
                                                                         {{-- ЦЕНА --}}
@@ -181,7 +216,24 @@
                                                                                 <input type="hidden" name="hotel_id" value="{{ $hotel->id }}">
                                                                                 <input type="hidden" name="title" value="{{ $rate->title }}">
                                                                                 <input type="hidden" name="sum" value="{{ round($converted) }}">
-                                                                                <input type="hidden" name="price" value="{{ round($sum) }}">
+                                                                                @if(!$cancel)
+                                                                                    <input type="hidden" name="cancelText" value="@lang('main.cancellation_rule_not_found')">
+                                                                                    <input type="hidden" name="cancelPrice" value="0">
+                                                                                @elseif($cancel->cancel_policy === 'free_until_checkin')
+                                                                                    <input type="hidden" name="cancelText" value="@lang('main.free_cancellation') {{ $freeDate }} UTC {{ $timezone }}. @lang('main.cancellation_amount')">
+                                                                                    <input type="hidden" name="cancelPrice" value="{{ $cancelPrice }}">
+                                                                                @elseif($cancel->cancel_policy === 'free_then_penalty')
+                                                                                    @if($cancelCutoffCarbon && now($hotelTz)->lte($cancelCutoffCarbon))
+                                                                                        <input type="hidden" name="cancelText" value="@lang('main.free_cancellation') {{ $cancelDate }} UTC {{ $timezone }}. @lang('main.cancellation_amount')">
+                                                                                        <input type="hidden" name="cancelPrice" value="{{ $cancelPrice }}">
+                                                                                    @else
+                                                                                        <input type="hidden" name="cancelText" value="@lang('main.cancellation_is_not_avaialble')">
+                                                                                        <input type="hidden" name="cancelPrice" value="0">
+                                                                                    @endif
+                                                                                @else
+                                                                                    <input type="hidden" name="cancelText" value="@lang('main.cancellation_amount')">
+                                                                                    <input type="hidden" name="cancelPrice" value="{{ $cancelPrice }}">
+                                                                                @endif
                                                                                 <input type="hidden" name="currency" value="{{ $symbol }}">
                                                                                 <button class="more">@lang('main.book')</button>
                                                                             </form>

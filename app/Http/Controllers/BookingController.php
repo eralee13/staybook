@@ -21,7 +21,6 @@ class BookingController extends Controller
     //local
     public function order(Request $request)
     {
-        $startedAt = session('search_started_at');
         $arrival = Carbon::createFromDate($request->arrivalDate)->format('d.m.Y');
         $departure = Carbon::createFromDate($request->departureDate)->format('d.m.Y');
 
@@ -30,7 +29,6 @@ class BookingController extends Controller
 
     public function book_verify(Request $request)
     {
-        //dd($request->all());
         $arrival = Carbon::createFromDate($request->arrivalDate)->format('d.m.Y');
         $departure = Carbon::createFromDate($request->departureDate)->format('d.m.Y');
 
@@ -314,248 +312,249 @@ class BookingController extends Controller
     public function book_reserve_exely(Request $request)
     {
         try {
+            // ---------- placements ----------
+            $data = [];
             $placements = json_decode($request->placements, true);
-            if ($placements) {
+            if (is_array($placements) && count($placements)) {
                 foreach ($placements as $item) {
                     $data[] = [
-                        "code" => $item['code'],
-                        "count" => $item['count'],
-                        "kind" => $item['kind'],
-                        "minAge" => $item['minAge'],
-                        "maxAge" => $item['maxAge'],
+                        "code"   => $item['code']   ?? null,
+                        "count"  => (int)($item['count'] ?? 0),
+                        "kind"   => $item['kind']   ?? null,
+                        "minAge" => $item['minAge'] ?? null,
+                        "maxAge" => $item['maxAge'] ?? null,
                     ];
                 }
             } else {
                 $data[] = [
-                    "code" => $request->roomCode,
-                    "count" => $request->get("adultCount"),
+                    "code"  => $request->roomCode,
+                    "count" => (int)$request->get("adultCount", 1),
                 ];
             }
 
+            // ---------- child ages ----------
             $childAgesRaw = $request->input('childAges', []);
-
             if (is_string($childAgesRaw)) {
                 $childAgesRaw = explode(',', $childAgesRaw);
             }
             $childAges = array_map('intval', (array) $childAgesRaw);
 
-            if ($childAges) {
-                $array = [
-                    "booking" => [
-                        "propertyId" => $request->get("propertyId"),
-                        "roomStays" => [
-                            [
-                                "stayDates" => [
-                                    "arrivalDateTime" => $request->get("arrivalDate"),
-                                    "departureDateTime" => $request->get("departureDate"),
-                                ],
-                                "ratePlan" => [
-                                    "id" => $request->get("ratePlanId"),
-                                ],
-                                "roomType" => [
-                                    "id" => $request->get("roomTypeId"),
-                                    "placements" => $data
-                                ],
-                                "guests" => [
-                                    [
-                                        "firstName" => $request->get("firstName"),
-                                        "lastName" => '-',
-                                        "middleName" => $request->get("middleName"),
-                                        "citizenship" => "KGS",
-                                        "sex" => $request->get("sex"),
-                                    ]
-                                ],
-                                "guestCount" => [
-                                    "adultCount" => $request->get("adultCount"),
-                                    "childAges" => $childAges,
-                                ],
-                                "checksum" => $request->get("checkSum"),
-                            ]
-                        ],
-                        "customer" => [
-                            "firstName" => $request->get("firstName"),
-                            "lastName" => '-',
-                            "middleName" => $request->get("middleName"),
-                            "citizenship" => "KGS",
-                            "contacts" => [
-                                "phones" => [
-                                    [
-                                        "phoneNumber" => $request->get("phone"),
-                                    ]
-                                ],
-                                "emails" => [
-                                    [
-                                        "emailAddress" => $request->get("email"),
-                                    ]
-                                ]
-                            ],
-                            "comment" => $request->get("comment"),
-                        ],
-                        "prepayment" => [
-                            "remark" => "Full payment made in the channel",
-                            "paymentType" => "Prepay",
-                            "prepaidSum" => 0
-                        ],
-                        "bookingComments" => [
-                            ''
-                        ],
-                        "currencyCode" => $request->get("currencyCode"),
-                        "createBookingToken" => $request->get("createBookingToken"),
-                    ]
-                ];
-            } else {
+            // ---------- cancelDate normalize ----------
+            // вход: "30.10.2025 13:59 (UTC+05:00)" -> "2025-10-30T08:59:00Z"
+            $cancelParsed = $this->parseCancelDatePair($request->get('cancelDate'));
+            $cancelDateLocal = $cancelParsed['local'];
+            $cancelDateUtc   = $cancelParsed['utc'];
 
-                $array = [
-                    "booking" => [
-                        "propertyId" => $request->get("propertyId"),
-                        "roomStays" => [
-                            [
-                                "stayDates" => [
-                                    "arrivalDateTime" => $request->get("arrivalDate"),
-                                    "departureDateTime" => $request->get("departureDate"),
-                                ],
-                                "ratePlan" => [
-                                    "id" => $request->get("ratePlanId"),
-                                ],
-                                "roomType" => [
-                                    "id" => $request->get("roomTypeId"),
-                                    "placements" => $data
-                                ],
-                                "guests" => [
-                                    [
-                                        "firstName" => $request->get("firstName"),
-                                        "lastName" => '-',
-                                        "middleName" => $request->get("middleName"),
-                                        "citizenship" => "KGS",
-                                        "sex" => $request->get("sex"),
-                                    ]
-                                ],
-                                "guestCount" => [
-                                    "adultCount" => $request->get("adultCount"),
-                                    "childAges" => [],
-                                ],
-                                "checksum" => $request->get("checkSum"),
-                            ]
-                        ],
-                        "customer" => [
-                            "firstName" => $request->get("firstName"),
-                            "lastName" =>  '-',
-                            "middleName" => $request->get("middleName"),
-                            "citizenship" => "KGS",
-                            "contacts" => [
-                                "phones" => [
-                                    [
-                                        "phoneNumber" => $request->get("phone"),
-                                    ]
-                                ],
-                                "emails" => [
-                                    [
-                                        "emailAddress" => $request->get("email"),
-                                    ]
-                                ]
-                            ],
-                            "comment" => $request->get("comment"),
-                        ],
-                        "prepayment" => [
-                            "remark" => "Full payment made in the channel",
-                            "paymentType" => "Prepay",
-                            "prepaidSum" => 0
-                        ],
-                        "bookingComments" => [
-                            ''
-                        ],
-                        "currencyCode" => $request->get("currencyCode"),
-                        "createBookingToken" => $request->get("createBookingToken"),
-                    ]
-                ];
-            }
+            // ---------- payload ----------
+            $roomStay = [
+                "stayDates" => [
+                    "arrivalDateTime"   => $request->get("arrivalDate"),
+                    "departureDateTime" => $request->get("departureDate"),
+                ],
+                "ratePlan" => [
+                    "id" => $request->get("ratePlanId"),
+                ],
+                "roomType" => [
+                    "id"         => $request->get("roomTypeId"),
+                    "placements" => $data,
+                ],
+                "guests" => [[
+                    "firstName"   => $request->get("firstName"),
+                    "lastName"    => '-',
+                    "middleName"  => $request->get("middleName"),
+                    "citizenship" => "KGS",
+                    "sex"         => $request->get("sex"),
+                ]],
+                "guestCount" => [
+                    "adultCount" => (int)$request->get("adultCount", 1),
+                    "childAges"  => $childAges ?: [],
+                ],
+                "checksum" => $request->get("checkSum"),
+            ];
 
-            $response = Http::timeout(60)
-                ->withHeaders(['x-api-key' => config('services.exely.key'), 'accept' => 'application/json'])
-                ->post(config('services.exely.base_url') . 'reservation/v1/bookings', $array);
+            $array = [
+                "booking" => [
+                    "propertyId" => $request->get("propertyId"),
+                    "roomStays"  => [ $roomStay ],
+                    "customer"   => [
+                        "firstName"   => $request->get("firstName"),
+                        "lastName"    => '-',
+                        "middleName"  => $request->get("middleName"),
+                        "citizenship" => "KGS",
+                        "contacts"    => [
+                            "phones" => [[ "phoneNumber"  => $request->get("phone") ]],
+                            "emails" => [[ "emailAddress" => $request->get("email") ]],
+                        ],
+                        "comment" => $request->get("comment"),
+                    ],
+                    "prepayment" => [
+                        "remark"      => "Full payment made in the channel",
+                        "paymentType" => "Prepay",
+                        "prepaidSum"  => 0
+                    ],
+                    "bookingComments"   => [''],
+                    "currencyCode"      => $request->get("currencyCode"),
+                    "createBookingToken"=> $request->get("createBookingToken"),
+                ]
+            ];
 
-            // Проверка на успешность
-            if ($response->successful()) {
-                $res = $response->object();
+            // ---------- call Exely ----------
+            $base = config('services.exely.base_url') ?? config('services.exely.base'); // поддержка обоих ключей
+            $resp = Http::timeout(60)
+                ->withHeaders([
+                    'x-api-key' => config('services.exely.key'),
+                    'accept'    => 'application/json'
+                ])
+                ->post(rtrim($base, '/').'/reservation/v1/bookings', $array);
+
+            if ($resp->successful()) {
+                $res = $resp->object();
+
                 if (!isset($res->errors)) {
-                    if (request()->filled('childAges')) {
-                        $book = Book::create([
-                            'hotel_id' => $request->get('propertyId'),
-                            'room_id' => $request->get('roomTypeId'),
-                            'arrivalDate' => $request->get('arrivalDate'),
-                            'departureDate' => $request->get('departureDate'),
-                            //'cancellation_id' => '',
-                            'cancel_penalty' => $res->booking->cancellationPolicy->penaltyAmount,
-                            'cancel_price_source' => $request->cancel_net_price,
-                            'rate_id' => $request->get('ratePlanId'),
-                            'currency' => $request->currency,
-                            'source_sym' => $request->source_sym,
-                            'title' => $request->firstName,
-                            'child_name' => $request->middleName,
-                            'phone' => $request->get('phone'),
-                            'email' => $request->get('email'),
-                            'comment' => $request->get('comment'),
-                            'adult' => $request->get('adultCount'),
-                            'child' => $request->child,
-                            'childAges' => $request->childAges,
-                            'sum' => $request->get('brut_price'),
-                            'price' => $request->get('net_price'),
-                            'status' => 'Reserved',
-                            'book_token' => $res->booking->number,
-                            'user_id' => Auth::id() ?? 1,
-                            'api_type' => 'exely'
-                        ]);
-                        $email = Contact::first()->email;
-                        Mail::to($email)->send(new BookMail($book));
-                        Log::warning('Бронь создана: ' . $book->id);
-                    } else {
-                        $book = Book::create([
-                            'hotel_id' => $request->get('hotel_id'),
-                            'room_id' => $request->get('roomTypeId'),
-                            'arrivalDate' => $request->get('arrivalDate'),
-                            'departureDate' => $request->get('departureDate'),
-                            //'cancellation_id' => '',
-                            'cancel_penalty' => $res->booking->cancellationPolicy->penaltyAmount,
-                            'cancel_price_source' => $request->cancel_net_price,
-                            'rate_id' => $request->get('ratePlanId'),
-                            'currency' => $request->currency,
-                            'source_sym' => $request->source_sym,
-                            'title' => $request->firstName,
-                            'child_name' => $request->middleName,
-                            'phone' => $request->get('phone'),
-                            'email' => $request->get('email'),
-                            'comment' => $request->get('comment'),
-                            'adult' => $request->get('adultCount'),
-                            'child' => $request->child,
-                            'childAges' => $request->childAges,
-                            'sum' => $request->get('brut_price'),
-                            'price' => $request->get('net_price'),
-                            'status' => 'Reserved',
-                            'book_token' => $res->booking->number,
-                            'user_id' => Auth::id() ?? 1,
-                            'api_type' => 'exely'
-                        ]);
-                        $email = Contact::first()->email;
-                        Mail::to($email)
-                            ->cc(Auth::user()->email)
-                            ->bcc($book->email)
-                            ->send(new BookMail($book));
+                    // сохраняем бронь
+                    $cancel = $this->normalizeCancelDateForDbAndApi($request->get('cancelDate')); // "05.11.2025 13:59 (UTC+05:00)"
 
-                        Log::warning('Бронь создана: ' . $book->id);
+                    $book = Book::create([
+                        'hotel_id'             => $request->get('propertyId'),
+                        'room_id'              => $request->get('roomTypeId'),
+                        'arrivalDate'          => $request->get('arrivalDate'),
+                        'departureDate'        => $request->get('departureDate'),
+                        'cancel_date'      => $cancel['for_db_local'],
+                        'cancel_date_utc'  => $cancel['for_db_utc'],
+                        'cancel_tz_offset' => $cancel['tz_offset'],
+                        'cancel_penalty'       => $request->get('cancel_brut_price'),
+                        'cancel_price_source'  => $request->get('cancel_net_price'),
+                        'rate_id'              => $request->get('ratePlanId'),
+                        'currency'             => $request->get('currency') ?? $request->get('currencyCode'),
+                        'source_sym'           => $request->get('source_sym'),
+                        'title'                => $request->get('firstName'),
+                        'child_name'           => $request->get('middleName'),
+                        'phone'                => $request->get('phone'),
+                        'email'                => $request->get('email'),
+                        'comment'              => $request->get('comment'),
+                        'adult'                => (int)$request->get('adultCount', 1),
+                        'child'                => $request->get('child'),
+                        'childAges'            => $request->get('childAges'), // как пришло (строка/массив)
+                        'sum'                  => $request->get('brut_price'),
+                        'price'                => $request->get('net_price'),
+                        'status'               => 'Reserved',
+                        'book_token'           => $res->booking->number ?? null,
+                        'user_id'              => Auth::id() ?? 1,
+                        'api_type'             => 'exely',
+                    ]);
+
+                    // письма (опционально)
+                    if (class_exists(Contact::class) && class_exists(BookMail::class)) {
+                        $email = optional(Contact::first())->email;
+                        if ($email) {
+                            $mailable = Mail::to($email);
+                            if (Auth::check()) $mailable->cc(Auth::user()->email);
+                            if (!empty($book->email)) $mailable->bcc($book->email);
+                            $mailable->send(new BookMail($book));
+                        }
                     }
+
+                    Log::info('Бронь создана', ['id' => $book->id, 'token' => $book->book_token]);
                 }
+
                 return view('pages.booking.exely.order-reserve', compact('res','request'));
-            } else {
-                Log::warning('Запрос на бронь завершился ошибкой: ' . $response->status());
-                return view('errors.400', compact('response'));
             }
 
+            Log::warning('Запрос на бронь завершился ошибкой', ['status' => $resp->status(), 'body' => $resp->body()]);
+            return view('errors.400');
         } catch (RequestException $e) {
-            Log::error('Ошибка запроса: ' . $e->getMessage());
-            // Можно вернуть дефолтный ответ или пробросить исключение дальше
+            Log::error('Ошибка запроса: '.$e->getMessage());
             return response()->json(['error' => 'Сервис временно недоступен'], 503);
         }
     }
+
+    /**
+     * Принимает строку вида "05.11.2025 13:59 (UTC+05:00)" (или ISO),
+     * возвращает:
+     *  - for_db_local:  'Y-m-d H:i:s' (локальное без смещения)
+     *  - for_db_utc:    'Y-m-d H:i:s' (UTC без Z)
+     *  - for_api_utc:   'Y-m-d\TH:i:s\Z' (UTC для Exely)
+     *  - tz_offset:     '+05:00' | null
+     */
+    private function normalizeCancelDateForDbAndApi(?string $raw): array
+    {
+        if (!$raw || !is_string($raw)) {
+            return ['for_db_local'=>null,'for_db_utc'=>null,'for_api_utc'=>null,'tz_offset'=>null];
+        }
+
+        try {
+            // "DD.MM.YYYY HH:MM (UTC±HH:MM)"
+            if (preg_match('/^(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})\s*\(UTC([+-]\d{2}:\d{2})\)$/', trim($raw), $m)) {
+                [$all,$d,$mth,$y,$h,$i,$offset] = $m;
+                $isoLocal = sprintf('%s-%s-%sT%s:%s:00%s', $y, $mth, $d, $h, $i, $offset);
+
+                $dtLocal = new \DateTime($isoLocal);                    // локал со смещением
+                $dtUtc   = (clone $dtLocal)->setTimezone(new \DateTimeZone('UTC'));
+
+                return [
+                    'for_db_local' => $dtLocal->format('Y-m-d H:i:s'),
+                    'for_db_utc'   => $dtUtc->format('Y-m-d H:i:s'),
+                    'for_api_utc'  => $dtUtc->format('Y-m-d\TH:i:s\Z'),
+                    'tz_offset'    => $offset,
+                ];
+            }
+
+            // Любой другой распознаваемый формат (ISO и т.д.)
+            $dt = new \DateTime($raw);
+            $offset = $dt->format('P');
+            $dtUtc  = (clone $dt)->setTimezone(new \DateTimeZone('UTC'));
+
+            return [
+                'for_db_local' => $dt->format('Y-m-d H:i:s'),
+                'for_db_utc'   => $dtUtc->format('Y-m-d H:i:s'),
+                'for_api_utc'  => $dtUtc->format('Y-m-d\TH:i:s\Z'),
+                'tz_offset'    => $offset,
+            ];
+        } catch (\Throwable $e) {
+            \Log::warning('normalizeCancelDateForDbAndApi failed', ['input'=>$raw,'error'=>$e->getMessage()]);
+            return ['for_db_local'=>null,'for_db_utc'=>null,'for_api_utc'=>null,'tz_offset'=>null];
+        }
+    }
+
+    /**
+     * Преобразует строку вида "30.10.2025 13:59 (UTC+05:00)"
+     * в "YYYY-MM-DDTHH:MM:SSZ" (UTC). Возвращает null, если распарсить не удалось.
+     */
+    private function parseCancelDatePair(?string $raw): array
+    {
+        if (!$raw || !is_string($raw)) {
+            return ['local' => null, 'utc' => null];
+        }
+
+        try {
+            // Шаблон под формат "05.11.2025 13:59 (UTC+05:00)"
+            if (preg_match('/^(\d{2})\.(\d{2})\.(\d{4})\s+(\d{2}):(\d{2})\s*\(UTC([+-]\d{2}:\d{2})\)$/', trim($raw), $m)) {
+                [$all, $d, $mth, $y, $h, $i, $offset] = $m;
+                $isoLocal = sprintf('%s-%s-%sT%s:%s:00%s', $y, $mth, $d, $h, $i, $offset);
+
+                // создаём дату с учётом смещения
+                $dtLocal = new \DateTime($isoLocal);
+                $dtUtc   = (clone $dtLocal)->setTimezone(new \DateTimeZone('UTC'));
+
+                return [
+                    'local' => $dtLocal->format('Y-m-d\TH:i:sP'),
+                    'utc'   => $dtUtc->format('Y-m-d\TH:i:s\Z'),
+                ];
+            }
+
+            // Попробуем ISO-формат или любой другой
+            $dt = new \DateTime($raw);
+            $dtUtc = (clone $dt)->setTimezone(new \DateTimeZone('UTC'));
+            return [
+                'local' => $dt->format('Y-m-d\TH:i:sP'),
+                'utc'   => $dtUtc->format('Y-m-d\TH:i:s\Z'),
+            ];
+        } catch (\Throwable $e) {
+            Log::warning('parseCancelDatePair failed', ['input' => $raw, 'error' => $e->getMessage()]);
+            return ['local' => null, 'utc' => null];
+        }
+    }
+
 
     public function cancel_calculate_exely(Request $request)
     {
@@ -600,7 +599,7 @@ class BookingController extends Controller
                     ->cc(Auth::user()->email)
                     ->bcc($book->email)
                     ->send(new BookCancelMail($book));
-                return view('pages.booking.exely.cancel-confirm', compact('cancel'));
+                return view('pages.booking.exely.cancel-confirm', compact('cancel', 'request'));
             }
         } catch (RequestException $e) {
             Log::error('Ошибка запроса: ' . $e->getMessage());

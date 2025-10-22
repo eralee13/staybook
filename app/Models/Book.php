@@ -37,6 +37,7 @@ class Book extends Model
         'cancellation_id',
         'cancel_penalty',
         'cancel_date',
+        'cancel_date_utc',
         'api_type',
         'checkin_request',
         'checkin_time',

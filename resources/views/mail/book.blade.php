@@ -22,31 +22,25 @@
     $book = \App\Models\Book::where('id', $book->id)->first();
     $room = \App\Models\Room::where('id', $book->room_id)->first();
     $rate = \App\Models\Rate::where('id', $book->rate_id)->first();
-
         $freeCancelDate = '';
         if( isset($rate->cancellation_rule_id) ){
-            
             $cancel = \App\Models\CancellationRule::where('id', $rate->cancellation_rule_id)->first();
-
             if( isset($cancel->end_date) ){
                 $freeCancelDate = \Carbon\Carbon::parse($cancel->end_date)->format('d F Y, H:i');
             } 
         }
-        
-
     $meal = optional(optional($rate)->meal_id ? \App\Models\Meal::find($rate->meal_id) : null)->title ?? 'Без питания';
-    \Carbon\Carbon::setLocale( app()->getLocale() );
     $arrivalDate = \Carbon\Carbon::parse($book->arrivalDate)->format('d F Y');
     $departureDate = \Carbon\Carbon::parse($book->departureDate)->format('d F Y');
     $createdDate = \Carbon\Carbon::parse($book->created_at)->format('d F Y, H:i');
     $today = \Carbon\Carbon::now()->format('d F Y');
     $time = \Carbon\Carbon::now()->format('H:i');
+
+
 @endphp
 
 <table cellpadding="0" cellspacing="0" width="100%"
        style="max-width: 650px; margin: auto; background-color: #fff; border-collapse: collapse; box-shadow: 0 0 10px rgba(0,0,0,0.05);">
-
-    <!-- Header block -->
     <tr>
         <td style="background-color: #4a4a4a; color: #fff; padding: 20px;">
             <div class="logo" style="width:200px !important; height: 60px !important; display: inline-block;">
@@ -108,26 +102,38 @@
                     <td><strong>Booking made on</strong></td>
                     <td align="right">{{ $createdDate }}</td>
                 </tr>
-                {{-- <tr>
-                    <td><strong>Payment type</strong></td>
-                    <td align="right">Paid</td>
-                </tr> --}}
-                <tr>
-                    <td><strong>Rate</strong></td>
-                    <td align="right">{{ $rate->title_en ?? $rate->title ?? ''}}</td>
-                </tr>
-                <tr>
-                    <td><strong>Beddings</strong></td>
-                    <td align="right">{{ $rate->bed_type ?? '' }}</td>
-                </tr>
-                <tr>
-                    <td><strong>Free cancellation</strong></td>
-                    <td align="right">until {{ $freeCancelDate }}</td>
-                </tr>
-                <tr>
-                    <td><strong>Cancellation charge:</strong></td>
-                    <td align="right">{{ $book->cancel_penalty ?? 0 }} {{ $book->currency}}</td>
-                </tr>
+                @isset($rate)
+                    <tr>
+                        <td><strong>Rate</strong></td>
+                        <td align="right">{{ $rate->title_en ?? $rate->title ?? $rate_id}}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Beddings</strong></td>
+                        <td align="right">{{ $rate->bed_type ?? '' }}</td>
+                    </tr>
+                @endisset
+                @php
+                    $givenDate = $book->cancel_date;
+                    $userTimezone = auth()->user()->timezone ?? 'UTC';
+                    $currentDate = \Carbon\Carbon::now($userTimezone);
+                    $givenDateUserTZ = $givenDate->copy()->setTimezone($userTimezone);
+                @endphp
+                @if ($givenDateUserTZ->isFuture())
+                    <tr>
+                        <td><strong>Cancellation charge:</strong></td>
+                        <td align="right">0 {{ $book->currency}}</td>
+                    </tr>
+                @elseif ($givenDateUserTZ->isPast())
+                    <tr>
+                        <td><strong>Cancellation charge:</strong></td>
+                        <td align="right">{{ $book->cancel_penalty ?? 0 }} {{ $book->currency}}</td>
+                    </tr>
+                @else
+                    <tr>
+                        <td><strong>Cancellation charge:</strong></td>
+                        <td align="right">{{ $book->cancel_penalty ?? 0 }} {{ $book->currency}}</td>
+                    </tr>
+                @endif
                 <tr>
                     <td><strong>Accommodation cost:</strong></td>
                     <td align="right" style="color: #000; font-size: 16px;">
@@ -137,14 +143,8 @@
 
             <div style="text-align: center; margin-top: 25px;">
                 <a href="{{ route('index') }}/auth/userbooks/show/{{$book->id}}"
-                   style="display: inline-block; background-color: #0061ae; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: bold;">View
-                    booking</a>
+                   style="display: inline-block; background-color: #0061ae; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: bold;">View booking</a>
             </div>
-        </td>
-    </tr>
-    <tr>
-        <td style="background-color: #0061ae; color: #fff; text-align: center; padding: 15px;">
-            {{-- <p style="margin: 0;">Нужна помощь? <strong>Отдел поддержки отелей</strong></p> --}} <br>
         </td>
     </tr>
 </table>

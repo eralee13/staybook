@@ -96,6 +96,8 @@
                             ->id }}">
                         @endisset
 
+                            <input type="hidden" value="local" name="apiName">
+
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">

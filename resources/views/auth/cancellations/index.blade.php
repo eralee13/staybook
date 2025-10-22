@@ -34,7 +34,7 @@
                             <table class="table">
                                 <thead>
                                 <tr>
-                                    <th>ID</th>
+                                    <th>@lang('admin.room')</th>
                                     <th>@lang('admin.title')</th>
                                     <th>@lang('admin.type_fine')</th>
                                     <th>@lang('admin.rate')</th>
@@ -43,8 +43,12 @@
                                 </thead>
                                 <tbody>
                                 @foreach($rules as $cancellation)
+                                    @php
+                                        $rate = \App\Models\Rate::where('id', $cancellation->rate_id)->first();
+                                        $room = \App\Models\Room::where('id', $rate->room_id)->first();
+                                     @endphp
                                     <tr>
-                                        <td>{{ $cancellation->id }}</td>
+                                        <td>{{ $room->__('title') }}</td>
                                         <td>{{ $cancellation->__('title') ?? '' }}</td>
                                         <td>
                                             @if($cancellation->cancel_policy === 'free_until_checkin')

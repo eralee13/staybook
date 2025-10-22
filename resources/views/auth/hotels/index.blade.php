@@ -34,6 +34,9 @@
                                 <th>ID</th>
                                 <th>@lang('admin.title')</th>
                                 <th>@lang('admin.address')</th>
+                                @hasrole('Super Admin')
+                                    <th>apiType</th>
+                                @endhasrole
                                 <th>@lang('admin.status')</th>
                                 <th>@lang('admin.action')</th>
                             </tr>
@@ -42,6 +45,9 @@
                                     <td>{{ $hotel->id }}</td>
                                     <td>{{ $hotel->__('title') }}</td>
                                     <td>{{ $hotel->__('address') ?? $hotel->address_en }}</td>
+                                    @hasrole('Super Admin')
+                                        <td>{{ $hotel->apiName }}</td>
+                                    @endhasrole
                                     <td>
                                         @if($hotel->status === 1)
                                             <div class="alert alert-success">@lang('admin.active')</div>
