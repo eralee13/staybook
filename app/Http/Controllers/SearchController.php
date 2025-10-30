@@ -108,99 +108,99 @@ class SearchController extends Controller
         $results1 = null; $results2 = null; $results3 = null;
 
         // ######## Emerging API ########
-        // try {
-        //     $emerSearch = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
-        //     $emerHotels = $emerSearch->EmergingGetHotels($request);
-        //     $mappingMeals = $emerSearch->mappingMealsGrouped();
-        //     // dd($emerHotels['data']);
+        try {
+            $emerSearch = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
+            $emerHotels = $emerSearch->EmergingGetHotels($request);
+            $mappingMeals = $emerSearch->mappingMealsGrouped();
+            // dd($emerHotels['data']);
             
             
-        //     if (!empty($emerHotels['data']['hotels'])) {
+            if (!empty($emerHotels['data']['hotels'])) {
 
-        //         // выбранные типы питания (из запроса)
-        //         $selectedMealIds = request()->input('meal', []); // [1,2]
+                // выбранные типы питания (из запроса)
+                $selectedMealIds = request()->input('meal', []); // [1,2]
 
-        //         // получаем список допустимых ключей по выбранным ID
-        //         $allowedMeals = collect($selectedMealIds)
-        //             ->map(fn($id) => $mappingMeals[$id] ?? [])
-        //             ->flatten()
-        //             ->toArray();
+                // получаем список допустимых ключей по выбранным ID
+                $allowedMeals = collect($selectedMealIds)
+                    ->map(fn($id) => $mappingMeals[$id] ?? [])
+                    ->flatten()
+                    ->toArray();
                 
-        //         // фильтруем тарифы по meal
-        //         $filteredMealsHotels = array_map(function ($hoteli) use ($allowedMeals) {
+                // фильтруем тарифы по meal
+                $filteredMealsHotels = array_map(function ($hoteli) use ($allowedMeals) {
 
-        //             $hoteli['rates'] = array_filter($hoteli['rates'], function ($rate) use ($allowedMeals) {
+                    $hoteli['rates'] = array_filter($hoteli['rates'], function ($rate) use ($allowedMeals) {
                         
-        //                 return in_array($rate['meal'], $allowedMeals);
-        //             });
-        //             return $hoteli;
-        //         },  $emerHotels['data']['hotels']);
+                        return in_array($rate['meal'], $allowedMeals);
+                    });
+                    return $hoteli;
+                },  $emerHotels['data']['hotels']);
                 
-        //         // убираем отели без тарифов
-        //         $filteredMealsHotels = array_filter($filteredMealsHotels, fn($hotel) => !empty($hotel['rates']));
+                // убираем отели без тарифов
+                $filteredMealsHotels = array_filter($filteredMealsHotels, fn($hotel) => !empty($hotel['rates']));
 
-        //         if( empty($filteredMealsHotels) ){
-        //             $filteredMealsHotels = $emerHotels['data']['hotels'];
-        //         }
+                if( empty($filteredMealsHotels) ){
+                    $filteredMealsHotels = $emerHotels['data']['hotels'];
+                }
 
 
-        //         // Вывоводим отели
-        //         $filteredHotels = array_filter($filteredMealsHotels, function ($hotel) {
-        //             return isset($hotel['localData']['id']);
-        //         });
+                // Вывоводим отели
+                $filteredHotels = array_filter($filteredMealsHotels, function ($hotel) {
+                    return isset($hotel['localData']['id']);
+                });
 
-        //         $hotels['hotels'] = array_map(function ($hotel) use ($fxBase, $fxRates, $symbols) {
-        //             $rate = $hotel['rates'][0] ?? null;
+                $hotels['hotels'] = array_map(function ($hotel) use ($fxBase, $fxRates, $symbols) {
+                    $rate = $hotel['rates'][0] ?? null;
 
-        //             $payment = $rate['payment_options']['payment_types'][0] ?? null;
+                    $payment = $rate['payment_options']['payment_types'][0] ?? null;
 
-        //             $price = isset($payment['amount']) ? (float)$payment['amount'] : 0;
-        //             $currency = $payment['currency_code'] ?? 'USD';
+                    $price = isset($payment['amount']) ? (float)$payment['amount'] : 0;
+                    $currency = $payment['currency_code'] ?? 'USD';
 
-        //             $totalPrice = $price > 0 ? number_format(($price / ($this->coef ?? 1)), 2, '.', '') : 0;
+                    $totalPrice = $price > 0 ? number_format(($price / ($this->coef ?? 1)), 2, '.', '') : 0;
 
-        //             $toCurrency = strtoupper($fxBase ?? 'USD');
-        //             $converted = $price > 0 
-        //                 ? app(\App\Services\FXService::class)->convert($totalPrice, $currency, $fxBase) 
-        //                 : 0;
+                    $toCurrency = strtoupper($fxBase ?? 'USD');
+                    $converted = $price > 0 
+                        ? app(\App\Services\FXService::class)->convert($totalPrice, $currency, $fxBase) 
+                        : 0;
 
-        //             $symbol = $symbols[$toCurrency] ?? $toCurrency;
+                    $symbol = $symbols[$toCurrency] ?? $toCurrency;
 
-        //             return [
-        //                 'apiName'      => 'ETG',
-        //                 'apiHotelId'   => $hotel['hid'] ?? '',
-        //                 'hid'          => $hotel['localData']['id'] ?? '',
-        //                 'code'         => $hotel['localData']['code'] ?? '',
-        //                 'title'        => $hotel['localData']['title'] ?? '',
-        //                 'title_en'     => $hotel['localData']['title_en'] ?? '',
-        //                 'rating'       => $hotel['localData']['rating'] ?? '',
-        //                 'city'         => $hotel['localData']['city'] ?? '',
-        //                 'amenities'    => $hotel['localData']['amenity']['services'] ?? '',
-        //                 'images'       => $hotel['localData']['images'] ?? [],
-        //                 'lat'          => $hotel['localData']['lat'] ?? '',
-        //                 'lng'          => $hotel['localData']['lng'] ?? '',
-        //                 'price'        => $price,
-        //                 'totalPrice'   => $totalPrice,
-        //                 'currency'     => $currency,
-        //                 'match_hash'   => $rate['match_hash'] ?? '',
-        //                 'conv_total'   => round($converted),
-        //                 'conv_symbol'  => $symbol,
-        //             ];
+                    return [
+                        'apiName'      => 'ETG',
+                        'apiHotelId'   => $hotel['hid'] ?? '',
+                        'hid'          => $hotel['localData']['id'] ?? '',
+                        'code'         => $hotel['localData']['code'] ?? '',
+                        'title'        => $hotel['localData']['title'] ?? '',
+                        'title_en'     => $hotel['localData']['title_en'] ?? '',
+                        'rating'       => $hotel['localData']['rating'] ?? '',
+                        'city'         => $hotel['localData']['city'] ?? '',
+                        'amenities'    => $hotel['localData']['amenity']['services'] ?? '',
+                        'images'       => $hotel['localData']['images'] ?? [],
+                        'lat'          => $hotel['localData']['lat'] ?? '',
+                        'lng'          => $hotel['localData']['lng'] ?? '',
+                        'price'        => $price,
+                        'totalPrice'   => $totalPrice,
+                        'currency'     => $currency,
+                        'match_hash'   => $rate['match_hash'] ?? '',
+                        'conv_total'   => round($converted),
+                        'conv_symbol'  => $symbol,
+                    ];
                     
-        //         }, $filteredHotels);
+                }, $filteredHotels);
                 
 
-        //         $results1 = json_decode(json_encode($hotels['hotels']));
+                $results1 = json_decode(json_encode($hotels['hotels']));
                 
-        //     }
+            }
 
 
-        // } catch (\Throwable $th) {
-        //     Log::channel('Emerging')->error('API error on MAIN Search ', [
-        //             'message' => $th->getMessage(),
-        //             'trace'   => $th->getTraceAsString(),
-        //         ]);
-        // }
+        } catch (\Throwable $th) {
+            Log::channel('Emerging')->error('API error on MAIN Search ', [
+                    'message' => $th->getMessage(),
+                    'trace'   => $th->getTraceAsString(),
+                ]);
+        }
            
         // ######## End Emerging API ########
 
@@ -267,90 +267,90 @@ class SearchController extends Controller
         // ######## End Hotelstar API ########
         // try {
 
-            $HSSearch = new \App\Http\Controllers\API\V1\Hotelstar\HotelstarFormController();
-            $HSHotels = $HSSearch->HSGetHotels($request);
+            // $HSSearch = new \App\Http\Controllers\API\V1\Hotelstar\HotelstarFormController();
+            // $HSHotels = $HSSearch->HSGetHotels($request);
             // $mappingMeals = $HSSearch->mappingMealsGrouped();
             // dd($HSHotels);
             
             
-            if ( !empty($HSHotels) ) {
+            // if ( !empty($HSHotels) ) {
 
-                // // выбранные типы питания (из запроса)
-                // $selectedMealIds = request()->input('meal', []); // [1,2]
+            //     // // выбранные типы питания (из запроса)
+            //     // $selectedMealIds = request()->input('meal', []); // [1,2]
 
-                // // получаем список допустимых ключей по выбранным ID
-                // $allowedMeals = collect($selectedMealIds)
-                //     ->map(fn($id) => $mappingMeals[$id] ?? [])
-                //     ->flatten()
-                //     ->toArray();
+            //     // // получаем список допустимых ключей по выбранным ID
+            //     // $allowedMeals = collect($selectedMealIds)
+            //     //     ->map(fn($id) => $mappingMeals[$id] ?? [])
+            //     //     ->flatten()
+            //     //     ->toArray();
                 
-                // // фильтруем тарифы по meal
-                // $filteredMealsHotels = array_map(function ($hoteli) use ($allowedMeals) {
+            //     // // фильтруем тарифы по meal
+            //     // $filteredMealsHotels = array_map(function ($hoteli) use ($allowedMeals) {
 
-                //     $hoteli['rates'] = array_filter($hoteli['rates'], function ($rate) use ($allowedMeals) {
+            //     //     $hoteli['rates'] = array_filter($hoteli['rates'], function ($rate) use ($allowedMeals) {
                         
-                //         return in_array($rate['meal'], $allowedMeals);
-                //     });
-                //     return $hoteli;
-                // },  $emerHotels);
+            //     //         return in_array($rate['meal'], $allowedMeals);
+            //     //     });
+            //     //     return $hoteli;
+            //     // },  $emerHotels);
                 
-                // // убираем отели без тарифов
-                // $filteredMealsHotels = array_filter($filteredMealsHotels, fn($hotel) => !empty($hotel['rates']));
+            //     // // убираем отели без тарифов
+            //     // $filteredMealsHotels = array_filter($filteredMealsHotels, fn($hotel) => !empty($hotel['rates']));
 
-                // if( empty($filteredMealsHotels) ){
-                //     $filteredMealsHotels = $emerHotels;
-                // }
+            //     // if( empty($filteredMealsHotels) ){
+            //     //     $filteredMealsHotels = $emerHotels;
+            //     // }
 
 
-                // // Вывоводим отели
-                // $filteredHotels = array_filter($filteredMealsHotels, function ($hotel) {
-                //     return isset($hotel['localData']['id']);
-                // });
+            //     // // Вывоводим отели
+            //     // $filteredHotels = array_filter($filteredMealsHotels, function ($hotel) {
+            //     //     return isset($hotel['localData']['id']);
+            //     // });
 
-                // 
-                $hotels['hotels'] = array_map(function ($hotel) use ($fxBase, $fxRates, $symbols) {
-                    $rate = $hotel['rates'] ?? null;
+            //     // 
+            //     $hotels['hotels'] = array_map(function ($hotel) use ($fxBase, $fxRates, $symbols) {
+            //         $rate = $hotel['rates'] ?? null;
 
-                    $price = isset($rate['price']) ? (float)$rate['price'] : 0;
-                    $currency = $rate['currency'] ?? 'RUB';
+            //         $price = isset($rate['price']) ? (float)$rate['price'] : 0;
+            //         $currency = $rate['currency'] ?? 'RUB';
 
-                    $totalPrice = $price > 0 ? number_format(($price / ($this->coef ?? 1)), 2, '.', '') : 0;
+            //         $totalPrice = $price > 0 ? number_format(($price / ($this->coef ?? 1)), 2, '.', '') : 0;
 
-                    $toCurrency = strtoupper($fxBase ?? 'USD');
-                    $converted = $price > 0 
-                        ? app(\App\Services\FXService::class)->convert($totalPrice, $currency, $fxBase) 
-                        : 0;
+            //         $toCurrency = strtoupper($fxBase ?? 'USD');
+            //         $converted = $price > 0 
+            //             ? app(\App\Services\FXService::class)->convert($totalPrice, $currency, $fxBase) 
+            //             : 0;
 
-                    $symbol = $symbols[$toCurrency] ?? $toCurrency;
+            //         $symbol = $symbols[$toCurrency] ?? $toCurrency;
 
-                    return [
-                        'apiName'      => 'HS',
-                        'apiHotelId'   => $rate['hotel_id'] ?? '',
-                        'hid'          => $hotel['localData']['id'] ?? '',
-                        'code'         => $hotel['localData']['code'] ?? '',
-                        'title'        => $hotel['localData']['title'] ?? '',
-                        'title_en'     => $hotel['localData']['title_en'] ?? '',
-                        'rating'       => $hotel['localData']['rating'] ?? '',
-                        'city'         => $hotel['localData']['city'] ?? '',
-                        'amenities'    => $hotel['localData']['amenity']['services'] ?? '',
-                        'images'       => $hotel['localData']['images'] ?? [],
-                        'lat'          => $hotel['localData']['lat'] ?? '',
-                        'lng'          => $hotel['localData']['lng'] ?? '',
-                        'price'        => $price,
-                        'totalPrice'   => $totalPrice,
-                        'currency'     => $currency,
-                        'hash'   => $rate['hash'] ?? '',
-                        'provider_id'   => $rate['provider_id'] ?? '',
-                        'conv_total'   => round($converted),
-                        'conv_symbol'  => $symbol,
-                    ];
+            //         return [
+            //             'apiName'      => 'HS',
+            //             'apiHotelId'   => $rate['hotel_id'] ?? '',
+            //             'hid'          => $hotel['localData']['id'] ?? '',
+            //             'code'         => $hotel['localData']['code'] ?? '',
+            //             'title'        => $hotel['localData']['title'] ?? '',
+            //             'title_en'     => $hotel['localData']['title_en'] ?? '',
+            //             'rating'       => $hotel['localData']['rating'] ?? '',
+            //             'city'         => $hotel['localData']['city'] ?? '',
+            //             'amenities'    => $hotel['localData']['amenity']['services'] ?? '',
+            //             'images'       => $hotel['localData']['images'] ?? [],
+            //             'lat'          => $hotel['localData']['lat'] ?? '',
+            //             'lng'          => $hotel['localData']['lng'] ?? '',
+            //             'price'        => $price,
+            //             'totalPrice'   => $totalPrice,
+            //             'currency'     => $currency,
+            //             'hash'   => $rate['hash'] ?? '',
+            //             'provider_id'   => $rate['provider_id'] ?? '',
+            //             'conv_total'   => round($converted),
+            //             'conv_symbol'  => $symbol,
+            //         ];
                     
-                }, $HSHotels);
+            //     }, $HSHotels);
                 
 
-                $results3 = json_decode(json_encode($hotels['hotels']));
+            //     $results3 = json_decode(json_encode($hotels['hotels']));
                 
-            }
+            // }
             // dd($results3);
 
         // } catch (\Throwable $th) {

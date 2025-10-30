@@ -25,13 +25,14 @@ class Room extends Model
         'hotel_id',
         'area',
         'amenities',
-        'image'
+        'image',
+        'rg_ext'
     ];
 
     protected $hidden = [
         'created_at',
         'updated_at',
-        'deleted_at'
+        'deleted_at',
     ];
 
 //    public function rates()

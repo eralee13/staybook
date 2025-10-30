@@ -20,7 +20,7 @@ use App\Models\CancellationRule;
 
 class EmergingFormController extends Controller
 {
-    public $keyId, $apiKey, $url;
+    public $keyId, $apiKey, $url, $selUrl, $coef, $language;
     public $hotelDetail, $hotelLocalData, $hotels;
     public $guestsall, $childs_name;
 
@@ -31,6 +31,7 @@ class EmergingFormController extends Controller
         $this->url = config('app.emerging_api_url');
         $this->coef = config('app.main_coef');
         $this->language = app()->getLocale();
+
     }
 
     public function EmergingGetHotels(Request $request)
@@ -61,7 +62,7 @@ class EmergingFormController extends Controller
 
 
         //  get hotels by city from api
-        $this->hotelDetail = $this->searchHotelsByCity($request);
+        $this->hotelDetail = $this->searchHotelsByCityOrId($request);
 
         // dd($this->hotelDetail);
 
@@ -88,7 +89,7 @@ class EmergingFormController extends Controller
         // return $this->hotelDetail;
     }
 
-    public function searchHotelsByCity(Request $request)
+    public function searchHotelsByCityOrId(Request $request)
     {
        $rooms = $request->input('rooms', []); // если нет — пустой массив
         $guests = [];
@@ -109,7 +110,42 @@ class EmergingFormController extends Controller
             ];
         }
 
+        // Если переданы конкретные ID отелей
+        if( !empty( $request->hotel_ids ) ){
+
+            $ids = explode(',', $request->hotel_ids);
+
+            $this->hotels = Hotel::whereIn('id', $ids)
+                ->whereNotNull('emerging_id')
+                ->pluck('emerging_id')
+                ->toArray();
+
+            $this->selUrl = $this->url . '/search/serp/hotels/';
+
+        }else{
+            
+            // Иначе поиск по городу
+            $this->hotels = Hotel::where('city', $request->city)
+                ->whereNotNull('emerging_id')
+                ->pluck('emerging_id')
+                ->toArray();
+
+            $this->selUrl = $this->url . '/search/serp/region/';
+
+        }
+
+        if ( !empty( $request->hotel_ids ) ) {
+            $mainParams = [
+                "hids" => $this->hotels,
+            ];
+        } else {
+            $mainParams = [
+                "region_id" => (int)$request->region_id, //city id
+            ];
+        }
+
         $city = explode('-', $request->city);
+        
         $payload = [
             "checkin" => $request->arrivalDate,
             "checkout" => $request->departureDate,
@@ -512,7 +548,7 @@ class EmergingFormController extends Controller
         // $partnerComment = Auth::user()->partner_comment;
 
         $payload = [
-                // "timeout" => 30,
+                "timeout" => 60,
                 "user" => [
                         "email" => 'itsupport@staybook.asia', //$request->email, 
                         "comment" => $request->comment, 

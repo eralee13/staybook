@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\API\V1\Emerging;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -12,12 +11,10 @@ use App\Models\Amenity;
 use App\Models\Room;
 use App\Models\Image;
 
-
-
-class EmergingHotelController extends Controller
+class EmergingHotelStaticController extends Controller
 {       
     
-    public $keyId, $apiKey, $url;
+    protected $keyId, $apiKey, $url;
 
     public function __construct()
     {
@@ -61,26 +58,72 @@ class EmergingHotelController extends Controller
     {
         // $url = 'https://partner-feedora.s3.eu-central-1.amazonaws.com/feed/partner_feed_en_v3.jsonl.zst';
 
-        // Шаг 1: Скачиваем файл во временное хранилище
-        $zstPath = storage_path('app\partner_feed_en_v3.jsonl.zst');
-        $jsonlPath = 'D:\Projects\SilkWayTravel\partner_hotels_en.jsonl';
-        $zstdExe = 'D:\OSPanel\tools\zstd\zstd.exe';
+        // Пути под Linux
+        $zstPath = storage_path('app/partner_feed_en_v3.jsonl.zst');
+        $jsonlPath = storage_path('app/partner_hotels_en.jsonl');
 
-        // file_put_contents($zstPath, file_get_contents($url));
-
-        // Шаг 2: Распаковываем .zst → .jsonl
-        // Убедись, что утилита zstd установлена на сервере
+        // Удаляем старые файлы, если есть
+        @unlink($zstPath);
+        //@unlink($jsonlPath);
         
-        // 2. Распаковка через exec (Windows)
-        // $cmd = "\"{$zstdExe}\" -d -f \"{$zstPath}\" -o \"{$jsonlPath}\"";
-        // exec($cmd, $output, $returnCode);
+        // ==============================
+        // 1. СКАЧИВАНИЕ ФАЙЛА
+        // ==============================
+        
+        $downloaded = false;
+    
+        // Попробовать wget
+        if (shell_exec('which wget')) {
+            $cmd = "wget -q -O \"$zstPath\" \"$url\"";
+            exec($cmd, $output, $returnCode);
+            $downloaded = ($returnCode === 0);
+        }
+    
+        // Если wget недоступен — пробуем curl
+        if (!$downloaded && shell_exec('which curl')) {
+            $cmd = "curl -s -L \"$url\" -o \"$zstPath\"";
+            exec($cmd, $output, $returnCode);
+            $downloaded = ($returnCode === 0);
+        }
+    
+        // Если нет ни wget, ни curl — fallback на PHP-поток
+        if (!$downloaded) {
+            $read = fopen($url, 'rb');
+            $write = fopen($zstPath, 'wb');
+            if ($read && $write) {
+                while (!feof($read)) {
+                    fwrite($write, fread($read, 8192));
+                }
+                fclose($read);
+                fclose($write);
+                $downloaded = true;
+            }
+        }
+    
+        if (!$downloaded || !file_exists($zstPath)) {
+            return response()->json(['error' => 'Не удалось скачать файл'], 500);
+        }
+    
+        // ==============================
+        // 2. РАСПАКОВКА .zst → .jsonl
+        // ==============================
+        /*if (!shell_exec('which zstd')) {
+            return response()->json(['error' => 'Утилита zstd не установлена на сервере'], 500);
+        }*/
+        
+        
+       /* $cmd = "zstd -d -f \"$zstPath\" -o \"$jsonlPath\"";
+        exec($cmd, $output, $returnCode);*/
 
         // if ($returnCode !== 0) {
         //     return response()->json(['error' => 'Не удалось распаковать файл', 'exec_output' => $output], 500);
         // }
 
         // Шаг 3: Построчное чтение JSONL
-        $handle = fopen($jsonlPath, 'r');
+        //$handle = fopen($jsonlPath, 'r');
+        
+        // Открываем поток на чтение через zstd (он распаковывает "на лету")
+        $handle = popen("zstd -d --stdout " . escapeshellarg($zstPath), 'r');
         if (!$handle) {
             return response()->json(['error' => 'Не удалось открыть файл'], 500);
         }
@@ -88,14 +131,19 @@ class EmergingHotelController extends Controller
         $hotels = [];
         $i = 0;
 
-        while ( ($line = fgets($handle)) !== false ) { // ограничим для примера 10 строками
+        while (($line = fgets($handle)) !== false && $i < 1) { // ограничим для примера 10 строками
+            
+            //dump($line);
             
             $data = json_decode($line, true);
             
-            if ( $data['hid'] == 7615581 || $data['hid'] == 6574079 || $data['hid'] == 7785166 || $data['hid'] == 7691218 || $data['hid'] == 8473727) {
-                // $data['region']['name'] == 'Moscow'
-                //if ( $data['hid'] == 8473727) {
-                // && $data['kind'] == 'hotel'
+    
+            if (
+                isset($data['region']['name'], $data['kind'])
+               // && $data['region']['name'] == 'China' && $data['kind'] == 'hotel'
+                ) {
+                //if ($data['hid'] == 8473727) {
+
                 // file_put_contents(storage_path('app\testov.jsonl'), json_encode($data, JSON_PRETTY_PRINT));
 
                 $hotels[] = $data;
@@ -148,8 +196,6 @@ class EmergingHotelController extends Controller
                             'emerging_id' => $data['hid'],
                             'status' => 1,
                             'user_id' => 1,
-                            'metapolicy_extra_info' => $data['metapolicy_extra_info'] ?? '',
-                            'metapolicy_struct' => $data['metapolicy_struct'] ?? [],
                         ]
                     );
                     
@@ -179,7 +225,6 @@ class EmergingHotelController extends Controller
 
                     $this->saveImagesLink($hotel->id, $images, 20, $size);
 
-
                     // Импорт типы комнат
                     if( !empty($data['room_groups']) ){
 
@@ -205,24 +250,20 @@ class EmergingHotelController extends Controller
 
                         }
                     }
+                    
 
-
-                    echo "Сохранен или обновлен: {$hotel->id} - {$hotel->title}\n";
-                    // dd($data);
+                    echo "\n № {$i} Hotel: ".$data['name']. ' - ID '.$data['hid'];
             }
             $i++;
         }
 
         fclose($handle);
 
-        
-        // dump($hotels[0]);
-      
         // return response()->json($hotels);
     }
 
 
-     public function saveImagesLink($hotelId, $images, $col, $size)
+    public function saveImagesLink($hotelId, $images, $col, $size)
     {
         $i=0;
         collect($images)->take($col)->each(function ($url) use (&$i, $hotelId, $size) {
@@ -274,7 +315,7 @@ class EmergingHotelController extends Controller
             return null;
         }
     }
-
+    
     public function saveRoomImagesLink($hotelId, $roomId, $roomGroup, $col, $size)
     {
         if (empty($roomGroup['images'])) {
@@ -339,6 +380,7 @@ class EmergingHotelController extends Controller
             return null;
         }
     }
+
 
 }
 

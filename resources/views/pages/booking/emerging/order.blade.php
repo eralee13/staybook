@@ -28,7 +28,7 @@
                 }
             }
 
-    // if( $preBook['data']['changes']['price_changed'] == true ){
+    // if( isset($preBook['data']['changes']['price_changed']) && $preBook['data']['changes']['price_changed'] == true ){
         $coef = config('app.main_coef'); 
         $price = $preBook['data']['hotels'][0]['rates'][0]['payment_options']['payment_types'][0]['amount'];
         $penaltPrice = $preBook['data']['hotels'][0]['rates'][0]['payment_options']['payment_types'][0]['cancellation_penalties']['policies'][1]['amount_charge'] ?? 0;
@@ -37,7 +37,8 @@
         $converted = app(\App\Services\FXService::class)->convert($totalPrice, $request->currency, $fxBase);
         $cancelConverted = app(\App\Services\FXService::class)->convert($penaltyPrice, $request->currency, $fxBase);
         $rateChanged = $preBook['data']['hotels']['0']['rates'][0];
-    // }
+    // } 
+    
 @endphp
 
     <div class="page order">

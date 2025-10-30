@@ -30,21 +30,7 @@ class EmergingDescTransHotelController extends Controller
                 'language' => 'en',
             ]);
 
-        if ( $response->successful() ) {
-
-            $res = (object) $response->json();
-            dd( $res->data );
-
-        } else {
-
-            $res = response()->json([
-                'error' => 'Ошибка запроса',
-                'status' => $response->status(),
-                'details' => $response->json()
-            ], $response->status());
-
-            dd($res);
-        }
+        return $response->json();
     }
     
 }

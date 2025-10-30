@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Api\V1\Emerging\EmergingRegionController;
+use App\Http\Controllers\Api\V1\Emerging\EmergingRegionStaticController;
 
 class EmergingRegionList extends Command
 {
@@ -27,7 +27,7 @@ class EmergingRegionList extends Command
      */
     public function handle()
     {
-        $controller = app(EmergingRegionController::class);
+        $controller = app(EmergingRegionStaticController::class);
 
         $request = new Request();
         $controller->fetchRegionStatic($request); // Передаём в метод

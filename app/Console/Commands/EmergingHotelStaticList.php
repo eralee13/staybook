@@ -4,16 +4,16 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Http\Request;
-use App\Http\Controllers\API\V1\Emerging\EmergingHotelController;
+use App\Http\Controllers\API\V1\Emerging\EmergingHotelStaticController;
 
-class EmergingHotelList extends Command
+class EmergingHotelStaticList extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'app:emerging-hotel-list';
+    protected $signature = 'app:emerging-hotel-static-list';
 
     /**
      * The console command description.
@@ -27,7 +27,7 @@ class EmergingHotelList extends Command
      */
     public function handle()
     {
-        $controller = app(EmergingHotelController::class);
+        $controller = app(EmergingHotelStaticController::class);
 
         $request = new Request();
         $controller->fetchHotelStatic($request); // Передаём в метод
