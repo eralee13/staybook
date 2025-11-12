@@ -145,7 +145,7 @@ class HotelstarHotelStaticController extends Controller
                     if ($line === '') continue;
 
                     $item = json_decode($line, true);
-                    if ($item !== null && $item['cityId'] == 67005 && $count < 5) {
+                    if ($item !== null && $item['cityId'] == 67005 && $count < 50) {
                         $data[] = $item;
                         
                         $kind; $rating = 0;

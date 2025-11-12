@@ -128,7 +128,7 @@ class SalesEtgController extends Controller
                     ->post($this->selUrl, $payload);
 
             Log::channel('emerging')->info('Sales API: Search Hotels - Payload ', $payload);
-            Log::channel('emerging')->info('Sales API: Search Hotels - Response ', $response->json());
+            // Log::channel('emerging')->info('Sales API: Search Hotels - Response ', $response->json());
             
             return $response->json();
 

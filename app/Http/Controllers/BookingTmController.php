@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Http\Client\RequestException;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\log;
@@ -152,6 +154,16 @@ class BookingTmController extends Controller
                     $message = 'Error later or contact us';
                     $key = '5';
                 }
+
+            } catch (ConnectionException $e) {
+
+                $message = 'connection_error';
+                Log::channel('tourmind')->info('Create Order Catch - ', [$e->getMessage()]);
+
+            } catch (RequestException $e) {
+
+                $message = 'connection_error';
+                Log::channel('tourmind')->info('Create Order Catch - ', [$e->getMessage()]);
 
             } catch (\Throwable $th) {
                 $message = 'Error later or contact us!';

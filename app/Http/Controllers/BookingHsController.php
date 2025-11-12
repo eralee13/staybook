@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Http\Client\RequestException;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\log;
@@ -58,7 +60,7 @@ class BookingHsController extends Controller
         //dd($request->all());
         $arrival = Carbon::createFromDate($request->arrivalDate)->format('d.m.Y');
         $departure = Carbon::createFromDate($request->departureDate)->format('d.m.Y');
-        $message = ''; $actialize = ''; $throwMessage = ''; 
+        $message = ''; $actualize = ''; $throwMessage = ''; 
         $earlyCheckIn = []; $lateCheckOut = [];
 
         try {
@@ -77,6 +79,16 @@ class BookingHsController extends Controller
                         }
                     }
                 }
+
+        } catch (ConnectionException $e) {
+
+            $message = 'connection_error';
+            Log::channel('hotelstar')->info('Create Order Catch - ', [$e->getMessage()]);
+
+        } catch (RequestException $e) {
+
+            $message = 'connection_error';
+            Log::channel('hotelstar')->info('Create Order Catch - ', [$e->getMessage()]);
 
         } catch (\Throwable $th) {
             $throwMessage = $th->getMessage();
@@ -124,21 +136,21 @@ class BookingHsController extends Controller
                         $message = 'invalid_reguest';
                     }
 
-                    if( isset($order->code) && ($order->code == 40001)){
-                        $message = 'search_is_expired';
-                    }
+                        if( isset($order->code) && ($order->code == 40001)){
+                            $message = 'search_is_expired';
+                        }
 
-                    if( isset($order->code) && ($order->code == 40400)){
-                        $message = 'resource_not_wanted';
-                    }
+                            if( isset($order->code) && ($order->code == 40400)){
+                                $message = 'resource_not_wanted';
+                            }
 
-                    if( isset($order->code) && ($order->code == 40005)){
-                        $message = 'This booking already exists';
-                    }
+                                if( isset($order->code) && ($order->code == 40005)){
+                                    $message = 'This booking already exists';
+                                }
 
-                    if( isset($order->code) && ($order->code == 50000)){
-                        $message = 'Please try again in a few minutes and refresh the page!';
-                    }
+                        if( isset($order->code) && ($order->code == 50000)){
+                            $message = 'Please try again in a few minutes and refresh the page!';
+                        }
 
                     if( isset($order->code) && ($order->code == 50001)){
                         $message = 'Booking error, manual check is required, please contact your account manager!';
@@ -159,13 +171,13 @@ class BookingHsController extends Controller
 
                         $message = 'Booking is pending confirmation from the hotel';
 
-                    } elseif( $order->status == 20 ){
+                        } elseif( $order->status == 20 ){
 
-                        $message = 'Booking cancellation is pending confirmation';
+                            $message = 'Booking cancellation is pending confirmation';
 
-                    } elseif( $order->status == 30 ){
+                            } elseif( $order->status == 30 ){
 
-                        $message = 'Booking modification is pending confirmation';
+                                $message = 'Booking modification is pending confirmation';
 
                     } elseif( $order->status == 500 ){
 
@@ -174,7 +186,18 @@ class BookingHsController extends Controller
                     }
                 }
                 
+            } catch (ConnectionException $e) {
+
+                $message = 'connection_error';
+                Log::channel('hotelstar')->info('Create Order Catch - ', [$e->getMessage()]);
+
+            } catch (RequestException $e) {
+
+                $message = 'connection_error';
+                Log::channel('hotelstar')->info('Create Order Catch - ', [$e->getMessage()]);
+
             } catch (\Throwable $th) {
+
                 $message = $th->getMessage();
                 Log::channel('hotelstar')->info('Create Order Catch - ', [$message]);
             }
@@ -244,7 +267,7 @@ class BookingHsController extends Controller
                     ];
             
             $search = new \App\Http\Controllers\API\V1\Hotelstar\HotelstarFormController();
-            $cancel = $search->metaCancelOrder($request);
+            $cancel = $search->metaCancelOrder($request, $rate, $book);
             
             if( isset($cancel->success) == true ){
 
@@ -305,6 +328,16 @@ class BookingHsController extends Controller
                 Log::channel('hotelstar')->info('Cancel Order User ID - ', $userInfo);
                 Log::channel('hotelstar')->info('Cancel Order - ', (array)$cancel);
             }
+
+        } catch (ConnectionException $e) {
+
+            $message = 'connection_error';
+            Log::channel('hotelstar')->info('Create Order Catch - ', [$e->getMessage()]);
+
+        } catch (RequestException $e) {
+
+            $message = 'connection_error';
+            Log::channel('hotelstar')->info('Create Order Catch - ', [$e->getMessage()]);
 
         } catch (\Throwable $th) {
             //throw $th;

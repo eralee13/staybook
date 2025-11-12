@@ -388,7 +388,7 @@
     </script>
     <script>
         function calculateTotal() {
-            let total = {{ round($request->totalPrice) }};
+            let total = {{ $request->totalPrice }};
 
             document.querySelectorAll('.extra').forEach(select => {
                 let value = select.value; // например "3:00-6.46"

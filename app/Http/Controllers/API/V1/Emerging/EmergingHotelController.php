@@ -222,7 +222,7 @@ class EmergingHotelController extends Controller
     }
 
 
-     public function saveImagesLink($hotelId, $images, $col, $size)
+    public function saveImagesLink($hotelId, $images, $col, $size)
     {
         $i=0;
         collect($images)->take($col)->each(function ($url) use (&$i, $hotelId, $size) {

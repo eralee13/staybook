@@ -130,7 +130,7 @@
                     <input type="hidden" name="price" value="{{ $price }}">
                     <input type="hidden" name="totalPrice" value="{{ $converted }}">
                     <input type="hidden" name="currency" 
-                            value="{{ $rate['currency'] }}">
+                            value="{{ $fxBase ?? $rate['currency'] }}">
                     <input type="hidden" name="utc"  value="{{ $hotel->utc }}">
                     <input type="hidden" name="etgimage"  value="{{ $tmimage }}">
                     <input type="hidden" name="increase_percent">

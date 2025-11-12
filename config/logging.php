@@ -130,6 +130,13 @@ return [
             // 'days' => 30, // Хранить логи n дней
         ],
 
+        'emerging_sales' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/Emerging-Sales.log'),
+            'level' => 'debug',
+            // 'days' => 30, // Хранить логи n дней
+        ],
+
         'tourmind' => [
             'driver' => 'daily',
             'path' => storage_path('logs/Tourmind.log'),
@@ -137,9 +144,23 @@ return [
             // 'days' => 30, // Хранить логи n дней
         ],
         
+        'tourmind_sales' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/Tourmind-Sales.log'),
+            'level' => 'debug',
+            // 'days' => 30, // Хранить логи n дней
+        ],
+        
         'hotelstar' => [
             'driver' => 'daily',
             'path' => storage_path('logs/Hotelstar.log'),
+            'level' => 'debug',
+            // 'days' => 30, // Хранить логи n дней
+        ],
+        
+        'hotelstar_sales' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/Hotelstar-Sales.log'),
             'level' => 'debug',
             // 'days' => 30, // Хранить логи n дней
         ],

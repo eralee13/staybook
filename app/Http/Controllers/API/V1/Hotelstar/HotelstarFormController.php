@@ -1,13 +1,23 @@
 <?php
-// Описание полей ответа с ошибками
-// code - int - внутренний код ошибки сервиса
-    // 50000 - неопасная внутренняя ошибка сервиса, ничего страшного, можно попробовать позже
-    // 50001 - опасная внутренняя ошибка сервиса, необходима ручная проверка заказа
-    // 40000 - от клиента получен неверный запрос
-    // 40001 - результаты поиска устарели, необходимо повторно отправить запрос на поиск
-    // 40400 - запрашиваемый ресурс не найден
-// message - string - текст ошибки
-// errors - object - описание ошибок валидации запроса в формате "название поля": "ответ валидатора"
+    // Описание полей ответа с ошибками
+    // code - int - внутренний код ошибки сервиса
+        // По-сути ошибки делятся на два блока 500-е и 400-е, коды ошибок только уточняют что конкретно произошло.
+        // Актуальный список кодов ошибок:    
+        // 50000 // Внутренняя ошибка сервиса, можно попробовать отправить запрос позже
+        // 50001 // Опасная ошибка, нужна ручная проверка заказа
+        // 50002 // Данные у поставщика не могут быть обновлены
+        // 40000 // Невалидный запрос
+        // 40001 // Поиск устарел, необходимо перезапустить поиск
+        // 40002 // Предложение более недоступно
+        // 40003 // Квоты закончились для данного предложения
+        // 40004 // Недостаточно средств на депозите, в случае работы с ним
+        // 40005 // Партнер попытался забронировать заказ под тем же кодом, что ранее
+        // 40006 // Дубль бронирования
+        // 40400 - запрашиваемый ресурс не найден
+        // 40500 // 405
+    // message - string - текст ошибки
+    // errors - object - описание ошибок валидации запроса в формате "название поля": "ответ валидатора"
+    // 50001 - это когда процесс бронирования на стороне поставщика был запущен, но не завершился успехом и не удалось актуализировать статус брони, в таком случае нет гарантии что на стороне поставщика он не забронировался. При этой ошибке надо тригерить тех. поддержку и разбирать ситуацию вручную, чтобы не оказалось ситуации, когда в системе пусто, а отель ждет клиента.
 
 namespace App\Http\Controllers\API\V1\Hotelstar;
 
@@ -71,7 +81,7 @@ class HotelstarFormController extends Controller
 
 
 
-        //  get hotels by city or id from api
+        //  get hotels by city or id from api 
         $this->hotelDetail = $this->searchHotelsByCityOrId($request);
 
         // dd($this->hotelDetail);
@@ -83,6 +93,8 @@ class HotelstarFormController extends Controller
                 return $a['price'] <=> $b['price']; // сортировка по возрастанию
             });
 
+            $res = [];
+            
             if( is_numeric($request->city) ){
 
                 // merge array local to api 
@@ -92,18 +104,23 @@ class HotelstarFormController extends Controller
                 $this->hotelDetail[] = $res;
                 
             }else{
+
                 // merge array local to api 
                 foreach ($this->hotelDetail as &$hotele) {
                     $hotelCode = $hotele['hotel_id'];
                 
-                    if (isset($this->hotelLocalData[$hotelCode])) {
+                    if ( isset($this->hotelLocalData[$hotelCode]) ) {
+
                         // Объединяем данные
-                        $hotele['localData'] = $this->hotelLocalData[$hotelCode];
-                    } else {
-                        // Если нет локальных данных, добавляем null
-                        $hotele['localData'] = null;
+                        $res['rates'] = $hotele;
+                        $res['localData'] = $this->hotelLocalData[$hotelCode];
+
                     }
                 }
+
+                $this->hotelDetail = [];
+                $this->hotelDetail[] = $res ? $res : [];
+
                 unset($hotele); // Разрываем ссылку, чтобы избежать проблем
             }
             
@@ -557,7 +574,7 @@ class HotelstarFormController extends Controller
                     $ruleid = $rule->id ?? null;
                 }
 
-                    $totalPrice = number_format(($request->price / $this->coef), 2, '.', '');
+                    // $totalPrice = number_format(($request->price / $this->coef), 2, '.', '');
                     
                     $rate = Rate::Create(
                         [
@@ -578,7 +595,7 @@ class HotelstarFormController extends Controller
                             'price2' => null,
                             'child_extra_fee' => 0,
                             'availability' => 0,
-                            'total_price' => $totalPrice,
+                            'total_price' => $request->totalPrice,
                             'currency' => $request->currency ?? $fxbase,
                             'cancellation_rule_id' => $ruleid ?? null,
                             
@@ -604,7 +621,7 @@ class HotelstarFormController extends Controller
                             'childages' => $childAges ?? '',
                             'price' => $request->price,
                             'source_sym' => 'RUB',
-                            'sum' => $totalPrice,
+                            'sum' => $request->totalPrice,
                             'utc' => $request->utc,
                             'cancellation_id' => $ruleid,
                             'cancel_penalty' => $request->cancelPrice,
@@ -617,7 +634,7 @@ class HotelstarFormController extends Controller
                             'late_out' => $late_check_out,
                             'user_id' => $userId,
                             'api_type' => 'hotelstar',
-                            'agent_ref' => '',
+                            'agent_ref' => $res->order_id ?? null,
                         ]
                     );
 
@@ -630,12 +647,39 @@ class HotelstarFormController extends Controller
 
     }
 
-    public function metaCancelOrder(Request $request){
+    public function metaSearchOrder(Request $request){
 
-        $payload = [
-                "partner_order_id" => $request->number,
-                "partner_penalty" => (float)$request->cancelPrice ?? 0,
-        ];
+        if($request->book_token){
+            $payload = ["partner_order_id" => $request->book_token ?? null];
+        }else{
+            $payload = ["order_id" => $request->order_id ?? null];
+        }
+
+        $response = Http::timeout(31)->withHeaders([
+                'X-HS-Token' => $this->apiKey,
+                'Content-Type' => 'application/json',
+            ])
+            ->post($this->url . '/cancel', $payload);
+
+            $searchResult = json_decode( $response->body() );
+            
+            dump($payload);
+            dump($searchResult);
+
+        return $searchResult;
+    }
+
+    public function metaCancelOrder(Request $request, Rate $rate, Book $book){
+
+        if($book->agent_ref){
+            $orderId = ["order_id" => $book->agent_ref];
+        }else{
+            $orderId = ["partner_order_id" => $request->number ?? $book->book_token];
+        }
+
+        $payload = array_merge($orderId, [
+                "partner_penalty" => (float)$rate->price ?? 0,
+        ]);
 
         $response = Http::timeout(31)->withHeaders([
                 'X-HS-Token' => $this->apiKey,

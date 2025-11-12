@@ -4,7 +4,7 @@
 @section('title', 'Поиск')
 
 @section('content')
-    @dump($emerHotels)
+    {{-- @dump($emerHotels) --}}
     @dump($results)
     
     @auth
