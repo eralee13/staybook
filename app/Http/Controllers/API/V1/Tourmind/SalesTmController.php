@@ -186,14 +186,14 @@ class SalesTmController extends Controller
             // dump($payload);
             // dump($response->json());
 
-            Log::channel('tourmind')->info('Sales API: Search Hotels - ', $payload);
-            Log::channel('tourmind')->info('Sales API: Search Hotels - ', $response->json());
+            Log::channel('tourmind_sales')->info('Sales API: Search Hotels - ', $payload);
+            Log::channel('tourmind_sales')->info('Sales API: Search Hotels - ', $response->json());
 
             return $response->json();
 
         } catch (\Throwable $th) {
 
-            Log::channel('tourmind')->info('Sales API: Search Hotels Catch - ', [$th->getMessage()]);
+            Log::channel('tourmind_sales')->info('Sales API: Search Hotels Catch - ', [$th->getMessage()]);
 
             return $th->getMessage();
         }
@@ -284,8 +284,8 @@ class SalesTmController extends Controller
         // dump($payload);
         // dump($response->json());
 
-            Log::channel('tourmind')->info('Sales API: Check Rate - ', $payload);
-            Log::channel('tourmind')->info('Sales API: Check Rate - ', $response->json());
+            Log::channel('tourmind_sales')->info('Sales API: Check Rate - ', $payload);
+            Log::channel('tourmind_sales')->info('Sales API: Check Rate - ', $response->json());
 
             // return $payload;
         return $response->json();
@@ -392,8 +392,8 @@ class SalesTmController extends Controller
                 'Accept' => 'application/json'
             ])->post("{$this->baseUrl}/CreateOrder", $payload);
                 
-            Log::channel('tourmind')->info('Sales API: Create Order - ', $payload);
-            Log::channel('tourmind')->info('Sales API: Create Order - ', $response->json());
+            Log::channel('tourmind_sales')->info('Sales API: Create Order - ', $payload);
+            Log::channel('tourmind_sales')->info('Sales API: Create Order - ', $response->json());
 
         return $response->json();
             
@@ -427,15 +427,15 @@ class SalesTmController extends Controller
                     'Accept' => 'application/json'
                 ])->post("{$this->baseUrl}/CancelOrder", $payload);
 
-                Log::channel('tourmind')->info('Sales API: Cancel Order - ', $payload);
-                Log::channel('tourmind')->info('Sales API: Cancel Order - ', $response->json());
+                Log::channel('tourmind_sales')->info('Sales API: Cancel Order - ', $payload);
+                Log::channel('tourmind_sales')->info('Sales API: Cancel Order - ', $response->json());
 
             return $response->json();
             
 
         } catch (\Throwable $th) {
 
-                Log::channel('tourmind')->info('Sales API: Cancel Order Catch - ', [$th->getMessage()]);
+                Log::channel('tourmind_sales')->info('Sales API: Cancel Order Catch - ', [$th->getMessage()]);
 
                 return $th->getMessage();
            }
@@ -460,8 +460,8 @@ class SalesTmController extends Controller
                     'Accept' => 'application/json'
                 ])->post("{$this->baseUrl}/SearchOrder", $payload);
 
-                Log::channel('tourmind')->info('Sales API: Search Order - ', $payload);
-                Log::channel('tourmind')->info('Sales API: Search Order - ', $response->json());
+                Log::channel('tourmind_sales')->info('Sales API: Search Order - ', $payload);
+                Log::channel('tourmind_sales')->info('Sales API: Search Order - ', $response->json());
 
 
                 return $response->json();
@@ -469,7 +469,7 @@ class SalesTmController extends Controller
 
             } catch (\Throwable $th) {
                 
-                Log::channel('tourmind')->info('Sales API: Search Order Catch - ', [$th->getMessage()]);
+                Log::channel('tourmind_sales')->info('Sales API: Search Order Catch - ', [$th->getMessage()]);
 
                 return $th->getMessage();
                 
