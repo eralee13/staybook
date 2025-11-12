@@ -127,15 +127,15 @@ class SalesEtgController extends Controller
                     ])
                     ->post($this->selUrl, $payload);
 
-            Log::channel('emerging')->info('Sales API: Search Hotels - Payload ', $payload);
-            // Log::channel('emerging')->info('Sales API: Search Hotels - Response ', $response->json());
+            Log::channel('emerging_sales')->info('Sales API: Search Hotels - Payload ', $payload);
+            // Log::channel('emerging_sales')->info('Sales API: Search Hotels - Response ', $response->json());
             
             return $response->json();
 
 
         } catch (\Throwable $th) {
             
-            Log::channel('emerging')->error('Sales API: Search Hotels - Catch ', [$th->getMessage()]);
+            Log::channel('emerging_sales')->error('Sales API: Search Hotels - Catch ', [$th->getMessage()]);
 
             return $th->getMessage();
         }
@@ -191,7 +191,7 @@ class SalesEtgController extends Controller
                 "currency" => "USD"
             ];
 
-            Log::channel('emerging')->info('Sales API: Rate Actualize /search/hp/ - Payload ', $payload);
+            Log::channel('emerging_sales')->info('Sales API: Rate Actualize /search/hp/ - Payload ', $payload);
 
                 $response = Http::timeout(31)->withBasicAuth($this->keyId, $this->apiKey)
                     ->withHeaders([
@@ -204,7 +204,7 @@ class SalesEtgController extends Controller
 
         } catch (\Throwable $th) {
             
-            Log::channel('emerging')->error('Sales API: Rate Actualize /search/hp/ - Catch ', [$th->getMessage()]);
+            Log::channel('emerging_sales')->error('Sales API: Rate Actualize /search/hp/ - Catch ', [$th->getMessage()]);
 
             return $th->getMessage();
         }
@@ -234,8 +234,8 @@ class SalesEtgController extends Controller
                 ])
                     ->post($this->url . '/hotel/prebook/', $payload);
 
-            Log::channel('emerging')->info('Sales API: Pre Book - Payload ', $payload);
-            Log::channel('emerging')->info('Sales API: Pre Book - Response ', $response->json());
+            Log::channel('emerging_sales')->info('Sales API: Pre Book - Payload ', $payload);
+            Log::channel('emerging_sales')->info('Sales API: Pre Book - Response ', $response->json());
             
 
             // Возвращаем JSON
@@ -244,7 +244,7 @@ class SalesEtgController extends Controller
 
         } catch (\Throwable $th) {
 
-            log::channel('emerging')->error('Sales API: Pre Book - Catch ', [$th->getMessage()]);
+            Log::channel('emerging_sales')->error('Sales API: Pre Book - Catch ', [$th->getMessage()]);
 
             return $th->getMessage();
         }
@@ -279,8 +279,8 @@ class SalesEtgController extends Controller
                 ])
                     ->post($this->url . '/hotel/order/booking/form/', $payload);
             
-            Log::channel('emerging')->info('Sales API: Order Process - Payload ', $payload);
-            Log::channel('emerging')->info('Sales API: Order Process - Response ', $response->json());
+            Log::channel('emerging_sales')->info('Sales API: Order Process - Payload ', $payload);
+            Log::channel('emerging_sales')->info('Sales API: Order Process - Response ', $response->json());
 
             
             return $response->json();
@@ -288,7 +288,7 @@ class SalesEtgController extends Controller
 
         } catch (\Throwable $th) {
             
-            log::channel('emerging')->error('Sales API: Order Process - Catch ', [$th->getMessage()]);
+            Log::channel('emerging_sales')->error('Sales API: Order Process - Catch ', [$th->getMessage()]);
 
             return $th->getMessage();
         }
@@ -409,15 +409,15 @@ class SalesEtgController extends Controller
                     ])
                     ->post($this->url . '/hotel/order/booking/finish/', $payload);
 
-            Log::channel('emerging')->info('Sales API: Finish Order - Payload ', $payload);
-            Log::channel('emerging')->info('Sales API: Finish Order - Response ', $response->json());
+            Log::channel('emerging_sales')->info('Sales API: Finish Order - Payload ', $payload);
+            Log::channel('emerging_sales')->info('Sales API: Finish Order - Response ', $response->json());
 
             return $response->json();
 
 
         } catch (\Throwable $th) {
             
-            log::channel('emerging')->error('Sales API: Finish Order - Catch ', [$th->getMessage()]);
+            Log::channel('emerging_sales')->error('Sales API: Finish Order - Catch ', [$th->getMessage()]);
 
             return $th->getMessage();
         }
@@ -445,8 +445,8 @@ class SalesEtgController extends Controller
                     
                 ]);
 
-            Log::channel('emerging')->info('Sales API: Finish Status - Payload ', ["partner_order_id" => $request->token]);
-            Log::channel('emerging')->info('Sales API: Finish Status - Response ', $response->json());
+            Log::channel('emerging_sales')->info('Sales API: Finish Status - Payload ', ["partner_order_id" => $request->token]);
+            Log::channel('emerging_sales')->info('Sales API: Finish Status - Response ', $response->json());
             
             // Возвращаем JSON
             return $response->json();
@@ -454,7 +454,7 @@ class SalesEtgController extends Controller
 
         } catch (\Throwable $th) {
             
-            log::channel('emerging')->error('Sales API: Finish Status - Catch ', [$th->getMessage()]);
+            Log::channel('emerging_sales')->error('Sales API: Finish Status - Catch ', [$th->getMessage()]);
 
             return $th->getMessage();
         }
@@ -495,15 +495,15 @@ class SalesEtgController extends Controller
                     "language" => $request->language ?? 'ru',
                 ]);
 
-            Log::channel('emerging')->info('Sales API: Search Order - Payload ', ["partner_order_id" => $request->partner_id]);
-            Log::channel('emerging')->info('Sales API: Search Order - Response ', $response->json());
+            Log::channel('emerging_sales')->info('Sales API: Search Order - Payload ', ["partner_order_id" => $request->partner_id]);
+            Log::channel('emerging_sales')->info('Sales API: Search Order - Response ', $response->json());
 
             return $response->json();
 
 
         } catch (\Throwable $th) {
             
-            Log::channel('emerging')->error('Sales API: Search Order - Catch ', [$th->getMessage()]);
+            Log::channel('emerging_sales')->error('Sales API: Search Order - Catch ', [$th->getMessage()]);
 
             return $th->getMessage();
         }
@@ -531,8 +531,8 @@ class SalesEtgController extends Controller
                     "timeout" => 30,
                 ]);
 
-            Log::channel('emerging')->info('Sales API: Cancel Order - Payload ', ["partner_order_id" => $request->partner_id]);
-            Log::channel('emerging')->info('Sales API: Cancel Order - Response ', $response->json());
+            Log::channel('emerging_sales')->info('Sales API: Cancel Order - Payload ', ["partner_order_id" => $request->partner_id]);
+            Log::channel('emerging_sales')->info('Sales API: Cancel Order - Response ', $response->json());
 
 
             return $response->json();
@@ -540,7 +540,7 @@ class SalesEtgController extends Controller
 
         } catch (\Throwable $th) {
             
-            Log::channel('emerging')->error('Sales API: Cancel Order - Catch ', [$th->getMessage()]);
+            Log::channel('emerging_sales')->error('Sales API: Cancel Order - Catch ', [$th->getMessage()]);
 
             return $th->getMessage();
         }
