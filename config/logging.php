@@ -123,13 +123,6 @@ return [
             'handler' => NullHandler::class,
         ],
 
-        'emerging' => [
-            'driver' => 'daily',
-            'path' => storage_path('logs/Emerging.log'),
-            'level' => 'debug',
-            // 'days' => 30, // Хранить логи n дней
-        ],
-
         'tourmind' => [
             'driver' => 'daily',
             'path' => storage_path('logs/Tourmind.log'),
@@ -142,6 +135,17 @@ return [
             'path' => storage_path('logs/Hotelstar.log'),
             'level' => 'debug',
             // 'days' => 30, // Хранить логи n дней
+        ],
+
+        'Emerging' => [
+            'driver' => 'single',
+            'path'   => storage_path('logs/emerging.log'),
+            'level'  => 'debug',
+        ],
+        'emerging' => [
+            'driver' => 'single',
+            'path'   => storage_path('logs/emerging.log'),
+            'level'  => 'debug',
         ],
     ],
 

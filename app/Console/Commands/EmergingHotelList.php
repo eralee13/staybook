@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Http\Request;
-use App\Http\Controllers\API\V1\Emerging\EmergingHotelController;
+use App\Http\Controllers\API\V1\Emerging\EmergingHotelStaticController;
 
 class EmergingHotelList extends Command
 {
@@ -27,7 +27,7 @@ class EmergingHotelList extends Command
      */
     public function handle()
     {
-        $controller = app(EmergingHotelController::class);
+        $controller = app(EmergingHotelStaticController::class);
 
         $request = new Request();
         $controller->fetchHotelStatic($request); // Передаём в метод

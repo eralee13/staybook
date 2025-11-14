@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PageRequest;
+use App\Models\Book;
 use App\Models\Page;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -94,5 +96,23 @@ class PageController extends Controller
         $page->delete();
         session()->flash('success', 'Страница ' . $page->title . ' удалена');
         return redirect()->route('pages.index');
+    }
+
+    public function console()
+    {
+        $months = collect(range(0, 11))->map(function ($i) {
+            return Carbon::now()->subMonths($i)->format('Y-m');
+        })->reverse();
+
+        $data = $months->map(function ($month) {
+            return Book::whereYear('created_at', substr($month, 0, 4))
+                ->whereMonth('created_at', substr($month, 5, 2))
+                ->count();
+        });
+        return view('auth.pages.console', [
+            'labels' => $months->values()->toArray(),
+            'data'   => $data->values()->toArray(),
+        ]);
+
     }
 }

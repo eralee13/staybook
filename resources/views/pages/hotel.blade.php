@@ -6,6 +6,7 @@
         @php
             $ram = \App\Models\Room::where('hotel_id', $hotel->id)->first();
             $hotel_amenities = explode(',', $ram->amenities ?? '');
+            $images = \App\Models\Image::where('hotel_id', $hotel->id)->get();
         @endphp
         <div class="page hotel">
             <div class="container">
@@ -13,15 +14,26 @@
                     <div class="col-md-12">
                         <h1>{{ $hotel->city }}</h1>
                         <div class="row">
-                            <div class="col-md-8">
+                            <div class="col-md-12">
                                 @if($hotel->image)
                                     <div class="fotorama" data-allowfullscreen="true" data-nav="thumbs"
                                          data-loop="true"
                                          data-autoplay="6000">
+                                        <img src="{{ $hotel->image }}" alt="">
                                         <img loading="lazy" src="{{ Storage::url($hotel->image)}}" alt="">
                                         @if($images)
                                             @foreach($images as $file)
                                                 <img loading="lazy" src="{{ Storage::url($file->image)}}" alt="">
+                                            @endforeach
+                                        @endif
+                                    </div>
+                                @elseif($images)
+                                    <div class="fotorama" data-allowfullscreen="true" data-nav="thumbs"
+                                         data-loop="true"
+                                         data-autoplay="6000">
+                                        @if($images)
+                                            @foreach($images as $file)
+                                                <img src="{{ $file->image }}" alt="">
                                             @endforeach
                                         @endif
                                     </div>
@@ -33,11 +45,9 @@
                         </div>
                         <h3>{{ $hotel->__('title') }}</h3>
                         <div class="address"><img src="{{ route('index') }}/img/marker_in.svg"
-                                                  alt=""> {{ $hotel->__('address') }}</div>
-                        @if($hotel->description)
-                            <h4>@lang('main.description')</h4>
-                            {!! $hotel->__('description') !!}
-                        @endif
+                                                  alt=""> {{ $hotel->address ?? $hotel->address_en }}</div>
+                        <h4>@lang('main.description')</h4>
+                        {!! $hotel->description ?? $hotel->description_en !!}
                         @if(collect($hotel_amenities)->filter()->isNotEmpty())
                             <div class="amenities">
                                 <h4>@lang('main.amenities')</h4>
@@ -133,7 +143,7 @@
                             </script>
                             <div class="address">
                                 <img src="{{ route('index') }}/img/marker_in.svg" alt="">
-                                {{ $hotel?->__('address') }}
+                                {{ $hotel->address ?? $hotel->address_en }}
                             </div>
                         </div>
                     </div>

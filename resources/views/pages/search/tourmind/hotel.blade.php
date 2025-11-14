@@ -1,10 +1,8 @@
 @extends('layouts.master')
 
 @section('title')
-    {{-- @dump($request) --}}
     @section('content')
         @php
-
             $amenities = explode(',', $hotel->amenity->services ?? '');
             // $amenities = array_slice($amenities, 0, 8);
                         $iconMap = [
@@ -52,25 +50,31 @@
                                 @endif
                             </div>
                             <h3>{{ $hotel->title_en }}</h3>
-                                <div class="address">
-                                    <img src="{{ route('index') }}/img/marker_in.svg" alt=""> {{ $hotel->address_en }}
-                                </div>
+                            <div class="address">
+                                <img src="{{ route('index') }}/img/marker_in.svg" alt=""> {{ $hotel->address_en }}
+                            </div>
+                            <div class="tariffs availabity">
+                                <h4>@lang('main.available')</h4>
+
+                                @include('pages.search.tourmind.rooms', ['tmroom' => $tmroom, 'tmimages' => $tmimages])
+
+                            </div>
                             <h4>@lang('main.description')</h4>
                             {{$hotel->description_en}}
                             <div class="amenities">
                                 <h4>@lang('main.amenities')</h4>
-                                
+
                                 @if( !empty($amenities[0]) )
                                     @foreach($amenities as $amenity)
-                                    @php
-                                        $iconFile = 'check.svg';
-                                        foreach ($iconMap as $keyword => $filename) {
-                                            if (mb_stripos($amenity, $keyword) !== false) {
-                                                $iconFile = $filename;
-                                                break;
+                                        @php
+                                            $iconFile = 'check.svg';
+                                            foreach ($iconMap as $keyword => $filename) {
+                                                if (mb_stripos($amenity, $keyword) !== false) {
+                                                    $iconFile = $filename;
+                                                    break;
+                                                }
                                             }
-                                        }
-                                    @endphp
+                                        @endphp
                                         <div class="amenities-item">
                                             <img src="{{ asset('img/icons/' . $iconFile) }}" alt="{{ $amenity }}">
                                             <div class="name">{{ $amenity }}</div>
@@ -82,7 +86,7 @@
                             <div class="maps">
                                 <h4>Расположение</h4>
                                 <!-- Подключаем Leaflet -->
-                                <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+                                <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
                                 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
                                 <!-- Контейнер карты -->
@@ -112,43 +116,33 @@
                                 </script>
 
 
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="tariffs availabity">
-                                <h4>@lang('main.available')</h4>
-
-                                @include('pages.search.tourmind.rooms', ['tmroom' => $tmroom, 'tmimages' => $tmimages])
-                                
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        @else
-            <div class="page auth">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-lg-8 offset-lg-2 col-md-12">
-                            <div class="img-wrap">
-                                <img src="{{ route('index') }}/img/b2b.jpg" alt="">
-                                <h4>@lang('main.b2b')</h4>
-                            </div>
-                            <div class="alert alert-danger">
-                                <div class="descr">@lang('main.need_auth') <a
-                                            href="{{ route('login') }}">@lang('main.auth')</a></div>
+                @else
+                    <div class="page auth">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-lg-8 offset-lg-2 col-md-12">
+                                    <div class="img-wrap">
+                                        <img src="{{ route('index') }}/img/b2b.jpg" alt="">
+                                        <h4>@lang('main.b2b')</h4>
+                                    </div>
+                                    <div class="alert alert-danger">
+                                        <div class="descr">@lang('main.need_auth') <a
+                                                    href="{{ route('login') }}">@lang('main.auth')</a></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        @endauth
-        
-    <script>
-        document.getElementById('order').addEventListener('click', function() {
-            localStorage.removeItem('booking_tm_secondsLeft'); // Очистить данные
-        });
-    </script>
+                @endauth
 
-    @endsection
+                <script>
+                    document.getElementById('order').addEventListener('click', function () {
+                        localStorage.removeItem('booking_tm_secondsLeft'); // Очистить данные
+                    });
+                </script>
+
+            @endsection

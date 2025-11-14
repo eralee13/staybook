@@ -1,4 +1,4 @@
-@extends('layouts.head')
+@extends('layouts.master')
 
 @section('title', 'Подтверждение отмены брони')
 
@@ -28,17 +28,16 @@
                         <li>
                             @if(isset($cancelRule->is_refundable) && $cancelRule->is_refundable == true)
                                 <td>@lang('main.free_cancellation') {{ $cancelDate }} (UTC+0). <br>
-                                    @lang('main.cancellation_amount_tm'): {{ round($book->cancel_penalty) }} {{ $book->currency ?? '$' }}</td>
+                                    @lang('main.cancellation_amount'): {{ round($book->cancel_penalty / 0.92, 2) }} {{ $book->currency ?? '$' }}</td>
                             @else
-                                @lang('main.non_refundable'): {{ round($book->cancel_penalty) }} {{ $book->currency ?? 'USD' }}
+                                @lang('main.non_refundable'): {{ round($book->cancel_penalty / 0.92, 2) }} {{ $book->currency ?? 'USD' }}
                             @endif
                         <li>@lang('main.hotel'): {{ $hotel->title }}</li>
-                        <li>@lang('main.date_checkin/checkout'): {{ $arrival }} {{ $hotel->checkin }} - {{ $departure }} {{ $hotel->checkout }} (UTC+0)</li>
+                        <li>@lang('main.dates'): {{ $arrival }} {{ $hotel->checkin }} - {{ $departure }} {{ $hotel->checkout }} (UTC+0)</li>
                         <li>@lang('main.room_type'): {{ $room->title ?? ''}}</li>
                         <li>@lang('main.rate'): {{ $rate->title ?? ''}}</li>
                         <li>@lang('main.count_adult'): {{ $book->adult ?? ''}}</li>
                     </ul>
-
                     <div class="btn-wrap d-flex gap-3" style="gap: 10px;">
                         <a href="{{ route('index') }}" class="more btn">@lang('main.go_home')</a>
                         <button class="btn more" onclick="location.reload()">
@@ -49,6 +48,5 @@
             </div>
         </div>
     </div>
-
 
 @endsection

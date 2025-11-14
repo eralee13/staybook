@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('hotels', function (Blueprint $table) {
-            $table->unsignedBigInteger('hotelstar_id')->unique()->nullable()->after('emerging_id');
+        Schema::table('cancellation_rules', function (Blueprint $table) {
+            $table->string('is_refundable')->nullable();
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('hotels', function (Blueprint $table) {
-            $table->dropColumn('hotelstar_id');
+        Schema::table('cancellation_rules', function (Blueprint $table) {
+            $table->dropColumn('is_refundable');
         });
     }
 };

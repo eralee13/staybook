@@ -21,31 +21,27 @@
                         <form action="{{ route('search') }}" method="GET" autocomplete="off">
                             <div class="row">
                                 {{-- Поисковая строка + подсказки --}}
-                                <div class="col-lg-4 col-md-6">
+                                <div class="col-lg-3 col-md-6">
                                     <div class="form-group position-relative">
                                         <input id="searchInput"
                                                name="q"
                                                class="form-control"
                                                value="{{ $q ?? '' }}"
-                                               placeholder="Введите: Бишкек / Bishkek / KGS / Novotel…" />
+                                               placeholder="Введите: Бишкек / Bishkek / KGS / Novotel…"/>
 
-                                        {{-- URL для suggest --}}
-                                        <script>
-                                            const SUGGEST_URL = @json(route('search.suggest'));
-                                        </script>
 
                                         {{-- скрытые поля-«маркировки» выбора --}}
-                                        <input type="hidden" name="city_id"  id="city_id">
+                                        <input type="hidden" name="city_id" id="city_id">
                                         <input type="hidden" name="hotel_id" id="hotel_id">
+                                        <input type="hidden" name="region_id" id="region_id">
 
                                         {{-- выпадающий список подсказок --}}
                                         <ul id="suggestBox"
                                             class="list-group position-absolute"
                                             style="z-index:1000; max-height:300px; overflow:auto; display:none; width:100%">
                                         </ul>
-
                                         <style>
-                                            #suggestBox{
+                                            #suggestBox {
                                                 position: absolute;
                                                 left: 0 !important;
                                                 top: 0 !important;
@@ -53,7 +49,8 @@
                                                 border-radius: 30px;
                                                 padding: 20px;
                                             }
-                                            #suggestBox li{
+
+                                            #suggestBox li {
                                                 display: block;
                                                 margin: 10px 0;
                                             }
@@ -61,34 +58,35 @@
 
                                         {{-- JS подсказок --}}
                                         <script>
-                                            (function(){
-                                                const input = document.getElementById('searchInput');
-                                                const box   = document.getElementById('suggestBox');
+                                            (function () {
+                                                const input     = document.getElementById('searchInput');
+                                                const box       = document.getElementById('suggestBox');
                                                 const cityIdEl  = document.getElementById('city_id');
                                                 const hotelIdEl = document.getElementById('hotel_id');
+                                                const regionEl  = document.getElementById('region_id');
+                                                const SUGGEST_URL = '{{ route('search.suggest') }}';
                                                 let t;
 
-                                                function hideBox(){
+                                                function hideBox() {
                                                     box.style.display = 'none';
                                                     box.innerHTML = '';
                                                 }
-
-                                                function showBox(){
-                                                    // позиционировать прямо под инпутом
+                                                function showBox() {
                                                     const r = input.getBoundingClientRect();
-                                                    box.style.top   = (window.scrollY + r.bottom) + 'px';
-                                                    box.style.left  = (window.scrollX + r.left) + 'px';
-                                                    box.style.width = r.width + 'px';
+                                                    box.style.top    = (window.scrollY + r.bottom) + 'px';
+                                                    box.style.left   = (window.scrollX + r.left)   + 'px';
+                                                    box.style.width  = r.width + 'px';
                                                     box.style.display = 'block';
                                                 }
 
-                                                // безопасная очистка скрытых полей при ручном вводе
+                                                // при ручном вводе — очищаем id
                                                 input.addEventListener('input', () => {
-                                                    if (cityIdEl)  cityIdEl.value  = '';
+                                                    if (cityIdEl)  cityIdEl.value = '';
                                                     if (hotelIdEl) hotelIdEl.value = '';
+                                                    if (regionEl)  regionEl.value = '';
                                                 });
 
-                                                // дебаунс + fetch
+                                                // дебаунсированный fetch
                                                 input.addEventListener('input', () => {
                                                     clearTimeout(t);
                                                     const v = (input.value || '').trim();
@@ -97,15 +95,13 @@
                                                     t = setTimeout(async () => {
                                                         try {
                                                             const res = await fetch(SUGGEST_URL + '?q=' + encodeURIComponent(v), {
-                                                                headers: { 'Accept': 'application/json' },
+                                                                headers: {'Accept': 'application/json'},
                                                                 cache: 'no-store'
                                                             });
                                                             if (!res.ok) { hideBox(); return; }
 
-                                                            const data = await res.json();
-                                                            // поддержка обоих форматов: {items:[...]} и [...]
+                                                            const data  = await res.json();
                                                             const items = Array.isArray(data) ? data : (Array.isArray(data.items) ? data.items : []);
-
                                                             if (!items.length) { hideBox(); return; }
 
                                                             box.innerHTML = items.map((it, i) => {
@@ -114,83 +110,289 @@
                                                                 const note = type === 'hotel'
                                                                     ? (it.city || it.alt || '')
                                                                     : (it.country_code || it.alt || '');
-                                                                return `<li class="list-group-item list-group-item-action"
-                                                                            data-idx="${i}"
-                                                                            data-type="${type}"
-                                                                            data-id="${it.id || it.city_id || ''}"
-                                                                            data-name="${name.replace(/"/g,'&quot;')}">
-                                                                            ${type === 'hotel' ? '' : '🏙️'} ${name}
-                                                                            <small class="text-muted" style="color: #7eb555">${note}</small>
-                                                                        </li>`;
+                                                                return `
+<li class="list-group-item list-group-item-action"
+    data-idx="${i}"
+    data-type="${type}"
+    data-id="${it.id || ''}"
+    data-name="${name.replace(/"/g,'&quot;')}"
+    data-region-id="${it.region_id ?? ''}">
+    ${type === 'hotel' ? '🏨' : '🏙️'} ${name}
+    <small class="text-muted" style="color:#7eb555">${note}</small>
+</li>`;
                                                             }).join('');
+
                                                             showBox();
                                                         } catch (e) {
-                                                            hideBox();
                                                             console.error('suggest error', e);
+                                                            hideBox();
                                                         }
                                                     }, 200);
                                                 });
 
                                                 // выбор подсказки
                                                 box.addEventListener('click', (e) => {
-                                                    const li = e.target.closest('li'); if (!li) return;
-                                                    const type = li.getAttribute('data-type');
-                                                    const id   = li.getAttribute('data-id') || '';
-                                                    const name = li.getAttribute('data-name') || '';
+                                                    const li = e.target.closest('li');
+                                                    if (!li) return;
 
-                                                    // заполняем видимое поле тем, что увидел юзер
+                                                    const type   = li.getAttribute('data-type');
+                                                    const id     = li.getAttribute('data-id') || '';
+                                                    const name   = li.getAttribute('data-name') || '';
+                                                    const region = li.getAttribute('data-region-id') || '';
+
                                                     input.value = name;
 
-                                                    // IMPORTANT: помечаем ОДНО поле, второе — чистим
                                                     if (type === 'hotel') {
-                                                        if (hotelIdEl) hotelIdEl.value = id;
-                                                        if (cityIdEl)  cityIdEl.value  = '';
+                                                        hotelIdEl && (hotelIdEl.value = id);
+                                                        cityIdEl  && (cityIdEl.value  = '');
                                                     } else {
-                                                        if (cityIdEl)  cityIdEl.value  = id;
-                                                        if (hotelIdEl) hotelIdEl.value = '';
+                                                        cityIdEl  && (cityIdEl.value  = id);
+                                                        hotelIdEl && (hotelIdEl.value = '');
                                                     }
+                                                    regionEl && (regionEl.value = region);
 
                                                     hideBox();
                                                 });
 
-                                                // закрытие выпадашки кликом вне
+                                                // закрытие по клику вне
                                                 document.addEventListener('click', (e) => {
                                                     if (!box.contains(e.target) && e.target !== input) hideBox();
                                                 });
-
-                                                // закрытие по Esc
+                                                // Esc
                                                 input.addEventListener('keydown', (e) => {
                                                     if (e.key === 'Escape') hideBox();
                                                 });
                                             })();
                                         </script>
-
-                                        {{-- вспомогательный текст --}}
-                                        @if(isset($city) || isset($country))
-                                            <p class="text-muted mt-2">
-                                                @if(!empty($city)) Город: <strong>{{ $city->title }}</strong>@endif
-                                                @if(!empty($country)) &nbsp; Страна: <strong>{{ $country->name }}</strong>@endif
-                                            </p>
-                                        @endif
                                     </div>
                                 </div>
 
                                 {{-- Даты --}}
-                                <div class="col-lg-4 col-md-6">
+                                <div class="col-lg-3 col-md-6">
                                     <div class="form-group">
                                         <input type="text" id="arrivalDisplay" class="date" autocomplete="off">
-                                        <input type="hidden" id="arrivalDate" name="arrivalDate" value="{{ now()->format('Y-m-d') }}">
+                                        <input type="hidden" id="arrivalDate" name="arrivalDate"
+                                               value="{{ now()->format('Y-m-d') }}">
                                     </div>
                                 </div>
-                                <div class="col-lg-4 col-md-6">
+                                <div class="col-lg-3 col-md-6">
                                     <div class="form-group">
                                         <input type="text" id="departureDisplay" class="date" autocomplete="off">
                                         <input type="hidden" id="departureDate" name="departureDate"
                                                value="{{ \Carbon\Carbon::tomorrow()->format('Y-m-d') }}">
                                     </div>
                                 </div>
+                                <div class="col-lg-3 col-md-6">
+                                    <div class="form-group">
+                                        <select name="residency" id="" required>
+                                            <option value="kg">Kyrgyzstan</option>
+                                            <option value="">Гражданство</option>
+                                            <option value="AF">Afghanistan</option>
+                                            <option value="AL">Albania</option>
+                                            <option value="DZ">Algeria</option>
+                                            <option value="AS">American Samoa</option>
+                                            <option value="AD">Andorra</option>
+                                            <option value="AO">Angola</option>
+                                            <option value="AI">Anguilla</option>
+                                            <option value="AQ">Antarctica</option>
+                                            <option value="AG">Antigua and Barbuda</option>
+                                            <option value="AR">Argentina</option>
+                                            <option value="AM">Armenia</option>
+                                            <option value="AU">Australia</option>
+                                            <option value="AT">Austria</option>
+                                            <option value="AZ">Azerbaijan</option>
+                                            <option value="BS">Bahamas</option>
+                                            <option value="BH">Bahrain</option>
+                                            <option value="BD">Bangladesh</option>
+                                            <option value="BB">Barbados</option>
+                                            <option value="BY">Belarus</option>
+                                            <option value="BE">Belgium</option>
+                                            <option value="BZ">Belize</option>
+                                            <option value="BJ">Benin</option>
+                                            <option value="BM">Bermuda</option>
+                                            <option value="BT">Bhutan</option>
+                                            <option value="BO">Bolivia</option>
+                                            <option value="BA">Bosnia and Herzegovina</option>
+                                            <option value="BW">Botswana</option>
+                                            <option value="BR">Brazil</option>
+                                            <option value="BN">Brunei Darussalam</option>
+                                            <option value="BG">Bulgaria</option>
+                                            <option value="BF">Burkina Faso</option>
+                                            <option value="BI">Burundi</option>
+                                            <option value="KH">Cambodia</option>
+                                            <option value="CM">Cameroon</option>
+                                            <option value="CA">Canada</option>
+                                            <option value="CV">Cape Verde</option>
+                                            <option value="KY">Cayman Islands</option>
+                                            <option value="CF">Central African Republic</option>
+                                            <option value="TD">Chad</option>
+                                            <option value="CL">Chile</option>
+                                            <option value="CN">China</option>
+                                            <option value="CX">Christmas Island</option>
+                                            <option value="CC">Cocos (Keeling) Islands</option>
+                                            <option value="CO">Colombia</option>
+                                            <option value="KM">Comoros</option>
+                                            <option value="CG">Congo</option>
+                                            <option value="CD">Congo, Democratic Republic</option>
+                                            <option value="CK">Cook Islands</option>
+                                            <option value="CR">Costa Rica</option>
+                                            <option value="CI">Côte d’Ivoire</option>
+                                            <option value="HR">Croatia</option>
+                                            <option value="CU">Cuba</option>
+                                            <option value="CY">Cyprus</option>
+                                            <option value="CZ">Czech Republic</option>
+                                            <option value="DK">Denmark</option>
+                                            <option value="DJ">Djibouti</option>
+                                            <option value="DM">Dominica</option>
+                                            <option value="DO">Dominican Republic</option>
+                                            <option value="EC">Ecuador</option>
+                                            <option value="EG">Egypt</option>
+                                            <option value="SV">El Salvador</option>
+                                            <option value="GQ">Equatorial Guinea</option>
+                                            <option value="ER">Eritrea</option>
+                                            <option value="EE">Estonia</option>
+                                            <option value="ET">Ethiopia</option>
+                                            <option value="FJ">Fiji</option>
+                                            <option value="FI">Finland</option>
+                                            <option value="FR">France</option>
+                                            <option value="GA">Gabon</option>
+                                            <option value="GM">Gambia</option>
+                                            <option value="GE">Georgia</option>
+                                            <option value="DE">Germany</option>
+                                            <option value="GH">Ghana</option>
+                                            <option value="GR">Greece</option>
+                                            <option value="GD">Grenada</option>
+                                            <option value="GT">Guatemala</option>
+                                            <option value="GN">Guinea</option>
+                                            <option value="GW">Guinea-Bissau</option>
+                                            <option value="GY">Guyana</option>
+                                            <option value="HT">Haiti</option>
+                                            <option value="HN">Honduras</option>
+                                            <option value="HU">Hungary</option>
+                                            <option value="IS">Iceland</option>
+                                            <option value="IN">India</option>
+                                            <option value="ID">Indonesia</option>
+                                            <option value="IR">Iran</option>
+                                            <option value="IQ">Iraq</option>
+                                            <option value="IE">Ireland</option>
+                                            <option value="IL">Israel</option>
+                                            <option value="IT">Italy</option>
+                                            <option value="JM">Jamaica</option>
+                                            <option value="JP">Japan</option>
+                                            <option value="JO">Jordan</option>
+                                            <option value="KZ">Kazakhstan</option>
+                                            <option value="KE">Kenya</option>
+                                            <option value="KI">Kiribati</option>
+                                            <option value="KP">Korea, Democratic People's Republic</option>
+                                            <option value="KR">Korea, Republic of</option>
+                                            <option value="KW">Kuwait</option>
+                                            <option value="KG">Kyrgyzstan</option>
+                                            <option value="LA">Lao People's Democratic Republic</option>
+                                            <option value="LV">Latvia</option>
+                                            <option value="LB">Lebanon</option>
+                                            <option value="LS">Lesotho</option>
+                                            <option value="LR">Liberia</option>
+                                            <option value="LY">Libya</option>
+                                            <option value="LI">Liechtenstein</option>
+                                            <option value="LT">Lithuania</option>
+                                            <option value="LU">Luxembourg</option>
+                                            <option value="MK">North Macedonia</option>
+                                            <option value="MG">Madagascar</option>
+                                            <option value="MW">Malawi</option>
+                                            <option value="MY">Malaysia</option>
+                                            <option value="MV">Maldives</option>
+                                            <option value="ML">Mali</option>
+                                            <option value="MT">Malta</option>
+                                            <option value="MH">Marshall Islands</option>
+                                            <option value="MR">Mauritania</option>
+                                            <option value="MU">Mauritius</option>
+                                            <option value="MX">Mexico</option>
+                                            <option value="FM">Micronesia, Federated States of</option>
+                                            <option value="MD">Moldova</option>
+                                            <option value="MC">Monaco</option>
+                                            <option value="MN">Mongolia</option>
+                                            <option value="ME">Montenegro</option>
+                                            <option value="MA">Morocco</option>
+                                            <option value="MZ">Mozambique</option>
+                                            <option value="MM">Myanmar</option>
+                                            <option value="NA">Namibia</option>
+                                            <option value="NR">Nauru</option>
+                                            <option value="NP">Nepal</option>
+                                            <option value="NL">Netherlands</option>
+                                            <option value="NZ">New Zealand</option>
+                                            <option value="NI">Nicaragua</option>
+                                            <option value="NE">Niger</option>
+                                            <option value="NG">Nigeria</option>
+                                            <option value="NO">Norway</option>
+                                            <option value="OM">Oman</option>
+                                            <option value="PK">Pakistan</option>
+                                            <option value="PW">Palau</option>
+                                            <option value="PA">Panama</option>
+                                            <option value="PG">Papua New Guinea</option>
+                                            <option value="PY">Paraguay</option>
+                                            <option value="PE">Peru</option>
+                                            <option value="PH">Philippines</option>
+                                            <option value="PL">Poland</option>
+                                            <option value="PT">Portugal</option>
+                                            <option value="PR">Puerto Rico</option>
+                                            <option value="QA">Qatar</option>
+                                            <option value="RO">Romania</option>
+                                            <option value="RU">Russia</option>
+                                            <option value="RW">Rwanda</option>
+                                            <option value="KN">Saint Kitts and Nevis</option>
+                                            <option value="LC">Saint Lucia</option>
+                                            <option value="VC">Saint Vincent and the Grenadines</option>
+                                            <option value="WS">Samoa</option>
+                                            <option value="SM">San Marino</option>
+                                            <option value="ST">Sao Tome and Principe</option>
+                                            <option value="SA">Saudi Arabia</option>
+                                            <option value="SN">Senegal</option>
+                                            <option value="RS">Serbia</option>
+                                            <option value="SC">Seychelles</option>
+                                            <option value="SL">Sierra Leone</option>
+                                            <option value="SG">Singapore</option>
+                                            <option value="SK">Slovakia</option>
+                                            <option value="SI">Slovenia</option>
+                                            <option value="SB">Solomon Islands</option>
+                                            <option value="SO">Somalia</option>
+                                            <option value="ZA">South Africa</option>
+                                            <option value="ES">Spain</option>
+                                            <option value="LK">Sri Lanka</option>
+                                            <option value="SD">Sudan</option>
+                                            <option value="SR">Suriname</option>
+                                            <option value="SE">Sweden</option>
+                                            <option value="CH">Switzerland</option>
+                                            <option value="SY">Syrian Arab Republic</option>
+                                            <option value="TW">Taiwan</option>
+                                            <option value="TJ">Tajikistan</option>
+                                            <option value="TZ">Tanzania</option>
+                                            <option value="TH">Thailand</option>
+                                            <option value="TL">Timor-Leste</option>
+                                            <option value="TG">Togo</option>
+                                            <option value="TO">Tonga</option>
+                                            <option value="TT">Trinidad and Tobago</option>
+                                            <option value="TN">Tunisia</option>
+                                            <option value="TR">Turkey</option>
+                                            <option value="TM">Turkmenistan</option>
+                                            <option value="UG">Uganda</option>
+                                            <option value="UA">Ukraine</option>
+                                            <option value="AE">United Arab Emirates</option>
+                                            <option value="GB">United Kingdom</option>
+                                            <option value="US">United States</option>
+                                            <option value="UY">Uruguay</option>
+                                            <option value="UZ">Uzbekistan</option>
+                                            <option value="VU">Vanuatu</option>
+                                            <option value="VE">Venezuela</option>
+                                            <option value="VN">Vietnam</option>
+                                            <option value="YE">Yemen</option>
+                                            <option value="ZM">Zambia</option>
+                                            <option value="ZW">Zimbabwe</option>
+                                        </select>
+                                    </div>
+                                </div>
 
                                 {{-- Фильтры (сверху оставляем текущее поведение) --}}
+
                                 <div class="col-lg-4 col-md-6 extra">
                                     <div class="form-group">
                                         <img src="{{ route('index') }}/img/filter.svg" style="top: 12px">
@@ -217,10 +419,13 @@
                                                                         <div class="num">{{ $i }}</div>
                                                                         <div class="img-wrap">
                                                                             {{-- звезда --}}
-                                                                            <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                                <path fill-rule="evenodd" clip-rule="evenodd"
+                                                                            <svg width="36" height="36"
+                                                                                 viewBox="0 0 36 36" fill="none"
+                                                                                 xmlns="http://www.w3.org/2000/svg">
+                                                                                <path fill-rule="evenodd"
+                                                                                      clip-rule="evenodd"
                                                                                       d="M16.3808 4.30595C16.5459 4.02269 16.7824 3.78766 17.0666 3.62431C17.3509 3.46096 17.673 3.375 18.0008 3.375C18.3287 3.375 18.6508 3.46096 18.9351 3.62431C19.2193 3.78766 19.4558 4.02269 19.6208 4.30595L23.8133 11.503L31.9553 13.267C32.2756 13.3365 32.572 13.4889 32.8151 13.7088C33.0581 13.9286 33.2393 14.2084 33.3405 14.5201C33.4417 14.8318 33.4595 15.1646 33.392 15.4853C33.3245 15.8061 33.1741 16.1035 32.9558 16.348L27.4058 22.5595L28.2458 30.847C28.279 31.1733 28.2259 31.5026 28.092 31.802C27.958 32.1014 27.7479 32.3605 27.4825 32.5533C27.2172 32.7461 26.9059 32.8659 26.5797 32.9008C26.2535 32.9356 25.924 32.8843 25.6238 32.752L18.0008 29.392L10.3778 32.752C10.0777 32.8843 9.74812 32.9356 9.42196 32.9008C9.09581 32.8659 8.78451 32.7461 8.51914 32.5533C8.25377 32.3605 8.04363 32.1014 7.90969 31.802C7.77574 31.5026 7.72269 31.1733 7.75583 30.847L8.59583 22.5595L3.04583 16.3495C2.82717 16.105 2.67647 15.8074 2.60875 15.4865C2.54104 15.1656 2.55869 14.8325 2.65995 14.5206C2.7612 14.2086 2.94252 13.9287 3.18579 13.7087C3.42906 13.4887 3.72579 13.3364 4.04633 13.267L12.1883 11.503L16.3808 4.30595ZM18.0008 7.48445L14.5313 13.4425C14.4001 13.6673 14.2236 13.8624 14.0128 14.0153C13.8021 14.1682 13.5618 14.2755 13.3073 14.3305L6.56933 15.79L11.1623 20.9305C11.5133 21.3235 11.6828 21.8455 11.6303 22.369L10.9358 29.2285L17.2448 26.4475C17.4831 26.3425 17.7405 26.2883 18.0008 26.2883C18.2611 26.2883 18.5186 26.3425 18.7568 26.4475L25.0658 29.2285L24.3713 22.369C24.345 22.1099 24.3728 21.8483 24.4531 21.6006C24.5334 21.3529 24.6645 21.1247 24.8378 20.9305L29.4323 15.79L22.6943 14.3305C22.4398 14.2755 22.1996 14.1682 21.9888 14.0153C21.7781 13.8624 21.6015 13.6673 21.4703 13.4425L18.0008 7.48445Z"
-                                                                                      fill="black" />
+                                                                                      fill="black"/>
                                                                             </svg>
                                                                         </div>
                                                                     </label>
@@ -260,7 +465,8 @@
                                                                     <input type="checkbox" name="meal[]"
                                                                            id="{{ $meal->code }}"
                                                                            value="{{ $meal->id }}">
-                                                                    <label class="meal-checkbox" for="{{ $meal->code }}">{{ $meal->code }}</label>
+                                                                    <label class="meal-checkbox"
+                                                                           for="{{ $meal->code }}">{{ $meal->code }}</label>
                                                                 </div>
                                                             </div>
                                                         @endforeach
@@ -308,7 +514,8 @@
                                             <div class="guest-room" data-index="__INDEX__">
                                                 <div class="row">
                                                     <div class="col-md-6 col-6">
-                                                        <h4><span class="room-number">__NUM__</span> @lang('main.room')</h4>
+                                                        <h4><span class="room-number">__NUM__</span> @lang('main.room')
+                                                        </h4>
                                                     </div>
                                                     <div class="col-md-6 col-6">
                                                         <div class="remove-btn">
@@ -319,12 +526,15 @@
                                                     </div>
                                                 </div>
 
-                                                <input type="hidden" name="rooms[__INDEX__][adults]" value="1" class="input-adults">
+                                                <input type="hidden" name="rooms[__INDEX__][adults]" value="1"
+                                                       class="input-adults">
 
                                                 <a href="javascript:void(0)" class="guest-summary">
                                                     <span class="summary-text">1 @lang('main.adult')</span>
-                                                    <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                        <path d="M9.73604 9.99399L20.261 9.99399C20.6766 9.99339 21.0837 10.1105 21.4355 10.3317C21.7872 10.5529 22.0691 10.8692 22.2485 11.244C22.4586 11.6887 22.5395 12.1834 22.482 12.6718C22.4246 13.1602 22.231 13.6227 21.9235 14.0065L16.661 20.3815C16.4545 20.6198 16.1992 20.8109 15.9123 20.9419C15.6255 21.0728 15.3139 21.1406 14.9985 21.1406C14.6832 21.1406 14.3716 21.0728 14.0847 20.9419C13.7979 20.8109 13.5426 20.6198 13.336 20.3815L8.07354 14.0065C7.76603 13.6227 7.57252 13.1602 7.51506 12.6718C7.4576 12.1834 7.5385 11.6887 7.74854 11.244C7.92797 10.8692 8.20986 10.5529 8.5616 10.3317C8.91333 10.1105 9.32053 9.99339 9.73604 9.99399Z" fill="black"/>
+                                                    <svg width="30" height="30" viewBox="0 0 30 30" fill="none"
+                                                         xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M9.73604 9.99399L20.261 9.99399C20.6766 9.99339 21.0837 10.1105 21.4355 10.3317C21.7872 10.5529 22.0691 10.8692 22.2485 11.244C22.4586 11.6887 22.5395 12.1834 22.482 12.6718C22.4246 13.1602 22.231 13.6227 21.9235 14.0065L16.661 20.3815C16.4545 20.6198 16.1992 20.8109 15.9123 20.9419C15.6255 21.0728 15.3139 21.1406 14.9985 21.1406C14.6832 21.1406 14.3716 21.0728 14.0847 20.9419C13.7979 20.8109 13.5426 20.6198 13.336 20.3815L8.07354 14.0065C7.76603 13.6227 7.57252 13.1602 7.51506 12.6718C7.4576 12.1834 7.5385 11.6887 7.74854 11.244C7.92797 10.8692 8.20986 10.5529 8.5616 10.3317C8.91333 10.1105 9.32053 9.99339 9.73604 9.99399Z"
+                                                              fill="black"/>
                                                     </svg>
                                                 </a>
 
@@ -358,7 +568,7 @@
                                         </template>
 
                                         <script>
-                                            (function(){
+                                            (function () {
                                                 const MAX_ROOMS = 4;
                                                 const summaryBtn = document.getElementById('rooms-summary');
                                                 const overlay = document.getElementById('rooms-panel-overlay');
@@ -370,10 +580,17 @@
                                                 const tpl = document.getElementById('room-template').innerHTML;
                                                 let nextIndex = 0;
 
-                                                function openPanel(){ overlay.classList.remove('hidden'); panel.classList.add('open'); }
-                                                function closePanel(){ panel.classList.remove('open'); overlay.classList.add('hidden'); }
+                                                function openPanel() {
+                                                    overlay.classList.remove('hidden');
+                                                    panel.classList.add('open');
+                                                }
 
-                                                function updateGlobalSummary(){
+                                                function closePanel() {
+                                                    panel.classList.remove('open');
+                                                    overlay.classList.add('hidden');
+                                                }
+
+                                                function updateGlobalSummary() {
                                                     const rooms = roomsContainer.querySelectorAll('.guest-room');
                                                     const roomCount = rooms.length;
                                                     let adultsTotal = 0, childrenTotal = 0;
@@ -386,7 +603,7 @@
                                                     summaryBtn.classList.toggle('pointer-events-none', roomCount >= MAX_ROOMS);
                                                 }
 
-                                                function reindexRooms(){
+                                                function reindexRooms() {
                                                     roomsContainer.querySelectorAll('.guest-room').forEach((r, i) => {
                                                         r.dataset.index = i;
                                                         r.querySelector('.room-number').textContent = i + 1;
@@ -398,7 +615,7 @@
                                                     updateGlobalSummary();
                                                 }
 
-                                                function addRoom(){
+                                                function addRoom() {
                                                     if (roomsContainer.children.length >= MAX_ROOMS) return;
                                                     const idx = nextIndex++;
                                                     const num = roomsContainer.children.length + 1;
@@ -406,7 +623,7 @@
                                                     reindexRooms();
                                                 }
 
-                                                function updateRoomSummary(room){
+                                                function updateRoomSummary(room) {
                                                     const aCount = +room.querySelector('.count-adult').textContent;
                                                     const cCount = +room.querySelector('.count-child').textContent;
                                                     const parts = [`${aCount} {{ __('main.adult') }}`];
@@ -416,29 +633,50 @@
                                                     updateGlobalSummary();
                                                 }
 
-                                                summaryBtn.addEventListener('click', e => { e.preventDefault(); openPanel(); });
-                                                closeBtn.addEventListener('click', e => { e.preventDefault(); closePanel(); });
-                                                applyBtn.addEventListener('click', e => { e.preventDefault(); closePanel(); });
+                                                summaryBtn.addEventListener('click', e => {
+                                                    e.preventDefault();
+                                                    openPanel();
+                                                });
+                                                closeBtn.addEventListener('click', e => {
+                                                    e.preventDefault();
+                                                    closePanel();
+                                                });
+                                                applyBtn.addEventListener('click', e => {
+                                                    e.preventDefault();
+                                                    closePanel();
+                                                });
                                                 overlay.addEventListener('click', closePanel);
-                                                addRoomBtn.addEventListener('click', e => { e.preventDefault(); addRoom(); });
+                                                addRoomBtn.addEventListener('click', e => {
+                                                    e.preventDefault();
+                                                    addRoom();
+                                                });
 
                                                 document.addEventListener('click', e => {
                                                     const room = e.target.closest('.guest-room');
                                                     if (e.target.closest('.remove-room')) {
-                                                        e.preventDefault(); room.remove(); reindexRooms(); return;
+                                                        e.preventDefault();
+                                                        room.remove();
+                                                        reindexRooms();
+                                                        return;
                                                     }
                                                     if (e.target.closest('.guest-summary')) {
-                                                        e.preventDefault(); room.querySelector('.guest-dropdown').classList.toggle('hidden'); return;
+                                                        e.preventDefault();
+                                                        room.querySelector('.guest-dropdown').classList.toggle('hidden');
+                                                        return;
                                                     }
                                                     if (e.target.closest('.dec-adult')) {
-                                                        e.preventDefault(); const cnt = room.querySelector('.count-adult');
+                                                        e.preventDefault();
+                                                        const cnt = room.querySelector('.count-adult');
                                                         if (+cnt.textContent > 1) cnt.textContent = +cnt.textContent - 1;
-                                                        updateRoomSummary(room); return;
+                                                        updateRoomSummary(room);
+                                                        return;
                                                     }
                                                     if (e.target.closest('.inc-adult')) {
-                                                        e.preventDefault(); const cnt = room.querySelector('.count-adult');
+                                                        e.preventDefault();
+                                                        const cnt = room.querySelector('.count-adult');
                                                         if (+cnt.textContent < 8) cnt.textContent = +cnt.textContent + 1;
-                                                        updateRoomSummary(room); return;
+                                                        updateRoomSummary(room);
+                                                        return;
                                                     }
                                                     if (e.target.closest('.dec-child')) {
                                                         e.preventDefault();
@@ -446,7 +684,9 @@
                                                         if (+cnt.textContent > 0) cnt.textContent = +cnt.textContent - 1;
                                                         const wrap = room.querySelector('.children-ages');
                                                         if (wrap.lastElementChild) wrap.removeChild(wrap.lastElementChild);
-                                                        reindexRooms(); updateRoomSummary(room); return;
+                                                        reindexRooms();
+                                                        updateRoomSummary(room);
+                                                        return;
                                                     }
                                                     if (e.target.closest('.inc-child')) {
                                                         e.preventDefault();
@@ -460,13 +700,16 @@
                                                             const sel = document.createElement('select');
                                                             sel.className = 'border border-gray-300 rounded-md px-2 py-1 text-sm';
                                                             for (let a = 0; a <= 18; a++) sel.insertAdjacentHTML('beforeend', `<option value="${a}">${a}</option>`);
-                                                            div.appendChild(sel); wrap.appendChild(div);
-                                                            reindexRooms(); updateRoomSummary(room);
+                                                            div.appendChild(sel);
+                                                            wrap.appendChild(div);
+                                                            reindexRooms();
+                                                            updateRoomSummary(room);
                                                         }
                                                         return;
                                                     }
                                                     if (e.target.closest('.apply-guests')) {
-                                                        e.preventDefault(); room.querySelector('.guest-dropdown').classList.add('hidden');
+                                                        e.preventDefault();
+                                                        room.querySelector('.guest-dropdown').classList.add('hidden');
                                                     }
                                                 });
 
@@ -478,7 +721,7 @@
                                 </div>
 
                                 {{-- Кнопка поиска --}}
-                                <div class="col-lg col-md-6">
+                                <div class="col-lg-4 col-md-6">
                                     <div class="form-group">
                                         @csrf
                                         <button type="submit" class="more">@lang('main.find')</button>
@@ -656,7 +899,8 @@
                             <div class="wrap">
                                 <h3>Подписывайтесь на наш телеграм канал</h3>
                                 <p>Подписывайтесь на наш телеграм канал, чтобы всегда быть в курсе всех скидок и
-                                    спецпредложений, а также получать интересные статьи для вдохновения и различные лайфхаки
+                                    спецпредложений, а также получать интересные статьи для вдохновения и различные
+                                    лайфхаки
                                     для путешествий.</p>
                                 <div class="btn-wrap">
                                     <a href="https://t.me/staybook" class="more" target="_blank">Подписаться</a>
@@ -813,7 +1057,8 @@
                         <div class="col-md-12">
                             <div class="wrap">
                                 <h3>Subscribe to our Telegram channel</h3>
-                                <p>Follow our Telegram channel to never miss discounts, special offers, inspiring articles, and handy travel tips.</p>
+                                <p>Follow our Telegram channel to never miss discounts, special offers, inspiring
+                                    articles, and handy travel tips.</p>
                                 <div class="btn-wrap">
                                     <a href="https://t.me/staybook" class="more" target="_blank">Subscribe</a>
                                 </div>

@@ -5,6 +5,10 @@
                 <li @routeactive('dashboard*') class="hotel-list">
                     <a href="{{route('dashboard')}}">@lang('admin.dashboard')</a>
                 </li>
+            @else
+                <li @routeactive('console*') class="hotel-list">
+                <a href="{{route('console')}}">Консоль</a>
+                </li>
             @endif
             <li @routeactive('hotel*') class="hotel-list">
                 <a href="{{route('hotels.index')}}">@lang('admin.hotel')</a>
@@ -36,7 +40,11 @@
             <li @routeactive('userbook*')>
                 <a href="{{ route('userbooks.index')}}">@lang('admin.my_bookings')</a>
             </li>
+            @else
+                <li @routeactive('userbook*')><a href="{{ route('userbooks.index') }}">@lang('admin.my_bookings')</a></li>
         @endhasrole
-        <li><a href="{{ route('logout') }}">@lang('admin.logout')</a></li>
+            <li><a href="{{ route('profile.edit') }}">Профиль</a></li>
+        <li style="margin-top: 60px"><a href="{{ route('logout') }}">@lang('admin.logout')</a></li>
+        <li><a href="{{route('index')}}" target="_blank">@lang('admin.visit')</a></li>
     </ul>
 </div>

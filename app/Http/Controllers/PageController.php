@@ -208,8 +208,9 @@ class PageController extends Controller
 
     public function hotels()
     {
-        $hotels = Hotel::where('status', 1)->latest()->paginate(27);
-        return view('pages.hotels', compact('hotels'));
+        $hotels = Hotel::where('status', 1)->latest()->paginate(30);
+        $count = Hotel::where('status', 1)->count();
+        return view('pages.hotels', compact('hotels', 'count'));
     }
 
     public function hotel($code)

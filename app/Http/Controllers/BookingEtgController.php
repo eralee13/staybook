@@ -72,6 +72,7 @@ class BookingEtgController extends Controller
             Log::channel('emerging')->info('preBook Search Error- ', [$th->getMessage()]);
         }
 
+
         return view('pages.booking.emerging.order', 
                 compact('request', 'arrival', 'departure', 'preBook', 'message', 'throwMessage'));
     }
@@ -400,7 +401,6 @@ class BookingEtgController extends Controller
         }
 
         // $book = Book::where('book_token', $request->number)->first();
-        
         return view('pages.booking.emerging.confirm', compact(
             'book', 'hotel', 'cancel', 'cancelRule', 'arrival', 'departure', 'room', 'rate', 'request', 'message', 'status', 'cancelDate'));
     }

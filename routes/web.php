@@ -22,6 +22,7 @@ use App\Livewire\HotelWizard;
 use App\Livewire\LWTester;
 use Dedoc\Scramble\Scramble;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
 
@@ -106,6 +107,7 @@ Route::middleware('set_locale')->group(function () {
         //Route::post('/books/store', [BookingController::class, 'store'])->name('listbooks.store');
         Route::get('/items/create', HotelWizard::class)->name('hotel.create');
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/console', [\App\Http\Controllers\Admin\PageController::class, 'console'])->name('console');
 
         Route::get('/offlines', [OfflineController::class, 'index'])->name('offlines.index');
         Route::get('/offlines/show/{offline}', [OfflineController::class, 'show'])->name('offlines.show');
@@ -159,14 +161,19 @@ Route::middleware('set_locale')->group(function () {
     })->name('currency.switch');
 
     //-----search
-    Route::get('/search', [SearchController::class, 'smartSearch'])->name('search');
+    Route::get('/search', [SearchController::class, 'search'])->name('search');
     // routes/web.php
     Route::get('/search/suggest', [\App\Http\Controllers\SearchController::class, 'suggest'])
         ->name('search.suggest'); // вне middleware('auth')
 
+    Route::get('/suggest', [\App\Http\Controllers\SearchController::class, 'suggest'])
+        ->name('search.suggest'); // вне middleware('auth')
+
     //local
     Route::get('/search/hotel', [\App\Http\Controllers\SearchController::class, 'search'])->name('search');
-    Route::get('/search/hotel/{hotel}', [\App\Http\Controllers\SearchController::class, 'findHotel'])->name('findHotel');
+    Route::get('/search/hotel/{hotel?}', [SearchController::class, 'search'])
+        ->where('hotel', '.*')
+        ->name('findHotel');
 
     //exely
     Route::get('/search/hotel/ex/{hotel}', [\App\Http\Controllers\SearchController::class, 'findHotelExely'])->name('findHotelExely');
@@ -217,7 +224,9 @@ Route::middleware('set_locale')->group(function () {
     Route::get('/book/cancel/confirm/tm', [\App\Http\Controllers\BookingTmController::class, 'cancel_confirm_tm'])->name('cancel_confirm_tm');
 
     // Emerging
-    Route::get('/hoteletg/{hid}', [\App\Http\Controllers\SearchController::class, 'hotel_etg'])->name('hotel_etg');
+    Route::get('/hoteletg/{hid}', [\App\Http\Controllers\SearchController::class, 'hotel_etg'])
+        ->whereNumber('hid')
+        ->name('hotel_etg');
     Route::get('/book/order/etg', [\App\Http\Controllers\BookingEtgController::class, 'order_etg'])->name('order_etg');
     Route::get('/book/verify/etg', [\App\Http\Controllers\BookingEtgController::class, 'book_verify_etg'])->name('book_verify_etg');
     Route::get('/book/reserve/etg', [\App\Http\Controllers\BookingEtgController::class, 'book_reserve_etg'])->name('book_reserve_etg');
@@ -237,6 +246,8 @@ Route::middleware('set_locale')->group(function () {
     Route::post('book_mail', [MainController::class, 'book_mail'])->name('book_mail');
 
     Route::get('/lwtester', [LWTester::class, 'render'])->name('livewire.lwtester');
+
+    Route::get('/emerging/import', [\App\Http\Controllers\API\V1\Emerging\EmergingHotelStaticController::class, 'importFromJsonl']);
 });
 
 Route::get('/clear-cache', function () {
@@ -252,3 +263,14 @@ Route::get('/actualize-currency', function () {
     return  Cache::get($cacheKey);
 });
 
+
+Route::get('/__health', fn() => response('OK', 200));
+
+Route::get('/__db', function() {
+    try {
+        \DB::connection()->getPdo();
+        return 'DB OK';
+    } catch (\Throwable $e) {
+        return 'DB FAIL: '.$e->getMessage();
+    }
+});

@@ -1,4 +1,4 @@
-@extends('layouts.head')
+@extends('layouts.master')
 
 @section('title', 'Забронировать')
 
@@ -36,183 +36,158 @@
                             @lang('main.time_booking') : &nbsp;<span id="countdown"></span>
                         </div>
                     </div>
+                    <h1><img src="{{ route('index') }}/img/arrow-left.svg" alt=""> @lang('main.order_confirmation')</h1>
+                    <div class="order-item">
+                        <p><span>@lang('main.hotel')</span>: {{ $hotel->title_en }}</p>
+                    </div>
+                    <div class="order-item">
+                        <p><span>@lang('main.room_type')</span>: {{ $request->room_name }}</p>
+                    </div>
+                    <div class="order-item">
+                        <p><span>@lang('main.rate')</span>: {{ $request->rate_name }}</p>
+                    </div>
+                    <div class="order-item">
+                        <p><span>@lang('main.count_adult')</span>: {{ $totalAdults }}</p>
+                    </div>
+                    <div class="order-item">
+                        <p><span>@lang('main.count_child')</span>: {{ $childs }}</p>
+                    </div>
+                    <div class="order-item">
+                        <p><span>@lang('main.count_room')</span>: {{ $roomCount }}</p>
+                    </div>
+                    <div class="order-item">
+                        <p><span>@lang('main.dates')</span>: @if (!empty($request->arrivalDate))
+                                {{ \Carbon\Carbon::parse($request->arrivalDate)->format('d.m.Y') }}
+                            @endif
+                            -
+                            @if (!empty($request->departureDate))
+                                {{ \Carbon\Carbon::parse($request->departureDate)->format('d.m.Y') }}
+                            @endif
 
-                    <h1>@lang('main.order_confirmation')</h1>
-                    <table>
-                        <tr>
-                            <td>@lang('main.hotel'):</td>
-                            <td>{{ $hotel->title_en }}</td>
-                        </tr>
-                        <tr>
-                            <td>@lang('main.room_type'):</td>
-                            <td>{{ $request->room_name }}</td>
-                        </tr>
-                        <tr>
-                            <td>@lang('main.rate'):</td>
-                            <td>{{ $request->rate_name }}</td>
-                        </tr>
-                        <tr>
-                            <td>@lang('main.count_adult'):</td>
-                            <td>{{ $totalAdults }}</td>
-                        </tr>
-                        <tr>
-                            <td>@lang('main.count_child'):</td>
-                            <td>{{ $childs }}</td>
-                            {{--                                    <td>{{ implode(',', explode($order->booking->roomStays[0]->guestCount->childAges)) }}</td>--}}
-                            {{--                                    <td>{{ count($order->booking->roomStays[0]->guestCount->guestCount->childAges) }}</td>--}}
-                        </tr>
-                        <tr>
-                            <td>@lang('main.count_room'):</td>
-                            <td>{{ $roomCount }}</td>
-                        </tr>
-                        <tr>
-                            <td>@lang('main.dates'):</td>
-                            <td>
-                                @if (!empty($request->arrivalDate))
-                                    {{ \Carbon\Carbon::parse($request->arrivalDate)->format('d.m.Y') }}
-                                @endif
-                                - 
-                                @if (!empty($request->departureDate))
-                                    {{ \Carbon\Carbon::parse($request->departureDate)->format('d.m.Y') }}
-                                @endif
-                                
+                            (UTC+0)</p>
+                    </div>
+                    <div class="order-item">
+                        <p><span>@lang('main.price')</span>: {{ round($request->sum) }} {{ $request->currency ?? '$' }}
+                        </p>
+                    </div>
+                    <div class="order-item">
+                        <p><span>@lang('main.booking_cancellation')</span>: @if($request->refundable == true)
+
+                                @lang('main.free_cancellation') {{ \Carbon\Carbon::parse($request->cancelDate)->format('d.m.Y') }}
                                 (UTC+0)
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>@lang('main.price'):</td>     
-                            <td>{{ round($request->sum) }} {{ $request->currency ?? '$' }}</td>
-                        </tr>
-                        <tr>
-                            <td>@lang('main.cancel_rule'):</td>
-                            <td>
-                                @if($request->refundable == true)
-                                    
-                                        @lang('main.free_cancellation') {{ \Carbon\Carbon::parse($request->cancelDate)->format('d.m.Y') }} 
-                                        (UTC+0)
-                                       
-                                        @lang('main.cancellation_amount_tm'):  {{ round($request->cancelPrice) }} {{ $request->currency ?? '$' }}
-                                        
-                                @else
-                                        @lang('main.non_refundable')
-                                @endif
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>@lang('main.fio'):</td>
-                            <td>
-                                <div class="name">{{ $request->name }} {{ $request->lastname }}</div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>@lang('main.phone'):</td>
-                            <td>
-                                <div class="name">{{ $request->phone }}</div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Email:</td>
-                            <td>
-                                <div class="name">{{ $request->email }}</div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>@lang('main.comment'):</td>
-                            <td>{{ $request->comment }}</td>
-                        </tr>
-                    </table>
 
-                <div class="btn-wrap">
-                    <form action="{{ route('book_reserve_etg') }}" method="get">
-                        <input type="hidden" name="arrivalDate" value="{{ $request->arrivalDate }}">
-                        <input type="hidden" name="departureDate" value="{{ $request->departureDate }}">
-                        <input type="hidden" name="hotel_id" value="{{ $request->hotel_id }}">
-                        <input type="hidden" name="meal_id" value="{{ $request->meal_id }}">
+                                @lang('main.cancellation_amount')
+                                :  {{ round($request->cancelPrice) }} {{ $request->currency ?? '$' }}
+
+                            @else
+                                @lang('main.non_refundable')
+                            @endif</p>
+                    </div>
+                    <div class="order-item">
+                        <p><span>@lang('main.full_name')</span>: {{ $request->name }} {{ $request->lastname }}</p>
+                    </div>
+                    <div class="order-item">
+                        <p><span>@lang('main.phone')</span>: {{ $request->phone }}</p>
+                    </div>
+                    <div class="order-item">
+                        <p><span>Email</span>: {{ $request->email }}</p>
+                    </div>
+                    <div class="order-item">
+                        <p><span>@lang('main.message')</span>: {{ $request->comment }}</p>
+                    </div>
+                    <div class="btn-wrap">
+                        <form action="{{ route('book_reserve_etg') }}" method="get">
+                            <input type="hidden" name="arrivalDate" value="{{ $request->arrivalDate }}">
+                            <input type="hidden" name="departureDate" value="{{ $request->departureDate }}">
+                            <input type="hidden" name="hotel_id" value="{{ $request->hotel_id }}">
+                            <input type="hidden" name="meal_id" value="{{ $request->meal_id }}">
 
                             @foreach ($request->input('rooms', []) as $i => $room)
                                 <input type="hidden" name="rooms[{{ $i }}][adults]" value="{{ $room['adults'] }}">
-                                
+
                                 @if (isset($room['childAges']))
                                     @foreach ($room['childAges'] as $a => $age)
                                         <input type="hidden" name="rooms[{{ $i }}][childAges][]" value="{{ $age }}">
                                     @endforeach
                                 @endif
                             @endforeach
-                            
-                        <input type="hidden" name="book_hash" value="{{ $request->book_hash }}">
-                        <input type="hidden" name="match_hash" value="{{ $request->match_hash }}">
-                        <input type="hidden" name="room_name" value="{{ $request->room_name }}">
-                        <input type="hidden" name="rate_name" value="{{ $request->rate_name }}">
-                        <input type="hidden" name="bedTypeDesc" value="{{ $request->bedTypeDesc }}">
-                        <input type="hidden" name="refundable" value="{{ $request->refundable }}">
-                        <input type="hidden" name="cancelDate" value="{{ $request->cancelDate }}">
-                        <input type="hidden" name="cancelPrice" value="{{ $request->cancelPrice }}">
-                        <input type="hidden" name="currency"  value="{{ $request->currency }}">
-                        <input type="hidden" name="utc" value="{{ $request->utc }}">
-                        <input type="hidden" name="price" value="{{ $request->price }}">
-                        <input type="hidden" name="sum" value="{{ $request->sum }}">
-                        <input type="hidden" name="token" value="{{ $token }}">
-                        <input type="hidden" name="citizenship" value="KGS">
-                        <input type="hidden" name="comment" value="{{ $request->comment }}">
-                        <input type="hidden" name="phone" value="{{ $request->phone }}">
-                        <input type="hidden" name="email" value="{{ $request->email }}">
-                        <input type="hidden" name="tax_not_included" value="{{ $request->tax_not_included }}">
-                        <input type="hidden" name="residency" value="{{ $request->residency ?? '' }}">
-  
+
+                            <input type="hidden" name="book_hash" value="{{ $request->book_hash }}">
+                            <input type="hidden" name="match_hash" value="{{ $request->match_hash }}">
+                            <input type="hidden" name="room_name" value="{{ $request->room_name }}">
+                            <input type="hidden" name="rate_name" value="{{ $request->rate_name }}">
+                            <input type="hidden" name="bedTypeDesc" value="{{ $request->bedTypeDesc }}">
+                            <input type="hidden" name="refundable" value="{{ $request->refundable }}">
+                            <input type="hidden" name="cancelDate" value="{{ $request->cancelDate }}">
+                            <input type="hidden" name="cancelPrice" value="{{ $request->cancelPrice }}">
+                            <input type="hidden" name="currency" value="{{ $request->currency }}">
+                            <input type="hidden" name="utc" value="{{ $request->utc }}">
+                            <input type="hidden" name="price" value="{{ $request->price }}">
+                            <input type="hidden" name="sum" value="{{ $request->sum }}">
+                            <input type="hidden" name="token" value="{{ $token }}">
+                            <input type="hidden" name="citizenship" value="KGS">
+                            <input type="hidden" name="comment" value="{{ $request->comment }}">
+                            <input type="hidden" name="phone" value="{{ $request->phone }}">
+                            <input type="hidden" name="email" value="{{ $request->email }}">
+                            <input type="hidden" name="tax_not_included" value="{{ $request->tax_not_included }}">
+                            <input type="hidden" name="residency" value="{{ $request->residency ?? '' }}">
+
                             @for ($i = 0; $i < $totalAdults; $i++)
-                                <input type="hidden" name="paxfname{{$i}}" value="{{ $request->input('paxfname' . $i) }}">
+                                <input type="hidden" name="paxfname{{$i}}"
+                                       value="{{ $request->input('paxfname' . $i) }}">
                             @endfor
                             @for ($i = 0; $i < $childs; $i++)
-                                <input type="hidden" name="child_name{{$i}}" value="{{ $request->input('child_name' . $i) }}">
+                                <input type="hidden" name="child_name{{$i}}"
+                                       value="{{ $request->input('child_name' . $i) }}">
                             @endfor
-                        
-                        <button class="more">@lang('main.confirm')</button>
-                    </form>
+
+                            <button class="more">@lang('main.confirm')</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-<script>
+    <script>
 
-    let secondsLeft = localStorage.getItem('booking_etg_secondsLeft');
-    if (secondsLeft === null) {
-    secondsLeft = 600;
-    } else {
-    secondsLeft = parseInt(secondsLeft);
-    }
-
-    let countdownInterval;
-    let alertShown = false; // флаг
-
-    function formatTime(sec) {
-        let m = Math.floor(sec / 60);
-        let s = sec % 60;
-        return `${m}:${s.toString().padStart(2, '0')}`;
-    }
-
-    function tick() {
-        if (secondsLeft <= 0) {
-            if (!alertShown) {
-                alertShown = true;
-                clearInterval(countdownInterval); // остановить интервал
-                alert("Время бронирования истекло. Пожалуйста, начните заново.");
-                window.location.href = "{{ route('index') }}";
-            }
-            return;
+        let secondsLeft = localStorage.getItem('booking_etg_secondsLeft');
+        if (secondsLeft === null) {
+            secondsLeft = 600;
+        } else {
+            secondsLeft = parseInt(secondsLeft);
         }
 
-        document.getElementById('countdown').innerText = formatTime(secondsLeft);
-        secondsLeft--;
-        localStorage.setItem('booking_etg_secondsLeft', secondsLeft);
-    }
+        let countdownInterval;
+        let alertShown = false; // флаг
 
-    tick(); // первый вызов сразу
-    countdownInterval = setInterval(tick, 1000);
+        function formatTime(sec) {
+            let m = Math.floor(sec / 60);
+            let s = sec % 60;
+            return `${m}:${s.toString().padStart(2, '0')}`;
+        }
 
-    document.getElementById('booking').addEventListener('click', function() {
-        clearInterval(countdownInterval); // Остановить таймер
-        localStorage.removeItem('booking_etg_secondsLeft'); // Очистить данные
-    });
-</script>
+        function tick() {
+            if (secondsLeft <= 0) {
+                if (!alertShown) {
+                    alertShown = true;
+                    clearInterval(countdownInterval); // остановить интервал
+                    alert("Время бронирования истекло. Пожалуйста, начните заново.");
+                    window.location.href = "{{ route('index') }}";
+                }
+                return;
+            }
+
+            document.getElementById('countdown').innerText = formatTime(secondsLeft);
+            secondsLeft--;
+            localStorage.setItem('booking_etg_secondsLeft', secondsLeft);
+        }
+
+        tick(); // первый вызов сразу
+        countdownInterval = setInterval(tick, 1000);
+
+        document.getElementById('booking').addEventListener('click', function () {
+            clearInterval(countdownInterval); // Остановить таймер
+            localStorage.removeItem('booking_etg_secondsLeft'); // Очистить данные
+        });
+    </script>
 @endsection

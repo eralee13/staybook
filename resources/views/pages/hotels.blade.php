@@ -8,13 +8,19 @@
             <div class="container">
                 <div class="row">
                     <h1>@lang('main.hotels')</h1>
+                    <small style="margin-bottom: 20px">{{ $count }}</small>
                     @foreach($hotels as $hotel)
+                        @php
+                            $image = \App\Models\Image::where('hotel_id', $hotel->id)->first();
+                        @endphp
                         <div class="col-lg-4 col-md-6 col-6">
                             <div class="places-item">
                                 <div class="img-wrap">
                                     <a href="{{ route('hotel', $hotel->code) }}">
                                         @if($hotel->image)
                                             <img src="{{ Storage::url($hotel->image) }}" alt="">
+                                        @elseif($image)
+                                            <img src="{{ $image->image }}" alt="">
                                         @else
                                             <img src="{{ route('index')}}/img/noimage.png" alt="">
                                         @endif

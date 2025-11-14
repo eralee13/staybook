@@ -14,31 +14,22 @@
                     <div class="col-md-9">
                         <div class="row">
                             <div class="col-md-8">
-                                <div class="btn-wrap" style="margin-bottom: 20px">
-                                    <a href="{{ route('userbooks.index') }}" class="more">@lang('admin.my_bookings')</a>
-                                </div>
                                 @include('profile.partials.update-profile-information-form')
                             </div>
                             @hasrole('Demo')
                             @else
-                            <div class="col-md-8">
-                                @include('profile.partials.update-password-form')
-                            </div>
-                            @endhasrole
+                                <div class="col-md-6">
+                                    @include('profile.partials.update-password-form')
+                                </div>
+                                <div class="col-md-6">
+                                    @include('profile.partials.delete-user-form')
+                                </div>
+                                @endhasrole
                         </div>
-                        @hasrole('Demo')
-                        @else
-                        <div class="row">
-                            <div class="col-md-8">
-                                @include('profile.partials.delete-user-form')
-                            </div>
-                        </div>
-                        @endhasrole
                     </div>
                 </div>
             </div>
         </div>
     @endauth
-
 
 @endsection

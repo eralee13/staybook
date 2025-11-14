@@ -1,4 +1,4 @@
-@extends('layouts.head')
+@extends('layouts.master')
 
 @section('title', 'Отмена брони')
 
@@ -13,17 +13,16 @@
 
                         @if(isset($cancelRule->is_refundable) && $cancelRule->is_refundable == true)
                             <p>@lang('main.free_cancellation') {{ $cancelDate }} (UTC+0). <br>
-                                @lang('main.cancellation_amount_tm'): {{ round($book->cancel_penalty) }} {{ $book->currency ?? '$' }}</p>
+                                @lang('main.cancellation_amount'): {{ round($book->cancel_penalty / 0.92, 2) }} {{ $book->currency ?? '$' }}</p>
                         @else
-                            @lang('main.non_refundable'): {{ round($book->cancel_penalty) }} {{ $book->currency ?? 'USD' }}
+                            @lang('main.non_refundable'): {{ round($book->cancel_penalty / 0.92, 2) }} {{ $book->currency ?? 'USD' }}
                         @endif
-
                     <form action="{{ route('cancel_confirm_etg') }}">
                         <div class="form-group">
                             <label for="">@lang('main.booking_number')</label>
                             <input type="text" readonly value="{{ $request->number }}" name="number">
                         </div>
-                        <input type="hidden" name="amount" value="{{ $book->cancel_penalty }}">
+                        <input type="hidden" name="amount" value="{{ $book->cancel_penalty / 0.92 }}">
                         <button class="more">@lang('main.cancel')</button>
                     </form>
                 </div>

@@ -74,15 +74,22 @@
                                         @lang('main.cancellation_rule_not_found').
                                         {{ $book->cancel_penalty }} {{ $book->currency }}
                                     @elseif($cancel->cancel_policy === 'free_until_checkin')
-                                        @lang('main.free_cancellation') {{ $freeDate }} UTC {{ $timezone }}. @lang('main.cancellation_amount'): {{ $book->cancel_penalty }} {{ $book->currency }}
+                                        @lang('main.free_cancellation') {{ $freeDate }} UTC {{ $timezone }}
+                                        . @lang('main.cancellation_amount')
+                                        : {{ $book->cancel_penalty }} {{ $book->currency }}
                                     @elseif($cancel->cancel_policy === 'free_then_penalty')
                                         @if($cancelCutoffCarbon && now($hotelTz)->lte($cancelCutoffCarbon))
-                                            @lang('main.free_cancellation') {{ $cancelDate }} UTC {{ $timezone }}. @lang('main.cancellation_amount'): {{ $book->cancel_penalty }} {{ $book->currency }}
+                                            @lang('main.free_cancellation') {{ $cancelDate }} UTC {{ $timezone }}
+                                            . @lang('main.cancellation_amount')
+                                            : {{ $book->cancel_penalty }} {{ $book->currency }}
                                         @else
-                                            @lang('main.cancellation_is_not_avaialble'). @lang('main.cancellation_amount'): {{ $book->cancel_penalty }} {{ $book->currency }}
+                                            @lang('main.cancellation_is_not_avaialble')
+                                            . @lang('main.cancellation_amount')
+                                            : {{ $book->cancel_penalty }} {{ $book->currency }}
                                         @endif
                                     @else
-                                        @lang('main.cancellation_amount'): {{ $book->cancel_penalty }} {{ $book->currency }}
+                                        @lang('main.cancellation_amount')
+                                        : {{ $book->cancel_penalty }} {{ $book->currency }}
                                     @endif
                                 </li>
 
@@ -100,7 +107,8 @@
 
                             <div class="btn-wrap">
                                 <form action="{{ route('cancel_calculate', $book->id) }}">
-                                    <input type="hidden" name="number" value="{{ $res->booking->number ?? $book->book_token }}">
+                                    <input type="hidden" name="number"
+                                           value="{{ $res->booking->number ?? $book->book_token }}">
                                     <input type="hidden" name="currency" value="{{ $book->currency }}">
                                     <input type="hidden" name="cancelTime" value="{{ $cancelDate }}">
                                     {{-- Если нужен ISO-безопасный формат для бэкенда: --}}

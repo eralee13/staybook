@@ -1,76 +1,75 @@
 @foreach($rates as $rate)
     @php
-            $coef = config('app.main_coef');    
-            $price = $rate['payment_options']['payment_types'][0]['amount'] ?? 0;
-            $totalPrice = number_format( ($price / $coef ) , 2, '.', '');
-            $rooms = $request->input('rooms', []);
-            $payment = $rate['payment_options']['payment_types'][0];
-            // $localDate = Carbon\Carbon::parse($payment['cancellation_penalties']['policies'][0]['end_at'], 'UTC')->setTimezone(trim($hotel->utc));
-            // $localDate = $localDate->format('d-m-Y H:i:s');
+        $coef = config('app.main_coef');
+        $price = $rate['payment_options']['payment_types'][0]['amount'] ?? 0;
+        $totalPrice = number_format( ($price / $coef ) , 2, '.', '');
+        $rooms = $request->input('rooms', []);
+        $payment = $rate['payment_options']['payment_types'][0];
+        // $localDate = Carbon\Carbon::parse($payment['cancellation_penalties']['policies'][0]['end_at'], 'UTC')->setTimezone(trim($hotel->utc));
+        // $localDate = $localDate->format('d-m-Y H:i:s');
 
-            if($payment['cancellation_penalties']['free_cancellation_before'] == true){
+        if($payment['cancellation_penalties']['free_cancellation_before'] == true){
 
-                $pay_end_date = Carbon\Carbon::createFromDate($payment['cancellation_penalties']['policies'][0]['end_at'])->format('d.m.Y H:i:s');
-                
-                $penaltPrice = $payment['cancellation_penalties']['policies'][1]['amount_charge'] ?? 0;
-                $penaltyPrice = number_format( ( (float)$penaltPrice  / $coef), 2, '.', '');
+            $pay_end_date = Carbon\Carbon::createFromDate($payment['cancellation_penalties']['policies'][0]['end_at'])->format('d.m.Y H:i:s');
 
-            }else{
-                $pay_end_date = '';
-                $penaltyPrice = 0;
-            }
+            $penaltPrice = $payment['cancellation_penalties']['policies'][1]['amount_charge'] ?? 0;
+            $penaltyPrice = number_format( ( (float)$penaltPrice  / $coef), 2, '.', '');
 
-            $toCurrency = strtoupper($fxBase ?? 'USD');
+        }else{
+            $pay_end_date = '';
+            $penaltyPrice = 0;
+        }
 
-            $symbols = [
-                'USD' => '$',
-                'RUB' => '₽',
-                'KGS' => 'сом',
-                'UZS' => 'сўм',
-            ];
+        $toCurrency = strtoupper($fxBase ?? 'USD');
 
-            $converted = app(\App\Services\FXService::class)->convert($totalPrice, $payment['currency_code'], $fxBase);
-            $symbol = $symbols[$toCurrency] ?? $toCurrency;
+        $symbols = [
+            'USD' => '$',
+            'RUB' => '₽',
+            'KGS' => 'сом',
+            'UZS' => 'сўм',
+        ];
 
-            $cancelConverted = app(\App\Services\FXService::class)->convert($penaltyPrice, $payment['currency_code'], $fxBase);
-            
+        $converted = app(\App\Services\FXService::class)->convert($totalPrice, $payment['currency_code'], $fxBase);
+        $symbol = $symbols[$toCurrency] ?? $toCurrency;
+        $cancelConverted = app(\App\Services\FXService::class)->convert($penaltyPrice, $payment['currency_code'], $fxBase);
     @endphp
-    
-        <div class="tariffs-item">
-            @isset($rate)
-                <h5>{{ $rate['room_name'] }}</h5>
-            @endisset
-            
-            <div class="item bed">
-                <div class="name">{{ $rate['room_data_trans']['bedding_type'] ?? $rate['room_data_trans']['main_room_type'] }}</div>
-            </div>
 
-                <div class="item meal">
-                        <div class="name">{{ $rate['meal'] ?? 'No breakfast' }}</div>
-                </div>
-                
-            <div class="item cancel">
-                <div class="name">@lang('main.cancellation_policy'):
-
-                    @if($payment['cancellation_penalties']['free_cancellation_before'] == true)
-                        @lang('main.free_cancellation') {{ $pay_end_date }} UTC+0
-                         {{-- {{$hotel->utc}}  --}}
-                         <br>
-                        @lang('main.cancellation_amount_tm'):  {{ round($cancelConverted ) }} {{ $symbol }}
-                    @else
-                        @lang('main.non_refundable')
-                    @endif
-                    
-                </div>
+    <div class="tariffs-item">
+        @isset($rate)
+            <h5>{{ $rate['room_name'] }}</h5>
+        @endisset
+        <div class="item bed">
+            <div class="name">{{ $rate['room_data_trans']['bedding_type'] ?? $rate['room_data_trans']['main_room_type'] }}</div>
+        </div>
+        <div class="item meal">
+            <div class="name">
+                @if($rate['meal'] != 'nomeal')
+                    {{ $rate['meal'] }}
+                @else
+                    {{ 'Room only' }}
+                @endif
             </div>
-            <div class="item price"> {{ round($converted) }} {{ $symbol }}</div>
-            <div class="nds">@lang('main.all_taxes_included')</div>
-            <div class="nds_not_included" style="color: red; font-size: 13px;">
-                @lang('main.all_taxes_excluded')</div>
-                <span style="font-size: 13px;">@lang('main.pay_at_hotel')</span><br>
-                @foreach($payment['tax_data']['taxes'] as $tax)
-                    @if($tax['included_by_supplier'] == false)
-                        <span style="font-size: 13px;"><strong>
+        </div>
+        <div class="item cancel">
+            <div class="name">@lang('main.cancellation_policy'):
+                @if($payment['cancellation_penalties']['free_cancellation_before'] == true)
+                    @lang('main.free_cancellation') {{ $pay_end_date }} UTC+0
+                    <br>
+                    @lang('main.cancellation_amount'):  {{ round($cancelConverted ) }} {{ $symbol }}
+                @else
+                    @lang('main.non_refundable')
+                @endif
+            </div>
+        </div>
+        <div class="item price"> {{ round($converted) }} {{ $symbol }}</div>
+{{--        <div class="nds">@lang('main.all_taxes_included')</div>--}}
+        <div class="nds_not_included" style="color: red; font-size: 13px;">
+            @lang('main.all_taxes_excluded')
+            <span style="font-size: 13px;">@lang('main.pay_at_hotel')</span>
+        </div>
+        @foreach($payment['tax_data']['taxes'] as $tax)
+            @if($tax['included_by_supplier'] == false)
+                <span style="font-size: 13px;"><strong>
                         {{-- проверка: если ключ это строка и есть перевод --}}
                         @if(is_string($tax['name']) && Lang::has('main.'.$tax['name']))
                             @lang('main.'.$tax['name'])
@@ -78,57 +77,56 @@
                             {{ $tax['name'] }}
                         @endif : </strong>
                         {{ $tax['amount']}} {{ $tax['currency_code'] }}</span><br>
+            @endif
+        @endforeach
+
+
+        <div class="btn-wrap">
+            <form action="{{ route('order_etg') }}">
+                <input type="hidden" name="arrivalDate" value="{{ $request->arrivalDate }}">
+                <input type="hidden" name="departureDate" value="{{ $request->departureDate }}">
+                @foreach ($rooms as $i => $room)
+                    <input type="hidden" name="rooms[{{ $i }}][adults]" value="{{ $room['adults'] }}">
+                    @if (isset($room['childAges']))
+                        @foreach ($room['childAges'] as $a => $age)
+                            <input type="hidden" name="rooms[{{ $i }}][childAges][]" value="{{ $age }}">
+                        @endforeach
                     @endif
                 @endforeach
-            
-                
-            <div class="btn-wrap">
+                <input type="hidden" name="meal_id" value="{{ $rate['meal'] ?? null }}">
+                <input type="hidden" name="hotel_id" value="{{ $hotel->id }}">
+                <input type="hidden" name="rate_name" value="{{ $rate['room_name'] }}">
+                <input type="hidden" name="room_name" value="{{ $rate['room_data_trans']['main_name'] }}">
+                <input type="hidden" name="bedTypeDesc" value="{{ $rate['room_data_trans']['bedding_type'] }}">
+                <input type="hidden" name="book_hash" value="{{ $rate['book_hash'] }}">
+                <input type="hidden" name="match_hash" value="{{ $rate['match_hash'] }}">
+                <input type="hidden" name="refundable"
+                       value="{{ $payment['cancellation_penalties']['free_cancellation_before'] }}">
+                <input type="hidden" name="cancelDate"
+                       value="{{ $pay_end_date }}">
+                <input type="hidden" name="cancelPriceAnullation"
+                       value="{{ $payment['cancellation_penalties']['policies'][0]['amount_charge'] }}">
+                <input type="hidden" name="cancelPrice"
+                       value="{{ $cancelConverted }}">
+                <input type="hidden" name="price" value="{{ $price }}">
+                <input type="hidden" name="totalPrice" value="{{ $converted }}">
+                <input type="hidden" name="currency"
+                       value="{{ $rate['payment_options']['payment_types'][0]['currency_code'] }}">
+                <input type="hidden" name="utc" value="{{ $hotel->utc }}">
+                <input type="hidden" name="etgimage" value="{{ $tmimage }}">
+                <input type="hidden" name="increase_percent">
+                <input type="hidden" name="residency" value="{{ $request->residency ?? '' }}">
+                <input type="hidden" name="tax_not_included"
+                       value='@json(collect($payment["tax_data"]["taxes"])->where("included_by_supplier", false)->values())'>
 
-                <form action="{{ route('order_etg') }}">
-                    <input type="hidden" name="arrivalDate" value="{{ $request->arrivalDate }}">
-                    <input type="hidden" name="departureDate" value="{{ $request->departureDate }}">
-                        @foreach ($rooms as $i => $room)
-                            <input type="hidden" name="rooms[{{ $i }}][adults]" value="{{ $room['adults'] }}">
-                            
-                            @if (isset($room['childAges']))
-                                @foreach ($room['childAges'] as $a => $age)
-                                    <input type="hidden" name="rooms[{{ $i }}][childAges][]" value="{{ $age }}">
-                                @endforeach
-                            @endif
-                        @endforeach
-                    <input type="hidden" name="meal_id" value="{{ $rate['meal'] ?? null }}">
-                    <input type="hidden" name="hotel_id" value="{{ $hotel->id }}">
-                    <input type="hidden" name="rate_name" value="{{ $rate['room_name'] }}">
-                    <input type="hidden" name="room_name" value="{{ $rate['room_data_trans']['main_name'] }}">
-                    <input type="hidden" name="bedTypeDesc" value="{{ $rate['room_data_trans']['bedding_type'] }}">
-                    <input type="hidden" name="book_hash" value="{{ $rate['book_hash'] }}">
-                    <input type="hidden" name="match_hash" value="{{ $rate['match_hash'] }}">
-                    <input type="hidden" name="refundable" value="{{ $payment['cancellation_penalties']['free_cancellation_before'] }}">
-                    <input type="hidden" name="cancelDate"
-                            value="{{ $pay_end_date }}">
-                    <input type="hidden" name="cancelPriceAnullation"
-                            value="{{ $payment['cancellation_penalties']['policies'][0]['amount_charge'] }}">
-                    <input type="hidden" name="cancelPrice"
-                            value="{{ $cancelConverted }}">
-                    <input type="hidden" name="price" value="{{ $price }}">
-                    <input type="hidden" name="totalPrice" value="{{ $converted }}">
-                    <input type="hidden" name="currency" 
-                            value="{{ $rate['payment_options']['payment_types'][0]['currency_code'] }}">
-                    <input type="hidden" name="utc"  value="{{ $hotel->utc }}">
-                    <input type="hidden" name="etgimage"  value="{{ $tmimage }}">
-                    <input type="hidden" name="increase_percent">
-                    <input type="hidden" name="residency" value="{{ $request->residency ?? '' }}">
-                    <input type="hidden" name="tax_not_included" 
-                        value='@json(collect($payment["tax_data"]["taxes"])->where("included_by_supplier", false)->values())'>
-
-                    <button class="more" id="order">@lang('main.book')</button>
-                </form>
-            </div>
+                <button class="more" id="order">@lang('main.book')</button>
+            </form>
         </div>
-    @endforeach
+    </div>
+@endforeach
 
-    <script>
-        // document.getElementById('order').addEventListener('click', function() {
-            localStorage.removeItem('booking_etg_secondsLeft'); // Очистить данные
-        // });
-    </script>
+<script>
+    // document.getElementById('order').addEventListener('click', function() {
+    localStorage.removeItem('booking_etg_secondsLeft'); // Очистить данные
+    // });
+</script>

@@ -206,5 +206,9 @@ return [
     
 
     'main_coef' => env('MAIN_COEF', 0.92),
+
     
 ];
+
+ini_set('memory_limit', env('PHP_MEMORY_LIMIT', '512M'));
+

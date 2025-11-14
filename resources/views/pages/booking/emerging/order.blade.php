@@ -1,35 +1,39 @@
-@extends('layouts.head')
+@extends('layouts.master')
 
 @section('title', 'Забронировать')
 
 @section('content')
+    @php
+        use App\Models\Hotel;
+        $hotel = Hotel::where('id', $request->hotel_id)->first();
+        $rooms = $request->input('rooms', []);
 
-<span>/hotel/prebook/</span>
-    @dump($preBook)
+        if (is_string($rooms)) {
+            $decoded = json_decode($rooms, true);
+            $rooms = is_array($decoded) ? $decoded : [];
+        }
 
-@php
-    $rooms = $request->input('rooms', []);
         $totalAdults    = 0;
         $allChildAges   = [];
         $roomCount=0;
         $childs = 0;
-
-            foreach ($rooms as $room) {
-                $roomCount++;
-                // Взрослые
-                $totalAdults += (int) ($room['adults'] ?? 0);
-
-                // Возрасты детей (если есть) собираем в единый массив
-                if (!empty($room['childAges']) && is_array($room['childAges'])) {
-                    foreach ($room['childAges'] as $age) {
-                        $allChildAges[] = (int) $age;
-                        $childs++;
-                    }
-                }
-            }
-
-    // if( $preBook['data']['changes']['price_changed'] == true ){
-        $coef = config('app.main_coef'); 
+        foreach ($rooms as $room) {
+            $adults = (int)($room['adults'] ?? 0);
+            $childAges = isset($room['childAges']) && is_array($room['childAges'])
+                ? $room['childAges']
+                : [];
+            $roomCount++;
+            // Взрослые
+            $totalAdults += (int) ($room['adults'] ?? 0);
+            // Возрасты детей (если есть) собираем в единый массив
+           if (!empty($room['childAges']) && is_array($room['childAges'])) {
+               foreach ($room['childAges'] as $age) {
+                   $allChildAges[] = (int) $age;
+                   $childs++;
+               }
+           }
+        }
+        $coef = config('app.main_coef');
         $price = $preBook['data']['hotels'][0]['rates'][0]['payment_options']['payment_types'][0]['amount'];
         $penaltPrice = $preBook['data']['hotels'][0]['rates'][0]['payment_options']['payment_types'][0]['cancellation_penalties']['policies'][1]['amount_charge'] ?? 0;
         $totalPrice = number_format( ($price / $coef ) , 2, '.', '');
@@ -37,20 +41,92 @@
         $converted = app(\App\Services\FXService::class)->convert($totalPrice, $request->currency, $fxBase);
         $cancelConverted = app(\App\Services\FXService::class)->convert($penaltyPrice, $request->currency, $fxBase);
         $rateChanged = $preBook['data']['hotels']['0']['rates'][0];
-    // }
-@endphp
+    @endphp
 
     <div class="page order">
         <div class="container">
             <div class="row">
                 <div class="col-md-12">
-                    <h3><a href="javascript:history.back()"><img src="{{ route('index') }}/img/icons/arrow-left.svg" alt=""></a>
-                        @lang('main.confirm_and_pay')
-                    </h3>
+                    <h1>
+                        <img src="{{ route('index') }}/img/arrow-left.svg" alt="">
+                        @lang('main.booking')
+                    </h1>
                 </div>
             </div>
             <div class="row">
-                <div class="col-lg-8 col-md-12 order-xl-1 order-lg-1 order-2">
+                <div class="col-lg-4 col-md-12">
+                    <div class="sidebar">
+                        @if ( isset($request->etgimage) )
+                            <img src="{{ Storage::url($request->etgimage) }}" alt="">
+                        @else
+                            <img src="{{ route('index') }}/img/noimage.png" alt="">
+                        @endif
+                        <div class="text-wrap">
+                            <div class="descr">@lang('main.hotel'): {{ $hotel->title }}</div>
+                            <div class="descr">@lang('main.room'): {{ $request->room_name }}</div>
+                            <div class="descr">@lang('main.rate'): {{ $request->rate_name }}</div>
+                            <div class="date">@lang('main.check-in/check-out'): {{ $arrival }} {{ $hotel->checkin }}
+                                - {{ $departure }} {{ $hotel->checkout }} (UTC+0)
+                                {{-- {{ $request->utc }} --}}
+                            </div>
+                            <div class="cancel">@lang('main.cancellation_policy'):
+                                @if($request->refundable == true)
+
+                                    @lang('main.free_cancellation') {{ $request->cancelDate }} UTC+0 <br>
+
+                                    @lang('main.cancellation_amount')
+                                    : {{ round($cancelConverted) }} {{ $request->currency ?? '$' }}
+                                @else
+                                    @lang('main.non_refundable')
+                                @endif
+                            </div>
+                            <div class="nds_not_included" style="color: red; font-size: 13px;">
+                                @lang('main.all_taxes_excluded')</div>
+                            <span style="font-size: 13px;">@lang('main.pay_at_hotel')</span><br>
+                            @php
+                                $tax_not_included = $request->tax_not_included ?? [];
+
+                                // Если пришёл JSON – декодируем
+                                if (is_string($tax_not_included)) {
+                                    $decoded = json_decode($tax_not_included, true);
+                                    $tax_not_included = is_array($decoded) ? $decoded : [];
+                                }
+
+                                if (!is_array($tax_not_included)) {
+                                    $tax_not_included = [];
+                                }
+                            @endphp
+
+                            @foreach($tax_not_included as $tax)
+                                @if(is_array($tax)
+                                    && array_key_exists('included_by_supplier', $tax)
+                                    && $tax['included_by_supplier'] == false)
+
+                                    <span style="font-size: 13px;"><strong>
+            @if(is_string($tax['name'] ?? null) && Lang::has('main.'.$tax['name']))
+                                                @lang('main.'.$tax['name'])
+                                            @else
+                                                {{ $tax['name'] ?? '' }}
+                                            @endif
+            : </strong>
+            {{ $tax['amount'] ?? '' }} {{ $tax['currency_code'] ?? '' }}
+        </span><br>
+                                @endif
+                            @endforeach
+
+                            <div class="line"></div>
+                            <div class="row mt">
+                                <div class="col-md-8">
+                                    <div class="total">@lang('main.total')</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="price">{{ round($converted ?? $request->totalPrice) }} {{ $request->currency ?? '$'}}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-8 col-md-12">
                     <div class="clearfix">
                         <div id="timer" style="color: red;" class="d-flex justify-content-end">
                             @lang('main.time_booking') : &nbsp;<span id="countdown"></span>
@@ -82,19 +158,24 @@
                         <input type="hidden" name="room_id" value="{{ $request->room_id }}">
                         <input type="hidden" name="rate_id" value="{{ $request->rate_id }}">
                         <input type="hidden" name="meal_id" value="{{ $request->meal_id }}">
+                        @foreach ($rooms as $i => $room)
+                            @php
+                                $adults    = (int)($room['adults'] ?? 0);
+                                $childAges = isset($room['childAges']) && is_array($room['childAges'])
+                                    ? $room['childAges']
+                                    : [];
+                            @endphp
 
-                            @foreach ($request->input('rooms', []) as $i => $room)
-                                <input type="hidden" name="rooms[{{ $i }}][adults]" value="{{ $room['adults'] }}">
-                                
-                                @if (isset($room['childAges']))
-                                    @foreach ($room['childAges'] as $a => $age)
-                                        <input type="hidden" name="rooms[{{ $i }}][childAges][]" value="{{ $age }}">
-                                    @endforeach
-                                @endif
+                            <input type="hidden" name="rooms[{{ $i }}][adults]" value="{{ $adults }}">
+
+                            @foreach ($childAges as $a => $age)
+                                <input type="hidden" name="rooms[{{ $i }}][childAges][]" value="{{ $age }}">
                             @endforeach
-
-                        <input type="hidden" name="book_hash" value="{{ $rateChanged['book_hash'] ?? $request->book_hash }}">
-                        <input type="hidden" name="match_hash" value="{{ $rateChanged['match_hash'] ?? $request->match_hash }}">
+                        @endforeach
+                        <input type="hidden" name="book_hash"
+                               value="{{ $rateChanged['book_hash'] ?? $request->book_hash }}">
+                        <input type="hidden" name="match_hash"
+                               value="{{ $rateChanged['match_hash'] ?? $request->match_hash }}">
                         <input type="hidden" name="room_name" value="{{ $request->room_name }}">
                         <input type="hidden" name="rate_name" value="{{ $request->rate_name }}">
                         <input type="hidden" name="bedTypeDesc" value="{{ $request->bedTypeDesc }}">
@@ -102,18 +183,16 @@
                         <input type="hidden" name="cancelDate" value="{{ $request->cancelDate }}">
                         <input type="hidden" name="cancelPriceAnullation" value="{{ $request->cancelPriceAnullation }}">
                         <input type="hidden" name="cancelPrice" value="{{ $request->cancelPrice }}">
-                        <input type="hidden" name="currency"  value="{{ $request->currency }}">
+                        <input type="hidden" name="currency" value="{{ $request->currency }}">
                         <input type="hidden" name="utc" value="{{ $request->utc }}">
                         <input type="hidden" name="price" value="{{ $request->price }}">
                         <input type="hidden" name="sum" value="{{ $request->totalPrice }}">
                         <input type="hidden" name="tax_not_included" value="{{ $request->tax_not_included }}">
                         <input type="hidden" name="residency" value="{{ $request->residency ?? '' }}">
-                       
-
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <div class="label">@lang('main.fio')</div>
+                                    <div class="label">@lang('main.full_name')</div>
                                     <input type="text" name="name" placeholder="Асанов А.А."
                                            value="{{ Auth::user()->name }}" required>
                                 </div>
@@ -148,186 +227,85 @@
                             <div class="col-md-12">
                                 <div class="form-group">
                                     @include('auth.layouts.error', ['fieldname' => 'comment'])
-                                    <label for="">@lang('main.comment')</label>
+                                    <label>@lang('main.message')</label>
                                     <textarea name="comment" rows="3">Ваш комментарий</textarea>
                                 </div>
                             </div>
-                            
+
                             {{-- map quests --}}
-                                <h5>@lang('main.quests')</h5>
-                                @for ($i = 0; $i < $totalAdults; $i++)
+                            <h5>@lang('main.quests')</h5>
+                            @for ($i = 0; $i < $totalAdults; $i++)
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="paxfname">@lang('main.full_name') #{{$i+1}}</label>
+                                        <input type="text" name="paxfname{{$i}}"
+                                               class="only-latin"
+                                               required>
+                                    </div>
+                                </div>
+                            @endfor
+
+                            @if( !empty($childs) )
+                                <h5>@lang('main.count_child')</h5>
+                                @for ($i = 0; $i < $childs; $i++)
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="paxfname">@lang('main.fio') #{{$i+1}}</label>
-                                            <input type="text" name="paxfname{{$i}}" 
-                                                class="only-latin" 
-                                                required >
+                                            <label for="paxlname">@lang('main.fio') #{{$i+1}}</label>
+                                            <input type="text" name="child_name{{$i}}"
+                                                   class="only-latin"
+                                                   required>
                                         </div>
                                     </div>
                                 @endfor
-                                
-                                @if( !empty($childs) )
-                                    <h5>@lang('main.count_child')</h5>
-                                    @for ($i = 0; $i < $childs; $i++)
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="paxlname">@lang('main.fio') #{{$i+1}}</label>
-                                                <input type="text" name="child_name{{$i}}"
-                                                    class="only-latin"
-                                                    required>
-                                            </div>
-                                        </div>
-                                    @endfor   
-                                @endif 
-                                <script>
-                                    document.querySelectorAll('.only-latin').forEach(function(input) {
-                                        input.addEventListener('input', function() {
-                                             this.value = this.value.replace(/[^a-zа-яё\s]/gi, '');
-                                        });
+                            @endif
+                            <script>
+                                document.querySelectorAll('.only-latin').forEach(function (input) {
+                                    input.addEventListener('input', function () {
+                                        this.value = this.value.replace(/[^a-zа-яё\s]/gi, '');
                                     });
+                                });
 
-                                    function validateFullName(value) {
-                                        // Должно быть минимум два слова (Имя Фамилия), допускается 3 слова (Имя Отчество Фамилия)
-                                        let regex = /^([A-Za-zА-Яа-яЁё]+)\s+([A-Za-zА-Яа-яЁё]+)(\s+[A-Za-zА-Яа-яЁё]+)?$/;
-                                        return regex.test(value.trim());
-                                    }
+                                function validateFullName(value) {
+                                    // Должно быть минимум два слова (Имя Фамилия), допускается 3 слова (Имя Отчество Фамилия)
+                                    let regex = /^([A-Za-zА-Яа-яЁё]+)\s+([A-Za-zА-Яа-яЁё]+)(\s+[A-Za-zА-Яа-яЁё]+)?$/;
+                                    return regex.test(value.trim());
+                                }
 
-                                    document.querySelector('form').addEventListener('submit', function(e) {
-                                        let inputs = document.querySelectorAll('.only-latin');
-                                        let message = "{{ __('main.fio_validate_order') }}";
-                                        for (let input of inputs) {
-                                            if (!validateFullName(input.value)) {
-                                                e.preventDefault();
-                                                alert(message);
-                                                return false;
-                                            }
+                                document.querySelector('form').addEventListener('submit', function (e) {
+                                    let inputs = document.querySelectorAll('.only-latin');
+                                    let message = "{{ __('main.fio_validate_order') }}";
+                                    for (let input of inputs) {
+                                        if (!validateFullName(input.value)) {
+                                            e.preventDefault();
+                                            alert(message);
+                                            return false;
                                         }
-                                    });
+                                    }
+                                });
 
-                                </script>
+                            </script>
                         </div>
-                        {{-- <div class="line"></div>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <h5>@lang('main.payment_options')</h5>
-                                <div class="method-item current">
-                                    <div class="name">@lang('main.pay_now') {{ round($request->totalPrice) }} {{ $request->currency ?? '$' }}</div>
-                                </div> --}}
-                                {{--                                <div class="method-item">--}}
-                                {{--                                    <div class="name">Оплатите часть сейчас, а остаток внесите позже--}}
-                                {{--                                        36,000 сом к оплате сегодня, 36,000 сом — 01 мар. 2025 г.</div>--}}
-                                {{--                                </div>--}}
-                            {{-- </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="row payment-wrap">
-                                    <div class="col-md-6">
-                                        <h5>Оплата</h5>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="payment">
-                                            <div class="payment-item">
-                                                <img src="{{ route('index') }}/img/balance.svg" alt="">
-                                            </div>
-                                            <div class="payment-item">
-                                                <img src="{{ route('index') }}/img/mega.svg" alt="">
-                                            </div>
-                                            <div class="payment-item">
-                                                <img src="{{ route('index') }}/img/optima.svg" alt="">
-                                            </div>
-                                            <div class="payment-item">
-                                                <img src="{{ route('index') }}/img/mbank.svg" alt="">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="payment-type">
-                                    <select name="" class="payment_type" id="">
-                                        <option value="">Выбрать способ оплаты</option>
-                                        <option value="">Balance</option>
-                                        <option value="">Mega</option>
-                                        <option value="">Optima</option>
-                                        <option value="">Mbank</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div> --}}
-                        <div class="line"></div>
-                        <div class="descr">@lang('main.order_description')
+
+                        <div class="descr">
+                            @if(app()->getLocale() == 'ru')
+                                Нажимая кнопку ниже, я принимаю условия (Правила дома, установленные хозяином,
+                                Основные правила для гостей, Правила StayBook в отношении повторного бронирования и
+                                возврата средств,
+                                Условия частичной предоплаты) и соглашаюсь, что StayBook может списать средства с
+                                моего способа оплаты,
+                                если ответственность за ущерб лежит на мне.
+                            @else
+                                By clicking the button below, I accept the terms (House Rules set by the Host, Guest
+                                Code of Conduct, StayBook’s Rebooking and Refund Policy, Partial Prepayment Terms)
+                                and agree that StayBook may charge my payment method if I am responsible for any
+                                damage.
+                            @endif
                         </div>
                         <div class="btn-wrap d-flex" style="gap: 30px;">
                             <button class="more" id="saveBtn">@lang('main.confirm_and_paye')</button>
                             <a href="{{ route('index')}}" class="btn more" id="Home">@lang('main.go_home')</a>
                         </div>
                     </form>
-                </div>
-                <div class="col-lg-4 col-md-12 order-xl-2 order-lg-2 order-1">
-
-                    @php
-                        use App\Models\Hotel;
-                        $hotel = Hotel::where('id', $request->hotel_id)->first();
-                    @endphp 
-
-                    <div class="sidebar">
-                        <div class="row">
-                            <div class="col-md-4">
-                                
-                                @if ( isset($request->etgimage) )
-                                    <img src="{{ Storage::url($request->etgimage) }}" alt="">
-                                @else
-                                    <img src="{{ route('index') }}/img/noimage.png" alt="" width="100px">
-                                @endif
-                            </div>
-                            <div class="col-md-8">
-                                <div class="descr">@lang('main.hotel'): {{ $hotel->title }}</div>
-                                <div class="descr">@lang('main.room'): {{ $request->room_name }}</div>
-                                <div class="descr">@lang('main.rate'): {{ $request->rate_name }}</div>
-                                <div class="date">@lang('main.check-in/check-out'): {{ $arrival }} {{ $hotel->checkin }}
-                                    - {{ $departure }} {{ $hotel->checkout }} (UTC+0)
-                                    {{-- {{ $request->utc }} --}}
-                                </div>
-                                <div class="cancel">@lang('main.cancellation_policy'):
-                                    @if($request->refundable == true)
-                                        
-                                        @lang('main.free_cancellation') {{ $request->cancelDate }} UTC+0 <br>
-                                            
-                                        @lang('main.cancellation_amount_tm'): {{ round($cancelConverted) }} {{ $request->currency ?? '$' }}
-                                    @else
-                                        @lang('main.non_refundable')
-                                    @endif
-                                </div>
-                                <div class="nds_not_included" style="color: red; font-size: 13px;">
-                                    @lang('main.all_taxes_excluded')</div>
-                                    <span style="font-size: 13px;">@lang('main.pay_at_hotel')</span><br>
-                                    @php
-                                    $tax_not_included = json_decode($request->tax_not_included, true);
-                                    @endphp
-                                    @foreach($tax_not_included as $tax)
-                                        @if($tax['included_by_supplier'] == false)
-                                            <span style="font-size: 13px;"><strong>
-                                                {{-- проверка: если ключ это строка и есть перевод --}}
-                                                @if(is_string($tax['name']) && Lang::has('main.'.$tax['name']))
-                                                    @lang('main.'.$tax['name'])
-                                                @else
-                                                    {{ $tax['name'] }}
-                                                @endif : </strong>
-                                                {{ $tax['amount']}} {{ $tax['currency_code'] }}</span><br>
-                                        @endif
-                                    @endforeach
-                            </div>
-                        </div>  
-            
-                        <div class="line"></div>
-                        <div class="row mt">
-                            <div class="col-md-8">
-                                <div class="total">@lang('main.total')</div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="price">{{ round($converted ?? $request->totalPrice) }} {{ $request->currency ?? '$'}}</div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -339,15 +317,13 @@
         }
     </style>
     <script>
-
         let secondsLeft = localStorage.getItem('booking_etg_secondsLeft');
         console.log(secondsLeft);
         if (secondsLeft === null) {
-        secondsLeft = 600;
+            secondsLeft = 600;
         } else {
-        secondsLeft = parseInt(secondsLeft);
+            secondsLeft = parseInt(secondsLeft);
         }
-
         let countdownInterval;
         let alertShown = false; // флаг
 

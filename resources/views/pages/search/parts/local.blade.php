@@ -60,7 +60,6 @@
         <div class="col-md-6 order-2">
             <div class="wrap">
                 <h4>{{ $h?->__('title') }}</h4>
-
                 <div class="amenities">
                     @foreach($itemsAmen as $amenity)
                         <div class="amenities-item">

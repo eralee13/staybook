@@ -26,6 +26,9 @@
     <link rel="stylesheet" href="{{route('index')}}/css/main.min.css?ver=1.2">
     <link rel="stylesheet" href="{{route('index')}}/css/admin.css?ver=1.2">
     <link href="{{route('index')}}/css/print.css" rel="stylesheet" media="print" type="text/css">
+
+    @vite('resources/js/app.js')
+
 </head>
 
 <body class="admin">
@@ -38,9 +41,9 @@
                 </div>
             </div>
             <div class="col-md-9 d-xl-block d-lg-block d-none">
-                <div class="homelink">
-                    <a href="{{route('index')}}" target="_blank">@lang('admin.visit')</a>
-                </div>
+{{--                <div class="homelink">--}}
+{{--                    <a href="{{route('index')}}" target="_blank">@lang('admin.visit')</a>--}}
+{{--                </div>--}}
                 <div class="wrap">
                     <div class="lang-wrap" id="lang">
                         <div class="lang">

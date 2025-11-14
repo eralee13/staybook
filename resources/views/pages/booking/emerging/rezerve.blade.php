@@ -1,48 +1,37 @@
-@extends('layouts.head')
+@extends('layouts.master')
 
 @section('title', 'Бронирование')
-<span>/hotel/order/booking/form/</span>
-    @dump($order)
-<span>/hotel/order/booking/finish/</span>
-    @dump($finish)
-<span>/hotel/order/booking/finish/status/</span>
-    @dump($finishStatus)
+
 @section('content')
 
     <div class="page order">
         <div class="container">
             <div class="row">
-                <div class="col-lg-12 col-md-12">
-
+                <div class="col-lg-6 col-md-12">
                     @if($message == 'Booking successfully created' 
                         || $message == 'This booking already exists' 
                         || $message == 'Booking is pending confirmation from the hotel'
                             )
-                        <h1>@lang('main.Congratulations')</h1>
-
+                        <h1>@lang('main.congratulations')!</h1>
                             <div class="alert alert-primary" role="alert">
                                 <strong>@lang('main.'.$message)</strong>
                             </div>
                     @elseif($message == 'Timeout waiting for valid response')
                         <h1>@lang('main.timeout')</h1>
-
-                            <div class="alert alert-info" role="alert">
-                                <strong>@lang('main.'.$message)</strong>
-                            </div>
+                        <div class="alert alert-info" role="alert">
+                            <strong>@lang('main.'.$message)</strong>
+                        </div>
                     @else
                         <h1>@lang('main.Booking error')</h1>
-
-                            <div class="alert alert-danger" role="alert">
-                                <strong>@lang('main.'.$message)</strong>
-                            </div>
+                        <div class="alert alert-danger" role="alert">
+                            <strong>@lang('main.'.$message)</strong>
+                        </div>
                     @endif
-    
-                    
                     @if( isset($book->id) ) 
                         <ul>
                             <li>@lang('main.status'): @lang('main.' . $book->status ?? $message)</li>
                             <li>@lang('main.booking_number'): {{ $book->id ?? ''}}</li>
-                            <li>@lang('main.hotel_id'): {{ $request->hotel_id ?? ''}}</li>
+                            <li>@lang('main.hotel'): {{ $request->hotel_id ?? ''}}</li>
                             <li>
                                 @lang('main.dates'): {{ Carbon\Carbon::createFromDate($request->arrivalDate)->format('d.m.Y') }} {{$hotel->checkin ?? ''}} 
                                 - {{ Carbon\Carbon::createFromDate($request->departureDate)->format('d.m.Y') }} {{ $hotel->checkout ?? ''}}
@@ -59,29 +48,31 @@
                                         @lang('main.non_refundable')
                                 @endif
                             <li>
-                                @lang('main.сustomer'): {{ $request->name ? $book->title : '' }}
+                                @lang('main.guest'): {{ $request->name ? $book->title : '' }}
                                 <ul>
                                     <li>@lang('main.phone'): {{ $request->phone ?? '' }}</li>
                                     <li>
                                         Email: {{ $request->email ?? '' }}</li>
-                                    <li>@lang('main.comment'): {{ $request->comment ?? '' }}</li>
+                                    <li>@lang('main.message'): {{ $request->comment ?? '' }}</li>
                                 </ul>
                             </li>
                         </ul>
-                        <div class="bnt-wrap">
-                            @if($book->status != 'Cancelled')
-                                <form action="{{ route('cancel_calculate_etg', $book->id) }}">
-                                    <input type="hidden" name="number" value="{{ $book->book_token }}">
-                                    <button class="more">@lang('main.cancel_booking')</button>
-                                </form>
-                            @endif
-                            {{-- @if($message == 'Бронирование успешно создано!' || $message == 'Этот бронь уже существует!')
-                                <button class="more primary" id="getStatus">Узнать статус брони</button>
-                            @endif --}}
-                            <button class="more" onclick="location.href='{{ route('index') }}'">
-                                @lang('main.go_home')
-                            </button>
-
+                        <div class="btn-wrap">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    @if($book->status != 'Cancelled')
+                                        <form action="{{ route('cancel_calculate_etg', $book->id) }}">
+                                            <input type="hidden" name="number" value="{{ $book->book_token }}">
+                                            <button class="more">@lang('main.cancel_booking')</button>
+                                        </form>
+                                    @endif
+                                </div>
+                                <div class="col-md-6">
+                                    <button class="more" onclick="location.href='{{ route('index') }}'">
+                                        @lang('main.go_home')
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     @else
                         <div class="bnt-wrap">
@@ -90,7 +81,6 @@
                             </button>
                         </div>
                     @endif
-
                 </div>
             </div>
         </div>
@@ -126,25 +116,5 @@
             localStorage.removeItem('booking_etg_secondsLeft'); // Очистить данные
         });
     </script>
-    {{-- <script>
-        document.getElementById('getStatus').addEventListener('click', function() {
-            fetch('{{ route('get.data') }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({
-                    param: 'значение'
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-                // вставь data куда нужно
-            })
-            .catch(error => console.error(error));
-        });
-    </script> --}}
 
 @endsection

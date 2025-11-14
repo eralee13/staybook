@@ -477,7 +477,6 @@
                             @else
                                 @foreach($allHotels as $item)
                                     @php $src = $item['source'] ?? 'local'; @endphp
-
                                     @switch($src)
                                         @case('exely')
                                             @include('pages.search.parts.exely', ['item' => $item])
@@ -485,6 +484,10 @@
 
                                         @case('tm')
                                             @include('pages.search.parts.tourmind', ['item' => $item])
+                                            @break
+
+                                        @case('etg')
+                                            @include('pages.search.parts.emerging', ['item' => $item])
                                             @break
 
                                         @case('local')
