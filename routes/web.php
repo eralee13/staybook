@@ -170,13 +170,14 @@ Route::middleware('set_locale')->group(function () {
         ->name('search.suggest'); // вне middleware('auth')
 
     //local
-    Route::get('/search/hotel', [\App\Http\Controllers\SearchController::class, 'search'])->name('search');
-    Route::get('/search/hotel/{hotel?}', [SearchController::class, 'search'])
+    Route::get('/search/hotel/ex/{propertyId}', [SearchController::class, 'findHotelExely'])
+        ->name('findHotelExely');
+    Route::get('/hoteletg/{hid}', [\App\Http\Controllers\SearchController::class, 'hotel_etg'])
+        ->whereNumber('hid')
+        ->name('hotel_etg');
+    Route::get('/search/hotel/{hotel?}', [SearchController::class, 'findHotel'])
         ->where('hotel', '.*')
         ->name('findHotel');
-
-    //exely
-    Route::get('/search/hotel/ex/{hotel}', [\App\Http\Controllers\SearchController::class, 'findHotelExely'])->name('findHotelExely');
 
     //-----booking
     //local
@@ -224,9 +225,7 @@ Route::middleware('set_locale')->group(function () {
     Route::get('/book/cancel/confirm/tm', [\App\Http\Controllers\BookingTmController::class, 'cancel_confirm_tm'])->name('cancel_confirm_tm');
 
     // Emerging
-    Route::get('/hoteletg/{hid}', [\App\Http\Controllers\SearchController::class, 'hotel_etg'])
-        ->whereNumber('hid')
-        ->name('hotel_etg');
+
     Route::get('/book/order/etg', [\App\Http\Controllers\BookingEtgController::class, 'order_etg'])->name('order_etg');
     Route::get('/book/verify/etg', [\App\Http\Controllers\BookingEtgController::class, 'book_verify_etg'])->name('book_verify_etg');
     Route::get('/book/reserve/etg', [\App\Http\Controllers\BookingEtgController::class, 'book_reserve_etg'])->name('book_reserve_etg');
@@ -254,7 +253,6 @@ Route::get('/clear-cache', function () {
     Artisan::call('cache:clear');
     Artisan::call('route:clear');
     Artisan::call('view:clear');
-    //Artisan::call('web:clear');
     return "Cache cleared successfully";
 });
 

@@ -19,8 +19,8 @@ class MealController extends Controller
 
         return response()->json(
             $items->map(fn($m) => [
-                'id'   => (string) $m->code,   // строка, например "RO"
-                'name' => (string) $m->title,  // вместо title → name
+                'id'   => (string) $m->code,
+                'name' => (string) $m->title,
             ])->values()->all()
         );
     }

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Meal;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -11,7 +10,7 @@ use App\Models\City;
 use App\Models\Image;
 use App\Models\Room;
 use App\Models\Hotel;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Validator;
 
 class SearchController extends Controller
 {
@@ -19,41 +18,63 @@ class SearchController extends Controller
 
     public function search(Request $request)
     {
-        // ------- входные ----------
+        \Log::debug('SEARCH START', [
+            'q'           => $request->input('q'),
+            'city_id'     => $request->input('city_id'),
+            'hotel_id'    => $request->input('hotel_id'),
+            'region_id'   => $request->input('region_id'),
+            'arrivalDate' => $request->input('arrivalDate'),
+            'departureDate' => $request->input('departureDate'),
+            'residency'   => $request->input('residency'),
+            'rooms'       => $request->input('rooms'),
+        ]);
+
+        // ------ INPUT ------
         $hotelId = (int)$request->input('hotel_id');
-        $q = trim((string)($request->input('q', $request->input('city', ''))));
-        $rating = (int)$request->input('rating', 0);
+        $q       = trim((string)($request->input('q', $request->input('city', ''))));
+        $rating  = (int)$request->input('rating', 0);
 
         $arrival = (string)$request->input('arrivalDate', now()->format('Y-m-d'));
-        $depart = (string)$request->input('departureDate', now()->addDay()->format('Y-m-d'));
+        $depart  = (string)$request->input('departureDate', now()->addDay()->format('Y-m-d'));
 
-        // комнаты/гости
-        $rooms = (array)$request->input('rooms', []);
-        $totalAdults = 0;
+        // ------- ROOMS -------
+        $rooms        = $request->input('rooms', []);
+        $totalAdults  = 0;
         $allChildAges = [];
+
         foreach ($rooms as $r) {
             $totalAdults += (int)($r['adults'] ?? 0);
             foreach ((array)($r['childAges'] ?? []) as $age) {
-                if ($age !== '' && $age !== null) $allChildAges[] = (int)$age;
+                if ($age !== '' && $age !== null) {
+                    $allChildAges[] = (int)$age;
+                }
             }
         }
-        if ($totalAdults <= 0) $totalAdults = 1;
+        if ($totalAdults <= 0) {
+            $totalAdults = 1;
+        }
 
-        // ночи
-        $nights = 1;
+        // ------- NIGHTS -------
         try {
-            $n = \Carbon\Carbon::parse($arrival)->diffInDays(\Carbon\Carbon::parse($depart));
-            $nights = max(1, $n);
+            $nights = max(
+                1,
+                \Carbon\Carbon::parse($arrival)->diffInDays(\Carbon\Carbon::parse($depart))
+            );
         } catch (\Throwable $e) {
             $nights = 1;
         }
 
-        // ─── валюта пользователя + символы и простые курсы ─────────────────────────
-        $fxBase = strtoupper((string)session('currency', 'USD'));
-        $symbols = ['USD' => '$', 'EUR' => '€', 'RUB' => '₽', 'KGS' => 'сом', 'KZT' => '₸'];
+        // ------- CURRENCY -------
+        $fxBase  = strtoupper((string)session('currency', 'USD'));
+        $symbols = [
+            'USD' => '$',
+            'EUR' => '€',
+            'RUB' => '₽',
+            'KGS' => 'сом',
+            'KZT' => '₸',
+        ];
 
-        // примеры курсов; при желании замените на реальные из вашего источника
-        $rates = [
+        $ratesTable = [
             'USD' => 1.00,
             'EUR' => 0.92,
             'RUB' => 93.0,
@@ -61,47 +82,58 @@ class SearchController extends Controller
             'KZT' => 480.0,
         ];
 
-        $convert = function (float $amount, string $from, string $to) use ($rates): float {
+        $convert = function (float $amount, string $from, string $to) use ($ratesTable): float {
             $from = strtoupper($from);
-            $to = strtoupper($to);
-            if (!isset($rates[$from]) || !isset($rates[$to]) || $rates[$from] == 0.0) {
+            $to   = strtoupper($to);
+
+            if (!isset($ratesTable[$from], $ratesTable[$to]) || $ratesTable[$from] == 0.0) {
                 return round($amount, 2);
             }
-            // переводим через USD-эквивалент: amount / rate_from * rate_to
-            return round($amount / $rates[$from] * $rates[$to], 2);
+
+            return round($amount / $ratesTable[$from] * $ratesTable[$to], 2);
         };
 
-        // ====== если выбран конкретный отель ======
+        // =====================================================================
+        // 1) --- ОДИН КОНКРЕТНЫЙ ОТЕЛЬ ---
+        // =====================================================================
         if ($hotelId > 0) {
+            /** @var \App\Models\Hotel|null $h */
             $h = \App\Models\Hotel::find($hotelId);
 
             if (!$h) {
-                return view('pages.search.search', ['allHotels' => collect(), 'request' => $request]);
+                return view('pages.search.search', [
+                    'allHotels' => collect(),
+                    'request'   => $request,
+                ]);
             }
 
+            // Локальный тариф
             $rate = \App\Models\Rate::query()
                 ->where('hotel_id', $h->id)
-                ->orderBy('price', 'asc')
+                ->orderBy('price')
                 ->first();
 
             $pricePerNight = (float)($rate->price ?? 0);
-            $totalLocal = $pricePerNight * $nights;
+            $totalLocal    = $pricePerNight * $nights;
 
             $srcCurrency = strtoupper($rate->currency ?? 'USD');
-            $convPrice = $convert($totalLocal, $srcCurrency, $fxBase);
-            $convSymbol = $symbols[$fxBase] ?? $fxBase;
+            $convPrice   = $convert($totalLocal, $srcCurrency, $fxBase);
+            $convSymbol  = $symbols[$fxBase] ?? $fxBase;
 
             $localItems = collect([[
-                'source' => 'local',
-                'hotel' => $h,
-                'price' => $totalLocal,     // оригинальная сумма в валюте тарифа
-                'conv_total' => $convPrice,      // пересчитано в валюту пользователя
+                'source'      => 'local',
+                'apiHotelId'  => null,
+                'hotel'       => $h,
+                'roomStay'    => null,
+                'price'       => $totalLocal,
+                'conv_total'  => $convPrice,
                 'conv_symbol' => $convSymbol,
             ]]);
 
-            // + Exely по этому же отелю, если есть exely_id
+            // ——— EXELY по одному отелю
             $exelyItems = collect();
             if (filled($h->exely_id)) {
+
                 $exelyItems = $this->fetchExelyItems(
                     [$h->exely_id],
                     $totalAdults,
@@ -112,75 +144,96 @@ class SearchController extends Controller
                     $fxBase,
                     $convert
                 );
+
+                // приведём к общей структуре
+                $exelyItems = $exelyItems->map(function ($item) use ($h) {
+                    $item['source'] = 'exely';
+                    $item['hotel']  = $h; // важно!
+                    return $item;
+                });
             }
 
-            $all = $localItems->concat($exelyItems)->values();
-
             return view('pages.search.search', [
-                'allHotels' => $all,
-                'request' => $request,
+                'allHotels' => $localItems->concat($exelyItems)->values(),
+                'request'   => $request,
             ]);
         }
 
-        // ====== общий поиск (город/название, RU+EN) ======
-        $vars = $this->variants($q);
-        $likeVars = array_map(fn($v) => '%' . $v . '%', $vars);
-
+        // =====================================================================
+        // 2) --- ОБЩИЙ ПОИСК ПО БД ОТЕЛЕЙ ---
+        // =====================================================================
         $hotelsQ = \App\Models\Hotel::query();
 
-        if (!empty($likeVars)) {
-            $hotelsQ->where(function ($q2) use ($likeVars) {
-                foreach ($likeVars as $pat) {
-                    $q2->orWhereRaw('LOWER(city) LIKE ?', [$pat])
-                        ->orWhereRaw('LOWER(title) LIKE ?', [$pat])
-                        ->orWhereRaw('LOWER(title_en) LIKE ?', [$pat]);
-                }
-            });
+        if ($q !== '') {
+            $len = mb_strlen($q);
+
+            if ($len >= 3) {
+                $hotelsQ->whereRaw(
+                    "MATCH(title, title_en, city) AGAINST (? IN BOOLEAN MODE)",
+                    [$q . '*']
+                );
+            } else {
+                $hotelsQ->where(function ($qq) use ($q) {
+                    $qq->where('title', 'LIKE', $q . '%')
+                        ->orWhere('title_en', 'LIKE', $q . '%')
+                        ->orWhere('city', 'LIKE', $q . '%');
+                });
+            }
         }
 
         if ($rating > 0) {
             $hotelsQ->where('rating', '>=', $rating);
         }
 
-        $hotels = $hotelsQ->orderByDesc('rating')->get();
+        $hotels = $hotelsQ
+            ->orderByDesc('rating')
+            ->paginate(40);
 
-        $localItems = $hotels->map(function ($h) use ($nights, $symbols, $fxBase, $convert) {
-            $rate = \App\Models\Rate::query()
-                ->where('hotel_id', $h->id)
-                ->orderBy('price', 'asc')
+        // =====================================================================
+        // 3) --- LOCAL HOTELS (ТОЛЬКО С ТАРИФАМИ > 0) ---
+        // =====================================================================
+        $localItems = collect();
+
+        foreach ($hotels as $h) {
+            $rate = \App\Models\Rate::where('hotel_id', $h->id)
+                ->orderBy('price')
                 ->first();
 
             $pricePerNight = (float)($rate->price ?? 0);
-            $total = $pricePerNight * max(1, (int)$nights);
+            $total         = $pricePerNight * $nights;
+
+            // если нет тарифа или он нулевой — такой отель НЕ показываем
+            if ($total <= 0) {
+                continue;
+            }
 
             $srcCurrency = strtoupper($rate->currency ?? 'USD');
-            $convPrice = $convert($total, $srcCurrency, $fxBase);
-            $convSymbol = $symbols[$fxBase] ?? $fxBase;
+            $convPrice   = $convert($total, $srcCurrency, $fxBase);
+            $convSymbol  = $symbols[$fxBase] ?? $fxBase;
 
-            $isEtg = filled($h->emerging_id);
-            $source = $isEtg ? 'etg' : 'local';
-            $apiHid = $isEtg ? (string)$h->emerging_id : null;
-
-            return [
-                'source' => $source,       // local или etg// local или etg
-                'apiHotelId' => $apiHid,       // нужен фронту
-                'hotel' => $h,
-                'price' => $total,
-                'conv_total' => $convPrice,
+            $localItems->push([
+                'source'      => 'local',
+                'apiHotelId'  => null,
+                'hotel'       => $h,
+                'price'       => $total,
+                'conv_total'  => $convPrice,
                 'conv_symbol' => $convSymbol,
-            ];
-        });
+            ]);
+        }
 
-        // ====== Exely для всех найденных отелей, у которых есть exely_id ======
+        // =====================================================================
+        // 4) --- EXELY ДЛЯ ОТЕЛЕЙ ТЕКУЩЕЙ СТРАНИЦЫ ---
+        // =====================================================================
         $propertyIds = $hotels->pluck('exely_id')
-            ->filter(fn($v) => filled($v))
-            ->map(fn($id) => (string)$id)
+            ->filter()
             ->unique()
             ->values()
             ->all();
 
         $exelyItems = collect();
+
         if (!empty($propertyIds)) {
+
             $exelyItems = $this->fetchExelyItems(
                 $propertyIds,
                 $totalAdults,
@@ -191,147 +244,122 @@ class SearchController extends Controller
                 $fxBase,
                 $convert
             );
+
+            // унифицируем структуру
+            $exelyItems = $exelyItems->map(function ($item) {
+                $item['source'] = 'exely';
+                $item['hotel']  = \App\Models\Hotel::where('exely_id', $item['propertyId'])->first();
+                return $item;
+            });
         }
 
-        $exelyPropertyIds = $exelyItems
-            ->map(fn($i) => (string)data_get($i, 'roomStay.propertyId'))
-            ->filter()
-            ->values()
-            ->all();
-
-
-//        //tourmind
-//        $hotels['hotels'] = array_map(function ($hotel) use ($fxBase, $fxRates, $symbols) {
-//            $rate = $hotel['rates'] ?? null;
-//
-//            $price    = isset($rate['price']) ? (float)$rate['price'] : 0;
-//            $currency = $rate['currency'] ?? 'RUB';
-//
-//            $totalPrice = $price > 0 ? number_format(($price / ($this->coef ?? 1)), 2, '.', '') : 0;
-//
-//            $toCurrency = strtoupper($fxBase ?? 'USD');
-//            $converted  = $price > 0
-//                ? app(\App\Services\FXService::class)->convert($totalPrice, $currency, $fxBase)
-//                : 0;
-//
-//            $symbol = $symbols[$toCurrency] ?? $toCurrency;
-//
-//            return [
-//                'source'       => 'emerging', // ← ВАЖНО: помечаем как emerging
-//                'apiName'      => 'HS',
-//                'apiHotelId'   => $rate['hotel_id'] ?? '',
-//                'hid'          => $hotel['localData']['id'] ?? '',
-//                'code'         => $hotel['localData']['code'] ?? '',
-//                'title'        => $hotel['localData']['title'] ?? '',
-//                'title_en'     => $hotel['localData']['title_en'] ?? '',
-//                'rating'       => $hotel['localData']['rating'] ?? '',
-//                'city'         => $hotel['localData']['city'] ?? '',
-//                'amenities'    => $hotel['localData']['amenity']['services'] ?? '',
-//                'images'       => $hotel['localData']['images'] ?? [],
-//                'lat'          => $hotel['localData']['lat'] ?? '',
-//                'lng'          => $hotel['localData']['lng'] ?? '',
-//                'price'        => $price,
-//                'totalPrice'   => $totalPrice,
-//                'currency'     => $currency,
-//                'hash'         => $rate['hash'] ?? '',
-//                'provider_id'  => $rate['provider_id'] ?? '',
-//                'conv_total'   => round($converted),
-//                'conv_symbol'  => $symbol,
-//            ];
-//        }, $HSHotels);
-
-        $localFiltered = $localItems->filter(function ($item) {
-            $hotel = $item['hotel'] ?? null;
-            return !$hotel || empty($hotel->exely_id);
-        });
-
-        $exelyFiltered = $exelyItems->filter(function ($item) {
-            $hotel = $item['hotel'] ?? null;
-            return $hotel && filled($hotel->exely_id);
-        });
-
-        // ====== Emerging (ETG) — реальные цены из API ======
-        // ====== Emerging (ETG) — реальные цены из /search/hp для первых N ======
+        // =====================================================================
+        // 5) --- ETG: МИНИМАЛЬНЫЙ ТАРИФ ПО КАЖДОМУ HID (search/hp) ---
+        // =====================================================================
         $etgItems = collect();
+
         try {
-            $emerCtl    = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
-            $emerResult = $emerCtl->EmergingGetHotels($request);       // /search/serp/region
-            $coef       = (float) (config('app.main_coef') ?: 1);
-            $fxService  = app(\App\Services\FXService::class);
+            $emerCtl = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
 
-            $hotelsFromEtg = collect((array) data_get($emerResult, 'data.hotels', []))
-                ->filter(fn($h) => !empty(data_get($h, 'localData.id')))
-                ->values();
+            // Берём только отели из текущей страницы, у которых есть emerging_id
+            $etgHotels = $hotels->filter(fn($h) => filled($h->emerging_id));
 
-            // дергаем HP только для первых N отелей на странице (чтобы не упереться в 10/мин)
-            $N = 8;
-            $etgItems = $hotelsFromEtg->take($N)->map(function(array $h) use ($emerCtl, $request, $coef, $fxBase, $symbols, $fxService) {
+            foreach ($etgHotels as $h) {
+                $hid = (int)$h->emerging_id;
+                if ($hid <= 0) {
+                    continue;
+                }
 
-                $hid   = (int) data_get($h, 'hid');
-                $local = (object) data_get($h, 'localData');
+                try {
+                    // search/hp по конкретному HID
+                    $hp = $emerCtl->searchRates($request, $hid);
+                } catch (\Throwable $e) {
+                    \Log::warning('ETG searchRates failed', [
+                        'hid' => $hid,
+                        'msg' => $e->getMessage(),
+                    ]);
+                    continue;
+                }
 
-                // получаем тарифы от HP
-                $hp = $emerCtl->searchRates($request, $hid); // возвращает ['rates'=>..., 'hotel'=>..., 'message'=>...]
-                $rates = (array) data_get($hp, 'rates', []);
+                $rates = data_get($hp, 'rates', []);
+                if (!is_array($rates) || empty($rates)) {
+                    // нет тарифов — этот ETG-отель не показываем
+                    continue;
+                }
 
-                // ищем минимальный payment_types.amount
-                $min      = null;
-                $minCurr  = 'USD';
+                // ищем минимальную цену
+                $min     = null;
+                $minCurr = 'USD';
+
                 foreach ($rates as $rate) {
                     $pt  = data_get($rate, 'payment_options.payment_types.0');
-                    $amt = (float) data_get($pt, 'amount');
+                    $amt = (float) data_get($pt, 'amount', 0);
                     $cur = (string) data_get($pt, 'currency_code', 'USD');
-                    if ($amt > 0 && ($min === null || $amt < $min)) { $min = $amt; $minCurr = $cur; }
+
+                    if ($amt > 0 && ($min === null || $amt < $min)) {
+                        $min     = $amt;
+                        $minCurr = $cur;
+                    }
                 }
 
-                // если тарифов нет — пропускаем этот отель в списке
                 if (!is_numeric($min) || $min <= 0) {
-                    return null;
+                    // тарифы есть, но все 0/отрицательные — тоже не показываем
+                    continue;
                 }
 
-                // применяем ваш коэффициент и конвертацию в валюту пользователя
-                $sellTotal  = $coef > 0 ? ($min / $coef) : $min;
-                $converted  = $fxService->convert($sellTotal, $minCurr, $fxBase);
-                $convSymbol = $symbols[strtoupper($fxBase)] ?? strtoupper($fxBase);
+                $coef = (float) config('app.main_coef', 1);
+                $sell = $coef > 0 ? ($min / $coef) : $min;
 
-                return [
+                $converted  = app(\App\Services\FXService::class)->convert($sell, $minCurr, $fxBase);
+                $convSymbol = $symbols[$fxBase] ?? $fxBase;
+
+                $etgItems->push([
                     'source'      => 'etg',
-                    'sources'      => 'etg',
-                    'apiHotelId'  => (string) $hid,
-                    'hotel'       => $local,
-                    'price'       => $min,                 // исходная сумма (валюта поставщика)
+                    'apiHotelId'  => (string)$hid,
+                    'hotel'       => $h,
+                    'price'       => $min,
                     'currency'    => $minCurr,
-                    'conv_total'  => round($converted),    // что показываем пользователю
+                    'conv_total'  => (int)ceil($converted),
                     'conv_symbol' => $convSymbol,
-                ];
-            })->filter()->values();
-
-            // если N < общего числа отелей — оставшиеся можно показывать без цены («—»), либо вовсе не добавлять
+                ]);
+            }
         } catch (\Throwable $e) {
-            \Log::warning('ETG list failed in search()', ['msg' => $e->getMessage()]);
+            \Log::warning('ETG block error: ' . $e->getMessage());
+            $etgItems = collect();
         }
 
-// Теперь объединяем все источники
+        // Убираем локальные дубликаты тех отелей, для которых есть ETG-тарифы (чтобы не было 2 карточек)
+        $etgHotelIds = $etgItems->pluck('hotel.id')->filter()->unique()->all();
+        if (!empty($etgHotelIds)) {
+            $localItems = $localItems
+                ->reject(function ($item) use ($etgHotelIds) {
+                    return in_array($item['hotel']->id ?? null, $etgHotelIds, true);
+                })
+                ->values();
+        }
+
+        // =====================================================================
+        // 6) --- СВОДИМ ВСЁ В ОДНУ КОЛЛЕКЦИЮ ---
+        // =====================================================================
         $all = collect()
-            ->concat($localFiltered)
-            ->concat($exelyFiltered)
+            ->concat($localItems)
+            ->concat($exelyItems)
             ->concat($etgItems)
+            ->sortBy(fn($i) => (float)$i['conv_total'])
             ->values();
 
-// если нужна единая наценка — применяйте её аккуратно и НЕ округляйте в 0:
-        $all = $all->map(function ($item) {
-            if (!isset($item['conv_total'])) return $item;
-            $item['conv_total'] = (int) ceil($item['conv_total']); // безопасное округление вверх
-            $item['price']      = $item['conv_total'];
-            return $item;
-        })->sortBy(fn($i) => (float)($i['conv_total'] ?? PHP_FLOAT_MAX))->values();
-
+        \Log::debug('SEARCH FINISH', [
+            'local' => $localItems->count(),
+            'exely' => $exelyItems->count(),
+            'etg'   => $etgItems->count(),
+            'all'   => $all->count(),
+        ]);
 
         return view('pages.search.search', [
             'allHotels' => $all,
-            'request' => $request,
+            'request'   => $request,
+            'paginator' => $hotels,
         ]);
-
     }
 
     /**
@@ -351,28 +379,37 @@ class SearchController extends Controller
         $results = null;
 
         try {
+            \Log::debug('EXELY propertyIds', $propertyIds);
             $payload = [
-                'propertyIds' => array_values($propertyIds),
-                'adults' => max(1, (int)$totalAdults),
-                'childAges' => array_values($allChildAges),
-                'arrivalDate' => (string)$arrival,
-                'departureDate' => (string)$depart,
+                'propertyIds'  => array_map('strval', array_values($propertyIds)),
+                'adults'       => max(1, (int)$totalAdults),
+                'childAges'    => array_map('intval', array_values($allChildAges)),
+
+                // форматируем даты в YYYY-MM-DD на всякий случай
+                'arrivalDate'  => \Carbon\Carbon::parse($arrival)->format('Y-m-d'),
+                'departureDate'=> \Carbon\Carbon::parse($depart)->format('Y-m-d'),
             ];
 
             $response = \Illuminate\Support\Facades\Http::timeout(30)
                 ->connectTimeout(5)
                 ->retry(2, 100)
                 ->accept('application/json')
-                ->withHeaders(['x-api-key' => (string)config('services.exely.key')])
-                ->post(rtrim((string)config('services.exely.base_url'), '/') . '/search/v1/properties/room-stays/search', $payload);
+                ->withHeaders([
+                    'x-api-key' => (string) config('services.exely.key'),
+                ])
+                ->post(
+                    rtrim((string) config('services.exely.base_url'), '/')
+                    . '/search/v1/properties/room-stays/search',
+                    $payload
+                );
 
             if ($response->successful()) {
                 $results = $response->object();
             } else {
                 \Illuminate\Support\Facades\Log::warning('Exely search failed', [
-                    'status' => $response->status(),
+                    'status'  => $response->status(),
                     'payload' => $payload,
-                    'body' => $response->body(),
+                    'body'    => $response->body(),
                 ]);
             }
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
@@ -384,31 +421,39 @@ class SearchController extends Controller
         $roomStays = collect(data_get($results, 'roomStays', []));
 
         return $roomStays->map(function ($roomStay) use ($symbols, $fxBase, $convert) {
-            $basePrice = (float)data_get($roomStay, 'total.priceBeforeTax', 0);
-            $srcCurr = (string)(
-                data_get($roomStay, 'currencyCode') ??
-                data_get($roomStay, 'total.currencyCode') ?? 'USD'
+
+            $basePrice = (float) data_get($roomStay, 'total.priceBeforeTax', 0);
+
+            $srcCurr = (string) (
+                data_get($roomStay, 'currencyCode')
+                ?? data_get($roomStay, 'total.currencyCode')
+                ?? 'USD'
             );
 
-            $propertyId = data_get($roomStay, 'propertyId');
+            // FIX: правильный путь к propertyId
+            $propertyId = data_get($roomStay, 'property.id');
+
+            // находим нужный отель в БД
             $hotelModel = $propertyId
                 ? \App\Models\Hotel::where('exely_id', $propertyId)->first()
                 : null;
 
-            $convPrice = $convert($basePrice, $srcCurr, $fxBase);
-            $convSymbol = $symbols[$fxBase] ?? $fxBase;
-
+            $convPrice   = $convert($basePrice, $srcCurr, $fxBase);
+            $convSymbol  = $symbols[$fxBase] ?? $fxBase;
 
             return [
-                'source' => 'exely',
-                'roomStay' => $roomStay,
-                'hotel' => $hotelModel,
-                'price' => $basePrice,   // оригинальная из Exely
-                'conv_total' => $convPrice,   // пересчитано в валюту пользователя
+                'source'      => 'exely',
+                'roomStay'    => $roomStay,
+                'hotel'       => $hotelModel,
+                'price'       => $basePrice,
+                'conv_total'  => $convPrice,
                 'conv_symbol' => $convSymbol,
+                'propertyId'  => $propertyId, // ← полезно сохранить
             ];
+
         })->values();
     }
+
 
     public function suggest(Request $request)
     {
@@ -520,96 +565,6 @@ class SearchController extends Controller
     /**
      * Emerging API → приводим к единому виду карточек (source = 'emerging')
      */
-    private function fetchEmergingItems(
-        \Illuminate\Http\Request $request,
-        string                   $fxBase,
-        callable                 $convert,
-        array                    $symbols,
-        float                    $coef = 0.92
-    )
-    {
-        try {
-            $emerSearch = new \App\Http\Controllers\API\V1\Emerging\EmergingFormController();
-            $emerHotelsRes = $emerSearch->emergingGetHotels($request); // ['data' => ['hotels' => [...]]]
-            $rawHotels = (array)data_get($emerHotelsRes, 'data.hotels', []);
-
-            if (empty($rawHotels)) {
-                Log::debug('Emerging: empty hotels payload');
-                return collect();
-            }
-
-            // Фильтр по meal — вызывать mapping только если он действительно нужен
-            $selectedMealIds = (array)$request->input('meal', []);
-            if (!empty($selectedMealIds)) {
-                try {
-                    $mappingMeals = $emerSearch->mappingMealsGrouped(); // вызывем только при необходимости
-                    $allowedMeals = collect($selectedMealIds)
-                        ->map(fn($id) => $mappingMeals[$id] ?? [])
-                        ->flatten()
-                        ->toArray();
-
-                    $rawHotels = array_map(function ($h) use ($allowedMeals) {
-                        $rates = (array)data_get($h, 'rates', []);
-                        $rates = array_values(array_filter($rates, fn($r) => in_array(data_get($r, 'meal'), $allowedMeals, true)));
-                        $h['rates'] = $rates;
-                        return $h;
-                    }, $rawHotels);
-
-                    // убрать отели без тарифов
-                    $rawHotels = array_values(array_filter($rawHotels, fn($h) => !empty($h['rates'])));
-                } catch (\Throwable $e) {
-                    // если внутри mapping что-то сломалось — просто не фильтруем по meal
-                    Log::warning('Emerging meals mapping skipped: ' . $e->getMessage());
-                }
-            }
-
-            $toCurrency = strtoupper($fxBase ?: 'USD');
-            $symbol = $symbols[$toCurrency] ?? $toCurrency;
-
-            $items = array_map(function ($h) use ($coef, $convert, $toCurrency, $symbol) {
-                // безопасно берём ПЕРВЫЙ тариф (если есть)
-
-                $rates = (array)data_get($h, 'rates', []);
-                $rates = array_values($rates);              // нормализуем индексы 0..N
-                $rate = $rates[0] ?? [];                   // берём первый доступный тариф
-
-                // безопасно берём ПЕРВЫЙ payment_type (если есть)
-                $payList = (array)data_get($rate, 'payment_options.payment_types', []);
-                $pay = is_array($payList) ? (reset($payList) ?: []) : [];
-
-
-                $amount = (float)data_get($pay, 'amount', data_get($rate, 'amount', 0));
-                $cur = (string)data_get($pay, 'currency_code', data_get($rate, 'currency', 'USD'));
-
-                // net с коэфом
-                $net = $coef > 0 ? (float)number_format($amount / $coef, 2, '.', '') : $amount;
-
-                // конвертация в валюту пользователя
-                $converted = $net > 0 ? $convert($net, $cur, $toCurrency) : 0;
-
-                return [
-                    'source' => 'emerging',
-                    'apiName' => 'ETG',
-                    'apiHotelId' => (string)data_get($h, 'hid', ''),
-                    'title' => (string)data_get($h, 'localData.title', ''),
-                    'title_en' => (string)data_get($h, 'localData.title_en', ''),
-                    'rating' => data_get($h, 'localData.rating'),
-                    'city' => (string)data_get($h, 'localData.city', ''),
-                    'images' => (array)data_get($h, 'localData.images', []),
-
-                    // цена без нашей 8% надбавки; её добавим общим постпроцессом
-                    'price' => $converted,
-                    'conv_total' => $converted,
-                    'conv_symbol' => $symbol,
-                ];
-            }, $rawHotels);
-
-            return collect($items)->values();
-        } catch (\Throwable $th) {
-            Log::error('Emerging API in search failed (wrapper): ' . $th->getMessage());
-            return collect();
-        }
-    }
 
     //page hotel
     public function findHotel($code, Request $request)
@@ -712,28 +667,63 @@ class SearchController extends Controller
     }
 
     //exely
-    public function findHotelExely(Request $request)
+
+    public function findHotelExely(Request $request, $propertyId = null)
     {
-        // ✅ Валидация входных параметров
-        $request->validate([
-            'propertyId' => 'required|string',
-            'arrivalDate' => 'required|date',
+        // Собираем все входные данные + route-параметр
+        $input = $request->all();
+        if ($propertyId && empty($input['propertyId'])) {
+            $input['propertyId'] = (string) $propertyId;
+        }
+
+        Log::debug('EXELY VERIFY INPUT', $input);
+
+        // ⚠️ Ручная валидация без редиректа
+        $validator = Validator::make($input, [
+            'propertyId'    => 'required|string',
+            'arrivalDate'   => 'required|date',
             'departureDate' => 'required|date|after:arrivalDate',
-            'adultCount' => 'required|integer|min:1',
-            'childAges' => 'nullable|array',
+            'adultCount'    => 'required|integer|min:1',
+            // childAges может быть строкой/массивом – разберём ниже сами
         ]);
 
-        // ✅ Очистка массива childAges от пустых значений
-        $childAgesInput = (array)$request->input('childAges', []);
-        $childs = array_filter($childAgesInput, fn($age) => trim($age) !== '');
-        $childs = array_map('intval', $childs); // безопасное преобразование в числа
+        if ($validator->fails()) {
+            Log::warning('Exely validation failed', [
+                'errors' => $validator->errors()->toArray(),
+                'input'  => $input,
+            ]);
 
-        // ✅ Параметры запроса
+            // Никаких редиректов – просто показываем пустой список
+            return view('pages.search.exely.hotel', [
+                'rooms'   => [],
+                'request' => $request,
+                'errors'  => $validator->errors(),
+            ]);
+        }
+
+        // Нормализуем childAges: могут прийти как [""] или ["5, 7"] и т.п.
+        $rawChildAges = $request->input('childAges', []);
+        if (!is_array($rawChildAges)) {
+            $rawChildAges = [$rawChildAges];
+        }
+
+        $childs = [];
+        foreach ($rawChildAges as $value) {
+            // Разбиваем по запятой/пробелам: "5, 7" -> ['5','7']
+            $parts = preg_split('/[,\s]+/', (string) $value, -1, PREG_SPLIT_NO_EMPTY);
+            foreach ($parts as $p) {
+                $age = (int) $p;
+                if ($age >= 0) {
+                    $childs[] = $age;
+                }
+            }
+        }
+
         $params = [
-            'arrivalDate' => $request->arrivalDate,
-            'departureDate' => $request->departureDate,
-            'adults' => $request->adultCount,
-            'includeExtraStays' => 'false',
+            'arrivalDate'          => $input['arrivalDate'],
+            'departureDate'        => $input['departureDate'],
+            'adults'               => (int)$input['adultCount'],
+            'includeExtraStays'    => 'false',
             'includeExtraServices' => 'false',
         ];
 
@@ -742,42 +732,52 @@ class SearchController extends Controller
             $queryString .= '&childAges=' . urlencode($age);
         }
 
-        // ✅ Финальный URL
-        $url = rtrim(config('services.exely.base_url'), '/') . "/search/v1/properties/{$request->propertyId}/room-stays?" . $queryString;
+        $propertyIdFinal = $input['propertyId'];
 
-        // ✅ Выполняем запрос
+        $url = rtrim(config('services.exely.base_url'), '/')
+            . "/search/v1/properties/{$propertyIdFinal}/room-stays?"
+            . $queryString;
+
         $response = Http::withHeaders([
             'x-api-key' => config('services.exely.key'),
-            'accept' => 'application/json',
+            'accept'    => 'application/json',
         ])->get($url);
 
-        // ✅ Лог ответа
         Log::debug('📥 Ответ Exely:', [
-            'url' => $url,
+            'url'    => $url,
             'status' => $response->status(),
-            'body' => $response->body(),
+            'body'   => $response->body(),
         ]);
 
-        // ✅ Безопасное получение roomStays
-        $data = json_decode($response->body());
+        if (!$response->successful()) {
+            Log::warning('Exely HP error', [
+                'status' => $response->status(),
+                'body'   => $response->body(),
+            ]);
 
-        if (!isset($data->roomStays) || !is_array($data->roomStays)) {
-            Log::warning('Exely: Нет roomStays в ответе', ['response' => $data]);
             return view('pages.search.exely.hotel', [
-                'rooms' => [],
+                'rooms'   => [],
                 'request' => $request,
             ]);
         }
 
-        // ✅ Сортировка по цене
+        $data = json_decode($response->body());
+
+        if (!isset($data->roomStays) || !is_array($data->roomStays)) {
+            Log::warning('Exely: Нет roomStays в ответе', ['response' => $data]);
+
+            return view('pages.search.exely.hotel', [
+                'rooms'   => [],
+                'request' => $request,
+            ]);
+        }
+
         $rooms = collect($data->roomStays)
             ->sortBy('total.priceBeforeTax')
             ->values()
             ->all();
 
         return view('pages.search.exely.hotel', compact('rooms', 'request'));
-
-
     }
 
     // tourmind
@@ -873,8 +873,15 @@ class SearchController extends Controller
             $etgrooms = ['rates' => [], 'message' => 'Поставщик недоступен'];
         }
 
+        $etgHotel = data_get($etgrooms, 'hotel');
+
+        if (is_array($etgHotel)) {
+            $etgHotel = (object) $etgHotel;
+        }
+
         return view('pages.search.emerging.hotel', [
-            'hotel' => $hotel,         // может быть null — шаблон уже устойчив
+            'hotel' => $hotel,
+            'etgHotel'    => $etgHotel,
             'arrival' => $arrivalC,
             'departure' => $departC,
             'request' => $clean,

@@ -45,7 +45,8 @@ class Book extends Model
         'checkout_time',
         'source_sym',
         'cancel_price_source',
-        'currency', // ← добавили, чтобы валюта сохранялась
+        'currency',
+        'untax'
     ];
 
     protected $hidden = [

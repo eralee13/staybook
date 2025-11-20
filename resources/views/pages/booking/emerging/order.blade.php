@@ -5,42 +5,61 @@
 @section('content')
     @php
         use App\Models\Hotel;
-        $hotel = Hotel::where('id', $request->hotel_id)->first();
-        $rooms = $request->input('rooms', []);
 
+        $hotel = Hotel::find($request->hotel_id);
+
+        // ---- rooms ----
+        $rooms = $request->input('rooms', []);
         if (is_string($rooms)) {
             $decoded = json_decode($rooms, true);
-            $rooms = is_array($decoded) ? $decoded : [];
+            $rooms   = is_array($decoded) ? $decoded : [];
         }
 
-        $totalAdults    = 0;
-        $allChildAges   = [];
-        $roomCount=0;
-        $childs = 0;
+        $totalAdults  = 0;
+        $allChildAges = [];
+        $roomCount    = 0;
+        $childs       = 0;
+
         foreach ($rooms as $room) {
-            $adults = (int)($room['adults'] ?? 0);
-            $childAges = isset($room['childAges']) && is_array($room['childAges'])
-                ? $room['childAges']
-                : [];
+            $adults = (int) data_get($room, 'adults', 0);
+            $childAges = (array) data_get($room, 'childAges', []);
+
             $roomCount++;
-            // Взрослые
-            $totalAdults += (int) ($room['adults'] ?? 0);
-            // Возрасты детей (если есть) собираем в единый массив
-           if (!empty($room['childAges']) && is_array($room['childAges'])) {
-               foreach ($room['childAges'] as $age) {
-                   $allChildAges[] = (int) $age;
-                   $childs++;
-               }
-           }
+            $totalAdults += $adults;
+
+            foreach ($childAges as $age) {
+                if ($age !== '' && $age !== null) {
+                    $allChildAges[] = (int) $age;
+                    $childs++;
+                }
+            }
         }
-        $coef = config('app.main_coef');
-        $price = $preBook['data']['hotels'][0]['rates'][0]['payment_options']['payment_types'][0]['amount'];
-        $penaltPrice = $preBook['data']['hotels'][0]['rates'][0]['payment_options']['payment_types'][0]['cancellation_penalties']['policies'][1]['amount_charge'] ?? 0;
-        $totalPrice = number_format( ($price / $coef ) , 2, '.', '');
-        $penaltyPrice = number_format( ($penaltPrice / $coef ) , 2, '.', '');
-        $converted = app(\App\Services\FXService::class)->convert($totalPrice, $request->currency, $fxBase);
-        $cancelConverted = app(\App\Services\FXService::class)->convert($penaltyPrice, $request->currency, $fxBase);
-        $rateChanged = $preBook['data']['hotels']['0']['rates'][0];
+        if ($totalAdults <= 0) $totalAdults = 1;
+
+        // ---- безопасно достаём rate из preBook ----
+        $coef   = (float) (config('app.main_coef') ?? 1);
+        $fxBase = $fxBase ?? 'USD';    // если вдруг не передали из контроллера
+
+        $rate = is_array($preBook ?? null)
+            ? data_get($preBook, 'data.hotels.0.rates.0', [])
+            : [];
+
+        // платёж
+        $payment = (array) data_get($rate, 'payment_options.payment_types.0', []);
+
+        $priceRaw       = (float) data_get($payment, 'amount', 0);
+        $price          = $priceRaw; // как в исходном коде
+        $penaltRaw      = (float) data_get($payment, 'cancellation_penalties.policies.1.amount_charge', 0);
+
+        $totalPrice   = $coef > 0 ? number_format($price / $coef, 2, '.', '')   : 0;
+        $penaltyPrice = $coef > 0 ? number_format($penaltRaw / $coef, 2, '.', '') : 0;
+
+        // конвертация в валюту пользователя
+        $converted        = app(\App\Services\FXService::class)->convert($totalPrice,   $request->currency, $fxBase);
+        $cancelConverted  = app(\App\Services\FXService::class)->convert($penaltyPrice, $request->currency, $fxBase);
+
+        // для hidden-полей
+        $rateChanged = $rate;   // просто alias, чтобы ниже не падало
     @endphp
 
     <div class="page order">
@@ -173,9 +192,10 @@
                             @endforeach
                         @endforeach
                         <input type="hidden" name="book_hash"
-                               value="{{ $rateChanged['book_hash'] ?? $request->book_hash }}">
+                               value="{{ data_get($rateChanged, 'book_hash', $request->book_hash) }}">
+
                         <input type="hidden" name="match_hash"
-                               value="{{ $rateChanged['match_hash'] ?? $request->match_hash }}">
+                               value="{{ data_get($rateChanged, 'match_hash', $request->match_hash) }}">
                         <input type="hidden" name="room_name" value="{{ $request->room_name }}">
                         <input type="hidden" name="rate_name" value="{{ $request->rate_name }}">
                         <input type="hidden" name="bedTypeDesc" value="{{ $request->bedTypeDesc }}">

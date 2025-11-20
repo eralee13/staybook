@@ -63,7 +63,7 @@
 
         <div class="col-md-6 order-xl-2 order-lg-2 order-2">
             <div class="wrap">
-                {{--                    <div class="small">ETG</div>--}}
+                <div class="small">ETG</div>
                 <h4>{{ $hotel->title ?? 'Hotel' }}</h4>
                 <div class="amenities">
                     {{-- при желании выведите часть удобств --}}

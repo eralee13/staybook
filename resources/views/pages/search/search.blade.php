@@ -4,8 +4,6 @@
     use App\Models\Image;
     use Carbon\Carbon;
     use Illuminate\Support\Facades\Storage;
-
-    // Безопасные даты
     $arrRaw = request('arrivalDate');
     $depRaw = request('departureDate');
     $arr = $arrRaw ? Carbon::parse($arrRaw)->format('d.m.Y') : '';
@@ -464,9 +462,6 @@
         <div class="page search" style="margin-bottom: 60px">
             <div class="container-fluid">
                 <div class="row">
-                    {{-- Листинг --}}
-
-                    {{-- Листинг --}}
                     <div class="col-lg-7 col-md-12">
                         <div id="hotel-list">
                             @if(collect($allHotels)->isEmpty())
@@ -476,44 +471,42 @@
                                 </div>
                             @else
                                 @foreach($allHotels as $item)
+                                    @php
+                                        $conv = (float)($item['conv_total'] ?? 0);
+                                    @endphp
+
+{{--                                    @if($conv <= 0)--}}
+{{--                                        @continue--}}
+{{--                                    @endif--}}
+
                                     @php $src = $item['source'] ?? 'local'; @endphp
                                     @switch($src)
                                         @case('exely')
                                             @include('pages.search.parts.exely', ['item' => $item])
                                             @break
-
-                                        @case('tm')
-                                            @include('pages.search.parts.tourmind', ['item' => $item])
-                                            @break
-
                                         @case('etg')
                                             @include('pages.search.parts.emerging', ['item' => $item])
                                             @break
-
                                         @case('local')
+                                        @case('etg-local')
                                         @default
                                             @include('pages.search.parts.local', ['item' => $item])
                                     @endswitch
                                 @endforeach
                             @endif
                         </div>
-
                     </div>
-
-
                     {{-- Карта --}}
                     <div class="col-lg-5 col-md-12">
                         <div class="map-sticky">
                             <div id="map"></div>
                         </div>
-
                         @php
                             $hotelse = collect($allHotels)
                                 ->map(function ($row) {
                                     $isWrapped = is_array($row) || $row instanceof ArrayAccess;
                                     $h         = $isWrapped ? ($row['hotel'] ?? null) : $row;
                                     if (!$h) return null;
-
                                     return [
                                         'id'    => $h->id,
                                         'name'  => $h->title_en ?? $h->title ?? '',
@@ -527,8 +520,6 @@
                                 ->filter(fn($i) => $i && !empty($i['lat']) && !empty($i['lng']))
                                 ->values();
                         @endphp
-
-                        {{-- Leaflet --}}
                         <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
                         <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
                         <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
@@ -539,10 +530,8 @@
                             const hotels = @json($hotelse);
                             const map = L.map('map').setView([hotels[0]?.lat || 0, hotels[0]?.lng || 0], 9);
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 14}).addTo(map);
-
                             const listItems = {};
                             const markers = L.markerClusterGroup();
-
                             hotels.forEach(hotel => {
                                 const popupContent = `
                                     <div class="d-flex align-items-center gap-2">
@@ -551,14 +540,11 @@
                                         <div class="fw-bold mb-1">${hotel.name}</div>
                                       </div>
                                     </div>`;
-
                                 const marker = L.marker([hotel.lat, hotel.lng]).bindPopup(popupContent);
                                 marker.on('mouseover', () => marker.openPopup());
                                 marker.on('mouseout', () => marker.closePopup());
-
                                 const li = document.querySelector(`div.search-item[data-id="${hotel.id}"]`);
                                 listItems[hotel.id] = li;
-
                                 marker.on('click', () => {
                                     Object.values(listItems).forEach(el => el && el.classList.remove('active'));
                                     if (li) {
@@ -566,17 +552,14 @@
                                         li.scrollIntoView({behavior: 'smooth', block: 'center'});
                                     }
                                 });
-
                                 markers.addLayer(marker);
                             });
-
                             map.addLayer(markers);
                         </script>
                     </div>
                 </div>
             </div>
         </div>
-
     @else
         @include('layouts.auth')
     @endauth

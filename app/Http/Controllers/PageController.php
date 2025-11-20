@@ -190,7 +190,6 @@ class PageController extends Controller
                     ->orderByDesc('rating')
                     ->limit(20)
                     ->get();
-                Log::debug('Fallback showcase hotels', ['count' => $hotels->count()]);
             }
         }
 
