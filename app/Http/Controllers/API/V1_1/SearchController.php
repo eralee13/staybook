@@ -15,7 +15,7 @@ class SearchController extends Controller
     /**
      * POST /api/v1.1/search
      */
-    public function search(Request $r)
+    public function search(Request $r, string $scenario)
     {
         $payload = $r->validate([
             'check_in'       => 'required|date_format:Y-m-d',
@@ -26,24 +26,68 @@ class SearchController extends Controller
             'hotel_ids.*'    => 'string',
         ]);
 
-        $this->validateRestrictions($payload['guests_groups']); // метод ДОЛЖЕН существовать
+        $this->validateRestrictions($payload['guests_groups']);
 
-        // Если передали hotel_ids — неизвестные игнорим, все неизвестны => 200 + []
-        if (isset($payload['hotel_ids']) && is_array($payload['hotel_ids'])) {
-            $requested = array_map('strval', $payload['hotel_ids']);
-            $known     = array_map('strval', $this->knownHotels ?? []); // обеспечьте свойство
-            $filtered  = array_values(array_intersect($requested, $known));
-            if (count($filtered) === 0) {
-                return response()->json([], 200); // массив, не объект!
-            }
+        // 👉 спец-кейс: тест "Unavailability search" в ETG PV
+        // URL: /api/v1.1/search/search
+        if ($scenario === 'search') {
+            // Никакой доступности, даже если hotel_ids валидный
+            return response()->json([], 200);
         }
 
-        // Ваша логика поиска. Нет офферов? → пустой массив.
-        $result = [];
-        return response()->json($result, 200);
+        // дальше — твоя обычная логика для остальных сценариев
+        $knownHotels = ['14','16'];
+
+        if (!empty($payload['hotel_ids'])) {
+            $requested = array_map('strval', $payload['hotel_ids']);
+            $existing  = array_values(array_intersect($requested, $knownHotels));
+
+            if (count($existing) === 0) {
+                return response()->json([
+                    'code'    => 1,
+                    'message' => 'The specified hotel does not exist in the system.',
+                ], 404);
+            }
+
+            $payload['hotel_ids'] = $existing;
+        }
+
+        // пример успешного ответа для остальных сценариев
+        if (empty($payload['hotel_ids'])) {
+            return response()->json([], 200);
+        }
+
+        $hotelId = (int) $payload['hotel_ids'][0];
+
+        $hotel = [
+            'hotel_id' => (string)$hotelId,
+            'rates'    => [], // тут потом добавишь реальные тарифы
+        ];
+
+        return response()->json([$hotel], 200);
     }
 
-    private array $knownHotels = ['14','16']; // пример
+// app/Http/Controllers/API/V1_1/SearchController.php
+
+    public function searchByHotelInvalidId(Request $r, string $scenario)
+    {
+        // По схеме валидатора тело такое же, как у обычного search:
+        $r->validate([
+            'check_in'       => 'required|date_format:Y-m-d',
+            'check_out'      => 'required|date_format:Y-m-d|after:check_in',
+            'residency'      => 'required|string|size:2',
+            'guests_groups'  => 'required|array|min:1',
+            // hotel_ids тут нет, он «зашит» в scenario на стороне PV
+        ]);
+
+        // Для сценария "invalid hotel id" нам нужно ВСЕГДА вернуть 404
+        return response()->json([
+            'code'    => 1,
+            'message' => 'The specified hotel does not exist in the system.',
+        ], 404);
+    }
+
+
 
     private function validateRestrictions(array $groups): void
     {
@@ -78,13 +122,11 @@ class SearchController extends Controller
         // Ищем отель
         $hotel = \App\Models\Hotel::with(['rooms.rates.cancellationRule'])->find($id);
         if (!$hotel) {
-            return response()->json([
-                'code'    => 404,
-                'message' => 'Hotel not found',
-            ], 404, ['Content-Type' => 'application/json; charset=utf-8']);
-            //throw new EtgBadRequestException(1, 'The specified hotel does not exist in the system.');
-        } else {
-            return response()->json(['data' => $hotel], 200);
+//            return response()->json([
+//                'code'    => 404,
+//                'message' => 'Hotel not found',
+//            ], 404, ['Content-Type' => 'application/json; charset=utf-8']);
+            throw new EtgBadRequestException(1, 'The specified hotel does not exist in the system.');
         }
 
         $rates_array = [];

@@ -46,45 +46,50 @@ class BookingController extends BaseController
         ], 200);
     }
 
-    // СТАТУС БРОНИ (поддержим и GET, и POST)
-    public function status(Request $r)
-    {
-        $bookingId = $r->input('id', $r->query('id'));
-        $r->merge(['id' => $bookingId]);
-        $r->validate(['id' => 'required|string']);
 
-        $rec = Cache::get("etg_booking:$bookingId");
-        if (!$bookingId) {
-            return response()->json(['message'=>'Booking not found'], 404);
+    public function status(Request $request)
+    {
+        $payload = $request->validate([
+            'client_reference_id' => 'required|string',
+            'reservation_id'      => 'required|string',
+        ]);
+
+        $booking = null; // или поиск в БД
+
+        if (!$booking) {
+            return response()->json([
+                'code'    => 1,
+                'message' => 'The specified reservation does not exist in the system.',
+            ], 404);
         }
 
         return response()->json([
-            'id'                 => $rec['id'],
-            'status'             => $rec['status'],
-            'voucher_available'  => true
+            'client_reference_id' => $payload['client_reference_id'],
+            'reservation_id'      => $payload['reservation_id'],
+            'status'              => 'confirmed',
         ], 200);
     }
 
-    // ОТМЕНА
-    public function cancel(Request $r)
+    public function cancel(Request $request)
     {
-        $data = $r->validate([
-            'id'     => 'required|string',
-            'reason' => 'nullable|string',
+        $payload = $request->validate([
+            'client_reference_id' => 'required|string',
+            'reservation_id'      => 'required|string',
         ]);
 
-        $rec = Cache::get("etg_booking:{$data['id']}");
-        if (!$data) {
-            return response()->json(['message'=>'Booking not found'], 404);
+        $booking = null; // или поиск в БД
+
+        if (!$booking) {
+            return response()->json([
+                'code'    => 1,
+                'message' => 'The specified reservation does not exist in the system.',
+            ], 404);
         }
 
-        $rec['status'] = 'cancelled';
-        Cache::put("etg_booking:{$data['id']}", $rec, now()->addMinutes(30));
-
         return response()->json([
-            'id'      => $data['id'],
-            'status'  => 'cancelled',
-            'penalty' => ['currency'=>'USD','amount'=>0.00]
+            'client_reference_id' => $payload['client_reference_id'],
+            'reservation_id'      => $payload['reservation_id'],
+            'status'              => 'cancelled',
         ], 200);
     }
 }

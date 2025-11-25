@@ -49,7 +49,9 @@
                                         </td>
                                         <td style="border-top: none">
                                             <div class="title">@lang('admin.count'):</div>
-                                            <div class="value">{{ $book->room_count }} @lang('admin.room') {{ $book->adult }} @lang('admin.adult') @if($book->child) {{ $book->child }} дет.@endif</div>
+                                            <div class="value">{{ $book->room_count }} @lang('admin.room') {{ $book->adult }} @lang('admin.adult') @if($book->child)
+                                                    {{ $book->child }} дет.
+                                                @endif</div>
                                         </td>
                                         <td style="border-top: none">
                                             <div class="title">@lang('admin.date_creation'):</div>
@@ -66,7 +68,8 @@
                                         </td>
                                         <td>
                                             <div class="title">@lang('admin.checkin') / @lang('admin.checkout'):</div>
-                                            <div class="value">{{ $book->showStartDate() }} - {{ $book->showEndDate() }}</div>
+                                            <div class="value">{{ $book->showStartDate() }}
+                                                - {{ $book->showEndDate() }}</div>
                                         </td>
                                         @php
                                             $hotel = \App\Models\Hotel::where('id', $book->hotel_id)->orWhere('exely_id', $book->hotel_id)->first();
@@ -92,14 +95,22 @@
                                             @php
                                                 $timezone = $hotel->timezone ?? config('app.timezone');
                                                 $createdAt = Carbon::parse($book->created_at)->timezone($timezone);
-                                                $rate = \App\Models\Rate::where('id', $book->rate_id)->first();
-                                                $cancelPossible = \App\Models\CancellationRule::where('rate_id', $rate->id)->first();
+
+                                                $rate = \App\Models\Rate::find($book->rate_id);
+                                                $cancelPossible = null;
+                                                if ($rate) {
+                                                    $cancelPossible = \App\Models\CancellationRule::where('rate_id', $rate->id)->first();
+                                                }
+
                                                 $freeDate = \Carbon\Carbon::parse($book->arrivalDate)->format('d.m.Y H:i');
-                                                $cancel = \App\Models\CancellationRule::where('id', $book->cancellation_id)->first();
-                                                if($cancel != null){
-                                                    $cancelDate = \Carbon\Carbon::parse($book->arrivalDate)->subDays($cancel->free_cancellation_days)->format('d.m.Y H:i');
+                                                $cancel = \App\Models\CancellationRule::find($book->cancellation_id);
+                                                if ($cancel) {
+                                                    $cancelDate = \Carbon\Carbon::parse($book->arrivalDate)
+                                                        ->subDays($cancel->free_cancellation_days)
+                                                        ->format('d.m.Y H:i');
                                                 }
                                             @endphp
+
                                             <td>
                                                 <div class="title">@lang('admin.rule')</div>
                                                 @if($cancel->cancel_policy === 'free_until_checkin')
@@ -115,7 +126,8 @@
                                                         </div>
                                                     @else
                                                         <div class="value">
-                                                            @lang('main.cancellation_is_not_avaialble'). @lang('main.cancellation_amount')
+                                                            @lang('main.cancellation_is_not_avaialble')
+                                                            . @lang('main.cancellation_amount')
                                                             : {{ $book->cancel_penalty }} {{ $book->currency }}
                                                         </div>
                                                     @endif
@@ -124,10 +136,10 @@
                                                         : {{ $book->cancel_penalty }} {{ $book->currency }}
                                                     </div>
                                                 @else
-                                                   <div class="value">
-                                                       @lang('main.cancellation_amount')
-                                                       : {{ $book->cancel_penalty }} {{ $book->currency }}
-                                                   </div>
+                                                    <div class="value">
+                                                        @lang('main.cancellation_amount')
+                                                        : {{ $book->cancel_penalty }} {{ $book->currency }}
+                                                    </div>
                                                 @endif
                                             </td>
                                         @else
@@ -139,11 +151,13 @@
                                                       method="post">
                                                     <ul>
                                                         <a href="{{ route('userbooks.show', $book)}}"><img
-                                                                    src="{{ route('index') }}/img/icons/eye.svg" style="max-width: 24px"></a>
+                                                                    src="{{ route('index') }}/img/icons/eye.svg"
+                                                                    style="max-width: 24px"></a>
                                                         @csrf
                                                         @if($book->status == 'Reserved')
                                                             <button onclick="return confirm('Do you want to cancel this?');">
-                                                                <img src="{{ route('index') }}/img/cancel.svg" alt=""></button>
+                                                                <img src="{{ route('index') }}/img/cancel.svg" alt="">
+                                                            </button>
                                                         @endif
                                                     </ul>
                                                 </form>
@@ -152,11 +166,13 @@
                                                       method="post">
                                                     <ul>
                                                         <a href="{{ route('userbooks.show', $book)}}"><img
-                                                                    src="{{ route('index') }}/img/icons/eye.svg" style="max-width: 24px"></a>
+                                                                    src="{{ route('index') }}/img/icons/eye.svg"
+                                                                    style="max-width: 24px"></a>
                                                         @csrf
                                                         @if($book->status == 'Reserved')
                                                             <button onclick="return confirm('Do you want to cancel this?');">
-                                                                <img src="{{ route('index') }}/img/cancel.svg" alt=""></button>
+                                                                <img src="{{ route('index') }}/img/cancel.svg" alt="">
+                                                            </button>
                                                         @endif
                                                     </ul>
                                                 </form>

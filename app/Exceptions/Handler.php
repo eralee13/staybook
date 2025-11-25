@@ -23,8 +23,11 @@ class Handler extends ExceptionHandler
      */
     public function register(): void
     {
-        $this->reportable(function (Throwable $e) {
-            //
+        $this->renderable(function (EtgApiException $e, $request) {
+            return response()->json(
+                $e->toArray(),
+                $e->getHttpStatus()
+            );
         });
     }
 }
