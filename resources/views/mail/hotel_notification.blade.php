@@ -21,20 +21,20 @@
         <td style="padding: 20px;">
             <table width="100%" style="margin-bottom: 15px;">
                 <tr>
-                    <td>@lang('mail.hotel_admin.title', ['title' => $hotel->title])</td>
+                    <td>@lang('mail.hotel_admin.title', ['title' => $hotel->title ?? ''])</td>
                 </tr>
                 <tr>
-                    <td>@lang('admin.hotel') ID: {{ $hotel->id }}</td>
+                    <td>@lang('admin.hotel') ID: {{ $hotel->id ?? '' }}</td>
                 </tr>
                 <tr>
-                    <td>@lang('mail.hotel_admin.added_by', ['user' => $hotel->user->name, 'email' => $hotel->user->email])</td>
+                    <td>@lang('mail.hotel_admin.added_by', ['user' => optional($hotel->user)->name ?? '—', 'email' => optional($hotel->user)->email ?? '—'])</td>
                 </tr>
             </table>
 
             <hr style="border: none; border-top: 1px solid #ccc;">
 
             <div style="text-align: center; margin-top: 25px;">
-                <a href="{{ route('hotels.edit', $hotel->id) }}" style="display: inline-block; background-color: #0061ae; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: bold;">@lang('mail.hotel_admin.link')</a>
+                <a href="{{ route('hotels.edit', ($hotel->id ?? 0)) }}" style="display: inline-block; background-color: #0061ae; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: bold;">@lang('mail.hotel_admin.link')</a>
             </div>
         </td>
     </tr>

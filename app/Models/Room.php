@@ -25,7 +25,7 @@ class Room extends Model
         'hotel_id',
         'area',
         'amenities',
-        'image'
+        'image',
     ];
 
     protected $hidden = [

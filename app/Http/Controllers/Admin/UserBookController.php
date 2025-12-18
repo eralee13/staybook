@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Mail\BookCancelMail;
 use App\Models\Book;
+use App\Models\Contact;
 use App\Models\Hotel;
 use App\Models\Rate;
 use App\Models\Room;
@@ -50,7 +51,8 @@ class UserBookController extends Controller
         $books = Book::where('user_id', $user)->where('status', 'Reserved')->get();
         Book::where('id', $book->id)->update(['status' => 'Cancelled']);
         Log::warning('Отмена брони: ' . $book->id);
-        Mail::to('info@staybook.asia')->send(new BookCancelMail($book));
+        $email = Contact::first()->email;
+        Mail::to($email)->send(new BookCancelMail($book));
         session()->flash('success', 'Booking ' . $request->title . ' is cancelled');
         return redirect()->route('auth.userbooks.index', compact('books'));
     }
@@ -77,7 +79,7 @@ class UserBookController extends Controller
         }
     }
 
-    public function cancel_confirm_exely(Request $request, Book $book)
+    public function cancel_confirm_exely(Request $request)
     {
         try {
             $response = Http::timeout(60)
@@ -89,9 +91,11 @@ class UserBookController extends Controller
 
             if ($response->successful()) {
                 $cancel = $response->object();
-                Book::where('id', $book->id)->update(['status' => 'Cancelled']);
-                Log::warning('Отмена брони: ' . $book->id);
-                Mail::to('info@staybook.asia')->send(new BookCancelMail($book));
+                Book::where('id', $request->book_id)->update(['status' => 'Cancelled']);
+                $book = Book::where('id', $request->book_id)->first();
+                Log::warning('Отмена брони: ' . $request->book_id);
+                $email = Contact::first()->email;
+                Mail::to($email)->send(new BookCancelMail($book));
                 return view('auth.userbooks.cancel-confirm-exely', compact('cancel'));
             } else {
                 Log::warning('Запрос завершился ошибкой: ' . $response->status());

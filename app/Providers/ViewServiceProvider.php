@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\ViewComposers\CitiesComposer;
+use App\ViewComposers\ContactsComposer;
 use App\ViewComposers\CurrencyComposer;
+use App\ViewComposers\HotelsComposer;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -22,22 +25,28 @@ class ViewServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        View::composer(['auth.layouts.master', 'hotels'], 'App\ViewComposers\HotelsComposer');
-        View::composer(['auth.layouts.booking', 'hotels'], 'App\ViewComposers\HotelsComposer');
-        View::composer(['layouts.master', 'rooms'], 'App\ViewComposers\RoomsComposer');
-        View::composer(['layouts.master', 'cities'], 'App\ViewComposers\CitiesComposer');
-        View::composer(['layouts.master', 'contacts'], 'App\ViewComposers\ContactsComposer');
-        View::composer(['auth.layouts.master', 'contacts'], 'App\ViewComposers\ContactsComposer');
-        View::composer(['layouts.main', 'contacts'], 'App\ViewComposers\ContactsComposer');
-        View::composer(['layouts.master', 'hotels'], 'App\ViewComposers\HotelsComposer');
-        View::composer(['layouts.booking', 'hotels'], 'App\ViewComposers\HotelsComposer');
-        View::composer(['layouts.booking', 'rooms'], 'App\ViewComposers\RoomsComposer');
-        View::composer(['layouts.booking', 'contacts'], 'App\ViewComposers\ContactsComposer');
-
-        View::composer(
-            '*',
-            CurrencyComposer::class
-        );
+        View::composer([
+            'pages.search.search',
+            'pages.index',
+            // добавь только те страницы, где реально нужен список городов
+        ], CitiesComposer::class);
+        View::composer([
+            'layouts.master',
+            'layouts.main',
+            'auth.layouts.master'
+        ], ContactsComposer::class);
+        View::composer([
+            'auth.layouts.master',
+            'auth.layouts.booking',
+            'auth.layouts.master'
+        ], HotelsComposer::class);
+        View::composer([
+            'pages.search.*',
+            'pages.hotel.*',
+            'pages.order.*',
+            'layouts.master',
+            'layouts.main',
+        ], CurrencyComposer::class);
 
     }
 }

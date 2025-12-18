@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Http\Controllers\API\V1_1;
-
 use App\Http\Controllers\Controller;
 use App\Models\Hotel;
 use Illuminate\Support\Facades\Storage;
@@ -19,23 +18,21 @@ class HotelController extends Controller
                     foreach ($chunk as $h) {
 
                         $row = [
-                            'hotel_id'        => (string)($h->code ?? $h->id),
+                            'id'              => (string)($h->code ?? $h->id),
                             'name'            => (string)($h->title_en ?: $h->title),
                             'description'     => null,
                             'geo_coordinates' => [
-                                'latitude'  => $h->lat  ? (float)$h->lat  : null,
-                                'longitude' => $h->lng ? (float)$h->lng : null,
+                                'latitude'  => $h->lat !== null ? (float)$h->lat : null,
+                                'longitude' => $h->lng !== null ? (float)$h->lng : null,
                             ],
-                            'address'    => '',
-                            'currency'   => 'USD',
-                            'stars'      => 3,
-                            'images' => collect($h->images)->take(20)->map(function ($img) {
-                                return [
-                                    'url' => url(Storage::url($img->image)),   // теперь Storage есть
-                                ];
-                            })->values(),
-                            'amenities' => $h->amenity && $h->amenity->services
-                                ? array_values(array_filter(array_map('trim', explode(',', $h->amenity->services))))
+                            'address'         => '',
+                            'currency'        => 'USD',
+                            'stars'           => 3,
+                            'images'          => collect($h->images)->take(20)->map(fn($img) => [
+                                'url' => url(Storage::url($img->image)),
+                            ])->values(),
+                            'amenities'       => $h->amenity && $h->amenity->services
+                                ? array_values(array_filter(array_map('trim', explode(',', (string)$h->amenity->services))))
                                 : [],
                         ];
 

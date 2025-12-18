@@ -43,14 +43,12 @@ class HotelController extends Controller
     public function index()
     {
         $user = Auth::user()->id;
-        $chotel = Hotel::all();
+        $chotel = Hotel::count();
         if (Auth::user()->hasRole('Hotel')) {
             $hotels = Hotel::where('user_id', $user)->latest()->paginate(20);
+        } else {
+            $hotels = Hotel::whereNull('emerging_id')->latest()->paginate(20);
         }
-        else {
-            $hotels = Hotel::latest()->paginate(20);
-        }
-
         return view('auth.hotels.index', compact('hotels', 'chotel'));
     }
 
@@ -186,7 +184,6 @@ class HotelController extends Controller
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $imageFile) {
                 $path = $imageFile->store('hotels', 'public');
-
                 DB::table('images')->insert([
                     'hotel_id' => $hotel->id,
                     'image' => $path,
@@ -419,7 +416,7 @@ class HotelController extends Controller
 
         unset($params['image']);
         if ($request->has('image')) {
-            if($hotel->image){
+            if ($hotel->image) {
                 Storage::delete($hotel->image);
             }
             $params['image'] = $request->file('image')->store('hotels');
@@ -533,12 +530,12 @@ class HotelController extends Controller
             if (count($data) > 0) { ?>
                 <table class="table">
                     <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Заголовок</th>
-                            <th>Адрес</th>
-                            <th>Управление</th>
-                        </tr>
+                    <tr>
+                        <th>ID</th>
+                        <th>Заголовок</th>
+                        <th>Адрес</th>
+                        <th>Управление</th>
+                    </tr>
                     </thead>
                     <tbody>
                     <?php foreach ($data as $row): ?>

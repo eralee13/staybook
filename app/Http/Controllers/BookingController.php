@@ -415,7 +415,7 @@ class BookingController extends Controller
                     $cancel = $this->normalizeCancelDateForDbAndApi($request->get('cancelDate')); // "05.11.2025 13:59 (UTC+05:00)"
 
                     $book = Book::create([
-                        'hotel_id'             => $request->get('propertyId'),
+                        'hotel_id'             => $request->get('hotel_id'),
                         'room_id'              => $request->get('roomTypeId'),
                         'arrivalDate'          => $request->get('arrivalDate'),
                         'departureDate'        => $request->get('departureDate'),

@@ -169,6 +169,7 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         App\Providers\ViewServiceProvider::class,
+        App\Providers\IntegrationServiceProvider::class,
         //Barryvdh\Debugbar\ServiceProvider::class,
 
     ])->toArray(),

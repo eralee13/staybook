@@ -14,10 +14,6 @@ Route::prefix('')
 
         Route::get('/auth', [AuthController::class, 'signin'])->name('api.v1.1.auth');
 
-        // --- статус / отмена (основные и алиасы под /search/ ) ---
-        Route::post('/status',        [BookingController::class, 'status'])->name('api.v1.1.status');
-        Route::post('/cancel',        [BookingController::class, 'cancel'])->name('api.v1.1.cancel');
-
         // алиасы, которые дергает валидатор (base URL заканчивается на /search/)
         Route::post('/search/status', [BookingController::class, 'status'])->name('api.v1.1.search.status');
         Route::post('/search/cancel', [BookingController::class, 'cancel'])->name('api.v1.1.search.cancel');
@@ -30,15 +26,15 @@ Route::prefix('')
         Route::get('/search/meals',  [MealController::class, 'index'])->name('api.v1.1.search.meals');
 
         // --- search ---
-        Route::post('/search/search/{scenario}', [SearchController::class, 'searchByHotelInvalidId'])
-            ->name('api.v1.1.searchByHotelInvalidId');
-
-        Route::post('/search/{scenario}', [SearchController::class, 'search'])
-            ->name('api.v1.1.search');
+        Route::post('/search/{scenario}',          [SearchController::class, 'search'])->name('api.v1.1.search');
+        Route::post('/search/search/{hotel_id}',   [SearchController::class, 'searchByHotel']);
+        //Route::post('/search/search/{scenario}', [SearchController::class, 'searchByHotelInvalidId'])->name('api.v1.1.searchByHotelInvalidId');
 
         Route::post('/rateDetails', [SearchController::class, 'rateDetails'])->name('api.v1.1.rateDetails');
 
         // --- book / booking-check ---
-        Route::post('/book',          [BookingController::class, 'book'])->name('api.v1.1.book');
-        Route::post('/booking-check', [BookingController::class, 'bookingCheck'])->name('api.v1.1.bookingCheck');
+        Route::post('/search/book',   [BookingController::class, 'book']);
+        Route::post('/search/status', [BookingController::class, 'status']);
+        Route::post('/search/cancel', [BookingController::class, 'cancel']);
+
     });

@@ -185,7 +185,7 @@
                             </div>
                             <div class="col-md-6">
                                 <label for="children_allowed" class="option">
-                                    @include('auth.layouts.error', ['fieldname' => 'child'])
+                                    @include('auth.layouts.error', ['fieldname' => 'children_allowed'])
                                     @isset($rate)
                                         <input type="checkbox" name="children_allowed" value="1"
                                                {{ $rate->children_allowed ? 'checked' : '' }} id="children_allowed" >
@@ -203,7 +203,7 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    @include('auth.layouts.error', ['fieldname' => 'free_child_age'])
+                                    @include('auth.layouts.error', ['fieldname' => 'free_children_age'])
                                     <label for="">@lang('admin.child_age_free')</label>
                                     <input type="number" name="free_children_age" value="{{ old('free_children_age', isset($rate) ?
                                 $rate->free_children_age : null) }}">

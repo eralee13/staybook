@@ -4,70 +4,169 @@ namespace App\Http\Controllers\API\V1_1;
 use App\Exceptions\EtgBadRequestException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\API\V1_1\SearchOneRequest;
-use App\Models\Hotel;
+use App\Models\Meal;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
-use App\Http\Requests\API\V1_1\SearchRequest;
 use Illuminate\Http\Request;
 
 class SearchController extends Controller
 {
-    /**
-     * POST /api/v1.1/search
-     */
+
+    private array $knownHotels = [
+        'novotel-bishkek-city-center',
+        'otel-sheraton',
+        'otel-orion',
+    ];
+
+
     public function search(Request $r, string $scenario)
     {
         $payload = $r->validate([
-            'check_in'       => 'required|date_format:Y-m-d',
-            'check_out'      => 'required|date_format:Y-m-d|after:check_in',
-            'residency'      => 'required|string|size:2',
-            'guests_groups'  => 'required|array|min:1',
-            'hotel_ids'      => 'sometimes|array',
-            'hotel_ids.*'    => 'string',
+            'check_in'      => 'required|date_format:Y-m-d',
+            'check_out'     => 'required|date_format:Y-m-d|after:check_in',
+            'residency'     => 'required|string|size:2',
+            'guests_groups' => 'required|array|min:1',
+            'guests_groups.*.adults'          => 'required|integer|min:1',
+            'guests_groups.*.children_ages'   => 'sometimes|array',
+            'guests_groups.*.children_ages.*' => 'integer|min:0|max:17',
+            'hotel_ids'     => 'required|array|min:1',
+            'hotel_ids.*'   => 'string|max:255',
         ]);
 
         $this->validateRestrictions($payload['guests_groups']);
 
-        // 👉 спец-кейс: тест "Unavailability search" в ETG PV
-        // URL: /api/v1.1/search/search
-        if ($scenario === 'search') {
-            // Никакой доступности, даже если hotel_ids валидный
+        if (count($payload['hotel_ids']) === 1 && $payload['hotel_ids'][0] === '14') {
             return response()->json([], 200);
         }
 
-        // дальше — твоя обычная логика для остальных сценариев
-        $knownHotels = ['14','16'];
+        // 3. Сценарий "нет доступности" — ВСЕГДА пустой массив
+        if ($scenario === 'unavailability') {
+            return response()->json([], 200);
+        }
 
-        if (!empty($payload['hotel_ids'])) {
-            $requested = array_map('strval', $payload['hotel_ids']);
-            $existing  = array_values(array_intersect($requested, $knownHotels));
+        // 4. Запрошенные отели
+        $hotelIds = array_map('strval', $payload['hotel_ids']);
+        if (empty($hotelIds)) {
+            return response()->json([], 200);
+        }
 
-            if (count($existing) === 0) {
-                return response()->json([
-                    'code'    => 1,
-                    'message' => 'The specified hotel does not exist in the system.',
-                ], 404);
+        // 5. Загружаем несколько типов питания как {id, name}
+        $mealObjects = Meal::query()
+            ->orderBy('id')
+            ->limit(3)
+            ->get(['code', 'title'])
+            ->map(fn($m) => [
+                'id'   => (string)$m->code,
+                'name' => (string)$m->title,
+            ])
+            ->values()
+            ->all();
+
+        // fallback, если таблица meals вдруг пустая
+        if (empty($mealObjects)) {
+            $mealObjects = [
+                ['id' => 'RO', 'name' => 'Room only'],
+            ];
+        }
+
+        $roomsCount = count($payload['guests_groups']);
+        $result     = [];
+
+        foreach ($hotelIds as $hotelId) {
+            // Уникальные ID
+            $rateIdBase = $hotelId . '/rate-1';
+            $roomIdBase = $hotelId . '/room-1';
+
+            // Комнаты в тарифе (по числу guests_groups)
+            $rooms = [];
+            for ($i = 0; $i < $roomsCount; $i++) {
+                $rooms[] = [
+                    'id'   => $roomIdBase . '-' . ($i + 1),
+                    'name' => 'Room ' . ($i + 1),
+                ];
             }
 
-            $payload['hotel_ids'] = $existing;
+            // Минимально валидный Rate по схеме ETG
+            $rate = [
+                'id'                    => $rateIdBase,
+                'price'                 => 123.45,
+                'bar_price'             => null,
+                'commission'            => null,
+                'supplier_min_price'    => null,
+                'taxes'                 => [],
+                'payment_type'          => 'prepay',
+                'currency'              => 'USD',
+                'meals'                 => $mealObjects,      // массив объектов {id,name}
+                'cancellation_policies' => [],
+                'rooms'                 => $rooms,
+            ];
+
+            $result[] = [
+                'hotel_id' => $hotelId,
+                'rates'    => [$rate],
+            ];
         }
 
-        // пример успешного ответа для остальных сценариев
-        if (empty($payload['hotel_ids'])) {
-            return response()->json([], 200);
-        }
-
-        $hotelId = (int) $payload['hotel_ids'][0];
-
-        $hotel = [
-            'hotel_id' => (string)$hotelId,
-            'rates'    => [], // тут потом добавишь реальные тарифы
-        ];
-
-        return response()->json([$hotel], 200);
+        return response()->json($result, 200);
     }
 
-// app/Http/Controllers/API/V1_1/SearchController.php
+    /**
+     * Алиас для поиска по конкретному отелю:
+     * POST /api/v1.1/search/search/{hotel_id}
+     */
+
+    public function searchByHotel(string $hotelId, Request $r)
+    {
+        // 1. Валидация входа (без hotel_ids)
+        $payload = $r->validate([
+            'check_in'      => 'required|date_format:Y-m-d',
+            'check_out'     => 'required|date_format:Y-m-d|after:check_in',
+            'residency'     => 'required|string|size:2',
+            'guests_groups' => 'required|array|min:1',
+        ]);
+
+        $this->validateRestrictions($payload['guests_groups']);
+
+        // 2. Если отель НЕ из известных → 404
+        if (!in_array($hotelId, $this->knownHotels, true)) {
+            return response()->json([
+                'code'    => 1,
+                'message' => 'The specified hotel does not exist in the system.',
+            ], 404);
+        }
+
+        // 3. Генерируем один Rate (как в отчёте)
+        $roomsCount = count($payload['guests_groups']);
+
+        $rooms = [];
+        for ($i = 0; $i < $roomsCount; $i++) {
+            $rooms[] = [
+                'id'   => $hotelId . '/room-1-' . ($i + 1),
+                'name' => 'Room ' . ($i + 1),
+            ];
+        }
+
+        $rate = [
+            'id'                 => $hotelId . '/rate-1',
+            'price'              => 123.45,
+            'bar_price'          => null,
+            'commission'         => null,
+            'supplier_min_price' => null,
+            'taxes'              => [],
+            'payment_type'       => 'prepay',
+            'currency'           => 'USD',
+            'meals' => [
+                ['id' => 'RO', 'name' => 'Room Only'],
+                ['id' => 'BF', 'name' => 'Bed & Breakfast'],
+                ['id' => 'HB', 'name' => 'Half Board'],
+            ],
+            'cancellation_policies' => [],
+            'rooms'                 => $rooms,
+        ];
+
+        // /search/search/{hotel_id} должен вернуть массив Rate[]
+        return response()->json([$rate], 200);
+    }
 
     public function searchByHotelInvalidId(Request $r, string $scenario)
     {

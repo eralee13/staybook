@@ -9,23 +9,20 @@ use Illuminate\View\View;
 
 class CurrencyComposer
 {
-    protected FXService $fx;
-
-    public function __construct(FXService $fx)
-    {
-        $this->fx = $fx;
-    }
+    public function __construct(private FXService $fx) {}
 
     public function compose(View $view): void
     {
-        $base = Session::get('currency', 'USD');
-        $rates = Cache::remember("fx.rates_{$base}", 3600, fn() =>
-        $this->fx->getRatesBaseCentral($base)
-        );
+        $base = strtoupper((string) Session::get('currency', 'USD'));
 
+        // ✅ Один кеш на "центральные курсы", без зависимости от base
+        $central = Cache::remember('fx.central_rates_v1', 3600, function () {
+            return $this->fx->getCentralRates(); // если у тебя есть этот метод
+        });
 
+        // Если нужно — можешь привести ключи к UPPER здесь
+        $rates = is_array($central) ? array_change_key_case($central, CASE_UPPER) : $central;
 
-        $view->with('fxBase', $base)
-            ->with('fxRates', $rates);
+        $view->with('fxBase', $base)->with('fxRates', $rates);
     }
 }

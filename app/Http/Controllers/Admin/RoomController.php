@@ -35,11 +35,9 @@ class RoomController extends Controller
      */
     public function index(Request $request, $status=null, $show_result = null,  $s_query = null)
     {
-
         $hotel_id = $request->session()->get('hotel_id');
         $hotel = Hotel::where('id', $hotel_id)->firstOrFail();
         $rooms = Room::where('hotel_id', $hotel_id)->paginate(20);
-
         return view('auth.rooms.index', compact('rooms', 'status','show_result', 's_query', 'hotel'));
     }
 
@@ -49,7 +47,10 @@ class RoomController extends Controller
     public function create(Request $request)
     {
         $hotel = $request->session()->get('hotel_id');
-        $hotels = Hotel::all();
+        $hotels = Hotel::query()
+            ->select(['id','title'])
+            ->orderBy('title')
+            ->get();
         return view('auth.rooms.form', compact('hotels', 'hotel'));
     }
 
@@ -78,21 +79,17 @@ class RoomController extends Controller
         }
         $room = Room::create($params);
 
-        $images = $request->file('images');
-        if ($request->hasFile('images')) :
-            foreach ($images as $image):
-                $image = $image->store('rooms');
-                DB::table('images')->insert(
-                    array(
-                        'image'=>  $image,
-                        'room_id' => $room->id,
-                    )
-                );
-            endforeach;
-        endif;
+        if ($request->hasFile('images')) {
+            $rows = [];
+            foreach ($request->file('images') as $imgFile) {
+                $path = $imgFile->store('rooms');
+                $rows[] = ['image' => $path, 'room_id' => $room->id];
+            }
+            DB::table('images')->insert($rows);
+        }
 
         $email = Contact::first()->email;
-        Mail::to($email)->send(new RoomCreateMail($request));
+        //Mail::to($email)->queue(new RoomCreateMail($room->id));
         session()->flash('success', 'Room ' . $request->title . ' created');
         return redirect()->route('rooms.index');
     }
@@ -112,7 +109,10 @@ class RoomController extends Controller
     public function edit(Request $request, Room $room)
     {
         $hotel = $request->session()->get('hotel_id');
-        $hotels = Hotel::all();
+        $hotels = Hotel::query()
+            ->select(['id','title'])
+            ->orderBy('title')
+            ->get();
         $amenities = explode(', ', $room->amenities);
         $images = Image::where('room_id', $room->id)->get();
         return view('auth.rooms.form', compact('room', 'hotels', 'images', 'hotel', 'amenities'));
@@ -149,27 +149,19 @@ class RoomController extends Controller
         }
 
         //images
-        unset($params['images']);
-        $images = $request->file('images');
         if ($request->hasFile('images')) {
-//            $dimages = Image::where('room_id', $room->id)->get();
-//            if ($dimages != null) {
-//                foreach ($dimages as $image){
-//                    Storage::delete($image->image);
-//                }
-//                DB::table('images')->where('room_id', $room->id)->delete();
-//            }
-            foreach ($images as $image):
-                $image = $image->store('rooms');
-                DB::table('images')
-                    ->where('room_id', $room->id)
-                    ->updateOrInsert(['room_id' => $room->id, 'image' => $image]);
-            endforeach;
+            DB::table('images')->where('room_id', $room->id)->delete();
+            $rows = [];
+            foreach ($request->file('images') as $imgFile) {
+                $path = $imgFile->store('rooms');
+                $rows[] = ['image' => $path, 'room_id' => $room->id];
+            }
+            DB::table('images')->insert($rows);
         }
 
         $room->update($params);
         $email = Contact::first()->email;
-        Mail::to($email)->send(new RoomUpdateMail($request));
+        //Mail::to($email)->queue(new RoomUpdateMail($room->id));
         session()->flash('success', 'Room ' . $request->title . ' updated');
         return redirect()->route('rooms.index');
     }
@@ -183,20 +175,15 @@ class RoomController extends Controller
         if($room->image){
             Storage::delete($room->image);
         }
-        Rate::where('room_id', $room->id)->get();
-        $images = Image::where('room_id', $room->id)->get();
-        if($images->isNotEmpty()){
-            foreach ($images as $image){
-                Storage::delete($image->image);
-            }
-            DB::table('images')->where('room_id', $room->id)->delete();
+        Rate::where('room_id', $room->id)->delete();
+        $images = Image::where('room_id', $room->id)->pluck('image');
+        foreach ($images as $path) {
+            Storage::delete($path);
         }
+        Image::where('room_id', $room->id)->delete();
         $email = Contact::first()->email;
-        Mail::to($email)->send(new RoomDeleteMail($room));
+        //Mail::to($email)->queue(new RoomDeleteMail($room));
         session()->flash('success', 'Room ' . $room->title . ' deleted');
         return redirect()->route('rooms.index');
     }
-
-
-
 }

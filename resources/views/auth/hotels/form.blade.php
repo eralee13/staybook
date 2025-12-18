@@ -539,6 +539,7 @@
                                     </div>
                                 </div>
                             @endcan
+                            <input type="hidden" name="apiName" value="local">
                         </div>
                         @csrf
                         <div class="row">

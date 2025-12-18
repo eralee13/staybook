@@ -48,7 +48,7 @@
                     </div>
                 <div class="phone"><a href="tel:+996 227 225 227">+996 227 225 227</a></div>
                 <h2 style="margin: 0;">{{ $hotel->title_en ?? $hotel->title ?? 'Название отеля не указан'}}</h2>
-                <p style="margin: 5px 0 0;">{{ $region->title ?? '' }}, {{ $hotel->city ?? '' }}, {{ $hotel->address_en ?? $hote->address ?? ''}}</p>
+                <p style="margin: 5px 0 0;">{{ $region->title ?? '' }}, {{ $hotel->city ?? '' }}, {{ $hotel->address_en ?? $hotel->address ?? ''}}</p>
             </td>
         </tr>
 
@@ -92,20 +92,15 @@
                         </tr>
                     @endisset
                     @php
-                        $givenDate = $book->cancel_date;
+                        $givenDate = $book->cancel_date ? \Carbon\Carbon::parse($book->cancel_date) : null;
                         $userTimezone = auth()->user()->timezone ?? 'UTC';
-                        $currentDate = \Carbon\Carbon::now($userTimezone);
-                        $givenDateUserTZ = $givenDate->copy()->setTimezone($userTimezone);
+                        $givenDateUserTZ = $givenDate ? $givenDate->copy()->setTimezone($userTimezone) : null;
                     @endphp
-                    @if ($givenDateUserTZ->isFuture())
+
+                    @if ($givenDateUserTZ && $givenDateUserTZ->isFuture())
                         <tr>
                             <td><strong>Cancellation charge:</strong></td>
                             <td align="right">0 {{ $book->currency}}</td>
-                        </tr>
-                    @elseif ($givenDateUserTZ->isPast())
-                        <tr>
-                            <td><strong>Cancellation charge:</strong></td>
-                            <td align="right">{{ $book->cancel_penalty ?? 0 }} {{ $book->currency}}</td>
                         </tr>
                     @else
                         <tr>
@@ -113,6 +108,7 @@
                             <td align="right">{{ $book->cancel_penalty ?? 0 }} {{ $book->currency}}</td>
                         </tr>
                     @endif
+
 
                     <tr>
                         <td><strong>Accommodation cost:</strong></td>

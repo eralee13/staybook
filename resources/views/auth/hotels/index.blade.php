@@ -25,7 +25,7 @@
                     <div id="search_list"></div>
                     @admin
                     <div class="count">
-                        @lang('admin.count_hotels'): {{ $chotel->count() }}
+                        @lang('admin.count_hotels'): {{ $chotel }}
                     </div>
                     @endadmin
                     <div class="table-wrap">

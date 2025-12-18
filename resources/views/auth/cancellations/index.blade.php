@@ -44,12 +44,12 @@
                                 <tbody>
                                 @foreach($rules as $cancellation)
                                     @php
-                                        $rate = \App\Models\Rate::where('id', $cancellation->rate_id)->first();
-                                        $room = \App\Models\Room::where('id', $rate->room_id)->first();
-                                     @endphp
+                                        $rate = \App\Models\Rate::find($cancellation->rate_id);
+                                        $room = $rate ? \App\Models\Room::find($rate->room_id) : null;
+                                    @endphp
                                     <tr>
-                                        <td>{{ $room->__('title') }}</td>
-                                        <td>{{ $cancellation->__('title') ?? '' }}</td>
+                                        <td>{{ optional($room)->__('title') }}</td>
+                                        <td>{{ optional($rate)->__('title') }}</td>
                                         <td>
                                             @if($cancellation->cancel_policy === 'free_until_checkin')
                                                 @lang('admin.free_until_checkin')

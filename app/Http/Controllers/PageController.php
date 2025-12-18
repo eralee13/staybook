@@ -292,6 +292,7 @@ class PageController extends Controller
     {
         return view('pages.extranet');
     }
+
     public function offline_request(Request $request)
     {
         $cities = City::orderBy('title', 'asc')->get();

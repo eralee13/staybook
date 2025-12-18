@@ -20,7 +20,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::prefix('base')->group(function(){
     //Route::post('/register', [\App\Http\Controllers\API\V1\AuthController::class, 'register'])->name('register');
-    Route::post('/login', [\App\Http\Controllers\API\V1\AuthController::class, 'login'])->name('login');
+    //Route::post('/login', [\App\Http\Controllers\API\V1\AuthController::class, 'login'])->name('login');
 });
 
 Route::prefix('base')->middleware(['throttle:api', 'auth:sanctum'])->group(function () {

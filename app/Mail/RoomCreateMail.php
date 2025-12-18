@@ -3,23 +3,22 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class RoomCreateMail extends Mailable
+class RoomCreateMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
-    public $room;
-
-    public function __construct($room)
-    {
-        $this->room = $room;
-    }
+    public function __construct(public int $roomId) {}
 
     public function build()
     {
-        return $this->markdown('mail.room_create')->subject('Room '. $this->room->title_en.' created ' );
+        $room = \App\Models\Room::with('hotel')->findOrFail($this->roomId);
+
+        return $this->subject('Room created')
+            ->view('mail.room_create', compact('room'));
     }
 
 }

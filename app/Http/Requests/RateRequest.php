@@ -31,8 +31,8 @@ class RateRequest extends FormRequest
             'price' => 'required|numeric',
             'availability' => 'required',
             'adult' => 'required',
-            'free_children_age' => 'required',
-            'child_extra_fee' => 'required',
+            'free_children_age' => 'nullable',
+            'child_extra_fee' => 'nullable',
         ];
         return $rules;
     }

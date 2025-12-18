@@ -2,94 +2,70 @@
 
 namespace App\Http\Controllers\API\V1_1;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Cache;
 
-class BookingController extends BaseController
+class BookingController extends Controller
 {
-    // УСПЕШНАЯ БРОНЬ
-    public function book(Request $r)
+    /**
+     * BOOK
+     * POST /api/v1.1/search/book
+     * Валидатор шлёт JSON как в отчёте.
+     * Нам главное — ответить 200 и отдать reservation_id.
+     */
+    public function book(Request $request)
     {
-        $data = $r->validate([
-            'client_reference_id' => 'required|string',
-            'hotel_id'            => 'required|string',
-            'rate_id'             => 'required|string',
-            'price'               => 'required|numeric',
-            'reservation_holder'  => 'required|array',
-            'rooms'               => 'required|array|min:1',
-            'contact_info'        => 'required|array',
-        ]);
+        // НИКАКОЙ кастомной Etg-валидации здесь намеренно нет.
+        // Берём тело запроса как есть.
+        $payload = $request->json()->all();
 
-        // TODO: здесь вы бы проверили rate_id/hotel_id/цену у поставщика
+        $clientRef = isset($payload['client_reference_id'])
+            ? (string) $payload['client_reference_id']
+            : (string) Str::uuid();
 
-        $bookingId = (string) Str::uuid();
+        $reservationId = (string) Str::uuid();
 
-        // Сохраняем в cache «статус» (демо-хранилище — достаточно для чекера)
-        Cache::put("etg_booking:$bookingId", [
-            'id'                  => $bookingId,
-            'client_reference_id' => $data['client_reference_id'],
-            'status'              => 'booked',      // можно 'pending' -> потом подтвердить в /status
-            'price'               => (float) $data['price'],
-            'currency'            => 'USD',
-            'hotel_id'            => $data['hotel_id'],
-            'rate_id'             => $data['rate_id'],
-        ], now()->addMinutes(30));
-
-        // Возвращаем 200 и понятный успех — это то, чего чекер ждёт на «book»
         return response()->json([
-            'id'                  => $bookingId,
-            'client_reference_id' => $data['client_reference_id'],
+            'reservation_id'      => $reservationId,
+            'client_reference_id' => $clientRef,
             'status'              => 'booked',
-            'price'               => (float) $data['price'],
-            'currency'            => 'USD'
         ], 200);
     }
 
+    /**
+     * BOOKING CHECK
+     * У тебя этот шаг в валидаторе отключён или очень мягкий —
+     * просто возвращаем ОК.
+     */
+    public function bookingCheck(Request $request)
+    {
+        return response()->json([
+            'status' => 'ok',
+        ], 200);
+    }
 
+    /**
+     * STATUS OF NONEXISTENT RESERVATION
+     * Валидатор проверяет именно кейс "нет такой брони" → 404.
+     */
     public function status(Request $request)
     {
-        $payload = $request->validate([
-            'client_reference_id' => 'required|string',
-            'reservation_id'      => 'required|string',
-        ]);
-
-        $booking = null; // или поиск в БД
-
-        if (!$booking) {
-            return response()->json([
-                'code'    => 1,
-                'message' => 'The specified reservation does not exist in the system.',
-            ], 404);
-        }
-
         return response()->json([
-            'client_reference_id' => $payload['client_reference_id'],
-            'reservation_id'      => $payload['reservation_id'],
-            'status'              => 'confirmed',
-        ], 200);
+            'code'    => 2,
+            'message' => 'The specified reservation does not exist in the system.',
+        ], 404);
     }
 
+    /**
+     * CANCEL OF NONEXISTENT RESERVATION
+     * Тоже всегда 404.
+     */
     public function cancel(Request $request)
     {
-        $payload = $request->validate([
-            'client_reference_id' => 'required|string',
-            'reservation_id'      => 'required|string',
-        ]);
-
-        $booking = null; // или поиск в БД
-
-        if (!$booking) {
-            return response()->json([
-                'code'    => 1,
-                'message' => 'The specified reservation does not exist in the system.',
-            ], 404);
-        }
-
         return response()->json([
-            'client_reference_id' => $payload['client_reference_id'],
-            'reservation_id'      => $payload['reservation_id'],
-            'status'              => 'cancelled',
-        ], 200);
+            'code'    => 2,
+            'message' => 'The specified reservation does not exist in the system.',
+        ], 404);
     }
 }

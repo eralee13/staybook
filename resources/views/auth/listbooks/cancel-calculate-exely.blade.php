@@ -27,6 +27,7 @@
                                 <label for="">@lang('main.booking_number')</label>
                                 <input type="text" value="{{ $book->book_token }}" name="number">
                             </div>
+                            <input type="hidden" name="book_id" value="{{ $book->id }}">
                             <input type="hidden" name="amount" value="{{ $calc->penaltyAmount }}">
                             <button class="more">@lang('main.cancel_booking')</button>
                         </form>

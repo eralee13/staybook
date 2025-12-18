@@ -13,6 +13,7 @@
         }
     </style>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <div class="page">
         <div class="container-fluid">
@@ -24,8 +25,14 @@
                     <div class="row">
                         <div class="col-lg-4">
                             <div class="page-item">
-                                <h6>Кол-во отелей</h6>
-                                {{ \App\Models\Hotel::count() }}
+                                <h6>Кол-во отелей Extranet</h6>
+                                {{ $local }}
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="page-item">
+                                <h6>Кол-во отелей Exely</h6>
+                                {{ $exely }}
                             </div>
                         </div>
                         <div class="col-lg-4">
@@ -56,9 +63,7 @@
                     <div class="row">
                         <div class="col-md-12">
                             <h2>График бронирований</h2>
-
                             <canvas id="bookingsChart" style="max-width: 700px"></canvas>
-
                             <script>
                                 document.addEventListener('DOMContentLoaded', function () {
                                     const ctx = document.getElementById('bookingsChart');
@@ -76,14 +81,12 @@
                                     });
                                 });
                             </script>
-
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
 
 
 @endsection

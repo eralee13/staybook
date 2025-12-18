@@ -38,7 +38,7 @@ class ExelyImportService
                 $this->importCity($property);
                 $hotel = $this->importHotel($property);
                 $this->importRooms($property, $hotel);
-                $this->importRates($property, $hotel);
+                //$this->importRates($property, $hotel);
             } catch (\Throwable $e) {
                 Log::error('Ошибка при импорте отеля ' . $hotelData->id . ': ' . $e->getMessage());
                 continue;
@@ -77,6 +77,7 @@ class ExelyImportService
             'late_out' => '',
             'timezone' => $property->timeZone->id ?? null,
             'status' => 1,
+            'apiName' => 'exely',
         ];
 
         // Только если description не пустой

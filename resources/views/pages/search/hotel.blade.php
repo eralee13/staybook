@@ -16,14 +16,15 @@
 
             // Кол-во взрослых (может приходить adultCount или adult)
             $adultCount = (int)($request->adultCount ?? $request->adult ?? 1);
+            if ($adultCount <= 0) $adultCount = 1;
 
             // Символы валют
             $symbols = ['USD'=>'$','RUB'=>'₽','KGS'=>'сом','UZS'=>'сўм','KZT'=>'₸','EUR'=>'€'];
             $symbol  = $symbols[$fxBase] ?? $fxBase;
 
             // Удобства отеля
-            $amenities     = \App\Models\Amenity::where('hotel_id', $hotel->id)->first();
-            $hotel_amenities = explode(',', $amenities->services ?? '');
+            $amenities        = \App\Models\Amenity::where('hotel_id', $hotel->id)->first();
+            $hotel_amenities  = explode(',', $amenities->services ?? '');
         @endphp
 
         <div class="page hotel">
@@ -32,9 +33,11 @@
                     <div class="col-md-12">
                         <h1>{{ $hotel->city }}</h1>
                         <h3>{{ $hotel->__('title') }}</h3>
+
                         <div class="row">
                             <div class="col-md-12">
-                                <div class="fotorama" data-allowfullscreen="true" data-nav="thumbs" data-loop="true" data-autoplay="6000">
+                                <div class="fotorama" data-allowfullscreen="true" data-nav="thumbs" data-loop="true"
+                                     data-autoplay="6000">
                                     <img loading="lazy" src="{{ Storage::url($hotel->image)}}" alt="">
                                     @if(!empty($images))
                                         @foreach($images as $file)
@@ -55,6 +58,7 @@
                                 <div class="col-md-12">
                                     <div class="tariffs availabity">
                                         <h4>@lang('main.available')</h4>
+
                                         @foreach($rooms as $room)
                                             @php
                                                 $image = \App\Models\Image::where('room_id', $room->id)->latest('id')->first();
@@ -63,6 +67,7 @@
                                                     ? explode(',', $roomAmenitiesOwner->amenities) : [];
                                                 $items = array_slice($room_amenities, 0, 8);
                                             @endphp
+
                                             <div class="row">
                                                 <div class="col-lg-3 col-md-5">
                                                     <div class="room">
@@ -93,27 +98,27 @@
                                                         </div>
                                                     </div>
                                                 </div>
+
                                                 <div class="col-lg-9 col-md-7">
                                                     <div class="tariff-wrap">
                                                         @if($room->rates->isEmpty())
-                                                            <p class="text-muted">
-                                                                @lang('main.no_available_rates')
-                                                            </p>
+                                                            <p class="text-muted">@lang('main.no_available_rates')</p>
                                                         @else
                                                             <div class="owl-carousel owl-tariffs">
                                                                 @foreach($room->rates as $rate)
                                                                     <div class="tariffs-item">
                                                                         <h5>{{ $rate->__('title') }}</h5>
+
                                                                         @php
-                                                                            // Кол-во ночей
+                                                                            // --- Ночи ---
                                                                             $arr    = \Carbon\Carbon::parse($request->arrivalDate);
                                                                             $dep    = \Carbon\Carbon::parse($request->departureDate);
                                                                             $nights = max(1, $arr->diffInDays($dep));
 
-                                                                            // Актуальная цена тарифа (из календаря или базовая)
+                                                                            // --- Цена тарифа (календарь/база) ---
                                                                             $calendarPrice = (float)($rate->effective_price ?? $rate->price ?? 0);
 
-                                                                            // Доплата за детей
+                                                                            // --- Доплата за детей ---
                                                                             $price_child = 0;
                                                                             foreach ($childAgesArr as $age) {
                                                                                 $age = (int)$age;
@@ -121,85 +126,102 @@
                                                                                     $price_child += (int)($rate->child_extra_fee ?? 0);
                                                                                 }
                                                                             }
-                                                                            // Сумма за ночь * гости * ночи
+
+                                                                            // --- Сумма ---
                                                                             if ($adultCount >= 2) {
-                                                                                $price = (float)($rate->price2 ?? $calendarPrice) + $price_child;
-                                                                                $sum = $price * $nights;
+                                                                                $price = (float)($rate->price2 ?: $calendarPrice) + $price_child;
+                                                                                $sum   = $price * $nights;
                                                                             } else {
                                                                                 $price = (float)$calendarPrice + $price_child;
-                                                                                $sum = $price * max(1, $adultCount);
+                                                                                $sum   = $price * $nights; // ✅ важно: ночи учитываем всегда
                                                                             }
 
-                                                                            // Наценка (коэффициент)
-                                                                            $coef = (float) (config('services.main.coef') ?? 0.92);
-                                                                            $sum  = $sum / $coef;
+                                                                            // --- Наценка: из config/pricing ---
+                                                                            $pricingCoef = auth()->check() && auth()->user()->hasRole('Hotelios')
+                                                                                ? (float) config('pricing.hotelios', 1.05)
+                                                                                : (float) config('pricing.default', 1.08);
 
-                                                                            // Конвертация валюты
+                                                                            // markup as fraction (e.g. 1.05 -> 0.05)
+                                                                            $markupRate = max(0.0, $pricingCoef - 1.0);
+
+                                                                            // Apply role-based markup from config/pricing (1.05 or 1.08)
+                                                                            $sum = $sum * $pricingCoef;
+
+                                                                            // --- Конвертация валюты (цены в админке USD) ---
+                                                                            $srcCurrency = strtoupper($rate->currency ?? ($hotel->currency ?? 'USD'));
+                                                                            if ($srcCurrency === 'RUR') $srcCurrency = 'RUB';
+
                                                                             $converted = app(\App\Services\FXService::class)->convert(
                                                                                 $sum,
-                                                                                $rate->currency ?? ($hotel->currency ?? 'USD'),
+                                                                                $srcCurrency,
                                                                                 $fxBase
                                                                             );
 
+                                                                            // --- Отмена/штраф ---
                                                                             $cancel = \App\Models\CancellationRule::where('rate_id', $rate->id)->first();
-                                                                            $cancelPrice = $cancel->penalty_amount;
+                                                                            $cancelPriceSource = (float)($cancel->penalty_amount ?? 0);
+                                                                            $cancelPriceSource = $cancelPriceSource * $pricingCoef;
 
-                                                                            $hotelTz   = $hotel->timezone ?: 'UTC';
-                                                                            $hotel_utc = \Carbon\Carbon::now($hotelTz)->format('P');
-                                                                            $timezone  = \Carbon\Carbon::now($hotelTz)->format('P');
+                                                                            $cancelPrice = app(\App\Services\FXService::class)->convert(
+                                                                                $cancelPriceSource,
+                                                                                $srcCurrency,
+                                                                                $fxBase
+                                                                            );
+
+                                                                            $hotelTz  = $hotel->timezone ?: 'UTC';
+                                                                            $timezone = \Carbon\Carbon::now($hotelTz)->format('P');
 
                                                                             $arrivalCarbon   = \Carbon\Carbon::parse($request->arrivalDate, $hotelTz)->timezone($hotelTz);
-                                                                            $departureCarbon = \Carbon\Carbon::parse($request->departureDate, $hotelTz)->timezone($hotelTz);
+                                                                            $freeDate         = $arrivalCarbon->format('d.m.Y H:i');
 
-                                                                            $arrival   = $arrivalCarbon->format('d.m.Y');
-                                                                            $departure = $departureCarbon->format('d.m.Y');
+                                                                            $freeDays = (int)($cancel->free_cancellation_days ?? 0);
 
-                                                                            $freeDate = $arrivalCarbon->format('d.m.Y H:i');
-
-                                                                            // Крайняя дата бесплатной отмены (если есть правило)
                                                                             $cancelCutoffCarbon = $cancel
-                                                                                ? \Carbon\Carbon::parse($request->arrivalDate, $hotelTz)->subDays((int)($cancel->free_cancellation_days ?? 0))
+                                                                                ? \Carbon\Carbon::parse($request->arrivalDate, $hotelTz)->subDays($freeDays)
                                                                                 : null;
 
-                                                                            $cancelDate = \Carbon\Carbon::parse($request->arrivalDate)->subDays($cancel->free_cancellation_days)->format('d.m.Y H:i');
+                                                                            $cancelDate = $cancel
+                                                                                ? \Carbon\Carbon::parse($request->arrivalDate, $hotelTz)->subDays($freeDays)->format('d.m.Y H:i')
+                                                                                : null;
                                                                         @endphp
 
                                                                         <div class="item bed">
                                                                             <div class="name">{{ $rate->bed_type }}</div>
                                                                         </div>
+
                                                                         <div class="item meal">
-                                                                            <div class="name">{{ $rate->meal->__('title') }}</div>
+                                                                            <div class="name">{{ optional($rate->meal)->__('title') }}</div>
                                                                         </div>
 
                                                                         <div class="item cancel">
                                                                             <div class="name">
                                                                                 @if(!$cancel)
-                                                                                    @lang('main.cancellation_rule_not_found').
-                                                                                    {{ $cancelPrice }} {{ $symbol }}
+                                                                                    @lang('main.cancellation_amount'):
+                                                                                    {{ number_format(round($cancelPrice), 0, '.', ' ') }} {{ $symbol }}
                                                                                 @elseif($cancel->cancel_policy === 'free_until_checkin')
-                                                                                    @lang('main.free_cancellation') {{ $freeDate }} UTC {{ $timezone }}. @lang('main.cancellation_amount'): {{ $cancelPrice }} {{ $symbol }}
+                                                                                    @lang('main.free_cancellation') {{ $freeDate }}
+                                                                                    UTC {{ $timezone }}.
+                                                                                    @lang('main.cancellation_amount'): {{ number_format(round($cancelPrice), 0, '.', ' ') }} {{ $symbol }}
                                                                                 @elseif($cancel->cancel_policy === 'free_then_penalty')
                                                                                     @if($cancelCutoffCarbon && now($hotelTz)->lte($cancelCutoffCarbon))
-                                                                                        @lang('main.free_cancellation') {{ $cancelDate }} UTC {{ $timezone }}. @lang('main.cancellation_amount'): {{ $cancelPrice }} {{ $symbol }}
+                                                                                        @lang('main.free_cancellation') {{ $cancelDate }}
+                                                                                        UTC {{ $timezone }}.
+                                                                                        @lang('main.cancellation_amount'): {{ number_format(round($cancelPrice), 0, '.', ' ') }} {{ $symbol }}
                                                                                     @else
-                                                                                        @lang('main.cancellation_is_not_avaialble'). @lang('main.cancellation_amount'): {{ $cancelPrice }} {{ $symbol }}
+                                                                                        @lang('main.cancellation_is_not_avaialble').
+                                                                                        @lang('main.cancellation_amount'): {{ number_format(round($cancelPrice), 0, '.', ' ') }} {{ $symbol }}
                                                                                     @endif
                                                                                 @else
-                                                                                    @lang('main.cancellation_amount'): {{ $cancelPrice }} {{ $symbol }}
+                                                                                    @lang('main.cancellation_amount'):
+                                                                                    {{ number_format(round($cancelPrice), 0, '.', ' ') }} {{ $symbol }}
                                                                                 @endif
                                                                             </div>
                                                                         </div>
 
                                                                         {{-- ЦЕНА --}}
-                                                                        @if($rate->effective_price != $rate->price)
-                                                                            <div class="item price">
-                                                                                {{ number_format(round($converted), 0, '.', ' ') }} {{ $symbol }}
-                                                                            </div>
-                                                                        @else
-                                                                            <div class="item price">
-                                                                                {{ number_format(round($converted), 0, '.', ' ') }} {{ $symbol }}
-                                                                            </div>
-                                                                        @endif
+                                                                        <div class="item price">
+                                                                            {{ number_format(round($converted), 0, '.', ' ') }} {{ $symbol }}
+                                                                        </div>
 
                                                                         <div class="btn-wrap">
                                                                             <form action="{{ route('order', $rate->id) }}">
@@ -216,24 +238,28 @@
                                                                                 <input type="hidden" name="hotel_id" value="{{ $hotel->id }}">
                                                                                 <input type="hidden" name="title" value="{{ $rate->title }}">
                                                                                 <input type="hidden" name="sum" value="{{ round($converted) }}">
+
                                                                                 @if(!$cancel)
                                                                                     <input type="hidden" name="cancelText" value="@lang('main.cancellation_rule_not_found')">
                                                                                     <input type="hidden" name="cancelPrice" value="0">
                                                                                 @elseif($cancel->cancel_policy === 'free_until_checkin')
-                                                                                    <input type="hidden" name="cancelText" value="@lang('main.free_cancellation') {{ $freeDate }} UTC {{ $timezone }}. @lang('main.cancellation_amount')">
-                                                                                    <input type="hidden" name="cancelPrice" value="{{ $cancelPrice }}">
+                                                                                    <input type="hidden" name="cancelText"
+                                                                                           value="@lang('main.free_cancellation') {{ $freeDate }} UTC {{ $timezone }}. @lang('main.cancellation_amount')">
+                                                                                    <input type="hidden" name="cancelPrice" value="{{ number_format(round($cancelPrice), 0, '.', ' ') }}">
                                                                                 @elseif($cancel->cancel_policy === 'free_then_penalty')
                                                                                     @if($cancelCutoffCarbon && now($hotelTz)->lte($cancelCutoffCarbon))
-                                                                                        <input type="hidden" name="cancelText" value="@lang('main.free_cancellation') {{ $cancelDate }} UTC {{ $timezone }}. @lang('main.cancellation_amount')">
-                                                                                        <input type="hidden" name="cancelPrice" value="{{ $cancelPrice }}">
+                                                                                        <input type="hidden" name="cancelText"
+                                                                                               value="@lang('main.free_cancellation') {{ $cancelDate }} UTC {{ $timezone }}. @lang('main.cancellation_amount')">
+                                                                                        <input type="hidden" name="cancelPrice" value="{{ number_format(round($cancelPrice), 0, '.', ' ') }}">
                                                                                     @else
                                                                                         <input type="hidden" name="cancelText" value="@lang('main.cancellation_is_not_avaialble')">
                                                                                         <input type="hidden" name="cancelPrice" value="0">
                                                                                     @endif
                                                                                 @else
                                                                                     <input type="hidden" name="cancelText" value="@lang('main.cancellation_amount')">
-                                                                                    <input type="hidden" name="cancelPrice" value="{{ $cancelPrice }}">
+                                                                                    <input type="hidden" name="cancelPrice" value="{{ number_format(round($cancelPrice), 0, '.', ' ') }}">
                                                                                 @endif
+
                                                                                 <input type="hidden" name="currency" value="{{ $symbol }}">
                                                                                 <button class="more">@lang('main.book')</button>
                                                                             </form>
@@ -245,6 +271,7 @@
                                                     </div>
                                                 </div>
                                             </div>
+
                                         @endforeach
                                     </div>
                                 </div>
@@ -290,6 +317,7 @@
                                 {{ $hotel?->__('address') }}
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>

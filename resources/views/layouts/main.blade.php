@@ -174,11 +174,11 @@
                     <div class="col-lg-3 col-md-6">
                         <div class="footer-item">
                             <ul>
-                                <li>{{ $contacts->first()->__('address') }}</li>
-                                <li><a href="tel:{{ $contacts->first()->phone }}">{{ $contacts->first()->phone }}</a></li>
-                                <li><a href="mailto:{{ $contacts->first()->email }}">{{ $contacts->first()->email }}</a></li>
-                                <li><a href="{{ $contacts->first()->instagram }}" target="_blank">Instagram</a></li>
-                                <li><a href="https://wa.me/{{ $contacts->first()->whatsapp }}" target="_blank">WhatsApp</a>
+                                <li>{{ $contacts['address'] ?? '' }}</li>
+                                <li><a href="tel:{{ $contacts['phone'] ?? '' }}">{{ $contacts['phone'] ?? '' }}</a></li>
+                                <li><a href="mailto:{{ $contacts['email'] ?? '' }}">{{ $contacts['email'] ?? '' }}</a></li>
+                                <li><a href="{{ $contacts['instagram'] ?? '' }}" target="_blank">Instagram</a></li>
+                                <li><a href="https://wa.me/{{ $contacts['whatsapp'] ?? '' }}" target="_blank">WhatsApp</a>
                                 </li>
                             </ul>
                         </div>
@@ -231,11 +231,11 @@
                     <div class="col-6">
                         <div class="footer-item">
                             <ul>
-                                <li>{{ $contacts->first()->__('address') }}</li>
-                                <li><a href="tel:{{ $contacts->first()->phone }}">{{ $contacts->first()->phone }}</a></li>
-                                <li><a href="mailto:{{ $contacts->first()->email }}">{{ $contacts->first()->email }}</a></li>
-                                <li><a href="{{ $contacts->first()->instagram }}" target="_blank">Instagram</a></li>
-                                <li><a href="https://wa.me/{{ $contacts->first()->whatsapp }}" target="_blank">WhatsApp</a>
+                                <li>{{ $contacts['address'] ?? '' }}</li>
+                                <li><a href="tel:{{ $contacts['phone'] ?? '' }}">{{ $contacts['phone'] ?? '' }}</a></li>
+                                <li><a href="mailto:{{ $contacts['email'] ?? '' }}">{{ $contacts['email'] ?? '' }}</a></li>
+                                <li><a href="{{ $contacts['instagram'] ?? '' }}" target="_blank">Instagram</a></li>
+                                <li><a href="https://wa.me/{{ $contacts['whatsapp'] ?? '' }}" target="_blank">WhatsApp</a>
                                 </li>
                                 <li><a href="{{ route('service') }}">@lang('main.about_service')</a></li>
                                 <li><a href="{{ route('about') }}">@lang('main.about_company')</a></li>

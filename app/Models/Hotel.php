@@ -65,6 +65,7 @@ class Hotel extends Model
         'status',
         'metapolicy_struct',
         'metapolicy_extra_info',
+        'apiName'
     ];
 
     protected $casts = [

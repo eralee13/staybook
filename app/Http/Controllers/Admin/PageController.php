@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PageRequest;
 use App\Models\Book;
+use App\Models\Hotel;
 use App\Models\Page;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
@@ -100,6 +101,18 @@ class PageController extends Controller
 
     public function console()
     {
+        $local = Hotel::where(function($q){
+            $q->whereNull('exely_id')->orWhere('exely_id', '');
+        })
+            ->where(function($q){
+                $q->whereNull('tourmind_id')->orWhere('tourmind_id', '');
+            })
+            ->where(function($q){
+                $q->whereNull('emerging_id')->orWhere('emerging_id', '');
+            })
+            ->count();
+
+        $exely = Hotel::where('exely_id', '!=', '')->count();
         $months = collect(range(0, 11))->map(function ($i) {
             return Carbon::now()->subMonths($i)->format('Y-m');
         })->reverse();
@@ -112,7 +125,8 @@ class PageController extends Controller
         return view('auth.pages.console', [
             'labels' => $months->values()->toArray(),
             'data'   => $data->values()->toArray(),
+            'local'  => $local,
+            'exely'  => $exely,
         ]);
-
     }
 }

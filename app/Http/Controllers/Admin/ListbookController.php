@@ -151,8 +151,9 @@ class ListbookController extends Controller
 
             if ($response->successful()) {
                 $cancel = $response->object();
-                Book::where('book_token', $cancel->booking->number)->update(['status' => 'Cancelled']);
-                Log::warning('Отмена брони: ' . $book->id);
+                Book::where('id', $request->book_id)->update(['status' => 'Cancelled']);
+                $book = Book::where('id', $request->book_id)->first();
+                Log::warning('Отмена брони: ' . $request->book_id);
                 $email = Contact::first()->email;
                 Mail::to($email)->send(new BookCancelMail($book));
                 return view('auth.listbooks.cancel-confirm-exely', compact('cancel'));

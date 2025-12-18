@@ -163,8 +163,7 @@ Route::middleware('set_locale')->group(function () {
     //-----search
     Route::get('/search', [SearchController::class, 'search'])->name('search');
     // routes/web.php
-    Route::get('/search/suggest', [\App\Http\Controllers\SearchController::class, 'suggest'])
-        ->name('search.suggest'); // вне middleware('auth')
+    Route::get('/search/suggest', [\App\Http\Controllers\SearchController::class, 'suggest'])->name('suggest'); // вне middleware('auth')
 
     Route::get('/suggest', [\App\Http\Controllers\SearchController::class, 'suggest'])
         ->name('search.suggest'); // вне middleware('auth')
@@ -259,16 +258,4 @@ Route::get('/clear-cache', function () {
 Route::get('/actualize-currency', function () {
     $cacheKey = 'fx_central_rates';
     return  Cache::get($cacheKey);
-});
-
-
-Route::get('/__health', fn() => response('OK', 200));
-
-Route::get('/__db', function() {
-    try {
-        \DB::connection()->getPdo();
-        return 'DB OK';
-    } catch (\Throwable $e) {
-        return 'DB FAIL: '.$e->getMessage();
-    }
 });

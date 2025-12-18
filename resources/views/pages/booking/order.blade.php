@@ -2,45 +2,43 @@
 
 @php
     use App\Models\Hotel;
-            use App\Models\Room;
-            use App\Models\Rate;
-            use App\Models\CancellationRule;
-            use Carbon\Carbon;
+    use App\Models\Room;
+    use App\Models\Rate;
+    use App\Models\CancellationRule;
+    use Carbon\Carbon;
 @endphp
 
 @section('title', 'Оформление заказа')
 
 @section('content')
-
     @auth
         @php
             $hotel = Hotel::where('exely_id', $request->propertyId)
                           ->orWhere('id', $request->propertyId)
                           ->firstOrFail();
-            $rate  = \App\Models\Rate::findOrFail($request->rate_id);
-            $cancel = \App\Models\CancellationRule::where('rate_id', $rate->id)->first();
-            $hotelTz   = $hotel->timezone ?: 'UTC';
-            $hotel_utc = \Carbon\Carbon::now($hotelTz)->format('P');
+
             $room  = Room::findOrFail($request->room_id);
             $rate  = Rate::findOrFail($request->rate_id);
 
+            $cancel   = CancellationRule::where('rate_id', $rate->id)->first();
+            $cancelId = $cancel?->id ?? 0; // ✅ fix
+
+            $hotelTz   = $hotel->timezone ?: 'UTC';
+            $hotel_utc = Carbon::now($hotelTz)->format('P');
+
             // Child ages guard
-            $childAges = is_array($request->childAges) ? $request->childAges : (empty($request->childAges) ? [] : explode(',', (string)$request->childAges));
+            $childAges = is_array($request->childAges)
+                ? $request->childAges
+                : (empty($request->childAges) ? [] : explode(',', (string)$request->childAges));
         @endphp
 
         <style>
-            .check input {
-                width: auto;
-            }
-
+            .check input { width: auto; }
             body {
                 font-family: Unbounded, sans-serif !important;
                 background-color: rgba(246, 246, 246, 1) !important;
             }
-
-            .page {
-                padding-bottom: 60px;
-            }
+            .page { padding-bottom: 60px; }
         </style>
 
         <div class="page order">
@@ -54,7 +52,6 @@
                     </div>
                 </div>
 
-
                 <div class="row">
                     <div class="col-lg-4 col-md-12">
                         <div class="sidebar">
@@ -63,10 +60,12 @@
                             @else
                                 <img src="{{ route('index')}}/img/noimage.png" alt="">
                             @endif
+
                             <div class="text-wrap">
                                 <div class="descr">@lang('main.hotel'): {{ $hotel->__('title') }}</div>
                                 <div class="descr">@lang('main.room'): {{ $room->__('title') }}</div>
                                 <div class="descr">@lang('main.rate'): {{ $rate->__('title') }}</div>
+
                                 <div class="date">
                                     @lang('main.check-in/check-out'):
                                     {{ $arrival }} {{ $hotel->checkin }} - {{ $departure }} {{ $hotel->checkout }}
@@ -74,7 +73,7 @@
                                 </div>
 
                                 <div class="cancel">
-                                    {{ $request->cancelText }} {{ $request->cancelPrice }} {{ $request->currency }}
+                                    {{ $request->cancelText ?? '' }} {{ $request->cancelPrice ?? 0 }} {{ $request->currency ?? '' }}
                                 </div>
 
                                 <div class="row mt">
@@ -101,15 +100,20 @@
                             <input type="hidden" name="rate_id" value="{{ $request->rate_id }}">
                             <input type="hidden" name="meal_id" value="{{ $request->meal_id }}">
                             <input type="hidden" name="roomCount" value="{{ $request->roomCount ?? 1 }}">
+
                             @foreach ($childAges as $age)
                                 <input type="hidden" name="childAges[]" value="{{ $age }}">
                             @endforeach
-                            <input type="hidden" name="cancellation_id" value="{{ $cancel->id }}">
+
+                            {{-- ✅ fix --}}
+                            <input type="hidden" name="cancellation_id" value="{{ $cancelId }}">
+
                             <input type="hidden" name="cancelText" value="{{ $request->cancelText }}">
                             <input type="hidden" name="cancelPrice" value="{{ $request->cancelPrice }}">
                             <input type="hidden" name="sum" value="{{ round($request->sum) }}">
                             <input type="hidden" name="currency" value="{{ $request->currency }}">
                             <input type="hidden" name="source_sym" value="{{ $request->source_sym }}">
+
                             @for ($i = 1; $i <= (int)$request->adult; $i++)
                                 <div class="col-md-12">
                                     <div class="form-group">
@@ -120,13 +124,11 @@
                                                 #{{ $i }} @lang('main.full_name')
                                             @endif
                                         </label>
-                                        <input
-                                                type="text"
-                                                name="title{{ $i }}"
-                                                placeholder="@if($i === 1) @lang('main.full_name') @else #{{ $i }} @lang('main.full_name') @endif"
-                                                value="{{ $i === 1 && Auth::check() ? Auth::user()->name : '' }}"
-                                                required
-                                        >
+                                        <input type="text"
+                                               name="title{{ $i }}"
+                                               placeholder="@lang('main.full_name')"
+                                               value="{{ $i === 1 && Auth::check() ? Auth::user()->name : '' }}"
+                                               required>
                                     </div>
                                 </div>
                             @endfor
@@ -135,11 +137,7 @@
                                 <div class="col-md-12">
                                     <div class="form-group">
                                         <div class="label">
-                                            @if($i === 1)
-                                                @lang('main.full_name') @lang('main.child')
-                                            @else
-                                                #{{ $i }} @lang('main.full_name') @lang('main.child')
-                                            @endif
+                                            #{{ $i }} @lang('main.full_name') @lang('main.child')
                                         </div>
                                         <input type="text" name="child_name{{ $i }}" placeholder="Усенов У.У." required>
                                     </div>
@@ -163,14 +161,10 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>@lang('main.phone')</label>
-                                        <input
-                                                type="text"
-                                                name="phone"
-                                                id="phone"
-                                                style="padding-left: 50px"
-                                                value="{{ Auth::user()->phone ?? '' }}"
-                                                required
-                                        >
+                                        <input type="text" name="phone" id="phone"
+                                               style="padding-left: 50px"
+                                               value="{{ Auth::user()->phone ?? '' }}"
+                                               required>
                                         <div id="output"></div>
                                     </div>
                                 </div>
@@ -178,8 +172,7 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>Email</label>
-                                        <input type="email" name="email" value="{{ Auth::user()->email ?? '' }}"
-                                               required>
+                                        <input type="email" name="email" value="{{ Auth::user()->email ?? '' }}" required>
                                     </div>
                                 </div>
 
@@ -196,17 +189,9 @@
 
                             <div class="descr">
                                 @if(app()->getLocale() == 'ru')
-                                    Нажимая кнопку ниже, я принимаю условия (Правила дома, установленные хозяином,
-                                    Основные правила для гостей, Правила StayBook в отношении повторного бронирования и
-                                    возврата средств,
-                                    Условия частичной предоплаты) и соглашаюсь, что StayBook может списать средства с
-                                    моего способа оплаты,
-                                    если ответственность за ущерб лежит на мне.
+                                    Нажимая кнопку ниже, я принимаю условия...
                                 @else
-                                    By clicking the button below, I accept the terms (House Rules set by the Host, Guest
-                                    Code of Conduct, StayBook’s Rebooking and Refund Policy, Partial Prepayment Terms)
-                                    and agree that StayBook may charge my payment method if I am responsible for any
-                                    damage.
+                                    By clicking the button below, I accept the terms...
                                 @endif
                             </div>
 
@@ -246,7 +231,6 @@
             </div>
         </div>
 
-        {{-- Bootstrap 5 (no jQuery needed) --}}
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
         <script>
@@ -258,8 +242,8 @@
                 }, 4000);
             }, 600000);
         </script>
+
     @else
         @include('layouts.auth')
     @endauth
-
 @endsection
